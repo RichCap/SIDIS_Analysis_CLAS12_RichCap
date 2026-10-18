@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import threading
@@ -16,7 +17,7 @@ if(_BOOT not in sys.path):
 from Campaign.early_chain import evgen_dir
 from Campaign.ifarm_inputs import classify_rho_name, load_ifarm_inputs, rho_source_token
 from Campaign.rc_pairs import pair_rad_nrad, report_pairs
-from jlab_work_paths import REL_HADD, data_root_path, dataframe_output_dir
+from jlab_work_paths import REL_FILE_BATCHES, REL_HADD, data_root_path, dataframe_output_dir
 
 EMAIL_TO = "richard.capobianco@uconn.edu"
 BINNED_EVGEN = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch"
@@ -128,6 +129,14 @@ def hipo_file_num(name):
     return parts[-1].split(".hipo")[0]
 
 
+def root_module_ready():
+    try:
+        import ROOT
+        return True
+    except Exception:
+        return False
+
+
 def root_is_usable(path, need_h22=True):
     # Header check only. Do not read histograms or event counts.
     # Groovy and DataFrame files carry an h22 tree. BC and RC histogram files do not.
@@ -213,6 +222,19 @@ def split_groovy_outputs(paths, source, mc_type):
     return done, missing
 
 
+def dataframes_are_ready(data_root, rho_paths, clasdis_paths):
+    groups = [("rho0", "gdf", rho_paths), ("rho0", "mdf", rho_paths), ("clasdis", "gdf", clasdis_paths), ("clasdis", "mdf", clasdis_paths)]
+    for source, mc_type, hipos in groups:
+        done_roots, missing_hipos = split_groovy_outputs(hipos, source, mc_type)
+        if((len(hipos) == 0) or (len(missing_hipos) > 0)):
+            return False
+        for groovy_path in done_roots:
+            frame = dataframe_output_path(groovy_path, mc_type, data_root)
+            if((frame == "") or (not root_is_usable(frame))):
+                return False
+    return True
+
+
 def dataframe_output_path(groovy_path, data_type, data_root):
     text = os.path.basename(groovy_path).split(".hipo")[0]
     if(".new10." not in text):
@@ -248,34 +270,347 @@ def bc_output_name(input_path):
     return "Sub_Bin_Contents_for_BC_Correction_%s.root" % name
 
 
-def bc_output_candidates(input_path):
+def bc_root_dir():
+    return os.path.join(_BOOT, "BC_Corrections", "ROOT_Files_Output")
+
+
+def bc_output_candidates(input_path, label):
+    # Nominal files stay in the flat ceph directory or its Path_to_Volatile runs.
+    # Sensitivity files stay in sens_<var>_<value> and are not mixed into that search.
     out_name = bc_output_name(input_path)
     found = []
-    flat = os.path.join(_BOOT, "BC_Corrections", "ROOT_Files_Output", out_name)
+    if(label == ""):
+        flat = os.path.join(bc_root_dir(), out_name)
+        if(os.path.isfile(flat)):
+            found.append(flat)
+        matches = glob.glob(os.path.join(bc_root_dir(), "Path_to_Volatile", "*", out_name))
+        for match in sorted(matches):
+            if(match not in found):
+                found.append(match)
+        return found
+    flat = os.path.join(bc_root_dir(), label, out_name)
     if(os.path.isfile(flat)):
         found.append(flat)
-    matches = glob.glob(os.path.join(_BOOT, "BC_Corrections", "ROOT_Files_Output", "Path_to_Volatile", "*", out_name))
-    for match in sorted(matches):
-        if(match not in found):
-            found.append(match)
     return found
 
 
-def bc_output_path(input_path):
-    for path in bc_output_candidates(input_path):
-        if(root_is_usable(path, need_h22=False)):
+def bc_expected_bins():
+    # Same kept bins as Create_Histograms_for_BC. Do not copy its skip list.
+    from MyCommonAnalysisFunction_richcap import skip_condition_z_pT_bins
+    bins = []
+    for q2_bin in range(1, 18):
+        for zpt_bin in range(1, 37):
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=q2_bin, Z_PT_BIN=zpt_bin, BINNING_METHOD="Y_bin")):
+                continue
+            bins.append((q2_bin, zpt_bin))
+    return bins
+
+
+def bc_hist_name(q2_bin, zpt_bin):
+    # Every direct command passes -nb 3 -nbphi 2. Per-axis overrides are not in this name.
+    return "Histogram Bin (%d-%d)-(Num SubBins=3)-(Extra phi_h SubBins=2)" % (q2_bin, zpt_bin)
+
+
+def bc_nsub(counts):
+    return counts["q2"] * counts["y"] * counts["z"] * counts["pt"] * counts["phi"]
+
+
+BC_STATUS_CACHE = {}
+
+
+def bc_histogram_status(path, counts):
+    # Names, classes, and axis sizes only. Bin contents are not read.
+    # "unread" means the file was not judged, so the caller must not delete it.
+    if((path in [None, ""]) or (not os.path.isfile(path))):
+        return "missing"
+    try:
+        stamp = (os.path.getsize(path), os.path.getmtime(path))
+    except OSError:
+        return "unread"
+    cache_key = (os.path.abspath(path), counts["q2"], counts["y"], counts["z"], counts["pt"], counts["phi"], stamp)
+    if(cache_key in BC_STATUS_CACHE):
+        return BC_STATUS_CACHE[cache_key]
+    if(stamp[0] <= 0):
+        BC_STATUS_CACHE[cache_key] = "incomplete"
+        return "incomplete"
+    try:
+        import ROOT
+    except Exception:
+        return "unread"
+    expected = []
+    for q2_bin, zpt_bin in bc_expected_bins():
+        expected.append(bc_hist_name(q2_bin, zpt_bin))
+    nx_need = bc_nsub(counts) + 2
+    root_file = None
+    status = "unread"
+    try:
+        root_file = ROOT.TFile.Open(str(path), "READ")
+        if(root_file is None):
+            status = "incomplete"
+        elif(root_file.IsZombie()):
+            status = "incomplete"
+        elif(hasattr(ROOT.TFile, "kRecovered") and root_file.TestBit(ROOT.TFile.kRecovered)):
+            status = "incomplete"
+        else:
+            classes = {}
+            for key in root_file.GetListOfKeys():
+                classes[str(key.GetName())] = str(key.GetClassName())
+            status = "complete"
+            for name, klass in classes.items():
+                if(name.startswith("Histogram Bin (") and (name not in expected)):
+                    status = "incomplete"
+            if(status == "complete"):
+                for name in expected:
+                    if("TH2" not in classes.get(name, "")):
+                        status = "incomplete"
+                        break
+                    hist = root_file.Get(name)
+                    if(hist is None):
+                        status = "incomplete"
+                        break
+                    if((hist.GetNbinsX() != nx_need) or (hist.GetNbinsY() != 24)):
+                        status = "incomplete"
+                        break
+    except Exception:
+        status = "unread"
+    finally:
+        if(root_file is not None):
+            try:
+                root_file.Close()
+            except Exception:
+                pass
+    if(status != "unread"):
+        BC_STATUS_CACHE[cache_key] = status
+    return status
+
+
+def bc_histograms_match(path, counts):
+    return bc_histogram_status(path, counts) == "complete"
+
+
+def bc_output_path(input_path, label, counts):
+    saw_unread = False
+    for path in bc_output_candidates(input_path, label):
+        status = bc_histogram_status(path, counts)
+        if(status == "complete"):
             return path
+        if(status == "unread"):
+            saw_unread = True
+    if(saw_unread):
+        return None
     return ""
 
 
-def remove_unusable_bc_outputs(input_path, dry_run):
-    # BC opens an existing file in UPDATE. A bad file has to be removed or its old histograms stay.
-    for path in bc_output_candidates(input_path):
-        if(root_is_usable(path, need_h22=False)):
+def bc_complete_outputs(inputs, label, counts):
+    found = []
+    seen = set()
+    for bc_input in inputs:
+        path = bc_output_path(bc_input, label, counts)
+        if(path is None):
+            return None
+        if((path == "") or (path in seen)):
             continue
-        print("removing unusable BC output so it is recreated: %s" % path)
+        seen.add(path)
+        found.append(path)
+    return found
+
+
+def remove_incomplete_bc_outputs(input_path, label, counts, dry_run):
+    # BC opens an existing file in UPDATE. A partial file has to be removed or its old histograms stay.
+    for path in bc_output_candidates(input_path, label):
+        status = bc_histogram_status(path, counts)
+        if(status == "complete"):
+            continue
+        if(status == "unread"):
+            print("could not inspect BC output; it was left in place: %s" % path)
+            return False
+        print("removing incomplete BC output so it is recreated: %s" % path)
         if(not dry_run):
             os.remove(path)
+    return True
+
+
+def bc_merged_path(label):
+    folder = bc_root_dir() if(label == "") else os.path.join(bc_root_dir(), label)
+    return os.path.join(folder, "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.root")
+
+
+def bc_json_path(label):
+    if(label == ""):
+        return os.path.join(_BOOT, "BC_Corrections", "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json")
+    return os.path.join(bc_root_dir(), label, "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json")
+
+
+def bc_json_complete(path, counts):
+    if(not text_is_present(path)):
+        return False
+    try:
+        handle = open(path)
+        payload = json.load(handle)
+        handle.close()
+    except Exception:
+        return False
+    meta = payload.get("meta", {})
+    expected_meta = {
+        "num_sub_bins": 3,
+        "extra_num_phi_sub_bins": 2,
+        "num_sub_bins_q2": counts["q2"],
+        "num_sub_bins_y": counts["y"],
+        "num_sub_bins_z": counts["z"],
+        "num_sub_bins_pt": counts["pt"],
+        "num_sub_bins_phi": counts["phi"],
+    }
+    for key, value in expected_meta.items():
+        if(key not in meta):
+            return False
+        if(int(meta[key]) != value):
+            return False
+    results = payload.get("results", {})
+    for q2_bin, zpt_bin in bc_expected_bins():
+        for phi_bin in range(1, 25):
+            if(("Bin (%d-%d-%d)" % (q2_bin, zpt_bin, phi_bin)) not in results):
+                return False
+    return True
+
+
+def bc_worker_command(label, counts):
+    if(label == ""):
+        out_rel = "ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction.root"
+        return "./BC_Corrections_Script.py -nb 3 -nbphi 2 -hi -ufn --root_file_out %s" % out_rel
+    out_rel = "ROOT_Files_Output/%s/Sub_Bin_Contents_for_BC_Correction.root" % label
+    return "./BC_Corrections_Script.py -nb 3 -nbphi 2 -nbq %d -nby %d -nbz %d -nbpt %d -nbh %d -hi -ufn --root_file_out %s" % (
+        counts["q2"], counts["y"], counts["z"], counts["pt"], counts["phi"], out_rel)
+
+
+def bc_factor_argv(factor, json_path, dest, counts, message, nominal):
+    argv = [factor, "-jf", json_path, "-nb", "3", "-nbphi", "2"]
+    if(not nominal):
+        argv.extend(["-nbq", str(counts["q2"]), "-nby", str(counts["y"]), "-nbz", str(counts["z"]), "-nbpt", str(counts["pt"]), "-nbh", str(counts["phi"])])
+    argv.extend(["-bc", "--root_file_out", dest, "-e", "-em", message])
+    return argv
+
+
+def bc_phase_names(label):
+    if(label == ""):
+        return "bc_hist", "bc_hadd", "bc_factors"
+    return "bc_hist_%s" % label, "bc_hadd_%s" % label, "bc_factors_%s" % label
+
+
+def bc_configurations(systematics):
+    nominal = {"label": "", "counts": {"q2": 3, "y": 3, "z": 3, "pt": 3, "phi": 5}}
+    configs = [nominal]
+    if(systematics not in ["all", "bc_subdivision"]):
+        return configs
+    handle = open(os.path.join(os.path.dirname(__file__), "systematics.json"))
+    table = json.load(handle)["bc_sensitivity"]
+    handle.close()
+    for variable in ["q2", "y", "z", "pt", "phi"]:
+        for value in table[variable]:
+            counts = {"q2": 1, "y": 1, "z": 1, "pt": 1, "phi": 1}
+            counts[variable] = int(value)
+            configs.append({"label": "sens_%s_%s" % (variable, value), "counts": counts})
+    return configs
+
+
+def hadd_executable():
+    # hadd_richcap is an alias for $ROOTSYS/bin/hadd. Python does not expand aliases.
+    rootsys = os.environ.get("ROOTSYS", "")
+    if(rootsys == ""):
+        return ""
+    path = os.path.join(rootsys, "bin", "hadd")
+    if(not os.path.isfile(path)):
+        return ""
+    return path
+
+
+def bc_hadd_argv(dest, inputs):
+    hadd = hadd_executable()
+    if(hadd == ""):
+        return []
+    return [hadd, dest] + list(inputs)
+
+
+def rc_factor_names():
+    # Same bins Create_RC_Factors writes for --Q2_y_Bin -1 and --Normalize_Weight.
+    from MyCommonAnalysisFunction_richcap import Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins
+    names = []
+    for q2_bin in range(0, 18):
+        q2_tag = "All" if(q2_bin == 0) else str(q2_bin)
+        z_max = 0 if(q2_bin == 0) else Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=q2_bin)[1]
+        for zpt_bin in range(0, z_max + 1):
+            if((zpt_bin != 0) and skip_condition_z_pT_bins(Q2_Y_BIN=q2_bin, Z_PT_BIN=zpt_bin)):
+                continue
+            z_tag = "All" if(zpt_bin == 0) else str(zpt_bin)
+            names.append("(RC_Factor)_(gdf)_(SMEAR='')_(Q2_y_Bin_%s)_(z_pT_Bin_%s)_(phi_t)_(Normalized_Weight)" % (q2_tag, z_tag))
+    return names
+
+
+def rc_factors_complete(path):
+    if(not root_is_usable(path, need_h22=False)):
+        return False
+    try:
+        import ROOT
+    except Exception:
+        return False
+    root_file = None
+    try:
+        root_file = ROOT.TFile.Open(str(path), "READ")
+        if(root_file is None):
+            return False
+        if(root_file.IsZombie()):
+            return False
+        classes = {}
+        for key in root_file.GetListOfKeys():
+            classes[str(key.GetName())] = str(key.GetClassName())
+        for name in rc_factor_names():
+            if(not classes.get(name, "").startswith("TH1")):
+                return False
+        return True
+    except Exception:
+        return False
+    finally:
+        if(root_file is not None):
+            try:
+                root_file.Close()
+            except Exception:
+                pass
+
+
+def rc_compare_argv(compare, rc_out):
+    # -r is the unfolding file. -usf reads histograms already stored in the factor working file.
+    return [compare, "-usf", "-sfn", rc_out, "-ssf", "-rc", "-Nw", "-evgen"]
+
+
+def rho_fit_argv(fit, data_root, token, merged):
+    # Get_rho_Normalization_values.py accepts neither -e nor -em.
+    return [fit, "-droot", data_root, "-st", token, "-usf", "-f1", merged]
+
+
+def finish_phase(args, phase, next_phase):
+    if(args.dry_run):
+        return
+    record_phase(input_folder(args.data_root, False), phase, "success")
+    mail_note("SIDIS phase %s finished" % phase, "phase %s finished.\nnext phase: %s\n" % (phase, next_phase if(next_phase) else "none"))
+
+
+def rc_build_outputs_ready(task_list, merged):
+    if(not os.path.isfile(task_list)):
+        return False
+    if(not root_is_usable(merged, need_h22=False)):
+        return False
+    saw_worker = False
+    handle = open(task_list)
+    for line in handle:
+        line = line.strip()
+        if((line == "") or line.startswith("#")):
+            continue
+        parts = line.split("\t")
+        saw_worker = True
+        if((len(parts) < 4) or (not root_is_usable(parts[3], need_h22=False))):
+            handle.close()
+            return False
+    handle.close()
+    return saw_worker
 
 
 def expand_patterns(patterns):
@@ -613,6 +948,7 @@ def run_early(args):
         mail_note("SIDIS phase groovy finished", "phase groovy finished.\nnext phase: dataframe\n")
     note = phase_message(args, "dataframe")
     dataframe_steps = []
+    frames_ready = dataframes_are_ready(args.data_root, rho_paths, clasdis_paths)
     for group, source, mc_type, hipos in [("rho_gdf", "rho0", "gdf", rho_paths), ("rho_mdf", "rho0", "mdf", rho_paths), ("55na_gdf", "clasdis", "gdf", clasdis_paths), ("55na_mdf", "clasdis", "mdf", clasdis_paths)]:
         done_roots, missing_hipos = split_groovy_outputs(hipos, source, mc_type)
         if((len(missing_hipos) > 0) and (not args.dry_run)):
@@ -629,30 +965,54 @@ def run_early(args):
             continue
         listed = write_path_list(folder, "dataframe_missing_%s.txt" % group, need)
         dataframe_steps.append(("dataframe_%s" % group, [helper, "-droot", args.data_root, "-o", "work", "-il", listed, "-dtype", mc_type, "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames))
+    batch_file = os.path.join(data_root_path(args.data_root), REL_FILE_BATCHES)
+    review_file = os.path.join(frames, "exclusive_rho_review_%s.txt" % token)
+    if(frames_ready and text_is_present(batch_file)):
+        print("phase make_batches done")
+        batch_steps = []
+    else:
+        batch_steps = [
+            ("make_batches", [batches, "-droot", args.data_root, "-m", "make_batches", "-rst", token, "-e", "-em", phase_message(args, "make_batches")], frames),
+        ]
     phases = [
         ("dataframe", dataframe_steps, "make_batches"),
-        ("make_batches", [
-            ("make_batches", [batches, "-droot", args.data_root, "-m", "make_batches", "-rst", token, "-e", "-em", phase_message(args, "make_batches")], frames),
-        ], "rho_hist"),
+        ("make_batches", batch_steps, "rho_hist"),
         ("rho_hist", [] if(root_is_usable(merged)) else [
             ("rho_hist", [submit, "-droot", args.data_root, "-m", "hybrid", "-rho", "-jrho0", "10", "-n", token, "-e", "-em", phase_message(args, "rho_hist")], frames),
         ], "rho_fit"),
-        ("rho_fit", [] if(text_is_present(os.path.join(frames, "exclusive_rho_review_%s.txt" % token))) else [
-            ("rho_fit", [fit, "-droot", args.data_root, "-st", token, "-usf", "-f1", merged, "-e", "-em", phase_message(args, "rho_fit")], frames),
+        ("rho_fit", [] if(text_is_present(review_file)) else [
+            # ("rho_fit", [fit, "-droot", args.data_root, "-st", token, "-usf", "-f1", merged, "-e", "-em", phase_message(args, "rho_fit")], frames),
+            ("rho_fit", rho_fit_argv(fit, args.data_root, token, merged), frames),
         ], ""),
     ]
     if(root_is_usable(merged)):
         print("phase rho_hist done")
-    if(text_is_present(os.path.join(frames, "exclusive_rho_review_%s.txt" % token))):
+    if(text_is_present(review_file)):
         print("phase rho_fit done")
     for phase, steps, next_phase in phases:
         for stage, argv, cwd in steps:
             code = run_command(stage, argv, cwd, args.dry_run, next_phase, mail_success=False)
             if(code != 0):
                 return code
-        if(not args.dry_run):
-            record_phase(folder, phase, "success")
-            mail_note("SIDIS phase %s finished" % phase, "phase %s finished.\nnext phase: %s\n" % (phase, next_phase if(next_phase) else "none"))
+        if(phase == "dataframe"):
+            ready = dataframes_are_ready(args.data_root, rho_paths, clasdis_paths)
+            detail = "dataframe outputs are still missing"
+        elif(phase == "make_batches"):
+            ready = text_is_present(batch_file)
+            detail = "File_Batches.py is missing"
+        elif(phase == "rho_hist"):
+            ready = root_is_usable(merged)
+            detail = "merged rho histogram is missing"
+        elif(phase == "rho_fit"):
+            ready = text_is_present(review_file)
+            detail = "exclusive_rho_review_%s.txt is missing" % token
+        else:
+            ready = True
+            detail = ""
+        if((not args.dry_run) and (not ready)):
+            mail_stop(phase, detail)
+            return 1
+        finish_phase(args, phase, next_phase)
     if(not args.dry_run):
         print("rho fit finished. Read exclusive_rho_review_%s.txt. Campaign/rho_factors.json is still written by hand before weighted response." % token)
     return 0
@@ -695,6 +1055,9 @@ def run_rc(args):
     if(args.rc_mode != "regenerate"):
         print("rc_mode %s has no direct command" % args.rc_mode)
         return 1
+    if((not args.dry_run) and (not root_module_ready())):
+        mail_stop("rc_compare", "ROOT is not importable; RC outputs were not changed")
+        return 1
     compare_dir = os.path.join(evgen_dir(), "Run_Large_Files_For_Iterative_Corrections", "Comparison_With_Unfolding")
     build = os.path.join(compare_dir, "Build_EvGen_PerFile_Hists.py")
     compare = os.path.join(compare_dir, "Comparison_Between_GEN_and_Unfold.py")
@@ -702,22 +1065,9 @@ def run_rc(args):
     rc_out = os.path.join(RC_RUNTIME, "merged_outputs", "RC_Factors_ifarm_rc.root")
     paired = matched_evgen(args.dry_run)
     task_list = os.path.join(RC_RUNTIME, "evgen_perfile_task_list.txt")
-    workers_ready = False
-    if(os.path.isfile(task_list)):
-        workers_ready = True
-        handle = open(task_list)
-        for line in handle:
-            line = line.strip()
-            if((line == "") or line.startswith("#")):
-                continue
-            parts = line.split("\t")
-            if((len(parts) < 4) or (not root_is_usable(parts[3], need_h22=False))):
-                workers_ready = False
-                break
-        handle.close()
-    if(workers_ready and root_is_usable(merged, need_h22=False)):
+    if(rc_build_outputs_ready(task_list, merged)):
         print("phase rc_build done")
-        code = 0
+        finish_phase(args, "rc_build", "rc_compare")
     else:
         argv = [build, "-m", "hybrid", "-y", "-p", "-mpj", "10", "-e", "-em", phase_message(args, "rc_build"), "-rdir", RC_RUNTIME]
         if(paired is not None):
@@ -725,82 +1075,165 @@ def run_rc(args):
             argv.extend(["-rnrad"] + list(paired["nrad"]))
         else:
             print("RC file list is added when the binned directory is visible")
-        code = run_command("rc_build", argv, compare_dir, args.dry_run, "rc_compare")
+        code = run_command("rc_build", argv, compare_dir, args.dry_run, "rc_compare", mail_success=False)
         if(code != 0):
             return code
-        if(not args.dry_run):
-            record_phase(input_folder(args.data_root, False), "rc_build", "success")
-    if(root_is_usable(rc_out, need_h22=False)):
+        if(args.dry_run):
+            print("phase rc_compare waits until rc_build outputs are complete")
+            print("")
+            print("phase rc_compare")
+            show_command(rc_compare_argv(compare, rc_out))
+            return 0
+        if(not rc_build_outputs_ready(task_list, merged)):
+            mail_stop("rc_build", "build exited 0 but workers or the merged file are incomplete")
+            return 1
+        finish_phase(args, "rc_build", "rc_compare")
+    if(rc_factors_complete(rc_out)):
         print("phase rc_compare done")
+        finish_phase(args, "rc_compare", "")
         return 0
-    argv = [compare, "-r", merged, "-ssf", "-sfn", rc_out, "-rc", "-Nw", "-evgen"]
-    code = run_command("rc_compare", argv, compare_dir, args.dry_run, "")
-    if((code == 0) and (not args.dry_run)):
-        record_phase(input_folder(args.data_root, False), "rc_compare", "success")
-    return code
+    if(root_is_usable(merged, need_h22=False)):
+        if(root_is_usable(rc_out, need_h22=False)):
+            print("RC factor file opens but the weighted factor set is incomplete; leaving the working copy")
+        else:
+            print("copying merged EvGen histograms to the RC factor working file: %s" % rc_out)
+            if(not args.dry_run):
+                os.makedirs(os.path.dirname(rc_out), exist_ok=True)
+                shutil.copy2(merged, rc_out)
+    elif(args.dry_run):
+        print("merged EvGen file is not visible; the compare command is still printed")
+    else:
+        mail_stop("rc_compare", "merged EvGen file is not usable")
+        return 1
+    code = run_command("rc_compare", rc_compare_argv(compare, rc_out), compare_dir, args.dry_run, "", mail_success=False)
+    if(code != 0):
+        return code
+    if(args.dry_run):
+        return 0
+    if(not rc_factors_complete(rc_out)):
+        mail_stop("rc_compare", "comparison exited 0 but the weighted RC factor set is incomplete")
+        return 1
+    finish_phase(args, "rc_compare", "")
+    return 0
 
 
-def run_bc(args):
+def run_bc_config(args, label, counts):
+    hist_phase, hadd_phase, factor_phase = bc_phase_names(label)
     bc_dir = os.path.join(_BOOT, "BC_Corrections")
     runner = os.path.join(bc_dir, "Run_BC_Scripts_Locally.py")
     factor = os.path.join(bc_dir, "BC_Corrections_Script.py")
-    per_file = "./BC_Corrections_Script.py -nb 3 -nbphi 2 -hi -ufn --root_file_out ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction.root"
+    per_file = bc_worker_command(label, counts)
     bc_inputs = expand_patterns([BC_NO_RAD])
     done_inputs = []
     missing_inputs = []
     for bc_input in bc_inputs:
-        if(bc_output_path(bc_input) != ""):
+        found = bc_output_path(bc_input, label, counts)
+        if(found is None):
+            mail_stop(hist_phase, "could not inspect an existing BC output; nothing was removed")
+            return 1
+        if(found != ""):
             done_inputs.append(bc_input)
         else:
             missing_inputs.append(bc_input)
-    print("phase bc_hist: usable %d missing %d" % (len(done_inputs), len(missing_inputs)))
+    print("phase %s: usable %d missing %d" % (hist_phase, len(done_inputs), len(missing_inputs)))
     if(len(bc_inputs) == 0):
-        mail_stop("bc_hist", "No_Rad input glob matched nothing")
+        if(args.dry_run):
+            print("No_Rad input glob matched nothing")
+            return 0
+        mail_stop(hist_phase, "No_Rad input glob matched nothing")
         return 1
-    if(len(missing_inputs) == 0):
-        print("phase bc_hist done")
-        code = 0
-    else:
+    if(len(missing_inputs) > 0):
         for bc_input in missing_inputs:
-            remove_unusable_bc_outputs(bc_input, args.dry_run)
-        argv = [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, "bc_hist"), "-c", per_file]
+            if(not remove_incomplete_bc_outputs(bc_input, label, counts, args.dry_run)):
+                mail_stop(hist_phase, "could not inspect an existing BC output; it was left in place")
+                return 1
+        argv = [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, hist_phase), "-c", per_file]
         if(len(done_inputs) > 0):
             argv.extend(["-ex", ",".join([os.path.basename(path) for path in done_inputs])])
-        code = run_command("bc_hist", argv, bc_dir, args.dry_run, "bc_hadd")
+        code = run_command(hist_phase, argv, bc_dir, args.dry_run, hadd_phase, mail_success=False)
         if(code != 0):
             return code
-    if(not args.dry_run):
-        record_phase(input_folder(args.data_root, False), "bc_hist", "success")
-    fresh_outputs = []
-    for bc_input in bc_inputs:
-        found = bc_output_path(bc_input)
-        if(found != ""):
-            fresh_outputs.append(found)
-    dest = os.path.join(bc_dir, "ROOT_Files_Output", "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.root")
-    made_hadd = False
-    if(len(fresh_outputs) != len(bc_inputs)):
-        mail_stop("bc_hadd", "per-file outputs %d of %d; hadd was not run" % (len(fresh_outputs), len(bc_inputs)))
-        return 1
-    if(root_is_usable(dest, need_h22=False)):
-        print("phase bc_hadd done")
-        code = 0
+        if(args.dry_run):
+            print("phase %s waits until %d of %d per-file outputs are complete" % (hadd_phase, len(done_inputs), len(bc_inputs)))
+            return 0
+        done_inputs = []
+        missing_inputs = []
+        for bc_input in bc_inputs:
+            found = bc_output_path(bc_input, label, counts)
+            if(found is None):
+                mail_stop(hadd_phase, "could not inspect a BC output after the helper exited")
+                return 1
+            if(found != ""):
+                done_inputs.append(bc_input)
+            else:
+                missing_inputs.append(bc_input)
+        if(len(missing_inputs) > 0):
+            mail_stop(hadd_phase, "per-file outputs %d of %d; hadd was not run" % (len(done_inputs), len(bc_inputs)))
+            return 1
     else:
-        relative_inputs = [os.path.relpath(path, bc_dir) for path in fresh_outputs]
-        code = run_command("bc_hadd", ["hadd_richcap", dest] + relative_inputs, bc_dir, args.dry_run, "bc_factors")
+        print("phase %s done" % hist_phase)
+    finish_phase(args, hist_phase, hadd_phase)
+    outputs = bc_complete_outputs(bc_inputs, label, counts)
+    if(outputs is None):
+        mail_stop(hadd_phase, "could not inspect a BC output; hadd was not run")
+        return 1
+    if(len(outputs) != len(bc_inputs)):
+        mail_stop(hadd_phase, "per-file outputs %d of %d; hadd was not run" % (len(outputs), len(bc_inputs)))
+        return 1
+    dest = bc_merged_path(label)
+    json_path = bc_json_path(label)
+    merged_status = bc_histogram_status(dest, counts)
+    if(merged_status == "unread"):
+        mail_stop(hadd_phase, "could not inspect the merged BC file; it was left in place")
+        return 1
+    if(merged_status == "complete"):
+        print("phase %s done" % hadd_phase)
+    else:
+        if(merged_status == "incomplete"):
+            print("removing incomplete BC merge so it is recreated: %s" % dest)
+            if(not args.dry_run):
+                os.remove(dest)
+        hadd_argv = bc_hadd_argv(dest, outputs)
+        if(len(hadd_argv) == 0):
+            mail_stop(hadd_phase, "ROOTSYS is unset or $ROOTSYS/bin/hadd is not a file")
+            return 1
+        code = run_command(hadd_phase, hadd_argv, bc_dir, args.dry_run, factor_phase, mail_success=False)
         if(code != 0):
             return code
-        made_hadd = True
-    if(not args.dry_run):
-        record_phase(input_folder(args.data_root, False), "bc_hadd", "success")
-    json_path = os.path.join(bc_dir, "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json")
-    if(root_is_usable(dest, need_h22=False) and text_is_present(json_path) and (not made_hadd)):
-        print("phase bc_factors done")
+        if(args.dry_run):
+            print("phase %s waits until the merged file is complete" % factor_phase)
+            return 0
+        if(not bc_histograms_match(dest, counts)):
+            mail_stop(hadd_phase, "hadd exited 0 but the merged histogram set is incomplete")
+            return 1
+    finish_phase(args, hadd_phase, factor_phase)
+    if(bc_json_complete(json_path, counts)):
+        print("phase %s done" % factor_phase)
+        finish_phase(args, factor_phase, "")
         return 0
-    argv = [factor, "-jf", json_path, "-nb", "3", "-nbphi", "2", "-bc", "--root_file_out", dest, "-e", "-em", phase_message(args, "bc_factors")]
-    code = run_command("bc_factors", argv, bc_dir, args.dry_run, "")
-    if((code == 0) and (not args.dry_run)):
-        record_phase(input_folder(args.data_root, False), "bc_factors", "success")
-    return code
+    argv = bc_factor_argv(factor, json_path, dest, counts, phase_message(args, factor_phase), label == "")
+    code = run_command(factor_phase, argv, bc_dir, args.dry_run, "", mail_success=False)
+    if(code != 0):
+        return code
+    if(args.dry_run):
+        return 0
+    if(not bc_json_complete(json_path, counts)):
+        mail_stop(factor_phase, "factor script exited 0 but the JSON does not match this configuration")
+        return 1
+    finish_phase(args, factor_phase, "")
+    return 0
+
+
+def run_bc(args):
+    if((not args.dry_run) and (not root_module_ready())):
+        mail_stop("bc_hist", "ROOT is not importable; BC outputs were not changed")
+        return 1
+    choice = getattr(args, "systematics", "nominal")
+    for config in bc_configurations(choice):
+        code = run_bc_config(args, config["label"], config["counts"])
+        if(code != 0):
+            return code
+    return 0
 
 
 def run_direct(args):

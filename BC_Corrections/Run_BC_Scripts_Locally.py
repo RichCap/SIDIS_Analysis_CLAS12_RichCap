@@ -99,12 +99,14 @@ def parse_args():
                         help="Noninteractive approval of SLURM submission (slurm/hybrid).\n")
 
     parser.add_argument("-ord", "--output_root_dir",
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/ROOT_Files_Output/Path_to_Volatile",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/ROOT_Files_Output/Path_to_Volatile",
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "ROOT_Files_Output", "Path_to_Volatile"),
                         type=str,
                         help="Parent directory for run-specific ROOT outputs (a <run_tag> subdirectory is created).\n")
 
     parser.add_argument("-ld", "--log_dir",
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/BC_Log_and_Old_Files",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/BC_Log_and_Old_Files",
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "BC_Log_and_Old_Files"),
                         type=str,
                         help="Parent directory for run-specific logs, file lists, and SLURM scripts.\n")
 
@@ -401,7 +403,9 @@ def write_slurm_array_script(args, script_path, file_list_path, base_cmd, array_
         raise ValueError("SLURM array range is empty.")
     array_spec = f"{array_lo}-{array_hi}"
     cmd_prefix = " ".join([shlex.quote(x) for x in base_cmd])
-    work_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections"
+    # work_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections"
+    # The checkout that launches this script is the one SLURM must run. A shelf cd writes the old code's outputs.
+    work_dir = os.path.dirname(os.path.abspath(__file__))
 
     lines = []
     lines.append("#!/bin/bash")
