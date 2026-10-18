@@ -128,8 +128,9 @@ def hipo_file_num(name):
     return parts[-1].split(".hipo")[0]
 
 
-def root_is_usable(path):
+def root_is_usable(path, need_h22=True):
     # Header check only. Do not read histograms or event counts.
+    # Groovy and DataFrame files carry an h22 tree. BC and RC histogram files do not.
     if((path in [None, ""]) or (not os.path.isfile(path))):
         return False
     try:
@@ -150,6 +151,8 @@ def root_is_usable(path):
             return False
         if(hasattr(ROOT.TFile, "kRecovered") and root_file.TestBit(ROOT.TFile.kRecovered)):
             return False
+        if(not need_h22):
+            return True
         tree_now = root_file.Get("h22")
         if(tree_now is None):
             return False
@@ -181,7 +184,11 @@ def matching_groovy_roots(hipo_path, source, mc_type):
     if(file_num == ""):
         return []
     folder = GEN_DIR if(mc_type == "gdf") else REC_DIR
-    pattern = os.path.join(folder, "*qa.new10.*%s*.root" % file_num)
+    # Rho0 names are inb.qa.rho0.new10.<hipo basename>. Clasdis names are inb.qa.new10.<hipo basename>.
+    if(source == "rho0"):
+        pattern = os.path.join(folder, "*qa.rho0.new10.*%s*.root" % file_num)
+    else:
+        pattern = os.path.join(folder, "*qa.new10.*%s*.root" % file_num)
     found = []
     for path in sorted(glob.glob(pattern)):
         base = os.path.basename(path)
@@ -236,17 +243,39 @@ def write_path_list(folder, name, paths):
     return path
 
 
-def bc_output_path(input_path):
+def bc_output_name(input_path):
     name = os.path.basename(input_path).split("new6.")[-1].replace(".hipo.root", "").replace(".root", "")
-    out_name = "Sub_Bin_Contents_for_BC_Correction_%s.root" % name
+    return "Sub_Bin_Contents_for_BC_Correction_%s.root" % name
+
+
+def bc_output_candidates(input_path):
+    out_name = bc_output_name(input_path)
+    found = []
     flat = os.path.join(_BOOT, "BC_Corrections", "ROOT_Files_Output", out_name)
-    if(root_is_usable(flat)):
-        return flat
+    if(os.path.isfile(flat)):
+        found.append(flat)
     matches = glob.glob(os.path.join(_BOOT, "BC_Corrections", "ROOT_Files_Output", "Path_to_Volatile", "*", out_name))
     for match in sorted(matches):
-        if(root_is_usable(match)):
-            return match
+        if(match not in found):
+            found.append(match)
+    return found
+
+
+def bc_output_path(input_path):
+    for path in bc_output_candidates(input_path):
+        if(root_is_usable(path, need_h22=False)):
+            return path
     return ""
+
+
+def remove_unusable_bc_outputs(input_path, dry_run):
+    # BC opens an existing file in UPDATE. A bad file has to be removed or its old histograms stay.
+    for path in bc_output_candidates(input_path):
+        if(root_is_usable(path, need_h22=False)):
+            continue
+        print("removing unusable BC output so it is recreated: %s" % path)
+        if(not dry_run):
+            os.remove(path)
 
 
 def expand_patterns(patterns):
@@ -682,11 +711,11 @@ def run_rc(args):
             if((line == "") or line.startswith("#")):
                 continue
             parts = line.split("\t")
-            if((len(parts) < 4) or (not root_is_usable(parts[3]))):
+            if((len(parts) < 4) or (not root_is_usable(parts[3], need_h22=False))):
                 workers_ready = False
                 break
         handle.close()
-    if(workers_ready and root_is_usable(merged)):
+    if(workers_ready and root_is_usable(merged, need_h22=False)):
         print("phase rc_build done")
         code = 0
     else:
@@ -701,7 +730,7 @@ def run_rc(args):
             return code
         if(not args.dry_run):
             record_phase(input_folder(args.data_root, False), "rc_build", "success")
-    if(root_is_usable(rc_out)):
+    if(root_is_usable(rc_out, need_h22=False)):
         print("phase rc_compare done")
         return 0
     argv = [compare, "-r", merged, "-ssf", "-sfn", rc_out, "-rc", "-Nw", "-evgen"]
@@ -732,6 +761,8 @@ def run_bc(args):
         print("phase bc_hist done")
         code = 0
     else:
+        for bc_input in missing_inputs:
+            remove_unusable_bc_outputs(bc_input, args.dry_run)
         argv = [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, "bc_hist"), "-c", per_file]
         if(len(done_inputs) > 0):
             argv.extend(["-ex", ",".join([os.path.basename(path) for path in done_inputs])])
@@ -750,7 +781,7 @@ def run_bc(args):
     if(len(fresh_outputs) != len(bc_inputs)):
         mail_stop("bc_hadd", "per-file outputs %d of %d; hadd was not run" % (len(fresh_outputs), len(bc_inputs)))
         return 1
-    if(root_is_usable(dest)):
+    if(root_is_usable(dest, need_h22=False)):
         print("phase bc_hadd done")
         code = 0
     else:
@@ -762,7 +793,7 @@ def run_bc(args):
     if(not args.dry_run):
         record_phase(input_folder(args.data_root, False), "bc_hadd", "success")
     json_path = os.path.join(bc_dir, "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json")
-    if(root_is_usable(dest) and text_is_present(json_path) and (not made_hadd)):
+    if(root_is_usable(dest, need_h22=False) and text_is_present(json_path) and (not made_hadd)):
         print("phase bc_factors done")
         return 0
     argv = [factor, "-jf", json_path, "-nb", "3", "-nbphi", "2", "-bc", "--root_file_out", dest, "-e", "-em", phase_message(args, "bc_factors")]
