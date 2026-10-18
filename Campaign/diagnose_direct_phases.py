@@ -11,7 +11,7 @@ if(_BOOT not in sys.path):
 from Campaign.ifarm_inputs import classify_rho_name, load_ifarm_inputs, rho_source_token
 from Campaign.local_orchestrator import (
     GEN_DIR, RC_RUNTIME, REC_DIR, expand_patterns, groovy_sbatch_path,
-    input_folder, parse_groovy_sbatch, read_manifest_patterns, sacct_tasks,
+    input_folder, matching_groovy_roots, parse_groovy_sbatch, read_manifest_patterns, sacct_tasks,
 )
 from jlab_work_paths import REL_FILE_BATCHES, REL_HADD, data_root_path, dataframe_output_dir, resolve_pipeline_input
 
@@ -56,7 +56,9 @@ def root_verdict(path):
     root_file = None
     try:
         root_file = ROOT.TFile.Open(str(path), "READ")
-        if((root_file is None) or (not root_file) or root_file.IsZombie()):
+        if(root_file is None):
+            return "missing"
+        if(root_file.IsZombie()):
             return "missing"
         recovered = False
         if(hasattr(root_file, "IsRecovered")):
@@ -69,7 +71,7 @@ def root_verdict(path):
     except Exception:
         return "uncertain"
     finally:
-        if(root_file not in [None]):
+        if(root_file is not None):
             try:
                 root_file.Close()
             except Exception:
@@ -194,13 +196,11 @@ def groovy_and_frames(data_root, recovery):
         completed_groovy = []
         uncertain = 0
         for hipo in hipos:
-            status = root_verdict(groovy_output(hipo, source, mc_type))
-            if(status == "completed"):
+            roots = matching_groovy_roots(hipo, source, mc_type)
+            if(len(roots) > 0):
                 completed_groovy.append(hipo)
-            elif(status == "missing"):
-                missing_hipo.append(hipo)
             else:
-                uncertain += 1
+                missing_hipo.append(hipo)
         print("  groovy outputs completed %d missing %d uncertain %d of %d" % (len(completed_groovy), len(missing_hipo), uncertain, len(hipos)))
         if(uncertain > 0):
             frame_ready = False
@@ -215,7 +215,8 @@ def groovy_and_frames(data_root, recovery):
         frame_uncertain = 0
         frame_done = 0
         for hipo in completed_groovy:
-            groovy_file = groovy_output(hipo, source, mc_type)
+            roots = matching_groovy_roots(hipo, source, mc_type)
+            groovy_file = roots[0] if(len(roots) > 0) else ""
             frame = dataframe_output(groovy_file, mc_type, data_root)
             status = root_verdict(frame)
             if(status == "completed"):

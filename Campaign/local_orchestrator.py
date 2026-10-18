@@ -14,15 +14,16 @@ if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 
 from Campaign.early_chain import evgen_dir
-from Campaign.ifarm_inputs import load_ifarm_inputs, rho_source_token
+from Campaign.ifarm_inputs import classify_rho_name, load_ifarm_inputs, rho_source_token
 from Campaign.rc_pairs import pair_rad_nrad, report_pairs
-from jlab_work_paths import REL_HADD, data_root_path
+from jlab_work_paths import REL_HADD, data_root_path, dataframe_output_dir
 
 EMAIL_TO = "richard.capobianco@uconn.edu"
 BINNED_EVGEN = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch"
 RC_RUNTIME = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/build_EvGen_PerFile_Hists_Runtime_ifarm_rc"
 GEN_DIR = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2"
 REC_DIR = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info"
+BC_NO_RAD = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root"
 
 
 def mail_note(subject, body):
@@ -113,6 +114,139 @@ def write_glob_file(folder, name, pattern):
 
 def groovy_command(script, source, mc_type, paths_txt, message):
     return [script, "-m", "hybrid", "-pj", "10", "-na", "-e", "-em", message, "-src", source, "-mc", mc_type, "-ptxt", paths_txt]
+
+
+def hipo_file_num(name):
+    # Same token as Check_Converted_Files.py: the last '-' piece, or the piece after nSidis_00.
+    text = os.path.basename(name)
+    if("nSidis_00" in text):
+        parts = text.split("nSidis_00")
+    else:
+        parts = text.split("-")
+    if(len(parts) < 2):
+        return ""
+    return parts[-1].split(".hipo")[0]
+
+
+def root_is_usable(path):
+    # Header check only. Do not read histograms or event counts.
+    if((path in [None, ""]) or (not os.path.isfile(path))):
+        return False
+    try:
+        if(os.path.getsize(path) <= 0):
+            return False
+    except OSError:
+        return False
+    try:
+        import ROOT
+    except Exception:
+        return False
+    root_file = None
+    try:
+        root_file = ROOT.TFile.Open(str(path), "READ")
+        if(root_file is None):
+            return False
+        if(root_file.IsZombie()):
+            return False
+        if(hasattr(ROOT.TFile, "kRecovered") and root_file.TestBit(ROOT.TFile.kRecovered)):
+            return False
+        tree_now = root_file.Get("h22")
+        if(tree_now is None):
+            return False
+        if(not tree_now.InheritsFrom("TTree")):
+            return False
+        return True
+    except Exception:
+        return False
+    finally:
+        if(root_file is not None):
+            try:
+                root_file.Close()
+            except Exception:
+                pass
+
+
+def text_is_present(path):
+    if(not os.path.isfile(path)):
+        return False
+    try:
+        return os.path.getsize(path) > 0
+    except OSError:
+        return False
+
+
+def matching_groovy_roots(hipo_path, source, mc_type):
+    # Check_Converted_Files.py searches *qa.new10.*<file_num>*.root rather than one exact name.
+    file_num = hipo_file_num(hipo_path)
+    if(file_num == ""):
+        return []
+    folder = GEN_DIR if(mc_type == "gdf") else REC_DIR
+    pattern = os.path.join(folder, "*qa.new10.*%s*.root" % file_num)
+    found = []
+    for path in sorted(glob.glob(pattern)):
+        base = os.path.basename(path)
+        if((source == "rho0") and (".rho0." not in base)):
+            continue
+        if((source != "rho0") and (".rho0." in base)):
+            continue
+        if(root_is_usable(path)):
+            found.append(path)
+    return found
+
+
+def split_groovy_outputs(paths, source, mc_type):
+    done = []
+    missing = []
+    for hipo in paths:
+        roots = matching_groovy_roots(hipo, source, mc_type)
+        if(len(roots) > 0):
+            done.append(roots[0])
+        else:
+            missing.append(hipo)
+    return done, missing
+
+
+def dataframe_output_path(groovy_path, data_type, data_root):
+    text = os.path.basename(groovy_path).split(".hipo")[0]
+    if(".new10." not in text):
+        return ""
+    label = classify_rho_name(text) or "SIDIS"
+    tail = text.split(".new10.")[-1].replace("nSidis_00", "")
+    mc = "EvGen_" if("EvGen" in tail) else ""
+    background = "55nA_" if("55na" in tail.lower()) else ""
+    tail = background + tail.split("10604MeV-")[-1]
+    tail = mc + tail.split("-")[-1]
+    common = "Pass_2_Final_Analysis_Iterations_I0_"
+    if(label not in ["SIDIS", ""]):
+        common = common + label + "_"
+    if(data_type == "gdf"):
+        name = "DataFrame_SIDIS_epip_MC_GEN_%s%s.root" % (common, tail)
+    else:
+        name = "DataFrame_SIDIS_epip_MC_Matched_%s%s.root" % (common, tail)
+    return os.path.join(dataframe_output_dir(data_root, data_type), name.replace("__", "_"))
+
+
+def write_path_list(folder, name, paths):
+    os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, name)
+    handle = open(path, "w")
+    for item in paths:
+        handle.write(item + "\n")
+    handle.close()
+    return path
+
+
+def bc_output_path(input_path):
+    name = os.path.basename(input_path).split("new6.")[-1].replace(".hipo.root", "").replace(".root", "")
+    out_name = "Sub_Bin_Contents_for_BC_Correction_%s.root" % name
+    flat = os.path.join(_BOOT, "BC_Corrections", "ROOT_Files_Output", out_name)
+    if(root_is_usable(flat)):
+        return flat
+    matches = glob.glob(os.path.join(_BOOT, "BC_Corrections", "ROOT_Files_Output", "Path_to_Volatile", "*", out_name))
+    for match in sorted(matches):
+        if(root_is_usable(match)):
+            return match
+    return ""
 
 
 def expand_patterns(patterns):
@@ -406,17 +540,21 @@ def run_early(args):
     identities = {}
     watches = []
     for stage, source, mc_type, paths_txt, paths, message in groovy_jobs:
-        action, array_id, job_name = completed_groovy_job(groovy_dir, folder, source, mc_type, paths, args.dry_run)
-        if(action == "reuse"):
+        done_roots, missing_hipos = split_groovy_outputs(paths, source, mc_type)
+        print("phase groovy %s %s: usable %d missing %d" % (source, mc_type, len(done_roots), len(missing_hipos)))
+        if(len(missing_hipos) == 0):
+            print("phase groovy %s %s done" % (source, mc_type))
             continue
+        action, array_id, job_name = completed_groovy_job(groovy_dir, folder, source, mc_type, missing_hipos, args.dry_run)
         if(action == "watch"):
-            watches.append((source, mc_type, array_id, len(paths), inputs_sha256(paths), job_name))
+            watches.append((source, mc_type, array_id, len(missing_hipos), inputs_sha256(missing_hipos), job_name, paths))
             continue
-        argv = groovy_command(groovy, source, mc_type, paths_txt, message)
-        identities[stage] = {"source": source, "mc": mc_type, "digest": inputs_sha256(paths), "nfiles": len(paths), "job_name": job_name}
+        listed = write_path_list(folder, "groovy_missing_%s_%s.txt" % (source, mc_type), missing_hipos)
+        argv = groovy_command(groovy, source, mc_type, listed, message)
+        identities[stage] = {"source": source, "mc": mc_type, "digest": inputs_sha256(missing_hipos), "nfiles": len(missing_hipos), "job_name": job_name}
         if(args.dry_run):
             print("")
-            print("stage %s submit" % stage)
+            print("phase %s submit %d" % (stage, len(missing_hipos)))
             show_command(argv)
         else:
             pending.append((stage, argv, groovy_dir))
@@ -424,31 +562,60 @@ def run_early(args):
         code = run_groovy_processes(pending, folder, identities)
         if(code != 0):
             return code
-    for source, mc_type, array_id, nfiles, digest, job_name in watches:
+    for source, mc_type, array_id, nfiles, digest, job_name, all_paths in watches:
         code = watch_groovy_array(source, mc_type, array_id, nfiles, folder, digest, job_name, args.dry_run)
         if(code != 0):
             return code
+        done_roots, missing_hipos = split_groovy_outputs(all_paths, source, mc_type)
+        if(len(missing_hipos) == 0):
+            continue
+        listed = write_path_list(folder, "groovy_missing_%s_%s.txt" % (source, mc_type), missing_hipos)
+        message = phase_message(args, "groovy %s %s" % (source, mc_type))
+        argv = groovy_command(groovy, source, mc_type, listed, message)
+        if(args.dry_run):
+            print("phase groovy %s %s still missing %d" % (source, mc_type, len(missing_hipos)))
+            show_command(argv)
+        else:
+            code = run_command("groovy_%s_%s" % (source, mc_type), argv, groovy_dir, False, "dataframe")
+            if(code != 0):
+                return code
     if(not args.dry_run):
         record_phase(folder, "groovy", "success")
         mail_note("SIDIS phase groovy finished", "phase groovy finished.\nnext phase: dataframe\n")
     note = phase_message(args, "dataframe")
+    dataframe_steps = []
+    for group, source, mc_type, hipos in [("rho_gdf", "rho0", "gdf", rho_paths), ("rho_mdf", "rho0", "mdf", rho_paths), ("55na_gdf", "clasdis", "gdf", clasdis_paths), ("55na_mdf", "clasdis", "mdf", clasdis_paths)]:
+        done_roots, missing_hipos = split_groovy_outputs(hipos, source, mc_type)
+        if((len(missing_hipos) > 0) and (not args.dry_run)):
+            mail_stop("dataframe", "groovy %s %s still missing %d outputs" % (source, mc_type, len(missing_hipos)))
+            return 1
+        need = []
+        for groovy_path in done_roots:
+            frame = dataframe_output_path(groovy_path, mc_type, args.data_root)
+            if((frame == "") or (not root_is_usable(frame))):
+                need.append(groovy_path)
+        print("phase dataframe %s: missing %d of %d" % (group, len(need), len(done_roots)))
+        if(len(need) == 0):
+            print("phase dataframe %s done" % group)
+            continue
+        listed = write_path_list(folder, "dataframe_missing_%s.txt" % group, need)
+        dataframe_steps.append(("dataframe_%s" % group, [helper, "-droot", args.data_root, "-o", "work", "-il", listed, "-dtype", mc_type, "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames))
     phases = [
-        ("dataframe", [
-            ("dataframe_rho_gdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(GEN_DIR, "*%s*" % config.get("rho_name_discriminator", "output-rho0_10.6gev")), "-dtype", "gdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames),
-            ("dataframe_rho_mdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(REC_DIR, "*%s*" % config.get("rho_name_discriminator", "output-rho0_10.6gev")), "-dtype", "mdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames),
-            ("dataframe_55na_gdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(GEN_DIR, "*inb-clasdis-55na*"), "-dtype", "gdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames),
-            ("dataframe_55na_mdf", [helper, "-droot", args.data_root, "-o", "work", "-i", os.path.join(REC_DIR, "*inb-clasdis-55na*"), "-dtype", "mdf", "-m", "hybrid", "-j", "10", "-y", "-e", "-em", note], frames),
-        ], "make_batches"),
+        ("dataframe", dataframe_steps, "make_batches"),
         ("make_batches", [
             ("make_batches", [batches, "-droot", args.data_root, "-m", "make_batches", "-rst", token, "-e", "-em", phase_message(args, "make_batches")], frames),
         ], "rho_hist"),
-        ("rho_hist", [
+        ("rho_hist", [] if(root_is_usable(merged)) else [
             ("rho_hist", [submit, "-droot", args.data_root, "-m", "hybrid", "-rho", "-jrho0", "10", "-n", token, "-e", "-em", phase_message(args, "rho_hist")], frames),
         ], "rho_fit"),
-        ("rho_fit", [
+        ("rho_fit", [] if(text_is_present(os.path.join(frames, "exclusive_rho_review_%s.txt" % token))) else [
             ("rho_fit", [fit, "-droot", args.data_root, "-st", token, "-usf", "-f1", merged, "-e", "-em", phase_message(args, "rho_fit")], frames),
         ], ""),
     ]
+    if(root_is_usable(merged)):
+        print("phase rho_hist done")
+    if(text_is_present(os.path.join(frames, "exclusive_rho_review_%s.txt" % token))):
+        print("phase rho_fit done")
     for phase, steps, next_phase in phases:
         for stage, argv, cwd in steps:
             code = run_command(stage, argv, cwd, args.dry_run, next_phase, mail_success=False)
@@ -505,17 +672,38 @@ def run_rc(args):
     merged = os.path.join(RC_RUNTIME, "merged_outputs", "Merged_EvGen_PerFile_Hists.root")
     rc_out = os.path.join(RC_RUNTIME, "merged_outputs", "RC_Factors_ifarm_rc.root")
     paired = matched_evgen(args.dry_run)
-    argv = [build, "-m", "hybrid", "-y", "-p", "-mpj", "10", "-e", "-em", phase_message(args, "rc_build"), "-rdir", RC_RUNTIME]
-    if(paired is not None):
-        argv.extend(["-rrad"] + list(paired["rad"]))
-        argv.extend(["-rnrad"] + list(paired["nrad"]))
+    task_list = os.path.join(RC_RUNTIME, "evgen_perfile_task_list.txt")
+    workers_ready = False
+    if(os.path.isfile(task_list)):
+        workers_ready = True
+        handle = open(task_list)
+        for line in handle:
+            line = line.strip()
+            if((line == "") or line.startswith("#")):
+                continue
+            parts = line.split("\t")
+            if((len(parts) < 4) or (not root_is_usable(parts[3]))):
+                workers_ready = False
+                break
+        handle.close()
+    if(workers_ready and root_is_usable(merged)):
+        print("phase rc_build done")
+        code = 0
     else:
-        print("RC file list is added when the binned directory is visible")
-    code = run_command("rc_build", argv, compare_dir, args.dry_run, "rc_compare")
-    if(code != 0):
-        return code
-    if(not args.dry_run):
-        record_phase(input_folder(args.data_root, False), "rc_build", "success")
+        argv = [build, "-m", "hybrid", "-y", "-p", "-mpj", "10", "-e", "-em", phase_message(args, "rc_build"), "-rdir", RC_RUNTIME]
+        if(paired is not None):
+            argv.extend(["-rrad"] + list(paired["rad"]))
+            argv.extend(["-rnrad"] + list(paired["nrad"]))
+        else:
+            print("RC file list is added when the binned directory is visible")
+        code = run_command("rc_build", argv, compare_dir, args.dry_run, "rc_compare")
+        if(code != 0):
+            return code
+        if(not args.dry_run):
+            record_phase(input_folder(args.data_root, False), "rc_build", "success")
+    if(root_is_usable(rc_out)):
+        print("phase rc_compare done")
+        return 0
     argv = [compare, "-r", merged, "-ssf", "-sfn", rc_out, "-rc", "-Nw", "-evgen"]
     code = run_command("rc_compare", argv, compare_dir, args.dry_run, "")
     if((code == 0) and (not args.dry_run)):
@@ -528,25 +716,56 @@ def run_bc(args):
     runner = os.path.join(bc_dir, "Run_BC_Scripts_Locally.py")
     factor = os.path.join(bc_dir, "BC_Corrections_Script.py")
     per_file = "./BC_Corrections_Script.py -nb 3 -nbphi 2 -hi -ufn --root_file_out ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction.root"
-    code = run_command("bc_hist", [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, "bc_hist"), "-c", per_file], bc_dir, args.dry_run, "bc_hadd")
-    if(code != 0):
-        return code
+    bc_inputs = expand_patterns([BC_NO_RAD])
+    done_inputs = []
+    missing_inputs = []
+    for bc_input in bc_inputs:
+        if(bc_output_path(bc_input) != ""):
+            done_inputs.append(bc_input)
+        else:
+            missing_inputs.append(bc_input)
+    print("phase bc_hist: usable %d missing %d" % (len(done_inputs), len(missing_inputs)))
+    if(len(bc_inputs) == 0):
+        mail_stop("bc_hist", "No_Rad input glob matched nothing")
+        return 1
+    if(len(missing_inputs) == 0):
+        print("phase bc_hist done")
+        code = 0
+    else:
+        argv = [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, "bc_hist"), "-c", per_file]
+        if(len(done_inputs) > 0):
+            argv.extend(["-ex", ",".join([os.path.basename(path) for path in done_inputs])])
+        code = run_command("bc_hist", argv, bc_dir, args.dry_run, "bc_hadd")
+        if(code != 0):
+            return code
     if(not args.dry_run):
         record_phase(input_folder(args.data_root, False), "bc_hist", "success")
-    dest = "ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.root"
-    inputs = sorted(glob.glob(os.path.join(bc_dir, "ROOT_Files_Output", "Sub_Bin_Contents_for_BC_Correction_*EvGen*.root")))
-    if((len(inputs) == 0) and (not args.dry_run)):
-        mail_stop("bc_hadd", "no per-file BC ROOT files matched Sub_Bin_Contents_for_BC_Correction_*EvGen*.root")
+    fresh_outputs = []
+    for bc_input in bc_inputs:
+        found = bc_output_path(bc_input)
+        if(found != ""):
+            fresh_outputs.append(found)
+    dest = os.path.join(bc_dir, "ROOT_Files_Output", "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.root")
+    made_hadd = False
+    if(len(fresh_outputs) != len(bc_inputs)):
+        mail_stop("bc_hadd", "per-file outputs %d of %d; hadd was not run" % (len(fresh_outputs), len(bc_inputs)))
         return 1
-    relative_inputs = [os.path.relpath(path, bc_dir) for path in inputs]
-    if((len(relative_inputs) == 0) and args.dry_run):
-        relative_inputs = ["ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction_*EvGen*.root"]
-    code = run_command("bc_hadd", ["hadd_richcap", dest] + relative_inputs, bc_dir, args.dry_run, "bc_factors")
-    if(code != 0):
-        return code
+    if(root_is_usable(dest)):
+        print("phase bc_hadd done")
+        code = 0
+    else:
+        relative_inputs = [os.path.relpath(path, bc_dir) for path in fresh_outputs]
+        code = run_command("bc_hadd", ["hadd_richcap", dest] + relative_inputs, bc_dir, args.dry_run, "bc_factors")
+        if(code != 0):
+            return code
+        made_hadd = True
     if(not args.dry_run):
         record_phase(input_folder(args.data_root, False), "bc_hadd", "success")
-    argv = [factor, "-jf", "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json", "-nb", "3", "-nbphi", "2", "-bc", "--root_file_out", dest, "-e", "-em", phase_message(args, "bc_factors")]
+    json_path = os.path.join(bc_dir, "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json")
+    if(root_is_usable(dest) and text_is_present(json_path) and (not made_hadd)):
+        print("phase bc_factors done")
+        return 0
+    argv = [factor, "-jf", json_path, "-nb", "3", "-nbphi", "2", "-bc", "--root_file_out", dest, "-e", "-em", phase_message(args, "bc_factors")]
     code = run_command("bc_factors", argv, bc_dir, args.dry_run, "")
     if((code == 0) and (not args.dry_run)):
         record_phase(input_folder(args.data_root, False), "bc_factors", "success")
