@@ -9,7 +9,7 @@
 #SBATCH --account=clas12
 #SBATCH --mem-per-cpu=4GB
 #SBATCH --time=01:00:00
-#SBATCH --array=1-1590
+#SBATCH --array=1-170
 
 FILELIST="/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/mdf_DF_9_2_2026_R1_Final_Thesis_Files_filelist.txt"
 INPUT_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "${FILELIST}")
