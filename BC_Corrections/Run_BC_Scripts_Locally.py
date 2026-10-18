@@ -568,19 +568,27 @@ def array_task_states(array_jobid, expected_indexes):
             index_text = job_id[len(prefix):]
             if(not index_text.isdigit()):
                 continue
-            found[int(index_text)] = parts[1].strip().split()[0]
+            exit_code = parts[2].strip() if(len(parts) > 2) else ""
+            found[int(index_text)] = (parts[1].strip().split()[0], exit_code)
         if(wanted.issubset(set(found))):
             return found
         time.sleep(15)
     return found
 
-def slurm_task_is_failure(state, index, local_ok):
-    # CANCELLED is the hybrid handoff when this process finished that index locally.
-    if(state == "COMPLETED"):
-        return False
-    if((state == "CANCELLED") and (index in local_ok)):
-        return False
-    return True
+def classify_owner_slurm(state, exit_code):
+    # Outcome of the SLURM path only. A signal is not proof that another path owns the input.
+    if((state == "COMPLETED") and str(exit_code).startswith("0:")):
+        return "success"
+    if(state in ["FAILED", "TIMEOUT", "OUT_OF_MEMORY", "NODE_FAIL", "CANCELLED"]):
+        return "failed"
+    return "unresolved"
+
+# def slurm_task_is_failure(state, index, local_ok):
+#     if(state == "COMPLETED"):
+#         return False
+#     if((state == "CANCELLED") and (index in local_ok)):
+#         return False
+#     return True
 
 def should_start_local_hybrid_job(array_jobid, job_index):
     # Hybrid ownership (squeue-based): PD -> cancel then local; active/absent/IGNORE -> skip local.
@@ -925,14 +933,16 @@ def main():
 
             def finish_job(item, rc):
                 nonlocal num_fail
+                outcome = "success" if(rc == 0) else "failed"
                 try:
+                    item["fh"].write("# owner=local rc=%s outcome=%s\n" % (rc, outcome))
                     item["fh"].close()
                 except Exception:
                     pass
                 base = os.path.basename(item["filepath"]).replace(" ", "_")
                 if(rc == 0):
                     local_ok.append(item["num"])
-                    print(f"{color.BGREEN}DONE {color.END}: {item['num']+1:>3.0f} of {len(files)}  ->  {base}")
+                    print(f"{color.BGREEN}DONE {color.END}: {item['num']+1:>3.0f} of {len(files)}  ->  {base} owner=local")
                 else:
                     num_fail += 1
                     failed_indices.append(item["num"])
@@ -995,12 +1005,23 @@ def main():
             if(array_id not in [None, ""]):
                 expected = list(range(0, max(0, n_files - 1)))
                 states = array_task_states(array_id, expected)
+                local_owned = set(local_ok) | set(failed_indices)
                 for index in expected:
-                    state = states.get(index, "")
-                    if(slurm_task_is_failure(state, index, set(local_ok))):
+                    if(index in local_owned):
+                        continue
+                    if(index not in skipped_indices):
                         num_fail += 1
                         failed_indices.append(index)
-                        print(f"{color.Error}FAIL {color.END}: SLURM task {array_id}_{index} state={state if(state) else 'missing'}")
+                        print(f"{color.Error}UNRESOLVED {color.END}: index {index} has no owning path")
+                        continue
+                    state, exit_code = states.get(index, ("", ""))
+                    outcome = classify_owner_slurm(state, exit_code)
+                    if(outcome != "success"):
+                        num_fail += 1
+                        failed_indices.append(index)
+                        print(f"{color.Error}{outcome.upper()} {color.END}: index {index} owner=slurm state={state if(state) else 'missing'}")
+                    else:
+                        print(f"{color.BGREEN}DONE {color.END}: index {index} owner=slurm")
 
         if(n_files > 0):
             final_rc = run_final_file(args, base_cmd, files[-1], timer)
