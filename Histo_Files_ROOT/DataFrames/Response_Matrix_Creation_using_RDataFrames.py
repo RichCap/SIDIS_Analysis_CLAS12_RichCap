@@ -537,7 +537,8 @@ def Create_z1_plus_z2(args, df, df_name="rdf"):
                 Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{df_name}' cannot define 'z1_plus_z2{col_type}' due to missing columns{color.END}", verbose_override=True, no_time=True)
     return df
 
-RHO_NORM_RHO0_NEW = 1.0
+# RHO_NORM_RHO0_NEW = 1.0
+RHO_NORM_RHO0_NEW = 2.4020823572173544
 
 def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
     if(( not df.HasColumn("exclusive_rho_full")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho", "pim_present", "proton_present"])):

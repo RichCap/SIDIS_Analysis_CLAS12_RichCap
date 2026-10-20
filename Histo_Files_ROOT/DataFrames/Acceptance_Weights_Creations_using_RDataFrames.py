@@ -180,7 +180,8 @@ def acceptance_mode_tag(args):
 # Match Response_Matrix Make_exclusive_rho_Flags norms
 RHO_NORM_LUNDRHO = 4.526912
 RHO_NORM_LUNDVPK = 4.624974
-RHO_NORM_RHO0_NEW = 1.0
+# RHO_NORM_RHO0_NEW = 1.0
+RHO_NORM_RHO0_NEW = 2.4020823572173544
 # Invalid (rho weights were already applied to the ROOT inputs used to derive these factors — do not use):
 # RHO_NORM_LUNDRHO = 1.084134
 # RHO_NORM_LUNDVPK = 1.083707
