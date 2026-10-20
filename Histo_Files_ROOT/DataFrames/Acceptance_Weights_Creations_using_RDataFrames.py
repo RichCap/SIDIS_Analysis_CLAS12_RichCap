@@ -461,7 +461,11 @@ def define_exclusive_rho_weight_by_file(df, rho0_source="lundvpk"):
     if(selected not in ["lundvpk", "lundrho", "rho0_new"]):
         selected = "lundvpk"
     selected_code = 3 if(selected == "rho0_new") else 2 if(selected == "lundvpk") else 1
-    selected_norm = RHO_NORM_RHO0_NEW if(selected == "rho0_new") else RHO_NORM_LUNDVPK if(selected == "lundvpk") else RHO_NORM_LUNDRHO
+    if(selected == "rho0_new"):
+        from Campaign.ifarm_inputs import registered_rho0_new_norm
+        selected_norm = registered_rho0_new_norm()
+    else:
+        selected_norm = RHO_NORM_LUNDVPK if(selected == "lundvpk") else RHO_NORM_LUNDRHO
     if(not df.HasColumn("acc_rho_source")):
         df = df.DefinePerSample("acc_rho_source", "AccRhoSourceCode(rdfslot_, rdfsampleinfo_)")
     if(df.HasColumn("exclusive_rho_weight")):
