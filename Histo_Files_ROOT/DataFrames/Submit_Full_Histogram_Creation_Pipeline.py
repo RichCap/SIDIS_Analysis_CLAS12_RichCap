@@ -183,7 +183,7 @@ def parse_args():
     p.add_argument("-rho0", "--rho0_source",
                    type=str,
                    default="lundvpk",
-                   choices=["lundvpk", "lundrho"],
+                   choices=["lundvpk", "lundrho", "rho0_new"],
                    help="Exclusive-rho MC source for Acceptance when rho weights are ON (default lundvpk). Forwarded as --rho0_source.\n")
     p.add_argument("-cn", "--cut_name",
                    type=str,

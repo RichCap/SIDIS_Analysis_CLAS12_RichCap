@@ -537,6 +537,8 @@ def Create_z1_plus_z2(args, df, df_name="rdf"):
                 Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{df_name}' cannot define 'z1_plus_z2{col_type}' due to missing columns{color.END}", verbose_override=True, no_time=True)
     return df
 
+RHO_NORM_RHO0_NEW = 1.0
+
 def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
     if(( not df.HasColumn("exclusive_rho_full")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho", "pim_present", "proton_present"])):
         print(f"\t{color.Error}WARNING: '{dfname}' is missing 'exclusive_rho_full'){color.END}")
@@ -574,8 +576,8 @@ def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
         elif(not df.HasColumn(f"exclusive_rho_individual{smear}")):
             Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{dfname}' cannot define 'exclusive_rho_full{smear}' due to missing columns{color.END}", verbose_override=True, no_time=True)
     if(getattr(args, "run_rho_weight", False) and (not df.HasColumn("exclusive_rho_weight")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho"])):
-        weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 4.526912 if(lundrho_files in ["lundrho"]) else 4.624974 if(lundrho_files in ["lundvpk"]) else 1.0
-        weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 4.526912 if(lundrho_files in ["lundrho"]) else 4.624974 if(lundrho_files in ["lundvpk"]) else 1.0
+        weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 4.526912 if(lundrho_files in ["lundrho"]) else 4.624974 if(lundrho_files in ["lundvpk"]) else RHO_NORM_RHO0_NEW if(lundrho_files in ["rho0_new"]) else 1.0
+        weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 4.526912 if(lundrho_files in ["lundrho"]) else 4.624974 if(lundrho_files in ["lundvpk"]) else RHO_NORM_RHO0_NEW if(lundrho_files in ["rho0_new"]) else 1.0
         # Invalid (rho weights were already applied to the ROOT inputs used to derive these factors — do not use):
         # weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 1.084134 if(lundrho_files in ["lundrho"]) else 1.083707 if(lundrho_files in ["lundvpk"]) else 1.0
         # weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 1.084134 if(lundrho_files in ["lundrho"]) else 1.083707 if(lundrho_files in ["lundvpk"]) else 1.0 
