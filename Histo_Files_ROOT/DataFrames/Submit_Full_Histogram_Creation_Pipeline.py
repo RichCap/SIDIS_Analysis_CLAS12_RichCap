@@ -113,6 +113,20 @@ PRODUCTS = [{
         "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
         "extra": ["--delta_phi_h"],
         "jobs_attr": "jobs_dphi",
+        }, {
+        "key": "Only_1D",
+        "label": "1D phi response and kinematic distributions",
+        "name_fmt": "Only_1D_{shared}_Kinematics",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--only_1d"],
+        "jobs_attr": "jobs_1d",
+        }, {
+        "key": "Diagnostic_1D",
+        "label": "1D momentum, matching, and contamination diagnostics",
+        "name_fmt": "Diagnostic_1D_{shared}",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--diagnostic_1d"],
+        "jobs_attr": "jobs_diag",
         },
 ]
 
@@ -204,7 +218,11 @@ def parse_args():
     p.add_argument("-sm", "--slurm_mem",
                    type=str,
                    default=None,
-                   help="SLURM mem-per-cpu forwarded to pipeline children (hybrid/slurm). Unset → pipeline default (5GB). Farm jobs typically get 2 CPUs, so the total request is twice this value.\n")
+                   help="SLURM mem-per-cpu forwarded to pipeline children that are not one of the five campaign histogram modes. Those five modes keep their own CPU and memory requests.\n")
+    p.add_argument("-hlc", "--histogram_local_cap",
+                   type=int,
+                   default=None,
+                   help="Extra ceiling on histogram-kind local slots. Clamped by the campaign ledger. Does not raise a mode ceiling.\n")
     p.add_argument("-j", "--jobs",
                    type=int,
                    default=5,
@@ -233,6 +251,14 @@ def parse_args():
                    type=int,
                    default=0,
                    help="Concurrent batch jobs for the Chapter 4 matching-count and phi_h-smearing product only. Default 0 skips this product.\n")
+    p.add_argument("-j1D", "--jobs_1d",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Only_1D product. Default 0 skips this product.\n")
+    p.add_argument("-jdiag", "--jobs_diag",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Diagnostic_1D product. Default 0 skips this product.\n")
     p.add_argument("-mco", "--mc_only",
                    action="store_true",
                    help="Accepted on this command line. The Chapter 4 product already forwards --mc_only to Response_Matrix.\n")
@@ -542,7 +568,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     if(run_mode == "hybrid"):
         run_mode = "parallel"
     # Chapter 4 reads stored columns only. Do not require an HPP file before those counts and histograms.
-    if(product.get("key") in ["CH4_Diagnostics", "Delta_Phi_h"]):
+    if(product.get("key") in ["CH4_Diagnostics", "Delta_Phi_h", "Only_1D", "Diagnostic_1D"]):
         use_hpp = False
     cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-m", run_mode])
@@ -585,8 +611,18 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["--run_subdir_name", str(run_subdir_name)])
     if(skip_slurm_hadd and (run_mode == "slurm")):
         cmd.append("--skip_slurm_hadd")
-    if(getattr(args, "slurm_mem", None) not in [None, ""]):
+    from Campaign.local_resource_gate import slurm_for_product
+    reserved = slurm_for_product(product.get("key"))
+    if(reserved is not None):
+        mode_name, mode_mem, _ceiling = reserved
+        # Per-mode memory stays in force for these products. A shared -sm must not under-request 5D or over-request 2D.
+        if(getattr(args, "slurm_mem", None) not in [None, ""]):
+            print("ignoring shared --slurm_mem %s for %s; using %s" % (args.slurm_mem, mode_name, mode_mem))
+        cmd.extend(["--slurm_mem", mode_mem, "--slurm_cpus", "1", "-crm", mode_name])
+    elif(getattr(args, "slurm_mem", None) not in [None, ""]):
         cmd.extend(["--slurm_mem", str(args.slurm_mem)])
+    if(getattr(args, "histogram_local_cap", None) not in [None, ""]):
+        cmd.extend(["--histogram_local_cap", str(args.histogram_local_cap)])
     # Hybrid SLURM leg always passes --yes so sbatch is noninteractive. Pure slurm stays interactive.
     if((auto_yes) and (run_mode == "slurm")):
         cmd.append("--yes")

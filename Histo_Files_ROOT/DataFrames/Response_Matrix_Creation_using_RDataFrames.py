@@ -119,6 +119,12 @@ def parse_args():
     parser.add_argument('-dph', '--delta_phi_h',
                         action='store_true',
                         help="Book per-analysis-bin Delta phi_h diagnostics. MC uses phi_t_smeared - phi_t. This is not the particle-matching systematic and not Only_1D unfolding.\n")
+    parser.add_argument('-o1d', '--only_1d',
+                        action='store_true',
+                        help="Book the 1D phi_h response and kinematic distributions, then exit before the 2D/3D/5D response matrices.\n")
+    parser.add_argument('-d1d', '--diagnostic_1d',
+                        action='store_true',
+                        help="Book the 1D momentum, matching, and contamination diagnostics, then exit before the 2D/3D/5D response matrices.\n")
     parser.add_argument('-ch4', '--ch4_diagnostics',
                         action='store_true',
                         help="Book only the Chapter 4 delta-phi_h and electron/pion momentum-smearing histograms, and write per-batch matching counts. Skips real data and the response matrices.\n")
@@ -948,6 +954,10 @@ if(__name__ == "__main__"):
         run_delta_phi_diagnostic(args, all_root_files)
     if(getattr(args, "ch4_diagnostics", False)):
         run_ch4_diagnostics(args, all_root_files)
+    if(getattr(args, "only_1d", False) or getattr(args, "diagnostic_1d", False)):
+        from book_1d_campaign_histograms import run_campaign_1d
+        run_campaign_1d(args, all_root_files)
+        sys.exit(0)
 
     Update_Email(args, update_message=f"\n{color.BOLD}LOADING DATAFRAMES{color.END}", verbose_override=True)
     

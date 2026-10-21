@@ -176,7 +176,17 @@ def parse_args():
     parser.add_argument('-sm', '--slurm_mem',
                         # default="4GB",
                         default="5GB",
-                        help="SLURM mem-per-cpu. Farm jobs typically get 2 CPUs, so the total request is twice this value (5GB → 10GB).\n")
+                        help="SLURM --mem-per-cpu. --cpus-per-task is set separately and defaults to 1, so this value is the task memory unless more CPUs are requested.\n")
+    parser.add_argument('-sc', '--slurm_cpus',
+                        default="1",
+                        help="SLURM --cpus-per-task for the histogram array. Histogram workers do not enable implicit multithreading.\n")
+    parser.add_argument('-crm', '--campaign_resource_mode',
+                        default=None,
+                        help="Local reservation name from Campaign/local_resource_gate.py. Unset skips the shared local ledger.\n")
+    parser.add_argument('-hlc', '--histogram_local_cap',
+                        type=int,
+                        default=None,
+                        help="Extra ceiling on histogram-kind local slots across campaign processes. Does not raise the per-mode ceiling.\n")
     parser.add_argument('-saj', '--slurm_array_jobid',
                         type=str,
                         default=None,
@@ -859,15 +869,17 @@ def build_main_command(args, batch_id, output_dir, slurm_placeholders=False):
     return cmd
 
 
-def should_skip_batch_due_to_slurm(args, batch_index):
+def should_skip_batch_due_to_slurm(args, batch_index, output_dir):
     if(args.slurm_array_jobid is None):
         return False
     state = query_slurm_array_task_state(args.slurm_array_jobid, batch_index)
-    if(state == "IGNORE"):
-        return False
     target_id = f"{args.slurm_array_jobid}_{batch_index}"
-    if(state is None):
-        print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} already completed by SLURM - skipping")
+    batch_path = expected_batch_root_path(args, output_dir, batch_index)
+    if(state == "IGNORE"):
+        print(f"{color.BYELLOW}[INFO]{color.END} squeue failed; not starting a second writer for batch {batch_index}.")
+        return True
+    if(state in ["R", "CG", "CF"]):
+        print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} is {state} in SLURM - leaving it to SLURM")
         return True
     if(state == "PD"):
         print(f"{color.BBLUE}[INFO]{color.END} Cancelling pending SLURM task {target_id}")
@@ -875,12 +887,45 @@ def should_skip_batch_due_to_slurm(args, batch_index):
             print(f"{color.BYELLOW}[INFO]{color.END} Batch {batch_index} left to SLURM (could not cancel pending task).")
             return True
         return False
-    print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} is {state} in SLURM - skipping")
-    return True
+    if(os.path.isfile(batch_path) and (os.path.getsize(batch_path) > 0)):
+        print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output is already present - skipping local start")
+        return True
+    print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} has no output and SLURM state is {state if(state) else 'missing'} - starting locally")
+    return False
 
-def start_job(args, batch_index, batch_output_dir, log_dir):
-    if(should_skip_batch_due_to_slurm(args, batch_index)):
+LOCAL_SLOT_WAIT = "local-slot-wait"
+
+
+def reserve_local_slot(args, block):
+    mode = getattr(args, "campaign_resource_mode", None)
+    if(mode in [None, ""]):
         return None
+    from Campaign.local_resource_gate import try_acquire
+    while(True):
+        ok, token = try_acquire(args.data_root, mode, histogram_cap=getattr(args, "histogram_local_cap", None))
+        if(ok):
+            return token
+        if(not block):
+            return LOCAL_SLOT_WAIT
+        time.sleep(15)
+
+
+def release_local_slot(args, token):
+    if(token in [None, "", LOCAL_SLOT_WAIT]):
+        return
+    from Campaign.local_resource_gate import release
+    release(args.data_root, token)
+
+
+def start_job(args, batch_index, batch_output_dir, log_dir, block_for_slot=False):
+    if(should_skip_batch_due_to_slurm(args, batch_index, batch_output_dir)):
+        return None
+    if(os.path.isfile(expected_batch_root_path(args, batch_output_dir, batch_index))):
+        print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output appeared before local start - skipping")
+        return None
+    token = reserve_local_slot(args, block_for_slot)
+    if(token == LOCAL_SLOT_WAIT):
+        return LOCAL_SLOT_WAIT
     cmd = build_main_command(args, batch_index, batch_output_dir)
     name_for_log = f"{args.name}_{name_in_label(args.name_in)}_batch_{batch_index:03d}" if(args.name) else f"{name_in_label(args.name_in)}_batch_{batch_index:03d}"
     name_for_log = str(name_for_log.replace("*", "")).replace(".root", "")
@@ -895,11 +940,18 @@ def start_job(args, batch_index, batch_output_dir, log_dir):
     err_handle = open(err_path, "w")
     log_handle.write(f"# {' '.join(cmd)}\n")
     log_handle.flush()
-    if(args.mode == "parallel"):
-        process = subprocess.Popen(cmd, stdout=log_handle, stderr=err_handle, cwd=batch_output_dir)
-    else:
-        process = subprocess.run(  cmd, stdout=log_handle, stderr=err_handle, cwd=batch_output_dir)
-    return {"process": process, "log_handle": log_handle, "err_handle": err_handle, "batch_index": batch_index}
+    try:
+        if(args.mode == "parallel"):
+            process = subprocess.Popen(cmd, stdout=log_handle, stderr=err_handle, cwd=batch_output_dir)
+        else:
+            process = subprocess.run(  cmd, stdout=log_handle, stderr=err_handle, cwd=batch_output_dir)
+    except Exception:
+        release_local_slot(args, token)
+        raise
+    if((args.mode == "parallel") and (token not in [None, ""])):
+        from Campaign.local_resource_gate import bind_worker
+        bind_worker(args.data_root, token, process.pid)
+    return {"process": process, "log_handle": log_handle, "err_handle": err_handle, "batch_index": batch_index, "slot_token": token}
 
 def finish_job(job_item, results, args):
     ret = job_item["process"].poll()
@@ -913,6 +965,7 @@ def finish_job(job_item, results, args):
         job_item["err_handle"].close()
     except Exception:
         pass
+    release_local_slot(args, job_item.get("slot_token"))
     if(ret == 0):
         Update_Email(args, update_message=f"{color.BGREEN}DONE {color.END}: Batch {job_item['batch_index']:>3} of {args.num_batches}", verbose_override=True, no_time=False)
     elif(not args.continue_on_failure):
@@ -1028,7 +1081,9 @@ def run_local_batches(args):
         max_jobs     = args.jobs if(args.jobs > 0) else 1
         while((next_index < num_batches) or (len(running_jobs) > 0)):
             while((next_index < num_batches) and (len(running_jobs) < max_jobs)):
-                job = start_job(args, next_index + 1, batch_output_dir, log_dir)
+                job = start_job(args, next_index + 1, batch_output_dir, log_dir, block_for_slot=False)
+                if(job == LOCAL_SLOT_WAIT):
+                    break
                 if(job is not None):
                     running_jobs.append(job)
                 next_index += 1
@@ -1043,10 +1098,11 @@ def run_local_batches(args):
                 time.sleep(1.0)
     else:  # sequential mode
         for b in range(1, num_batches + 1):
-            job = start_job(args, b, batch_output_dir, log_dir)
+            job = start_job(args, b, batch_output_dir, log_dir, block_for_slot=True)
             if(job is None):
                 continue
             ret = job["process"].returncode
+            release_local_slot(args, job.get("slot_token"))
             results.append(ret)
             if(ret == 0):
                 Update_Email(args, update_message=f"{color.BGREEN}DONE {color.END}: Batch {b:>3} of {args.num_batches}", verbose_override=True, no_time=False)
@@ -1075,7 +1131,13 @@ def run_local_batches(args):
         merge_ch4_count_files(args, batch_output_dir, merged_file)
     # === NEW: Track peak memory used by all child jobs ===
     peak_mem_str = estimate_peak_memory_children()
-    Update_Email(args, update_message=f"{color.BBLUE}Peak memory used by child jobs: {peak_mem_str}{color.END}", verbose_override=True, no_time=True)
+    Update_Email(args, update_message=f"{color.BBLUE}max child RSS (not the sum of the pool): {peak_mem_str}{color.END}", verbose_override=True, no_time=True)
+    resource_mode = getattr(args, "campaign_resource_mode", None)
+    if(resource_mode not in [None, ""]):
+        from Campaign.local_resource_gate import MODE_TABLE, record_peak, mem_available_gb
+        reserved = MODE_TABLE.get(resource_mode, {}).get("mem_gb", "")
+        visible = "yes" if(mem_available_gb() is not None) else "no"
+        record_peak(args.data_root, resource_mode, reserved, peak_mem_str, visible)
     Construct_Email(args)
 
 def run_slurm_mode(args):
@@ -1102,6 +1164,7 @@ def run_slurm_mode(args):
         f.write("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err\n")
         f.write("#SBATCH --partition=production\n")
         f.write("#SBATCH --account=clas12\n")
+        f.write("#SBATCH --cpus-per-task=%s\n" % (getattr(args, "slurm_cpus", None) or "1"))
         f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
         f.write(f"#SBATCH --time={args.slurm_time}\n")
         f.write(f"#SBATCH --array=1-{num_batches}\n\n")

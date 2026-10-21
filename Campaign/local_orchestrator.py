@@ -64,6 +64,39 @@ def show_command(argv):
     print(shlex.join([str(part) for part in argv]))
 
 
+def run_reserved(stage, argv, cwd, dry_run, mode, data_root, next_phase="", mail_success=False):
+    print("")
+    print("phase %s" % stage)
+    show_command(argv)
+    if(dry_run):
+        return 0
+    from Campaign.local_resource_gate import acquire_blocking, bind_worker, release
+    token = acquire_blocking(data_root, mode)
+    try:
+        try:
+            proc = subprocess.Popen([str(part) for part in argv], cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        except FileNotFoundError:
+            mail_stop(stage, "command not found: %s" % argv[0])
+            return 1
+        bind_worker(data_root, token, proc.pid)
+        tail = []
+        for line in proc.stdout:
+            print(line, end="")
+            tail.append(line)
+            if(len(tail) > 80):
+                tail.pop(0)
+        code = proc.wait()
+        excerpt = "".join(tail)
+        if(code != 0):
+            mail_stop(stage, "exit %s\n\n%s" % (code, excerpt))
+            return code
+        if(mail_success):
+            mail_note("SIDIS phase %s finished" % stage, "phase %s finished.\nnext phase: %s\n" % (stage, next_phase if(next_phase) else "none"))
+        return 0
+    finally:
+        release(data_root, token)
+
+
 def run_command(stage, argv, cwd, dry_run, next_phase="", mail_success=True):
     print("")
     print("phase %s" % stage)
@@ -306,9 +339,20 @@ def bc_expected_bins():
     return bins
 
 
+# Current skip_condition drops these three. October 18 files still contain them.
+BC_EXTRA_BINS = [(3, 6), (11, 5), (14, 6)]
+
+
 def bc_hist_name(q2_bin, zpt_bin):
     # Every direct command passes -nb 3 -nbphi 2. Per-axis overrides are not in this name.
     return "Histogram Bin (%d-%d)-(Num SubBins=3)-(Extra phi_h SubBins=2)" % (q2_bin, zpt_bin)
+
+
+def bc_extra_names():
+    names = []
+    for q2_bin, zpt_bin in BC_EXTRA_BINS:
+        names.append(bc_hist_name(q2_bin, zpt_bin))
+    return names
 
 
 def bc_nsub(counts):
@@ -356,8 +400,9 @@ def bc_histogram_status(path, counts):
             for key in root_file.GetListOfKeys():
                 classes[str(key.GetName())] = str(key.GetClassName())
             status = "complete"
+            allowed_extra = bc_extra_names()
             for name, klass in classes.items():
-                if(name.startswith("Histogram Bin (") and (name not in expected)):
+                if(name.startswith("Histogram Bin (") and (name not in expected) and (name not in allowed_extra)):
                     status = "incomplete"
             if(status == "complete"):
                 for name in expected:
@@ -386,6 +431,43 @@ def bc_histogram_status(path, counts):
 
 def bc_histograms_match(path, counts):
     return bc_histogram_status(path, counts) == "complete"
+
+
+def bc_filtered_copy(path, dest):
+    # The merge receives the 452 current bins. The three older histograms stay in the original file.
+    try:
+        import ROOT
+    except Exception:
+        return False
+    src = None
+    out = None
+    try:
+        src = ROOT.TFile.Open(str(path), "READ")
+        if((src is None) or src.IsZombie()):
+            return False
+        out = ROOT.TFile(str(dest), "RECREATE")
+        if((out is None) or out.IsZombie()):
+            return False
+        for q2_bin, zpt_bin in bc_expected_bins():
+            name = bc_hist_name(q2_bin, zpt_bin)
+            hist = src.Get(name)
+            if(hist is None):
+                return False
+            hist.Write()
+        return True
+    except Exception:
+        return False
+    finally:
+        if(out is not None):
+            try:
+                out.Close()
+            except Exception:
+                pass
+        if(src is not None):
+            try:
+                src.Close()
+            except Exception:
+                pass
 
 
 def bc_output_path(input_path, label, counts):
@@ -543,6 +625,72 @@ def rc_factor_names():
             z_tag = "All" if(zpt_bin == 0) else str(zpt_bin)
             names.append("(RC_Factor)_(gdf)_(SMEAR='')_(Q2_y_Bin_%s)_(z_pT_Bin_%s)_(phi_t)_(Normalized_Weight)" % (q2_tag, z_tag))
     return names
+
+
+RC_LOCAL_START_MARKER = "local-start rule: missing queue entry with an invalid output is started locally"
+RC_GATE_MARKER = "campaign local resource gate"
+RC_BUILD_RELATIVE = "Run_Large_Files_For_Iterative_Corrections/Comparison_With_Unfolding/Build_EvGen_PerFile_Hists.py"
+SHELF_RC_BUILD = "/w/hallb-scshelf2102/clas12/richcap/Radiative_MC/SIDIS_RC_EvGen_richcap/Running_EvGen_richcap/" + RC_BUILD_RELATIVE
+
+
+def rc_build_script():
+    return os.path.join(evgen_dir(), RC_BUILD_RELATIVE)
+
+
+def rc_fix_is_deployed():
+    path = rc_build_script()
+    text = ""
+    if(os.path.isfile(path)):
+        handle = open(path)
+        text = handle.read()
+        handle.close()
+    if((RC_LOCAL_START_MARKER not in text) or (RC_GATE_MARKER not in text)):
+        print("RC was not started. The local-start fix and the resource gate are not both in %s" % path)
+        print("Updating the ceph analysis checkout does not update the shelf EvGen file.")
+        print("Copy the edited Build_EvGen_PerFile_Hists.py to %s" % SHELF_RC_BUILD)
+        return False
+    return True
+
+
+def rc_evgen_names():
+    names = []
+    for factor_name in rc_factor_names():
+        names.append(factor_name.replace("(RC_Factor)", "(EvGen_Rad)", 1))
+        names.append(factor_name.replace("(RC_Factor)", "(EvGenNRad)", 1))
+    return names
+
+
+def root_has_th1_names(path, names):
+    if(not root_is_usable(path, need_h22=False)):
+        return False
+    try:
+        import ROOT
+    except Exception:
+        return False
+    root_file = None
+    try:
+        root_file = ROOT.TFile.Open(str(path), "READ")
+        if((root_file is None) or root_file.IsZombie()):
+            return False
+        classes = {}
+        for key in root_file.GetListOfKeys():
+            classes[str(key.GetName())] = str(key.GetClassName())
+        for name in names:
+            if(not classes.get(name, "").startswith("TH1")):
+                return False
+        return True
+    except Exception:
+        return False
+    finally:
+        if(root_file is not None):
+            try:
+                root_file.Close()
+            except Exception:
+                pass
+
+
+def rc_evgen_merged_complete(path):
+    return root_has_th1_names(path, rc_evgen_names())
 
 
 def rc_factors_complete(path):
@@ -1065,7 +1213,9 @@ def run_rc(args):
     rc_out = os.path.join(RC_RUNTIME, "merged_outputs", "RC_Factors_ifarm_rc.root")
     paired = matched_evgen(args.dry_run)
     task_list = os.path.join(RC_RUNTIME, "evgen_perfile_task_list.txt")
-    if(rc_build_outputs_ready(task_list, merged)):
+    if(not rc_fix_is_deployed()):
+        return 1
+    if(rc_evgen_merged_complete(merged) or rc_build_outputs_ready(task_list, merged)):
         print("phase rc_build done")
         finish_phase(args, "rc_build", "rc_compare")
     else:
@@ -1193,11 +1343,28 @@ def run_bc_config(args, label, counts):
             print("removing incomplete BC merge so it is recreated: %s" % dest)
             if(not args.dry_run):
                 os.remove(dest)
-        hadd_argv = bc_hadd_argv(dest, outputs)
+        filtered = []
+        for path in outputs:
+            filtered.append(path + ".hadd_input.root")
+        if(args.dry_run):
+            print("filtering the 452 current BC histograms, leaving Histogram Bin (3-6), (11-5), and (14-6) in the original files")
+        else:
+            for path, copy_path in zip(outputs, filtered):
+                if(not bc_filtered_copy(path, copy_path)):
+                    for made in filtered:
+                        if(os.path.isfile(made)):
+                            os.remove(made)
+                    mail_stop(hadd_phase, "could not copy the current BC histograms from %s" % path)
+                    return 1
+        hadd_argv = bc_hadd_argv(dest, filtered)
         if(len(hadd_argv) == 0):
             mail_stop(hadd_phase, "ROOTSYS is unset or $ROOTSYS/bin/hadd is not a file")
             return 1
         code = run_command(hadd_phase, hadd_argv, bc_dir, args.dry_run, factor_phase, mail_success=False)
+        if(not args.dry_run):
+            for copy_path in filtered:
+                if(os.path.isfile(copy_path)):
+                    os.remove(copy_path)
         if(code != 0):
             return code
         if(args.dry_run):
@@ -1236,13 +1403,488 @@ def run_bc(args):
     return 0
 
 
+def review_n_rho(path):
+    if(not text_is_present(path)):
+        return None
+    handle = open(path)
+    value = None
+    for line in handle:
+        text = line.strip()
+        if(text.startswith("n_rho_ave")):
+            continue
+        if(text.startswith("n_rho ")):
+            try:
+                value = float(text.split()[1])
+            except (IndexError, ValueError):
+                value = None
+            break
+    handle.close()
+    return value
+
+
+def rho_weight_status(data_root):
+    # A mismatch is reported and the JSON is left unchanged. Only weighted products stop.
+    json_path = os.path.join(_BOOT, "Campaign", "rho_factors.json")
+    review = os.path.join(data_root_path(data_root), "Histo_Files_ROOT", "DataFrames", "exclusive_rho_review_rho0_new.txt")
+    from Campaign.ifarm_inputs import registered_rho0_new_norm
+    try:
+        stored = registered_rho0_new_norm(json_path)
+    except SystemExit as exc:
+        print(exc)
+        return "blocked"
+    found = review_n_rho(review)
+    if(found is None):
+        print("rho review file has no finite n_rho: %s" % review)
+        print("weighted products are blocked. Campaign/rho_factors.json was not changed.")
+        return "blocked"
+    scale = abs(stored) if(abs(stored) > 1.0) else 1.0
+    if(abs(found - stored) <= (1.0e-6 * scale)):
+        return "match"
+    print("rho0 n_rho mismatch. Campaign/rho_factors.json was not changed.")
+    print("review %s %s" % (review, found))
+    print("json %s %s" % (json_path, stored))
+    print("weighted products are blocked until the intended value is confirmed.")
+    return "blocked"
+
+
+def local_jobs_per_mode(max_local, n_modes):
+    # Kept so older callers still import. Histogram launches use histogram_ceilings instead of an even split.
+    if(max_local in [None, 0]):
+        return 10
+    share = max(1, int(max_local) // int(n_modes))
+    return min(10, share)
+
+
+def response_merged_path(data_root, token):
+    folder = os.path.join(data_root_path(data_root), REL_HADD)
+    matches = sorted(glob.glob(os.path.join(folder, "SIDIS_epip_Response_Matrices_from_RDataFrames_%s*.root" % token)))
+    if(len(matches) == 0):
+        return os.path.join(folder, "SIDIS_epip_Response_Matrices_from_RDataFrames_%s_Final_Thesis_Files_All.root" % token)
+    return matches[-1]
+
+
+def response_file_ready(path, required_piece):
+    if(not root_is_usable(path, need_h22=False)):
+        return False
+    try:
+        import ROOT
+    except Exception:
+        return False
+    root_file = None
+    try:
+        root_file = ROOT.TFile.Open(str(path), "READ")
+        if((root_file is None) or root_file.IsZombie()):
+            return False
+        for key in root_file.GetListOfKeys():
+            if(required_piece in str(key.GetName())):
+                return True
+        return False
+    except Exception:
+        return False
+    finally:
+        if(root_file is not None):
+            try:
+                root_file.Close()
+            except Exception:
+                pass
+
+
+def hpp_has_marker(path, marker):
+    if((not os.path.isfile(path)) or (os.path.getsize(path) <= 0)):
+        return False
+    handle = open(path, errors="ignore")
+    chunk = handle.read(400000)
+    handle.close()
+    return marker in chunk
+
+
+def default_hpp_paths(data_root):
+    from jlab_work_paths import resolve_pipeline_input
+    shelf = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp"
+    pure = resolve_pipeline_input(shelf, data_root, explicit=False)
+    spline = os.path.join(os.path.dirname(pure), "HPP_Files_Output", "New_Pass_2_Cut_generated_acceptance_weights.hpp")
+    return pure, spline
+
+
+def default_hpp_ready(data_root):
+    pure, spline = default_hpp_paths(data_root)
+    if(not hpp_has_marker(pure, "accw_")):
+        print("existing acceptance file is missing or unusable: %s" % pure)
+        return False
+    if(os.path.isfile(spline)):
+        if(not hpp_has_marker(spline, "accw_")):
+            print("existing spline acceptance file is unusable: %s" % spline)
+            return False
+    elif(not hpp_has_marker(pure, "accw_sw_")):
+        print("spline acceptance partner is missing: %s" % spline)
+        return False
+    return True
+
+
+def regenerated_hpp_paths(data_root):
+    from jlab_work_paths import pipeline_output_path, REL_HPP_OUT
+    folder = pipeline_output_path(REL_HPP_OUT, data_root)
+    pure = os.path.join(folder, "generated_acceptance_weights_SIDIS_Workflow_noSpline.hpp")
+    spline = os.path.join(folder, "generated_acceptance_weights_SIDIS_Workflow_withSpline.hpp")
+    return pure, spline
+
+
+def hpp_was_rewritten(path, previous_mtime, started):
+    if(not hpp_has_marker(path, "accw_")):
+        return False
+    try:
+        current = os.path.getmtime(path)
+    except OSError:
+        return False
+    if(previous_mtime is None):
+        return current + 1.0 >= started
+    return (current > previous_mtime) and (current + 1.0 >= started)
+
+
+def acceptance_commands(data_root):
+    script = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Acceptance_Weights_Creations_using_RDataFrames.py")
+    pure, spline = regenerated_hpp_paths(data_root)
+    spline_file = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt"
+    shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", "_gen"]
+    pure_cmd = shared + ["--hpp_output_file", pure]
+    spline_cmd = shared + ["--hpp_output_file", spline, "--spline_weights", "--spline_file", spline_file]
+    return pure_cmd, spline_cmd, pure, spline
+
+
+def response_submit_argv(args, only_key):
+    from Campaign.local_resource_gate import clamp_histogram_cap, histogram_ceilings
+    ceilings = histogram_ceilings()
+    submit = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py")
+    argv = [submit, "-droot", args.data_root, "-m", "hybrid", "-y", "-sa", "-n", "SIDIS_Workflow", "-j", "0", "-jBin", "0", "-jch4", "0", "-jdph", "0", "-jrho0", "0"]
+    hpp_name = getattr(args, "hpp_old_name", None)
+    if(hpp_name not in [None, ""]):
+        argv.extend(["-hon", str(hpp_name)])
+    counts = {"2D": 0, "3D": 0, "5D": 0, "1D": 0, "diag": 0}
+    if(only_key in ["", "2D"]):
+        counts["2D"] = ceilings["Only_2D"]
+    if(only_key in ["", "3D"]):
+        counts["3D"] = ceilings["Only_3D"]
+    if(only_key in ["", "5D"]):
+        counts["5D"] = ceilings["Only_5D"]
+    if(only_key in ["", "1D"]):
+        counts["1D"] = ceilings["Only_1D"]
+    if(only_key in ["", "diag"]):
+        counts["diag"] = ceilings["Diagnostic_1D"]
+    argv.extend(["-j2D", str(counts["2D"]), "-j3D", str(counts["3D"]), "-j5D", str(counts["5D"]), "-j1D", str(counts["1D"]), "-jdiag", str(counts["diag"])])
+    cap = clamp_histogram_cap(getattr(args, "max_local_jobs", None))
+    if(cap not in [None, ""]):
+        argv.extend(["-hlc", str(cap)])
+    return argv
+
+
+def run_response(args, only_key):
+    if(rho_weight_status(args.data_root) == "blocked"):
+        return 1
+    hpp_name = getattr(args, "hpp_old_name", None)
+    if(hpp_name not in [None, ""]):
+        pure, spline = regenerated_hpp_paths(args.data_root)
+        if((not hpp_has_marker(pure, "accw_")) or (not hpp_has_marker(spline, "accw_"))):
+            mail_stop("response", "regenerated acceptance files are not usable")
+            return 1
+    elif(not default_hpp_ready(args.data_root)):
+        mail_stop("response", "existing acceptance weights are not usable, so histogram jobs were not started")
+        return 1
+    argv = response_submit_argv(args, only_key)
+    code = run_command("response", argv, os.path.dirname(argv[0]), args.dry_run, "", mail_success=False)
+    if(code != 0):
+        return code
+    if(args.dry_run):
+        return 0
+    needed = [("Only_3D_SIDIS_Workflow", "MultiDim"), ("Only_5D_SIDIS_Workflow", "MultiDim")]
+    if(only_key == "1D"):
+        needed = [("Only_1D_SIDIS_Workflow", "phi_response_4d")]
+    elif(only_key == "diag"):
+        needed = [("Diagnostic_1D_SIDIS_Workflow", "match_category")]
+    elif(only_key == "3D"):
+        needed = [("Only_3D_SIDIS_Workflow", "MultiDim")]
+    elif(only_key == "5D"):
+        needed = [("Only_5D_SIDIS_Workflow", "MultiDim")]
+    elif(only_key == "2D"):
+        needed = [("2D_Presentation_SIDIS_Workflow", "Q2")]
+    for token, piece in needed:
+        path = response_merged_path(args.data_root, token)
+        if(not response_file_ready(path, piece)):
+            mail_stop("response", "aggregated file is missing its histograms: %s" % path)
+            return 1
+    finish_phase(args, "response", "")
+    return 0
+
+
+def iteration_output_path(data_root, dimension):
+    return os.path.join(data_root_path(data_root), "Unfold_Iteration_Config", "iteration_%s_study.root" % dimension.lower())
+
+
+def unfold_output_path(data_root, dimension):
+    return os.path.join(data_root_path(data_root), "Unfold_Iteration_Config", "unfold_%s.root" % dimension.lower())
+
+
+def root_key_count(path, piece):
+    if(not root_is_usable(path, need_h22=False)):
+        return 0
+    try:
+        import ROOT
+    except Exception:
+        return 0
+    root_file = None
+    count = 0
+    try:
+        root_file = ROOT.TFile.Open(str(path), "READ")
+        if((root_file is None) or root_file.IsZombie()):
+            return 0
+        for key in root_file.GetListOfKeys():
+            if(piece in str(key.GetName())):
+                count += 1
+        return count
+    except Exception:
+        return 0
+    finally:
+        if(root_file is not None):
+            try:
+                root_file.Close()
+            except Exception:
+                pass
+
+
+def iteration_lookup_ready(dimension, cut, bins):
+    from Campaign.run_sidis_campaign import k_for
+    try:
+        if(dimension == "5D"):
+            k_for("5D", cut, None, "current_binning")
+            return True
+        for q2y in bins:
+            k_for("3D", cut, q2y, "current_binning")
+        return True
+    except SystemExit as exc:
+        print(exc)
+        return False
+
+
+def iteration_histograms_ready(path, dimension):
+    if(dimension == "5D"):
+        return all(root_key_count(path, name) > 0 for name in ["hch2", "herr", "hres", "hrms"])
+    pieces = ["Iteration_Study_Chi2", "Iteration_Study_RMSError", "Iteration_Study_MeanResiduals", "Iteration_Study_RMSResiduals"]
+    return all(root_key_count(path, piece) > 0 for piece in pieces)
+
+
+def run_iteration(args, dimension):
+    bins = list(range(1, 18))
+    out_path = iteration_output_path(args.data_root, dimension)
+    if(iteration_histograms_ready(out_path, dimension) and iteration_lookup_ready(dimension, args.acceptance_cut, bins)):
+        print("phase iteration_%s done" % dimension.lower())
+        return 0
+    script = "run_Simple_Unfold.py" if(dimension == "3D") else "run_Dedicated_5D_Unfold.py"
+    script = os.path.join(_BOOT, script)
+    out_path = iteration_output_path(args.data_root, dimension)
+    response = response_merged_path(args.data_root, "Only_%s_SIDIS_Workflow" % ("3D" if(dimension == "3D") else "5D"))
+    if((not args.dry_run) and (not response_file_ready(response, "MultiDim"))):
+        mail_stop("iteration_%s" % dimension.lower(), "response aggregate is not ready: %s" % response)
+        return 1
+    argv = [script, "-droot", args.data_root, "--iteration_study", "--parm_min", "1", "--parm_max", "10", "--parm_step", "1", "--Min_Allowed_Acceptance_Cut", str(args.acceptance_cut), "-r", out_path, "-sfin", response]
+    if(dimension == "5D"):
+        argv.extend(["--background_source", "lundvpk"])
+    code = run_reserved("iteration_%s" % dimension.lower(), argv, _BOOT, args.dry_run, "iteration_%s" % dimension.lower(), args.data_root)
+    if(code != 0):
+        return code
+    if(args.dry_run):
+        return 0
+    if(not iteration_histograms_ready(out_path, dimension)):
+        mail_stop("iteration_%s" % dimension.lower(), "iteration histograms are incomplete: %s" % out_path)
+        return 1
+    bins = list(range(1, 18))
+    if(not iteration_lookup_ready(dimension, args.acceptance_cut, bins)):
+        print("iteration histograms are present, but bayesian_iteration_lookup.json has no resolved k_selected. The full unfold was not started.")
+        return 1
+    finish_phase(args, "iteration_%s" % dimension.lower(), "")
+    return 0
+
+
+def unfold_histograms_ready(path, n_bins):
+    return root_key_count(path, "Bayesian") >= n_bins
+
+
+def run_unfold(args, dimension):
+    bins = list(range(1, 18))
+    out_path = unfold_output_path(args.data_root, dimension)
+    n_need = 1 if(dimension == "5D") else len(bins)
+    if(unfold_histograms_ready(out_path, n_need)):
+        print("phase unfold_%s done" % dimension.lower())
+        return 0
+    if(not iteration_lookup_ready(dimension, args.acceptance_cut, bins)):
+        mail_stop("unfold_%s" % dimension.lower(), "iteration lookup is not resolved")
+        return 1
+    response = response_merged_path(args.data_root, "Only_%s_SIDIS_Workflow" % ("3D" if(dimension == "3D") else "5D"))
+    if(dimension == "5D"):
+        from Campaign.run_sidis_campaign import k_for
+        k_value, _provenance = k_for("5D", args.acceptance_cut, None, args.k_provenance)
+        script = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
+        argv = [script, "-droot", args.data_root, "--bayes_iterations", str(k_value), "--Min_Allowed_Acceptance_Cut", str(args.acceptance_cut), "-r", out_path, "-sfin", response]
+        code = run_reserved("unfold_5d", argv, _BOOT, args.dry_run, "unfold_5d", args.data_root)
+        n_need = 1
+    else:
+        from Campaign.run_sidis_campaign import unfold_3d_commands
+        commands = unfold_3d_commands(args.acceptance_cut, args.phi_bins, args.background_source, bins, args.k_provenance, args.data_root)
+        code = 0
+        for _k_value, _q2y_list, command in commands:
+            argv = shlex.split(command) + ["-r", out_path, "-sfin", response]
+            code = run_reserved("unfold_3d", argv, _BOOT, args.dry_run, "unfold_3d", args.data_root)
+            if(code != 0):
+                return code
+        n_need = len(bins)
+    if(code != 0):
+        return code
+    if(args.dry_run):
+        return 0
+    if(not unfold_histograms_ready(out_path, n_need)):
+        mail_stop("unfold_%s" % dimension.lower(), "unfolded Bayesian histograms are incomplete: %s" % out_path)
+        return 1
+    finish_phase(args, "unfold_%s" % dimension.lower(), "")
+    return 0
+
+
+def spawn_stage(args, stage, extra):
+    driver = os.path.join(os.path.dirname(__file__), "run_sidis_campaign.py")
+    argv = [sys.executable, driver, "-s", stage, "-orch", "direct", "-droot", args.data_root] + extra
+    if(args.dry_run):
+        argv.append("-n")
+    if(getattr(args, "max_local_jobs", None) not in [None, ""]):
+        argv.extend(["-mlj", str(args.max_local_jobs)])
+    if(getattr(args, "systematics", None)):
+        argv.extend(["-sys", args.systematics])
+    print("starting %s" % stage)
+    show_command(argv)
+    if(args.dry_run):
+        return None
+    return subprocess.Popen(argv)
+
+
+def run_acceptance_regen(args):
+    pure_cmd, spline_cmd, pure, spline = acceptance_commands(args.data_root)
+    previous = {}
+    for path in [pure, spline]:
+        previous[path] = os.path.getmtime(path) if(os.path.isfile(path)) else None
+    started = time.time()
+    code = run_reserved("acceptance_pure", pure_cmd, os.path.dirname(pure_cmd[0]), args.dry_run, "acceptance", args.data_root)
+    if(code != 0):
+        return code
+    code = run_reserved("acceptance_spline", spline_cmd, os.path.dirname(spline_cmd[0]), args.dry_run, "acceptance", args.data_root)
+    if(code != 0):
+        return code
+    if(args.dry_run):
+        return 0
+    if((not hpp_was_rewritten(pure, previous[pure], started)) or (not hpp_was_rewritten(spline, previous[spline], started))):
+        mail_stop("acceptance", "acceptance regeneration did not rewrite both HPP outputs")
+        return 1
+    return 0
+
+
+def run_histogram_unfold(args):
+    # Does not start RC or BC. Normal execution passes -sa and does not generate acceptance weights.
+    if(getattr(args, "regenerate_acceptance", False)):
+        code = run_acceptance_regen(args)
+        if(code != 0):
+            return code
+        extra = ["-hon", "SIDIS_Workflow"]
+    else:
+        if(not default_hpp_ready(args.data_root)):
+            mail_stop("histogram_unfold", "existing acceptance weights are not usable, so histogram jobs were not started")
+            return 1
+        extra = []
+    children = []
+    proc = spawn_stage(args, "response_all", extra)
+    if(proc is not None):
+        children.append(("response_all", proc))
+    return watch_histogram_chain(args, children)
+
+
+def run_campaign(args):
+    # RC and BC do not hold the histogram or unfolding stages.
+    children = []
+    for stage, extra in [("rc_regenerate", ["-rc", "regenerate"]), ("bc", []), ("response_all", [])]:
+        proc = spawn_stage(args, stage, extra)
+        if(proc is not None):
+            children.append((stage, proc))
+    return watch_histogram_chain(args, children)
+
+
+def watch_histogram_chain(args, children):
+    iteration_started = {"3D": False, "5D": False}
+    iteration_done = {"3D": False, "5D": False}
+    unfold_started = {"3D": False, "5D": False}
+    if(args.dry_run):
+        print("iteration studies start when the 3D and 5D aggregates exist")
+        print("each full unfold starts when its iteration lookup is resolved")
+        return 0
+    while(True):
+        for dimension, token in [("3D", "Only_3D_SIDIS_Workflow"), ("5D", "Only_5D_SIDIS_Workflow")]:
+            ready = response_file_ready(response_merged_path(args.data_root, token), "MultiDim")
+            if(ready and (not iteration_started[dimension])):
+                proc = spawn_stage(args, "iteration_%s" % dimension.lower(), [])
+                if(proc is not None):
+                    children.append(("iteration_%s" % dimension.lower(), proc))
+                iteration_started[dimension] = True
+            if(iteration_done[dimension] and iteration_lookup_ready(dimension, args.acceptance_cut, list(range(1, 18))) and (not unfold_started[dimension])):
+                proc = spawn_stage(args, "unfold_%s" % dimension.lower(), [])
+                if(proc is not None):
+                    children.append(("unfold_%s" % dimension.lower(), proc))
+                unfold_started[dimension] = True
+        still = []
+        for stage, proc in children:
+            code = proc.poll()
+            if(code is None):
+                still.append((stage, proc))
+            else:
+                if(stage == "iteration_3d"):
+                    iteration_done["3D"] = code == 0
+                if(stage == "iteration_5d"):
+                    iteration_done["5D"] = code == 0
+                if(code != 0):
+                    print("stage %s exited %s" % (stage, code))
+                    if(stage in ["iteration_3d", "iteration_5d", "unfold_3d", "unfold_5d"]):
+                        return code
+        children = still
+        if((len(children) == 0) and iteration_started["3D"] and iteration_started["5D"] and unfold_started["3D"] and unfold_started["5D"]):
+            return 0
+        if((len(children) == 0) and (not response_file_ready(response_merged_path(args.data_root, "Only_3D_SIDIS_Workflow"), "MultiDim"))):
+            return 1
+        if((len(children) == 0) and iteration_done["3D"] and (not unfold_started["3D"])):
+            return 1
+        if((len(children) == 0) and iteration_done["5D"] and (not unfold_started["5D"])):
+            return 1
+        time.sleep(5)
+
+
 def run_direct(args):
+    os.environ["SIDIS_ANALYSIS_ROOT"] = _BOOT
+    os.environ["SIDIS_DATA_ROOT"] = str(args.data_root)
     if(args.stage == "early_chain"):
         code = run_early(args)
     elif(args.stage == "rc_regenerate"):
         code = run_rc(args)
     elif(args.stage == "bc"):
         code = run_bc(args)
+    elif(args.stage == "response_all"):
+        code = run_response(args, "")
+    elif(args.stage == "response_1d"):
+        code = run_response(args, "1D")
+    elif(args.stage == "diagnostic_1d"):
+        code = run_response(args, "diag")
+    elif(args.stage == "iteration_3d"):
+        code = run_iteration(args, "3D")
+    elif(args.stage == "iteration_5d"):
+        code = run_iteration(args, "5D")
+    elif(args.stage == "unfold_3d"):
+        code = run_unfold(args, "3D")
+    elif(args.stage == "unfold_5d"):
+        code = run_unfold(args, "5D")
+    elif(args.stage == "campaign"):
+        code = run_campaign(args)
+    elif(args.stage == "histogram_unfold"):
+        code = run_histogram_unfold(args)
     else:
         print("direct orchestration does not run stage %s" % args.stage)
         code = 1

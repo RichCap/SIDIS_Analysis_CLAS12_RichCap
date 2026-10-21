@@ -21,6 +21,47 @@ del script_dir
 
 SLURM_ARRAY_CHECK_DISABLED = False
 
+def bc_popen_when_slot(command, stdout_handle, running, finish_job):
+    # campaign local resource gate
+    boot = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if(boot not in sys.path):
+        sys.path.insert(0, boot)
+    from Campaign.local_resource_gate import try_acquire, bind_worker, release
+    data_root = os.environ.get("SIDIS_DATA_ROOT", "work_b")
+    while(True):
+        ok, token = try_acquire(data_root, "bc")
+        if(ok):
+            break
+        still = []
+        progressed = False
+        for item in list(running):
+            rc = item["proc"].poll()
+            if(rc is None):
+                still.append(item)
+            else:
+                finish_job(item, rc)
+                progressed = True
+        running[:] = still
+        if(not progressed):
+            time.sleep(1.0)
+    try:
+        proc = subprocess.Popen(command, stdout=stdout_handle, stderr=stdout_handle)
+    except Exception:
+        release(data_root, token)
+        raise
+    bind_worker(data_root, token, proc.pid)
+    return proc, token, data_root
+
+def bc_release_slot(item):
+    token = item.get("slot")
+    if(token in [None, ""]):
+        return
+    boot = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if(boot not in sys.path):
+        sys.path.insert(0, boot)
+    from Campaign.local_resource_gate import release
+    release(item.get("data_root", os.environ.get("SIDIS_DATA_ROOT", "work_b")), token)
+
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
 def parse_args():
@@ -704,8 +745,8 @@ def main():
             fh.write(f"# expected_output={expected}\n")
             fh.write(f"# command={' '.join(shlex.quote(x) for x in command)}\n")
             fh.flush()
-            proc    = subprocess.Popen(command, stdout=fh, stderr=fh)
-            running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "num": job_num})
+            proc, token, data_root = bc_popen_when_slot(command, fh, running, finish_job)
+            running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "num": job_num, "slot": token, "data_root": data_root})
             # Original style (1-based progress count of N files):
             print(f"{color.BCYAN}START{color.END}: {job_num+1:>3.0f} of {len(files)}  ->  {base}")
             # Alternate zero-based index form: print(f"{color.BCYAN}START{color.END}: index {job_num:>3d} of 0..{n_files-1}  ->  {base}")
@@ -715,6 +756,7 @@ def main():
             nonlocal num_done
             nonlocal num_fail
             num_done += 1
+            bc_release_slot(item)
             try:
                 item["fh"].close()
             except Exception:
@@ -931,12 +973,13 @@ def main():
                 fh.write(f"# expected_output={expected}\n")
                 fh.write(f"# command={' '.join(shlex.quote(x) for x in command)}\n")
                 fh.flush()
-                proc = subprocess.Popen(command, stdout=fh, stderr=fh)
-                running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "num": job_num})
+                proc, token, data_root = bc_popen_when_slot(command, fh, running, finish_job)
+                running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "num": job_num, "slot": token, "data_root": data_root})
                 print(f"{color.BCYAN}START{color.END}: {job_num+1:>3.0f} of {len(files)}  ->  {base}")
 
             def finish_job(item, rc):
                 nonlocal num_fail
+                bc_release_slot(item)
                 outcome = "success" if(rc == 0) else "failed"
                 try:
                     item["fh"].write("# owner=local rc=%s outcome=%s\n" % (rc, outcome))
