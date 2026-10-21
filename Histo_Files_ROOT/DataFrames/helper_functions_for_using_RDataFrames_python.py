@@ -258,6 +258,7 @@ def Cut_Flag_to_Title(cut_flag="no_cut"):
         "no_cut"                              : "No Cuts",
         "cut_Complete_SIDIS"                  : "Default SIDIS Cuts",
         "cut_Complete_SIDIS_MM_None"          : "No Missing Mass Cut",
+        "cut_Complete_NoKin"                  : "PID and Fiducial Cuts Only",
         "cut_Complete_SIDIS_MM_loosest"       : "Missing Mass > 1.1 GeV",
         "cut_Complete_SIDIS_MM_loose"         : "Missing Mass > 1.35 GeV (Loose)",
         "cut_Complete_SIDIS_MM_medium"        : "Missing Mass > 1.5 GeV",

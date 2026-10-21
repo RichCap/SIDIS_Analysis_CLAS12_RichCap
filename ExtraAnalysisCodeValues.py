@@ -2920,6 +2920,11 @@ def Define_Cut_Variations_With_Smeared_Kinematics(df_in, df_type="mdf"):
         df_out      = df_out.Define(f"{cut_def_sm_name}_{mm_tag}", f"({KinBlock_mm}) && {PID_base} && {NonPID_base}")
         cut_branches.append([f"{cut_def_sm_name}_{mm_tag}",        f"({KinBlock_mm}) && {PID_base} && {NonPID_base}"])
 
+    # Nominal PID and fiducial requirements with no kinematic cut.
+    # cut_Complete_SIDIS is unchanged. This column is not read by the current figures.
+    df_out = df_out.Define("cut_Complete_NoKin", f"{PID_base} && {NonPID_base}")
+    cut_branches.append(["cut_Complete_NoKin", f"{PID_base} && {NonPID_base}"])
+
 
     # -------------------------
     # PID variations (one knob)

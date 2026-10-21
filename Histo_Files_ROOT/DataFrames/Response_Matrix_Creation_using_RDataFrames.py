@@ -1021,6 +1021,21 @@ if(__name__ == "__main__"):
         Crash_Report(args, crash_message=str(match_err), continue_run=False)
         
     Update_Email(args, update_message=f"\n{color.BOLD}DATAFRAMES LOADED\nAPPLYING (BASE) CUTS{color.END}\n", verbose_override=True)
+    # Only 2D kinematic plots need a frame that still contains events outside one kinematic cut.
+    rdf_before_base_cut = None
+    mdf_before_base_cut = None
+    if((args.make_2D) and (not args.make_2D_rho_normalization_only)):
+        omit_columns = ["cut_Complete_SIDIS_MM_None"]
+        keep_unfiltered = False
+        for frame in [rdf, mdf_clasdis]:
+            if(frame is None):
+                continue
+            for column_name in omit_columns:
+                if(frame.HasColumn(column_name)):
+                    keep_unfiltered = True
+        if(keep_unfiltered):
+            rdf_before_base_cut = rdf
+            mdf_before_base_cut = mdf_clasdis
     rdf           =         rdf.Filter(args.cut_name_rdf)
     mdf_clasdis   = mdf_clasdis.Filter(args.cut_name_mdf)
     if(args.cut_rho0 not in [""]):
@@ -1617,6 +1632,38 @@ if(__name__ == "__main__"):
                     Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_2d)
                     Update_Email(args, update_message=f"{color.BBLUE}Created ({data}) plot for: {color.END_B}{str(Vars)}{color.END}", verbose_override=False, no_time=True)
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}{'clasdis_' if('rdf' not in data) else ''}{data}{color.END_C})'{color.END}", verbose_override=True)
+            if((not args.make_2D_rho_normalization_only) and (rdf_before_base_cut is not None)):
+                omit_pairs = [
+                    ("cut_Complete_SIDIS_MM_None", [list(MM_Binning), list(W_Binning)]),
+                ]
+                for data, df_src in [["rdf", rdf_before_base_cut], ["mdf", mdf_before_base_cut]]:
+                    if(df_src is None):
+                        continue
+                    if(data == "mdf"):
+                        weight_specs_2d = weight_specs_mdf
+                    else:
+                        weight_specs_2d = [("", None)]
+                    for cut_name, var_pair in omit_pairs:
+                        if(not df_src.HasColumn(cut_name)):
+                            print(f"Omit-cut column missing, skip {data} {cut_name}")
+                            continue
+                        use_smear = (data == "mdf") and (not getattr(args, "unsmeared", False))
+                        Histograms_All = make_TH2D_histos(sdf=df_src.Filter(cut_name), Histo_Data=data, Histo_Cut=cut_name, Histo_Smear=mdf_smear_type if(use_smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=var_pair, Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_2d)
+                        Update_Email(args, update_message=f"{color.BBLUE}Created ({data}) omit-cut plot for: {color.END_B}{cut_name}{color.END}", verbose_override=False, no_time=True)
+            if((mdf_clasdis is not None) and (not args.make_2D_rho_normalization_only)):
+                gen_pairs = [
+                    (["Q2_gen", 0, 12, 140], ["y_gen", 0.05, 1.05, 100]),
+                    (["Q2_gen", 0, 12, 140], ["xB_gen", 0, 1.0, 100]),
+                    (["z_gen", 0, 1.0, 100], ["pT_gen", 0, 1.05, 105]),
+                    (["MM_gen", 0.5, 4.5, 80], ["W_gen", 0.99, 4.99, 80]),
+                ]
+                gen_cut = f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}"
+                for x_spec, y_spec in gen_pairs:
+                    if((not mdf_clasdis.HasColumn(x_spec[0])) or (not mdf_clasdis.HasColumn(y_spec[0]))):
+                        print(f"Matched generated column missing, skip {x_spec[0]} {y_spec[0]}")
+                        continue
+                    Histograms_All = make_TH2D_histos(sdf=mdf_clasdis, Histo_Data="mdf", Histo_Cut=gen_cut, Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[list(x_spec), list(y_spec)], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, "mdf"), args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_mdf)
+                    Update_Email(args, update_message=f"{color.BBLUE}Created (mdf) matched-generated plot for: {color.END_B}{x_spec[0]} {y_spec[0]}{color.END}", verbose_override=False, no_time=True)
             if(args.Use_EvGen):
                 mdf_EvGen = _with_pt2(mdf_EvGen)
                 gdf_EvGen = _with_pt2(gdf_EvGen)
