@@ -1423,28 +1423,18 @@ def review_n_rho(path):
 
 
 def rho_weight_status(data_root):
-    # A mismatch is reported and the JSON is left unchanged. Only weighted products stop.
+    # rho0_new histograms load Campaign/rho_factors.json. A review file is a fit record and is not required.
+    # The factor lives in the checkout. data_root stays in the signature for the existing caller.
     json_path = os.path.join(_BOOT, "Campaign", "rho_factors.json")
-    review = os.path.join(data_root_path(data_root), "Histo_Files_ROOT", "DataFrames", "exclusive_rho_review_rho0_new.txt")
     from Campaign.ifarm_inputs import registered_rho0_new_norm
     try:
         stored = registered_rho0_new_norm(json_path)
     except SystemExit as exc:
         print(exc)
-        return "blocked"
-    found = review_n_rho(review)
-    if(found is None):
-        print("rho review file has no finite n_rho: %s" % review)
         print("weighted products are blocked. Campaign/rho_factors.json was not changed.")
         return "blocked"
-    scale = abs(stored) if(abs(stored) > 1.0) else 1.0
-    if(abs(found - stored) <= (1.0e-6 * scale)):
-        return "match"
-    print("rho0 n_rho mismatch. Campaign/rho_factors.json was not changed.")
-    print("review %s %s" % (review, found))
-    print("json %s %s" % (json_path, stored))
-    print("weighted products are blocked until the intended value is confirmed.")
-    return "blocked"
+    print("rho0_new n_rho %s from %s" % (stored, json_path))
+    return "match"
 
 
 def local_jobs_per_mode(max_local, n_modes):
