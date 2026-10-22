@@ -249,7 +249,8 @@ def main():
     parser.add_argument("-n", "--dry_run", action="store_true")
     parser.add_argument("-mlj", "--max_local_jobs", default=None, type=int, help="Extra ceiling on histogram-kind local slots. Omit to use each mode's own ceiling. A value above 48 is clamped. It cannot raise a mode ceiling or the 110 GB ledger.\n")
     parser.add_argument("-raw", "--regenerate_acceptance", action="store_true", help="Opt-in. Run the existing acceptance-weight job locally before histogram_unfold. The normal command reuses the existing HPP files.\n")
-    parser.add_argument("-hon", "--hpp_old_name", default=None, help="Existing HPP tag to reuse with -sa. histogram_unfold sets this only after -raw validates a new pair.\n")
+    parser.add_argument("-hon", "--hpp_old_name", default=None, help="Existing HPP tag to reuse with -sa. Omitted histogram commands use Final_Thesis. -raw still selects the SIDIS_Workflow pair after it is rewritten.\n")
+    parser.add_argument("-mac", "--matching_criteria", default="Bank", choices=["", "_gen", "gen", "P10T6", "Bank", "_gen_Bank", "P12T6", "_gen_P12T6", "P8T6", "_gen_P8T6", "P10T8", "_gen_P10T8", "P10T4", "_gen_P10T4"], help="Matching mode for histogram, rho, and acceptance commands. Omitted value is Bank. Blank selects the historical unsuffixed match.\n")
     parser.add_argument("-prov", "--k_provenance", default="pre_binning_bootstrap", choices=["pre_binning_bootstrap", "current_binning"])
     parser.add_argument("-sta", "--start_stage", default="groovy", help="Used with -s workflow. Names the first stage to run. Anything upstream of that name is left as already done and is not submitted again. groovy starts at the new HIPO files. dataframe or batches starts after those files exist. response or unfold starts after the batches exist. rc starts the radiative-correction branch. hybrid or bc starts at the correction merge.")
     parser.add_argument("-art", "--artifact", default="acceptance=regenerate,rc=regenerate,correction=regenerate", help="Used with -s workflow. One mode for each branch, written as name=mode and separated by commas. regenerate builds that branch in this campaign. reuse keeps a branch that is already validated and listed in -sat, and does not rerun it. disabled leaves the branch out because this workflow does not need it. Example: acceptance=regenerate,rc=reuse,correction=disabled.")
@@ -328,7 +329,7 @@ def main():
                 counts[variable] = value
                 lines.append(bc_command(counts))
     elif(args.stage in ["early_chain", "groovy_rho", "groovy_55na", "dataframe", "make_batches", "rho_norm"]):
-        built = early_chain_commands(os.path.join(registry.root, "commands"), args.data_root)
+        built = early_chain_commands(os.path.join(registry.root, "commands"), args.data_root, matching=args.matching_criteria, hpp_tag=args.hpp_old_name)
         if(built["status"] == "blocked"):
             registry.set_status(args.stage, "blocked")
             raise SystemExit(built["reason"])
@@ -339,7 +340,7 @@ def main():
             "binning_version": BINNING_VERSION,
         })
     elif(args.stage in ["response", "response_priority", "response_5d", "response_3d", "response_1d", "response_2d", "diagnostic_dphi"]):
-        products = response_commands(args.data_root)
+        products = response_commands(args.data_root, matching=args.matching_criteria, hpp_tag=args.hpp_old_name)
         order = ["response_5d", "response_3d", "diagnostic_dphi", "response_1d", "response_2d"]
         if(args.stage in order):
             order = [args.stage]

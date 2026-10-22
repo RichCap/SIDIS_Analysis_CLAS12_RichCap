@@ -157,7 +157,8 @@ def parse_args():
                         help='Use unsmeared reconstructed-MC columns (no *_smeared). Required for cut_Complete_SIDIS_noSmear.\n')
     parser.add_argument('-mac', '--matching_criteria',
                         type=str,
-                        default="_gen",
+                        # default="_gen",
+                        default="Bank",
                         choices=list(MATCHING_MODE_ALIASES),
                         help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     add_data_root_argument(parser)
@@ -541,7 +542,7 @@ def Collect_DataFrames(args):
     else:
         print("Fast Load...")
     from helper_functions_for_using_RDataFrames_python import apply_matching_and_redefine_gen
-    mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "_gen"))
+    mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "Bank"))
     print(f"{color.BBLUE}Matching: {color.END_B}{match_msg}{color.END}")
     print(f"\n{color.BOLD}DATAFRAMES LOADED\n{color.END}")
     args.timer.time_elapsed()

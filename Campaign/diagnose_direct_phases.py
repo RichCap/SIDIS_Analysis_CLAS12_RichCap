@@ -11,7 +11,7 @@ if(_BOOT not in sys.path):
 from Campaign.ifarm_inputs import classify_rho_name, load_ifarm_inputs, rho_source_token
 from Campaign.local_orchestrator import (
     GEN_DIR, RC_RUNTIME, REC_DIR, expand_patterns, groovy_sbatch_path,
-    input_folder, matching_groovy_roots, parse_groovy_sbatch, read_manifest_patterns, sacct_tasks,
+    input_folder, matching_groovy_roots, parse_groovy_sbatch, read_manifest_patterns, response_merged_path, sacct_tasks,
 )
 from jlab_work_paths import REL_FILE_BATCHES, REL_HADD, data_root_path, dataframe_output_dir, resolve_pipeline_input
 
@@ -241,7 +241,7 @@ def groovy_and_frames(data_root, recovery):
 def later_early(data_root, token, frame_ready):
     batch_file = resolve_pipeline_input(REL_FILE_BATCHES, data_root)
     batch_status = text_verdict(batch_file)
-    merged = os.path.join(data_root_path(data_root), REL_HADD, "SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_%s_Final_Thesis_Files_All.root" % token)
+    merged = response_merged_path(data_root, "rho0", token, "Bank")
     merged_status = root_verdict(merged)
     review = os.path.join(FRAMES, "exclusive_rho_review_%s.txt" % token)
     review_status = text_verdict(review)

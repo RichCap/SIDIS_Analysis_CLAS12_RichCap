@@ -185,7 +185,8 @@ def parse_args():
                    help="Unsmeared reconstructed-MC mode (required for noSmear cut).\n")
     p.add_argument("-mac", "--matching_criteria",
                    type=str,
-                   default="_gen",
+                   # default="_gen",
+                   default="Bank",
                    choices=["", "_gen", "gen", "P10T6", "Bank", "_gen_Bank", "P12T6", "_gen_P12T6", "P8T6", "_gen_P8T6", "P10T8", "_gen_P10T8", "P10T4", "_gen_P10T4"],
                    help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     p.add_argument("-sys", "--systematic_runs",
@@ -421,7 +422,7 @@ def matching_output_tag(matching):
 def product_shared_name(args, cut_name, matching=None):
     # args.name, then matching tag if not historical, then non-default cut. Backend never appears.
     name = str(args.name)
-    mac = matching if(matching is not None) else getattr(args, "matching_criteria", "_gen")
+    mac = matching if(matching is not None) else getattr(args, "matching_criteria", "Bank")
     tag = matching_output_tag(mac)
     if(tag not in ["", None]):
         name = f"{name}_{tag}"
@@ -544,8 +545,11 @@ def build_acceptance_cmd(args, spline_on, hpp_out, cut_name):
         cmd.extend(["--spline_file", args.spline_file])
     if(args.unsmeared):
         cmd.append("--unsmeared")
-    mac = getattr(args, "matching_criteria", "_gen")
-    if(mac in [None, ""]):
+    mac = getattr(args, "matching_criteria", "Bank")
+    if(mac in [None]):
+        mac = "Bank"
+    # Blank remains the historical unsuffixed match. Bank is the omitted default.
+    if(mac == ""):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
     if(email_children(args)):
@@ -587,8 +591,11 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
             cmd.extend(["--hpp_weight_file_spline", comb_hpp])
     if(args.unsmeared):
         cmd.append("--unsmeared")
-    mac = getattr(args, "matching_criteria", "_gen")
-    if(mac in [None, ""]):
+    mac = getattr(args, "matching_criteria", "Bank")
+    if(mac in [None]):
+        mac = "Bank"
+    # Blank remains the historical unsuffixed match. Bank is the omitted default.
+    if(mac == ""):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
     if((not args.no_run_rho_weight) and (product.get("key") not in ["rho0", "CH4_Diagnostics", "Delta_Phi_h"])):

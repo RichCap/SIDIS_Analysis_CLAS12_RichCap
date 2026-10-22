@@ -72,21 +72,27 @@ def batch_command(data_root="work_b"):
     return local_command("%s -droot %s -m make_batches -rst %s" % (script, data_root, token))
 
 
-def rho_norm_commands(data_root="work_b"):
+def rho_norm_commands(data_root="work_b", matching=None):
+    from Campaign.local_orchestrator import campaign_matching_value
     submit = checkout_script(os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py"))
     fit = checkout_script(os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Get_rho_Normalization_values.py"))
     token = rho_source_token() or "rho0_new"
-    histograms = local_command("%s -droot %s -m slurm -y -rho -jrho0 4 -nrrw" % (submit, data_root))
+    # histograms = local_command("%s -droot %s -m slurm -y -rho -jrho0 4 -nrrw" % (submit, data_root))
+    histograms = local_command("%s -droot %s -m slurm -y -rho -jrho0 4 -nrrw -mac %s" % (submit, data_root, campaign_matching_value(matching)))
     extract = local_command("%s -droot %s -st %s" % (fit, data_root, token))
     return [histograms, extract]
 
 
-def response_commands(data_root="work_b"):
+def response_commands(data_root="work_b", matching=None, hpp_tag=None):
+    from Campaign.local_orchestrator import campaign_hpp_tag, campaign_matching_value
     submit = checkout_script(os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py"))
-    five = "%s -droot %s -m slurm -y -j5D 4 -j3D 0 -j2D 0 -jBin 0 -jch4 0 -jrho0 0 -jdph 0" % (submit, data_root)
-    three = "%s -droot %s -m slurm -y -j5D 0 -j3D 4 -j2D 0 -jBin 0 -jch4 0 -jrho0 0 -jdph 0" % (submit, data_root)
-    two = "%s -droot %s -m slurm -y -j5D 0 -j3D 0 -j2D 4 -jBin 0 -jch4 0 -jrho0 0 -jdph 0" % (submit, data_root)
-    dphi = "%s -droot %s -m slurm -y -nrrw -jdph 4 -j5D 0 -j3D 0 -j2D 0 -jBin 0 -jch4 0 -jrho0 0" % (submit, data_root)
+    match_flag = campaign_matching_value(matching)
+    tag = campaign_hpp_tag(hpp_tag)
+    shared = "-droot %s -m slurm -y -sa -hon %s -mac %s" % (data_root, tag, match_flag)
+    five = "%s %s -j5D 4 -j3D 0 -j2D 0 -jBin 0 -jch4 0 -jrho0 0 -jdph 0" % (submit, shared)
+    three = "%s %s -j5D 0 -j3D 4 -j2D 0 -jBin 0 -jch4 0 -jrho0 0 -jdph 0" % (submit, shared)
+    two = "%s %s -j5D 0 -j3D 0 -j2D 4 -jBin 0 -jch4 0 -jrho0 0 -jdph 0" % (submit, shared)
+    dphi = "%s -droot %s -m slurm -y -sa -hon %s -nrrw -mac %s -jdph 4 -j5D 0 -j3D 0 -j2D 0 -jBin 0 -jch4 0 -jrho0 0" % (submit, data_root, tag, match_flag)
     return {
         "response_5d": local_command(five),
         "response_3d": local_command(three),
@@ -129,7 +135,7 @@ def rc_histogram_commands(rc_mode):
     ]
 
 
-def early_chain_commands(command_dir, data_root="work_b"):
+def early_chain_commands(command_dir, data_root="work_b", matching=None, hpp_tag=None):
     from Campaign.preflight_new_inputs import run_preflight
     config = load_ifarm_inputs()
     token = rho_source_token(config)
@@ -161,7 +167,7 @@ def early_chain_commands(command_dir, data_root="work_b"):
         dataframe_command("*inb-clasdis-55na*", "mdf", data_root),
         batch_command(data_root),
     ])
-    commands.extend(rho_norm_commands(data_root))
+    commands.extend(rho_norm_commands(data_root, matching=matching))
     return {"status": "checkpoint", "reason": "confirm the rho0_new factor, then resume response production", "commands": commands}
 
 
@@ -188,8 +194,17 @@ def self_test():
     if("rho0_new_unconfigured" in classify_rho_name(groovy_name)):
         raise SystemExit("unconfigured suffix is not a token")
     dphi = response_commands()["diagnostic_dphi"]
-    if((not dphi.startswith("./")) or ("-droot work_b" not in dphi) or ("-jdph" not in dphi) or ("-nrrw" not in dphi)):
+    if((not dphi.startswith("./")) or ("-droot work_b" not in dphi) or ("-jdph" not in dphi) or ("-nrrw" not in dphi) or ("-mac Bank" not in dphi)):
         raise SystemExit("diagnostic command %s" % dphi)
+    overridden = response_commands(matching="P12T6", hpp_tag="1st_Order")["response_5d"]
+    if(("-mac P12T6" not in overridden) or ("-hon 1st_Order" not in overridden) or ("-sa" not in overridden)):
+        raise SystemExit("response override %s" % overridden)
+    nominal = response_commands()["response_3d"]
+    if(("-mac Bank" not in nominal) or ("-hon Final_Thesis" not in nominal)):
+        raise SystemExit("response default %s" % nominal)
+    rho_line = rho_norm_commands()[0]
+    if(("-mac Bank" not in rho_line) or ("-hon" in rho_line)):
+        raise SystemExit("rho command %s" % rho_line)
     chosen = refill(
         [{"stage": "response_2d", "name": "b"}, {"stage": "response_5d", "name": "a"}],
         1,

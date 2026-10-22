@@ -187,7 +187,8 @@ def parse_args():
                         help="Use unsmeared reconstructed-MC columns (Histo_Smear=''). Required for cut_Complete_SIDIS_noSmear.\n")
     parser.add_argument('-mac', '--matching_criteria',
                         type=str,
-                        default="_gen",
+                        # default="_gen",
+                        default="Bank",
                         choices=list(MATCHING_MODE_ALIASES),
                         help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     parser.add_argument('-f', '--fast',
@@ -1022,10 +1023,10 @@ if(__name__ == "__main__"):
 
     from helper_functions_for_using_RDataFrames_python import apply_matching_and_redefine_gen
     try:
-        mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "_gen"))
+        mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "Bank"))
         Update_Email(args, update_message=f"{color.BBLUE}Matching: {color.END_B}{match_msg}{color.END}", verbose_override=True)
         if(args.Use_EvGen):
-            mdf_EvGen, match_msg_ev = apply_matching_and_redefine_gen(mdf_EvGen, getattr(args, "matching_criteria", "_gen"))
+            mdf_EvGen, match_msg_ev = apply_matching_and_redefine_gen(mdf_EvGen, getattr(args, "matching_criteria", "Bank"))
             Update_Email(args, update_message=f"{color.BBLUE}Matching (EvGen): {color.END_B}{match_msg_ev}{color.END}", verbose_override=True)
     except (ValueError, RuntimeError) as match_err:
         Crash_Report(args, crash_message=str(match_err), continue_run=False)

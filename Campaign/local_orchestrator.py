@@ -1039,7 +1039,7 @@ def run_early(args):
     batches = os.path.join(frames, "run_sidis_DataFrame_pipeline.py")
     submit = os.path.join(frames, "Submit_Full_Histogram_Creation_Pipeline.py")
     fit = os.path.join(frames, "Get_rho_Normalization_values.py")
-    merged = os.path.join(data_root_path(args.data_root), REL_HADD, "SIDIS_epip_Response_Matrices_from_RDataFrames_Only_2D_rho0_Normalization_Creation_%s_Final_Thesis_Files_All.root" % token)
+    merged = response_merged_path(args.data_root, "rho0", token, getattr(args, "matching_criteria", "Bank"))
     rho_paths = expand_patterns([rho_glob])
     clasdis_paths = expand_patterns([clasdis_glob])
     groovy_jobs = [
@@ -1126,7 +1126,7 @@ def run_early(args):
         ("dataframe", dataframe_steps, "make_batches"),
         ("make_batches", batch_steps, "rho_hist"),
         ("rho_hist", [] if(root_is_usable(merged)) else [
-            ("rho_hist", [submit, "-droot", args.data_root, "-m", "hybrid", "-rho", "-jrho0", "10", "-n", token, "-e", "-em", phase_message(args, "rho_hist")], frames),
+            ("rho_hist", [submit, "-droot", args.data_root, "-m", "hybrid", "-rho", "-jrho0", "10", "-n", token, "-mac", campaign_matching_value(getattr(args, "matching_criteria", None)), "-e", "-em", phase_message(args, "rho_hist")], frames),
         ], "rho_fit"),
         ("rho_fit", [] if(text_is_present(review_file)) else [
             # ("rho_fit", [fit, "-droot", args.data_root, "-st", token, "-usf", "-f1", merged, "-e", "-em", phase_message(args, "rho_fit")], frames),
@@ -1455,12 +1455,62 @@ def local_jobs_per_mode(max_local, n_modes):
     return min(10, share)
 
 
-def response_merged_path(data_root, token):
-    folder = os.path.join(data_root_path(data_root), REL_HADD)
-    matches = sorted(glob.glob(os.path.join(folder, "SIDIS_epip_Response_Matrices_from_RDataFrames_%s*.root" % token)))
-    if(len(matches) == 0):
-        return os.path.join(folder, "SIDIS_epip_Response_Matrices_from_RDataFrames_%s_Final_Thesis_Files_All.root" % token)
-    return matches[-1]
+# Same suffixes as Submit_Full MATCHING_OUTPUT_TAG. Historical _gen adds nothing.
+MATCH_OUTPUT_TAG = {
+    "": "", "_gen": "", "gen": "", "P10T6": "",
+    "Bank": "Bank", "_gen_Bank": "Bank",
+    "P12T6": "P12T6", "_gen_P12T6": "P12T6",
+    "P8T6": "P8T6", "_gen_P8T6": "P8T6",
+    "P10T8": "P10T8", "_gen_P10T8": "P10T8",
+    "P10T4": "P10T4", "_gen_P10T4": "P10T4",
+}
+# Same name_fmt strings as Submit_Full PRODUCTS / RHO0_PRODUCT. Default cut adds no suffix.
+PRODUCT_STEM = {
+    "2D_Presentation": "2D_Presentation_%s_Q2_Y_Bins",
+    "Only_3D": "Only_3D_%s_Response_Matrices",
+    "Only_5D": "Only_5D_%s_Response_Matrices",
+    "Only_1D": "Only_1D_%s_Kinematics",
+    "Diagnostic_1D": "Diagnostic_1D_%s",
+    "rho0": "Only_2D_rho0_Normalization_Creation_%s",
+}
+NOMINAL_HPP_TAG = "Final_Thesis"
+WORKFLOW_NAME = "SIDIS_Workflow"
+
+
+def campaign_matching_value(matching):
+    if(matching in [None]):
+        return "Bank"
+    if(matching == ""):
+        return "_gen"
+    return str(matching)
+
+
+def campaign_hpp_tag(hpp_tag):
+    if(hpp_tag in [None, ""]):
+        return NOMINAL_HPP_TAG
+    return str(hpp_tag)
+
+
+def match_output_tag(matching):
+    key = campaign_matching_value(matching)
+    if(key not in MATCH_OUTPUT_TAG):
+        raise ValueError("Unknown matching_criteria=%r" % (matching,))
+    return MATCH_OUTPUT_TAG[key]
+
+
+def response_merged_path(data_root, product_key, workflow_name, matching):
+    # Pipeline merge name: SIDIS_epip_Response_Matrices_from_RDataFrames_{-n}_{name_in_label}_All.root
+    # name_in_label of the first Submit_Full glob *Final_Thesis_Files*.root is Final_Thesis_Files.
+    tag = match_output_tag(matching)
+    shared = str(workflow_name) if(tag in ["", None]) else "%s_%s" % (workflow_name, tag)
+    stem = PRODUCT_STEM[product_key] % shared
+    name = "SIDIS_epip_Response_Matrices_from_RDataFrames_%s_Final_Thesis_Files_All.root" % stem
+    return os.path.join(data_root_path(data_root), REL_HADD, name)
+
+
+def histogram_response_path(args, product_key):
+    matching = getattr(args, "matching_criteria", None)
+    return response_merged_path(args.data_root, product_key, WORKFLOW_NAME, matching)
 
 
 def response_file_ready(path, required_piece):
@@ -1498,26 +1548,32 @@ def hpp_has_marker(path, marker):
     return marker in chunk
 
 
-def default_hpp_paths(data_root):
-    from jlab_work_paths import resolve_pipeline_input
-    shelf = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp"
-    pure = resolve_pipeline_input(shelf, data_root, explicit=False)
-    spline = os.path.join(os.path.dirname(pure), "HPP_Files_Output", "New_Pass_2_Cut_generated_acceptance_weights.hpp")
+def hpp_pair_for_tag(data_root, tag):
+    # Same names as Submit_Full hpp_paths_from_tag. .root twins are not inputs.
+    from jlab_work_paths import pipeline_output_path, REL_HPP_OUT, resolve_pipeline_input
+    folder = pipeline_output_path(REL_HPP_OUT, data_root)
+    pure = os.path.join(folder, "generated_acceptance_weights_%s_noSpline.hpp" % tag)
+    spline = os.path.join(folder, "generated_acceptance_weights_%s_withSpline.hpp" % tag)
+    pure = resolve_pipeline_input(pure, data_root)
+    spline = resolve_pipeline_input(spline, data_root)
     return pure, spline
 
 
-def default_hpp_ready(data_root):
-    pure, spline = default_hpp_paths(data_root)
+def hpp_pair_ready(data_root, tag):
+    pure, spline = hpp_pair_for_tag(data_root, tag)
+    problems = []
     if(not hpp_has_marker(pure, "accw_")):
-        print("existing acceptance file is missing or unusable: %s" % pure)
+        problems.append("no-spline HPP missing or without accw_: %s" % pure)
+    if(not hpp_has_marker(spline, "accw_sw_")):
+        problems.append("with-spline HPP missing or without accw_sw_: %s" % spline)
+    if(len(problems) > 0):
+        print("acceptance reuse -sa -hon %s data_root %s" % (tag, data_root))
+        for line in problems:
+            print(line)
         return False
-    if(os.path.isfile(spline)):
-        if(not hpp_has_marker(spline, "accw_")):
-            print("existing spline acceptance file is unusable: %s" % spline)
-            return False
-    elif(not hpp_has_marker(pure, "accw_sw_")):
-        print("spline acceptance partner is missing: %s" % spline)
-        return False
+    print("acceptance reuse -sa -hon %s" % tag)
+    print("no-spline %s" % pure)
+    print("with-spline %s" % spline)
     return True
 
 
@@ -1541,11 +1597,12 @@ def hpp_was_rewritten(path, previous_mtime, started):
     return (current > previous_mtime) and (current + 1.0 >= started)
 
 
-def acceptance_commands(data_root):
+def acceptance_commands(data_root, matching=None):
     script = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Acceptance_Weights_Creations_using_RDataFrames.py")
     pure, spline = regenerated_hpp_paths(data_root)
     spline_file = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt"
-    shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", "_gen"]
+    # shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", "_gen"]
+    shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", campaign_matching_value(matching)]
     pure_cmd = shared + ["--hpp_output_file", pure]
     spline_cmd = shared + ["--hpp_output_file", spline, "--spline_weights", "--spline_file", spline_file]
     return pure_cmd, spline_cmd, pure, spline
@@ -1555,10 +1612,9 @@ def response_submit_argv(args, only_key):
     from Campaign.local_resource_gate import clamp_histogram_cap, histogram_ceilings
     ceilings = histogram_ceilings()
     submit = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py")
-    argv = [submit, "-droot", args.data_root, "-m", "hybrid", "-y", "-sa", "-n", "SIDIS_Workflow", "-j", "0", "-jBin", "0", "-jch4", "0", "-jdph", "0", "-jrho0", "0"]
-    hpp_name = getattr(args, "hpp_old_name", None)
-    if(hpp_name not in [None, ""]):
-        argv.extend(["-hon", str(hpp_name)])
+    argv = [submit, "-droot", args.data_root, "-m", "hybrid", "-y", "-sa", "-n", "SIDIS_Workflow", "-mac", campaign_matching_value(getattr(args, "matching_criteria", None)), "-j", "0", "-jBin", "0", "-jch4", "0", "-jdph", "0", "-jrho0", "0"]
+    hpp_name = campaign_hpp_tag(getattr(args, "hpp_old_name", None))
+    argv.extend(["-hon", str(hpp_name)])
     counts = {"2D": 0, "3D": 0, "5D": 0, "1D": 0, "diag": 0}
     if(only_key in ["", "2D"]):
         counts["2D"] = ceilings["Only_2D"]
@@ -1580,14 +1636,9 @@ def response_submit_argv(args, only_key):
 def run_response(args, only_key):
     if(rho_weight_status(args.data_root) == "blocked"):
         return 1
-    hpp_name = getattr(args, "hpp_old_name", None)
-    if(hpp_name not in [None, ""]):
-        pure, spline = regenerated_hpp_paths(args.data_root)
-        if((not hpp_has_marker(pure, "accw_")) or (not hpp_has_marker(spline, "accw_"))):
-            mail_stop("response", "regenerated acceptance files are not usable")
-            return 1
-    elif(not default_hpp_ready(args.data_root)):
-        mail_stop("response", "existing acceptance weights are not usable, so histogram jobs were not started")
+    hpp_name = campaign_hpp_tag(getattr(args, "hpp_old_name", None))
+    if(not hpp_pair_ready(args.data_root, hpp_name)):
+        mail_stop("response", "acceptance weights for -hon %s are not usable, so histogram jobs were not started" % hpp_name)
         return 1
     argv = response_submit_argv(args, only_key)
     code = run_command("response", argv, os.path.dirname(argv[0]), args.dry_run, "", mail_success=False)
@@ -1595,19 +1646,19 @@ def run_response(args, only_key):
         return code
     if(args.dry_run):
         return 0
-    needed = [("Only_3D_SIDIS_Workflow", "MultiDim"), ("Only_5D_SIDIS_Workflow", "MultiDim")]
+    needed = [("Only_3D", "MultiDim"), ("Only_5D", "MultiDim")]
     if(only_key == "1D"):
-        needed = [("Only_1D_SIDIS_Workflow", "phi_response_4d")]
+        needed = [("Only_1D", "phi_response_4d")]
     elif(only_key == "diag"):
-        needed = [("Diagnostic_1D_SIDIS_Workflow", "match_category")]
+        needed = [("Diagnostic_1D", "match_category")]
     elif(only_key == "3D"):
-        needed = [("Only_3D_SIDIS_Workflow", "MultiDim")]
+        needed = [("Only_3D", "MultiDim")]
     elif(only_key == "5D"):
-        needed = [("Only_5D_SIDIS_Workflow", "MultiDim")]
+        needed = [("Only_5D", "MultiDim")]
     elif(only_key == "2D"):
-        needed = [("2D_Presentation_SIDIS_Workflow", "Q2")]
-    for token, piece in needed:
-        path = response_merged_path(args.data_root, token)
+        needed = [("2D_Presentation", "Q2")]
+    for product_key, piece in needed:
+        path = histogram_response_path(args, product_key)
         if(not response_file_ready(path, piece)):
             mail_stop("response", "aggregated file is missing its histograms: %s" % path)
             return 1
@@ -1680,7 +1731,7 @@ def run_iteration(args, dimension):
     script = "run_Simple_Unfold.py" if(dimension == "3D") else "run_Dedicated_5D_Unfold.py"
     script = os.path.join(_BOOT, script)
     out_path = iteration_output_path(args.data_root, dimension)
-    response = response_merged_path(args.data_root, "Only_%s_SIDIS_Workflow" % ("3D" if(dimension == "3D") else "5D"))
+    response = histogram_response_path(args, "Only_3D" if(dimension == "3D") else "Only_5D")
     if((not args.dry_run) and (not response_file_ready(response, "MultiDim"))):
         mail_stop("iteration_%s" % dimension.lower(), "response aggregate is not ready: %s" % response)
         return 1
@@ -1717,7 +1768,7 @@ def run_unfold(args, dimension):
     if(not iteration_lookup_ready(dimension, args.acceptance_cut, bins)):
         mail_stop("unfold_%s" % dimension.lower(), "iteration lookup is not resolved")
         return 1
-    response = response_merged_path(args.data_root, "Only_%s_SIDIS_Workflow" % ("3D" if(dimension == "3D") else "5D"))
+    response = histogram_response_path(args, "Only_3D" if(dimension == "3D") else "Only_5D")
     if(dimension == "5D"):
         from Campaign.run_sidis_campaign import k_for
         k_value, _provenance = k_for("5D", args.acceptance_cut, None, args.k_provenance)
@@ -1755,6 +1806,10 @@ def spawn_stage(args, stage, extra):
         argv.extend(["-mlj", str(args.max_local_jobs)])
     if(getattr(args, "systematics", None)):
         argv.extend(["-sys", args.systematics])
+    if(getattr(args, "matching_criteria", None) not in [None]):
+        argv.extend(["-mac", campaign_matching_value(args.matching_criteria)])
+    if(("-hon" not in extra) and (getattr(args, "hpp_old_name", None) not in [None, ""])):
+        argv.extend(["-hon", str(args.hpp_old_name)])
     print("starting %s" % stage)
     show_command(argv)
     if(args.dry_run):
@@ -1763,7 +1818,7 @@ def spawn_stage(args, stage, extra):
 
 
 def run_acceptance_regen(args):
-    pure_cmd, spline_cmd, pure, spline = acceptance_commands(args.data_root)
+    pure_cmd, spline_cmd, pure, spline = acceptance_commands(args.data_root, getattr(args, "matching_criteria", None))
     previous = {}
     for path in [pure, spline]:
         previous[path] = os.path.getmtime(path) if(os.path.isfile(path)) else None
@@ -1790,10 +1845,11 @@ def run_histogram_unfold(args):
             return code
         extra = ["-hon", "SIDIS_Workflow"]
     else:
-        if(not default_hpp_ready(args.data_root)):
-            mail_stop("histogram_unfold", "existing acceptance weights are not usable, so histogram jobs were not started")
+        tag = campaign_hpp_tag(getattr(args, "hpp_old_name", None))
+        if(not hpp_pair_ready(args.data_root, tag)):
+            mail_stop("histogram_unfold", "acceptance weights for -hon %s are not usable, so histogram jobs were not started" % tag)
             return 1
-        extra = []
+        extra = ["-hon", tag]
     children = []
     proc = spawn_stage(args, "response_all", extra)
     if(proc is not None):
@@ -1820,8 +1876,8 @@ def watch_histogram_chain(args, children):
         print("each full unfold starts when its iteration lookup is resolved")
         return 0
     while(True):
-        for dimension, token in [("3D", "Only_3D_SIDIS_Workflow"), ("5D", "Only_5D_SIDIS_Workflow")]:
-            ready = response_file_ready(response_merged_path(args.data_root, token), "MultiDim")
+        for dimension, product_key in [("3D", "Only_3D"), ("5D", "Only_5D")]:
+            ready = response_file_ready(histogram_response_path(args, product_key), "MultiDim")
             if(ready and (not iteration_started[dimension])):
                 proc = spawn_stage(args, "iteration_%s" % dimension.lower(), [])
                 if(proc is not None):
@@ -1849,7 +1905,7 @@ def watch_histogram_chain(args, children):
         children = still
         if((len(children) == 0) and iteration_started["3D"] and iteration_started["5D"] and unfold_started["3D"] and unfold_started["5D"]):
             return 0
-        if((len(children) == 0) and (not response_file_ready(response_merged_path(args.data_root, "Only_3D_SIDIS_Workflow"), "MultiDim"))):
+        if((len(children) == 0) and (not response_file_ready(histogram_response_path(args, "Only_3D"), "MultiDim"))):
             return 1
         if((len(children) == 0) and iteration_done["3D"] and (not unfold_started["3D"])):
             return 1

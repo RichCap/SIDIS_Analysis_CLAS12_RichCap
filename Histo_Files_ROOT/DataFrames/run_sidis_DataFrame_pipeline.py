@@ -111,7 +111,8 @@ def parse_args():
                         help="Forward --unsmeared to Response_Matrix (required for noSmear cut).\n")
     parser.add_argument('-mac', '--matching_criteria',
                         type=str,
-                        default="_gen",
+                        # default="_gen",
+                        default="Bank",
                         choices=["", "_gen", "gen", "P10T6", "Bank", "_gen_Bank", "P12T6", "_gen_P12T6", "P8T6", "_gen_P8T6", "P10T8", "_gen_P10T8", "P10T4", "_gen_P10T4"],
                         help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     parser.add_argument('-2Do', '--make_2D_only',
@@ -853,8 +854,11 @@ def build_main_command(args, batch_id, output_dir, slurm_placeholders=False):
         cmd.append("--run_rho_weight")
     if(getattr(args, "unsmeared", False)):
         cmd.append("--unsmeared")
-    mac = getattr(args, "matching_criteria", "_gen")
-    if(mac in [None, ""]):
+    mac = getattr(args, "matching_criteria", "Bank")
+    if(mac in [None]):
+        mac = "Bank"
+    # Blank remains the historical unsuffixed match. Bank is the omitted default.
+    if(mac == ""):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
     name_for_batch = f"{args.name}_{name_in_label(args.name_in)}_Batch{batch_pad}" if(args.name) else f"{name_in_label(args.name_in)}_Batch{batch_pad}"
