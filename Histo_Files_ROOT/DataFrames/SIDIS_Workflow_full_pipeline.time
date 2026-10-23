@@ -1,0 +1,42 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-22T12:28:13 name=SIDIS_Workflow mode=hybrid email=children =====
+=== TASK: 2D_Presentation-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.12 s
+peak_memory: 469.91 MB
+
+=== TASK: Only_3D-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 2.78 s
+peak_memory: 470.48 MB
+
+=== TASK: Only_5D-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.58 s
+peak_memory: 479.72 MB
+
+=== TASK: Only_1D-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.92 s
+peak_memory: 479.72 MB
+
+=== TASK: Diagnostic_1D-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.08 s
+peak_memory: 479.72 MB
+
+=== TASK: 2D_Presentation-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 43236.59 s
+peak_memory: 479.72 MB
+
+=== TASK: Only_3D-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 43301.58 s
+peak_memory: 1.83 GB
+
+=== TASK: Only_5D-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 43417.07 s
+peak_memory: 8.00 GB
+
+=== TASK: Only_1D-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 43417.07 s
+peak_memory: 8.00 GB
+
+=== TASK: Diagnostic_1D-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 43417.07 s
+peak_memory: 8.00 GB
+
