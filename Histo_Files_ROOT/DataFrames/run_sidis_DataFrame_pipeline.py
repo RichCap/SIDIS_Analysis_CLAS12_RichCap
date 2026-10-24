@@ -174,6 +174,9 @@ def parse_args():
     parser.add_argument('-st', '--slurm_time',
                         default="12:00:00",
                         help="SLURM time limit per array task.\n")
+    parser.add_argument('-bids', '--batch_ids',
+                        default=None,
+                        help="Comma list or ranges of batch indices allowed to run, such as 113 or 110-112. The merge still requires every batch file. Omitted runs 1 through the full set.\n")
     parser.add_argument('-sm', '--slurm_mem',
                         # default="4GB",
                         default="5GB",
@@ -892,6 +895,14 @@ def should_skip_batch_due_to_slurm(args, batch_index, output_dir):
             return True
         return False
     if(os.path.isfile(batch_path) and (os.path.getsize(batch_path) > 0)):
+        if(getattr(args, "batch_ids", None) not in [None, ""]):
+            piece = required_batch_piece(args)
+            if(batch_root_is_valid(batch_path, piece)):
+                print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output is already present - skipping local start")
+                return True
+            print("replacing unusable batch file %s" % batch_path)
+            os.remove(batch_path)
+            return False
         print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output is already present - skipping local start")
         return True
     print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} has no output and SLURM state is {state if(state) else 'missing'} - starting locally")
@@ -922,11 +933,22 @@ def release_local_slot(args, token):
 
 
 def start_job(args, batch_index, batch_output_dir, log_dir, block_for_slot=False):
+    selected = parse_batch_id_spec(getattr(args, "batch_ids", None), args.num_batches)
+    if((selected is not None) and (int(batch_index) not in selected)):
+        return None
     if(should_skip_batch_due_to_slurm(args, batch_index, batch_output_dir)):
         return None
-    if(os.path.isfile(expected_batch_root_path(args, batch_output_dir, batch_index))):
-        print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output appeared before local start - skipping")
-        return None
+    existing = expected_batch_root_path(args, batch_output_dir, batch_index)
+    if(os.path.isfile(existing)):
+        if(getattr(args, "batch_ids", None) in [None, ""]):
+            print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output appeared before local start - skipping")
+            return None
+        piece = required_batch_piece(args)
+        if(batch_root_is_valid(existing, piece)):
+            print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output appeared before local start - skipping")
+            return None
+        print("replacing unusable batch file %s" % existing)
+        os.remove(existing)
     token = reserve_local_slot(args, block_for_slot)
     if(token == LOCAL_SLOT_WAIT):
         return LOCAL_SLOT_WAIT
@@ -996,6 +1018,112 @@ def expected_batch_root_path(args, batch_output_dir, batch_index):
     name_for_batch = name_for_batch.replace("*", "").replace(".root", "")
     root_base = str(args.root).split(".root")[0]
     return os.path.join(batch_output_dir, f"{root_base}_{name_for_batch}.root")
+
+
+def parse_batch_id_spec(text, num_batches):
+    if(text in [None, ""]):
+        return None
+    chosen = []
+    for part in str(text).split(","):
+        part = part.strip()
+        if(part == ""):
+            continue
+        if("-" in part):
+            left, right = part.split("-", 1)
+            start = int(left)
+            stop = int(right)
+            for index in range(start, stop + 1):
+                chosen.append(index)
+        else:
+            chosen.append(int(part))
+    unique = []
+    for index in chosen:
+        if((index < 1) or (index > int(num_batches))):
+            raise ValueError("batch id %s is outside 1-%s" % (index, num_batches))
+        if(index not in unique):
+            unique.append(index)
+    return unique
+
+
+def slurm_array_spec(selected, num_batches):
+    if(selected is None):
+        return "1-%d" % int(num_batches)
+    return ",".join([str(index) for index in selected])
+
+
+def sbatch_script_stem(name_base):
+    # The .sh name drops a trailing run date. The script body still uses the full name.
+    import re
+    return re.sub(r"_\d{2}_\d{2}_\d{4}$", "", str(name_base))
+
+
+def required_batch_piece(args):
+    # if(getattr(args, "unfold_5D_only", False)):
+    #     return "MultiDim"
+    # Only_5D forwards --unfold_5D_only after --extra, so the pipeline flag stays false.
+    extra = list(getattr(args, "extra", None) or [])
+    if(getattr(args, "unfold_5D_only", False) or ("--unfold_5D_only" in extra)):
+        return "MultiDim"
+    if(getattr(args, "no_make_2D", False) and getattr(args, "no_unfold_5D", False)):
+        return "MultiDim"
+    if(str(getattr(args, "z_axis_2D", "")) == "Q2_Y_Bin"):
+        return "Q2"
+    return None
+
+
+def batch_root_is_valid(path, piece):
+    if((not os.path.isfile(path)) or (os.path.getsize(path) <= 0)):
+        return False
+    try:
+        import ROOT
+    except Exception:
+        return False
+    root_file = None
+    try:
+        root_file = ROOT.TFile.Open(str(path), "READ")
+        if((root_file is None) or root_file.IsZombie()):
+            return False
+        if(piece in [None, ""]):
+            return True
+        for key in root_file.GetListOfKeys():
+            if(piece in str(key.GetName())):
+                return True
+        return False
+    except Exception:
+        return False
+    finally:
+        if(root_file is not None):
+            try:
+                root_file.Close()
+            except Exception:
+                pass
+
+
+def outside_batch_problems(args, output_dir, num_batches):
+    selected = parse_batch_id_spec(getattr(args, "batch_ids", None), num_batches)
+    if(selected is None):
+        return None, []
+    piece = required_batch_piece(args)
+    problems = []
+    for index in range(1, int(num_batches) + 1):
+        if(index in selected):
+            continue
+        path = expected_batch_root_path(args, output_dir, index)
+        if(not batch_root_is_valid(path, piece)):
+            problems.append(path)
+    return selected, problems
+
+
+def stop_if_outside_batches_missing(args, output_dir, num_batches):
+    selected, problems = outside_batch_problems(args, output_dir, num_batches)
+    if(selected is None):
+        return None
+    if(len(problems) > 0):
+        print("recovery stopped. These batches are outside --batch_ids and are not valid, so nothing was submitted:")
+        for path in problems:
+            print(path)
+        sys.exit(1)
+    return selected
 
 def wait_for_remaining_slurm_tasks(args):
     if(args.slurm_array_jobid in [None, ""]):
@@ -1077,6 +1205,7 @@ def run_local_batches(args):
     # num_batches = max(len(rdf_batch), len(mdf_batch), len(gdf_batch))
     num_batches = len(rdf_batch)
     args.num_batches = num_batches
+    stop_if_outside_batches_missing(args, batch_output_dir, num_batches)
     Update_Email(args, update_message=f"{color.BBLUE}Starting {args.mode} run with {color.END_B}{num_batches}{color.BBLUE} batches → output dir: {color.BCYAN}{batch_output_dir}{color.END}\n", verbose_override=True, no_time=True)
     results = []
     if(args.mode == "parallel"):
@@ -1125,8 +1254,15 @@ def run_local_batches(args):
         name_for_merge = name_for_merge.replace(".root", "")
         merged_file    = os.path.join(args.work_dir, f"SIDIS_epip_Response_Matrices_from_RDataFrames_{name_for_merge}.root")
         batch_files    = [expected_batch_root_path(args, batch_output_dir, i) for i in range(1, num_batches + 1)]
-        missing_files  = [bf for bf in batch_files if(not os.path.isfile(bf))]
+        piece = required_batch_piece(args) if(getattr(args, "batch_ids", None) not in [None, ""]) else None
+        if(piece in [None, ""]):
+            missing_files = [bf for bf in batch_files if((not os.path.isfile(bf)) or (os.path.getsize(bf) <= 0))]
+        else:
+            missing_files = [bf for bf in batch_files if(not batch_root_is_valid(bf, piece))]
         if(missing_files):
+            print("hadd was not run. The merge still requires all %d batch files. Missing or invalid:" % num_batches)
+            for path in missing_files:
+                print(path)
             Crash_Report(args, crash_message=f"{color.Error}Cannot hadd: missing {len(missing_files)} expected batch ROOT files. First missing: {missing_files[0]}{color.END}", continue_run=False)
         Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
         hadd_cmd = ["hadd", "-f", merged_file] + batch_files
@@ -1150,12 +1286,15 @@ def run_slurm_mode(args):
     # sys.path.remove(DATAFRAMES_BASE)
     rdf_batch, _mdf_batch, _gdf_batch, _batch_path = load_file_batches(args.data_root, execution_root=EXEC_ROOT)
     num_batches = len(rdf_batch)
+    args.num_batches = num_batches
 
     batch_output_dir = resolved_batch_output_dir(args, slurm=True)
+    selected = stop_if_outside_batches_missing(args, batch_output_dir, num_batches)
 
     name_base = args.run_subdir_name
-    array_script = f"slurm_array_{name_base}.sh"
-    hadd_script = f"slurm_hadd_{name_base}.sh"
+    script_stem = sbatch_script_stem(name_base)
+    array_script = f"slurm_array_{script_stem}.sh"
+    hadd_script = f"slurm_hadd_{script_stem}.sh"
 
     # Build array script
     with open(array_script, "w") as f:
@@ -1171,7 +1310,7 @@ def run_slurm_mode(args):
         f.write("#SBATCH --cpus-per-task=%s\n" % (getattr(args, "slurm_cpus", None) or "1"))
         f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
         f.write(f"#SBATCH --time={args.slurm_time}\n")
-        f.write(f"#SBATCH --array=1-{num_batches}\n\n")
+        f.write("#SBATCH --array=%s\n\n" % slurm_array_spec(selected, num_batches))
         f.write('BATCH_ID=${SLURM_ARRAY_TASK_ID}\n')
         f.write('BATCH_PAD=$(printf "%03d" "${BATCH_ID}")\n')
         f.write(f'cd {batch_output_dir}\n')

@@ -220,6 +220,18 @@ def parse_args():
                    type=str,
                    default=None,
                    help="SLURM mem-per-cpu forwarded to pipeline children that are not one of the five campaign histogram modes. Those five modes keep their own CPU and memory requests.\n")
+    p.add_argument("-st", "--slurm_time",
+                   type=str,
+                   default=None,
+                   help="SLURM time forwarded to pipeline children. Omitted keeps the pipeline default of 12:00:00.\n")
+    p.add_argument("-bids", "--batch_ids",
+                   type=str,
+                   default=None,
+                   help="Batch indices allowed to run, forwarded as --batch_ids. The merge still requires every batch. Omitted runs the full set.\n")
+    p.add_argument("-hdate", "--hybrid_date",
+                   type=str,
+                   default=None,
+                   help="Existing hybrid directory date MM_DD_YYYY. Omitted uses today.\n")
     p.add_argument("-hlc", "--histogram_local_cap",
                    type=int,
                    default=None,
@@ -630,6 +642,10 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["--slurm_mem", str(args.slurm_mem)])
     if(getattr(args, "histogram_local_cap", None) not in [None, ""]):
         cmd.extend(["--histogram_local_cap", str(args.histogram_local_cap)])
+    if(getattr(args, "slurm_time", None) not in [None, ""]):
+        cmd.extend(["--slurm_time", str(args.slurm_time)])
+    if(getattr(args, "batch_ids", None) not in [None, ""]):
+        cmd.extend(["--batch_ids", str(args.batch_ids)])
     # Hybrid SLURM leg always passes --yes so sbatch is noninteractive. Pure slurm stays interactive.
     if((auto_yes) and (run_mode == "slurm")):
         cmd.append("--yes")
@@ -985,7 +1001,11 @@ def main():
     args.time_log_fh.write(header)
     args.time_log_fh.flush()
 
-    args.hybrid_date = datetime.now().strftime("%m_%d_%Y")
+    # args.hybrid_date = datetime.now().strftime("%m_%d_%Y")
+    if(getattr(args, "hybrid_date", None) not in [None, ""]):
+        args.hybrid_date = str(args.hybrid_date)
+    else:
+        args.hybrid_date = datetime.now().strftime("%m_%d_%Y")
     log_print(args, f"{color.BBLUE}\n{Script_Name} ready.{color.END}")
     log_print(args, f"Execution repository: {root_label(EXEC_ROOT)} ({EXEC_ROOT})")
     log_print(args, f"Data root: {args.data_root} ({data_root_path(args.data_root)})")
