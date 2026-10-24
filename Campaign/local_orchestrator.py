@@ -307,24 +307,28 @@ def bc_root_dir():
     return os.path.join(_BOOT, "BC_Corrections", "ROOT_Files_Output")
 
 
-def bc_output_candidates(input_path, label):
-    # Nominal files stay in the flat ceph directory or its Path_to_Volatile runs.
-    # Sensitivity files stay in sens_<var>_<value> and are not mixed into that search.
+def bc_run_tag(label, explicit=None):
+    # Run_BC's default tag is BC_New_Bins_from_BC_Cuts plus the date. A sensitivity does not share that directory.
+    if(explicit not in [None, ""]):
+        base = str(explicit)
+    else:
+        base = "BC_New_Bins_from_BC_Cuts_%s" % time.strftime("%m_%d_%Y")
+    if(label not in [None, ""]):
+        return "%s_%s" % (base, label)
+    return base
+
+
+def bc_run_directory(tag):
+    return os.path.join(bc_root_dir(), "Path_to_Volatile", tag)
+
+
+def bc_output_candidates(input_path, label, tag):
+    # Per-file campaign outputs live only in this run directory, not in the flat ROOT_Files_Output parent.
     out_name = bc_output_name(input_path)
-    found = []
-    if(label == ""):
-        flat = os.path.join(bc_root_dir(), out_name)
-        if(os.path.isfile(flat)):
-            found.append(flat)
-        matches = glob.glob(os.path.join(bc_root_dir(), "Path_to_Volatile", "*", out_name))
-        for match in sorted(matches):
-            if(match not in found):
-                found.append(match)
-        return found
-    flat = os.path.join(bc_root_dir(), label, out_name)
-    if(os.path.isfile(flat)):
-        found.append(flat)
-    return found
+    path = os.path.join(bc_run_directory(tag), out_name)
+    if(os.path.isfile(path)):
+        return [path]
+    return []
 
 
 def bc_expected_bins():
@@ -387,14 +391,18 @@ def bc_histogram_status(path, counts):
     nx_need = bc_nsub(counts) + 2
     root_file = None
     status = "unread"
+    reason = ""
     try:
         root_file = ROOT.TFile.Open(str(path), "READ")
         if(root_file is None):
             status = "incomplete"
+            reason = "unreadable %s" % path
         elif(root_file.IsZombie()):
             status = "incomplete"
+            reason = "unreadable %s" % path
         elif(hasattr(ROOT.TFile, "kRecovered") and root_file.TestBit(ROOT.TFile.kRecovered)):
             status = "incomplete"
+            reason = "recovered %s" % path
         else:
             classes = {}
             for key in root_file.GetListOfKeys():
@@ -404,17 +412,22 @@ def bc_histogram_status(path, counts):
             for name, klass in classes.items():
                 if(name.startswith("Histogram Bin (") and (name not in expected) and (name not in allowed_extra)):
                     status = "incomplete"
+                    reason = "unexpected histogram %s in %s" % (name, path)
+                    break
             if(status == "complete"):
                 for name in expected:
                     if("TH2" not in classes.get(name, "")):
                         status = "incomplete"
+                        reason = "missing or not TH2 %s in %s" % (name, path)
                         break
                     hist = root_file.Get(name)
                     if(hist is None):
                         status = "incomplete"
+                        reason = "missing or not TH2 %s in %s" % (name, path)
                         break
                     if((hist.GetNbinsX() != nx_need) or (hist.GetNbinsY() != 24)):
                         status = "incomplete"
+                        reason = "axis %s is %s by %s, expected %s by 24, in %s" % (name, hist.GetNbinsX(), hist.GetNbinsY(), nx_need, path)
                         break
     except Exception:
         status = "unread"
@@ -426,6 +439,8 @@ def bc_histogram_status(path, counts):
                 pass
     if(status != "unread"):
         BC_STATUS_CACHE[cache_key] = status
+    if((status not in ["complete", "unread"]) and (reason != "")):
+        print(reason)
     return status
 
 
@@ -470,9 +485,9 @@ def bc_filtered_copy(path, dest):
                 pass
 
 
-def bc_output_path(input_path, label, counts):
+def bc_output_path(input_path, label, counts, tag):
     saw_unread = False
-    for path in bc_output_candidates(input_path, label):
+    for path in bc_output_candidates(input_path, label, tag):
         status = bc_histogram_status(path, counts)
         if(status == "complete"):
             return path
@@ -483,11 +498,11 @@ def bc_output_path(input_path, label, counts):
     return ""
 
 
-def bc_complete_outputs(inputs, label, counts):
+def bc_complete_outputs(inputs, label, counts, tag):
     found = []
     seen = set()
     for bc_input in inputs:
-        path = bc_output_path(bc_input, label, counts)
+        path = bc_output_path(bc_input, label, counts, tag)
         if(path is None):
             return None
         if((path == "") or (path in seen)):
@@ -497,30 +512,23 @@ def bc_complete_outputs(inputs, label, counts):
     return found
 
 
-def remove_incomplete_bc_outputs(input_path, label, counts, dry_run):
-    # BC opens an existing file in UPDATE. A partial file has to be removed or its old histograms stay.
-    for path in bc_output_candidates(input_path, label):
+def remove_incomplete_bc_outputs(input_path, label, counts, dry_run, tag):
+    # A rejected file stays where it is. The next worker must not be pointed at it until a replacement is ready.
+    del dry_run
+    for path in bc_output_candidates(input_path, label, tag):
         status = bc_histogram_status(path, counts)
         if(status == "complete"):
             continue
-        if(status == "unread"):
-            print("could not inspect BC output; it was left in place: %s" % path)
-            return False
-        print("removing incomplete BC output so it is recreated: %s" % path)
-        if(not dry_run):
-            os.remove(path)
+        print("BC output was not removed: %s (%s)" % (path, status))
     return True
 
 
-def bc_merged_path(label):
-    folder = bc_root_dir() if(label == "") else os.path.join(bc_root_dir(), label)
-    return os.path.join(folder, "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.root")
+def bc_merged_path(tag):
+    return os.path.join(bc_run_directory(tag), "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.root")
 
 
-def bc_json_path(label):
-    if(label == ""):
-        return os.path.join(_BOOT, "BC_Corrections", "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json")
-    return os.path.join(bc_root_dir(), label, "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json")
+def bc_json_path(tag):
+    return os.path.join(bc_run_directory(tag), "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch.json")
 
 
 def bc_json_complete(path, counts):
@@ -556,12 +564,12 @@ def bc_json_complete(path, counts):
 
 
 def bc_worker_command(label, counts):
+    # --root_file_out is left unset so Run_BC writes the absolute Path_to_Volatile/<tag> path.
+    # out_rel = "ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction.root"
     if(label == ""):
-        out_rel = "ROOT_Files_Output/Sub_Bin_Contents_for_BC_Correction.root"
-        return "./BC_Corrections_Script.py -nb 3 -nbphi 2 -hi -ufn --root_file_out %s" % out_rel
-    out_rel = "ROOT_Files_Output/%s/Sub_Bin_Contents_for_BC_Correction.root" % label
-    return "./BC_Corrections_Script.py -nb 3 -nbphi 2 -nbq %d -nby %d -nbz %d -nbpt %d -nbh %d -hi -ufn --root_file_out %s" % (
-        counts["q2"], counts["y"], counts["z"], counts["pt"], counts["phi"], out_rel)
+        return "./BC_Corrections_Script.py -nb 3 -nbphi 2 -hi -ufn"
+    return "./BC_Corrections_Script.py -nb 3 -nbphi 2 -nbq %d -nby %d -nbz %d -nbpt %d -nbh %d -hi -ufn" % (
+        counts["q2"], counts["y"], counts["z"], counts["pt"], counts["phi"])
 
 
 def bc_factor_argv(factor, json_path, dest, counts, message, nominal):
@@ -1272,12 +1280,25 @@ def run_bc_config(args, label, counts):
     bc_dir = os.path.join(_BOOT, "BC_Corrections")
     runner = os.path.join(bc_dir, "Run_BC_Scripts_Locally.py")
     factor = os.path.join(bc_dir, "BC_Corrections_Script.py")
+    tag = bc_run_tag(label, getattr(args, "run_tag", None))
     per_file = bc_worker_command(label, counts)
     bc_inputs = expand_patterns([BC_NO_RAD])
+    if(args.dry_run):
+        print("BC inventory %s directory %s" % (hist_phase, bc_run_directory(tag)))
+        for bc_input in bc_inputs:
+            expected = os.path.join(bc_run_directory(tag), bc_output_name(bc_input))
+            found = bc_output_path(bc_input, label, counts, tag)
+            if(found is None):
+                print("unread %s" % expected)
+            elif(found == ""):
+                print("missing %s" % expected)
+            else:
+                print("complete %s" % found)
+        return 0
     done_inputs = []
     missing_inputs = []
     for bc_input in bc_inputs:
-        found = bc_output_path(bc_input, label, counts)
+        found = bc_output_path(bc_input, label, counts, tag)
         if(found is None):
             mail_stop(hist_phase, "could not inspect an existing BC output; nothing was removed")
             return 1
@@ -1294,10 +1315,10 @@ def run_bc_config(args, label, counts):
         return 1
     if(len(missing_inputs) > 0):
         for bc_input in missing_inputs:
-            if(not remove_incomplete_bc_outputs(bc_input, label, counts, args.dry_run)):
+            if(not remove_incomplete_bc_outputs(bc_input, label, counts, args.dry_run, tag)):
                 mail_stop(hist_phase, "could not inspect an existing BC output; it was left in place")
                 return 1
-        argv = [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, hist_phase), "-c", per_file]
+        argv = [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, hist_phase), "-rt", tag, "-c", per_file]
         if(len(done_inputs) > 0):
             argv.extend(["-ex", ",".join([os.path.basename(path) for path in done_inputs])])
         code = run_command(hist_phase, argv, bc_dir, args.dry_run, hadd_phase, mail_success=False)
@@ -1309,7 +1330,7 @@ def run_bc_config(args, label, counts):
         done_inputs = []
         missing_inputs = []
         for bc_input in bc_inputs:
-            found = bc_output_path(bc_input, label, counts)
+            found = bc_output_path(bc_input, label, counts, tag)
             if(found is None):
                 mail_stop(hadd_phase, "could not inspect a BC output after the helper exited")
                 return 1
@@ -1323,15 +1344,15 @@ def run_bc_config(args, label, counts):
     else:
         print("phase %s done" % hist_phase)
     finish_phase(args, hist_phase, hadd_phase)
-    outputs = bc_complete_outputs(bc_inputs, label, counts)
+    outputs = bc_complete_outputs(bc_inputs, label, counts, tag)
     if(outputs is None):
         mail_stop(hadd_phase, "could not inspect a BC output; hadd was not run")
         return 1
     if(len(outputs) != len(bc_inputs)):
         mail_stop(hadd_phase, "per-file outputs %d of %d; hadd was not run" % (len(outputs), len(bc_inputs)))
         return 1
-    dest = bc_merged_path(label)
-    json_path = bc_json_path(label)
+    dest = bc_merged_path(tag)
+    json_path = bc_json_path(tag)
     merged_status = bc_histogram_status(dest, counts)
     if(merged_status == "unread"):
         mail_stop(hadd_phase, "could not inspect the merged BC file; it was left in place")
@@ -1616,6 +1637,14 @@ def response_submit_argv(args, only_key):
         counts["1D"] = ceilings["Only_1D"]
     if(only_key in ["", "diag"]):
         counts["diag"] = ceilings["Diagnostic_1D"]
+    reuse = [("2D", "2D_Presentation", "Q2"), ("3D", "Only_3D", "MultiDim"), ("5D", "Only_5D", "MultiDim"), ("1D", "Only_1D", "phi_response_4d")]
+    for slot, product_key, piece in reuse:
+        if(counts[slot] == 0):
+            continue
+        merged = histogram_response_path(args, product_key)
+        if(response_file_ready(merged, piece)):
+            print("reusing merged %s" % merged)
+            counts[slot] = 0
     argv.extend(["-j2D", str(counts["2D"]), "-j3D", str(counts["3D"]), "-j5D", str(counts["5D"]), "-j1D", str(counts["1D"]), "-jdiag", str(counts["diag"])])
     cap = clamp_histogram_cap(getattr(args, "max_local_jobs", None))
     if(cap not in [None, ""]):
