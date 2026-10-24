@@ -269,8 +269,10 @@ struct UnfoldArgs {
     bool logz = false;
     bool recover_slices = false;
     std::string data_root = "work";
-    std::string error_mode = "toys";
+    // std::string error_mode = "toys";
+    std::string error_mode = "covariance";
     bool iteration_study = false;
+    bool study_only = false;
     bool unfolding_1D = false;
     bool unfolding_3D = false;
     bool old_binning = false;
@@ -347,8 +349,9 @@ inline void print_help(){
         "  -rs, --recover_slices      Slice an existing unfolded 1D\n"
         "  -droot, --data_root work|work_b\n"
         "  -err, --error_mode toys|covariance|errors|none\n"
-        "                             Unfolding error treatment (default toys)\n"
+        "                             Unfolding error treatment (default covariance; toys still selects kCovToys)\n"
         "  -ist, --iteration_study    Optional RooUnfoldParms scan (not the default path)\n"
+        "  -so, --study_only          With --iteration_study, skip the extra nominal unfold\n"
         "  -pmin, --parm_min X  -pmax, --parm_max Y  -pstep, --parm_step Z\n"
         "  -u1D, --unfolding_1D       1D unfolding only\n"
         "  -u3D, --unfolding_3D       3D unfolding only\n"
@@ -440,6 +443,8 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             args.error_mode = opt_value(i, argc, argv, arg, "--error_mode");
         } else if(match_opt(arg, {"-ist", "--iteration_study"})){
             args.iteration_study = true;
+        } else if(match_opt(arg, {"-so", "--study_only"})){
+            args.study_only = true;
         } else if(match_opt(arg, {"-pmin", "--parm_min"})){
             args.has_parm_min = true;
             args.parm_min = std::atof(opt_value(i, argc, argv, arg, "--parm_min").c_str());

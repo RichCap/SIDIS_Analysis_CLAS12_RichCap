@@ -70,12 +70,16 @@ def parse_args():
                    help="Number of Toys used to estimate the unfolding errors.\n")
     p.add_argument('-err', '--error_mode',
                    type=str,
-                   default="toys",
+                   # default="toys",
+                   default="covariance",
                    choices=["toys", "covariance", "errors", "none"],
-                   help="RooUnfold error treatment: toys=kCovToys (default), covariance=kCovariance, errors=kErrors, none=kNoError.\n")
+                   help="RooUnfold error treatment. Default covariance=kCovariance. toys=kCovToys remains available, as do errors=kErrors and none=kNoError.\n")
     p.add_argument('-ist', '--iteration_study',
                    action='store_true',
                    help="Optional RooUnfoldParms iteration/regularisation scan (not the default unfolding path).\n")
+    p.add_argument('-so', '--study_only',
+                   action='store_true',
+                   help="With --iteration_study, do not run the extra nominal unfold after the scan.\n")
     p.add_argument('-pmin', '--parm_min',
                    type=float,
                    default=None,
@@ -246,6 +250,8 @@ def build_cpp_command(args):
     cmd.extend(["--error_mode", str(args.error_mode)])
     if(args.iteration_study):
         cmd.append("--iteration_study")
+    if(args.study_only):
+        cmd.append("--study_only")
     if(args.parm_min is not None):
         cmd.extend(["--parm_min", str(args.parm_min)])
     if(args.parm_max is not None):

@@ -869,14 +869,18 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         // Stash_Iteration_Study_Hist(parms.GetRMSResiduals(), "Iteration_Study_RMSResiduals");
         // Loop k without Clone: new RooUnfoldBayes per k, same Response object.
         std::cout << Color::BBLUE << "Running clone-free 5D iteration study (" << args.error_mode << ")..." << Color::END << std::endl;
+        std::cout.flush();
         const double pmin = args.has_parm_min ? args.parm_min : 1.0;
         const double pmax = args.has_parm_max ? args.parm_max : 10.0;
         const double pstep = args.has_parm_step ? args.parm_step : 1.0;
-        const int nprof = std::max(1, static_cast<int>((pmax - pmin) / pstep));
-        TProfile* hch2 = new TProfile("hch2", "#chi^{2} vs regparm", nprof, pmin, pmax);
-        TProfile* herr = new TProfile("herr", "Mean error vs regparm", nprof, pmin, pmax);
-        TProfile* hres = new TProfile("hres", "Mean residual vs regparm", nprof, pmin, pmax);
-        TH1D* hrms = new TH1D("hrms", "RMS of residuals", nprof, pmin, pmax);
+        // One bin centered on each integer k, including pmax. The old [pmin, pmax) axis dropped k=pmax.
+        const int n_k = std::max(1, static_cast<int>(std::lround((pmax - pmin) / pstep)) + 1);
+        const double x_lo = pmin - (0.5 * pstep);
+        const double x_hi = pmax + (0.5 * pstep);
+        TProfile* hch2 = new TProfile("hch2", "#chi^{2} vs regparm", n_k, x_lo, x_hi);
+        TProfile* herr = new TProfile("herr", "Mean error vs regparm", n_k, x_lo, x_hi);
+        TProfile* hres = new TProfile("hres", "Mean residual vs regparm", n_k, x_lo, x_hi);
+        TH1D* hrms = new TH1D("hrms", "RMS of residuals", n_k, x_lo, x_hi);
         hch2->SetDirectory(0);
         herr->SetDirectory(0);
         hres->SetDirectory(0);
@@ -885,8 +889,12 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         for(double k = pmin; k <= pmax + 0.5 * pstep; k += pstep){
             const int ki = static_cast<int>(k + 0.5);
             std::cout << Color::BOLD << "Iteration-study k=" << ki << Color::END << std::endl;
+            std::cout.flush();
             RooUnfoldBayes unf_k(&Response_RooUnfold, ExREAL_use, ki);
             unf_k.SetVerbose(1);
+            if(args.error_mode == "toys"){
+                unf_k.SetNToys(args.Num_Toys);
+            }
             TH1* h_unf = unf_k.Hunfold(err_treat);
             if(h_unf == nullptr){
                 Crash_Report(args, "iteration study Hunfold returned null at k=" + std::to_string(ki));
@@ -911,15 +919,33 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
             if(nchi > 0){ hch2->Fill(k, chi2); }
             hrms->Fill(k, std::sqrt(rsq / std::max(1, nt)));
             delete h_unf;
+            std::cout << "Iteration-study k=" << ki << " finished" << std::endl;
+            std::cout.flush();
         }
         Stash_Iteration_Study_Hist(hch2, "Iteration_Study_Chi2");
         Stash_Iteration_Study_Hist(herr, "Iteration_Study_RMSError");
         Stash_Iteration_Study_Hist(hres, "Iteration_Study_MeanResiduals");
         Stash_Iteration_Study_Hist(hrms, "Iteration_Study_RMSResiduals");
+        std::cout << "5D iteration study profiles are ready" << std::endl;
+        std::cout.flush();
     }
 
+    if(args.study_only && args.iteration_study){
+        // The nominal RooUnfoldBayes object above is left intact and is not unfolded.
+        std::cout << "study_only: scan finished. Nominal Hunfold was not run." << std::endl;
+        std::cout.flush();
+        TH1D* marker = new TH1D("study_only_no_nominal", "iteration study only", 1, 0.0, 1.0);
+        marker->SetDirectory(0);
+        return marker;
+    }
+
+    std::cout << "Nominal Hunfold start, error_mode=" << args.error_mode
+              << ", bayes_iterations=" << bayes_iterations << std::endl;
+    std::cout.flush();
     // TH1* Unfolded_Histo = Unfolding_Histo.Hunfold(RooUnfold::kCovToys); // Changed to err_treat on 9/16/2026
     TH1* Unfolded_Histo = Unfolding_Histo.Hunfold(err_treat);
+    std::cout << "Nominal Hunfold finished, error_mode=" << args.error_mode << std::endl;
+    std::cout.flush();
     if(Unfolded_Histo == nullptr){
         std::cout << "\n" << Color::Error << "FAILED TO UNFOLD A HISTOGRAM (RooUnfold)..." << Color::END << std::endl;
         return nullptr;
@@ -1264,6 +1290,7 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
     if(Unfold_1D == nullptr){
         Crash_Report(args, "Unfold_Function returned ERROR");
     }
+    bool study_only_result = (std::string(Unfold_1D->GetName()) == "study_only_no_nominal");
     Unfold_1D->SetDirectory(0);
     std::cout << "\n" << Color::BGREEN << "Finished Unfolding" << Color::END << "\n" << std::endl;
     args.timer.time_elapsed();
@@ -1283,7 +1310,7 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
         File_Name_Tlist.SetOwner(kTRUE);
         File_Name_Tlist.SetName("Latest_List_of_File_Names");
         File_Name_Tlist.Add(new TObjString(args.single_file_input.c_str()));
-        safe_write(&File_Name_Tlist, output_file);
+        File_Name_Tlist.Write(File_Name_Tlist.GetName(), TObject::kSingleKey);
         TList Config_Tlist;
         Config_Tlist.SetOwner(kTRUE);
         Config_Tlist.SetName("Detected_5D_Config");
@@ -1292,17 +1319,25 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
         Config_Tlist.Add(new TObjString(("num_slices=" + std::to_string(args.num_slices_5d)).c_str()));
         Config_Tlist.Add(new TObjString(("error_mode=" + args.error_mode).c_str()));
         Config_Tlist.Add(new TObjString(("bayes_iterations=" + std::to_string(args.bayes_iterations)).c_str()));
-        safe_write(&Config_Tlist, output_file);
+        Config_Tlist.Add(new TObjString((std::string("study_only=") + (study_only_result ? "1" : "0")).c_str()));
+        Config_Tlist.Add(new TObjString((std::string("old_binning=") + (args.old_binning ? "1" : "0")).c_str()));
+        Config_Tlist.Add(new TObjString(("Min_Allowed_Acceptance_Cut=" + std::to_string(args.Min_Allowed_Acceptance_Cut)).c_str()));
+        Config_Tlist.Write(Config_Tlist.GetName(), TObject::kSingleKey);
         if(ExREAL_1D_wExclusive_Background != nullptr){
             ExREAL_1D_wExclusive_Background->SetDirectory(0);
             safe_write(ExREAL_1D_wExclusive_Background, output_file);
             to_be_saved_count += 1;
         }
-        safe_write(Unfold_1D, output_file);
-        to_be_saved_count += 1;
+        if(!study_only_result){
+            safe_write(Unfold_1D, output_file);
+            to_be_saved_count += 1;
+        }
         Write_Iteration_Study_Hists(output_file, &to_be_saved_count);
         int save_count_ref = to_be_saved_count;
         for(const auto& item : Histos_To_Slice){
+            if(study_only_result && (item.second == "Bayesian")){
+                continue;
+            }
             Run_Slice_Category(item.first, item.second, args, output_file, &save_count_ref, MC_BGS_1D, meta);
         }
         to_be_saved_count = save_count_ref;

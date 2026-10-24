@@ -1964,6 +1964,310 @@ def watch_histogram_chain(args, children):
         time.sleep(5)
 
 
+def five_d_only_response(data_root):
+    return response_merged_path(data_root, "Only_5D", "SIDIS_Workflow", "Bank")
+
+
+def five_d_only_root(data_root):
+    return os.path.join(data_root_path(data_root), "Unfold_5D_Only")
+
+
+def five_d_study_argv(data_root, response, root_out):
+    script = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
+    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--iteration_study", "--study_only", "--error_mode", "errors", "--parm_min", "1", "--parm_max", "10", "--parm_step", "1", "--background_source", "lundvpk", "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24", "--email"]
+
+
+def five_d_nominal_argv(data_root, response, root_out, k_value):
+    script = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
+    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--error_mode", "covariance", "--bayes_iterations", str(int(k_value)), "--background_source", "lundvpk", "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24"]
+
+
+def five_d_log_line(handle, text, echo=True):
+    line = "[%s] %s\n" % (time.strftime("%Y-%m-%d %H:%M:%S"), str(text).rstrip("\n"))
+    if(handle is not None):
+        handle.write(line)
+        handle.flush()
+    if(echo):
+        print(line, end="")
+        sys.stdout.flush()
+
+
+def five_d_tee(stage, argv, log_path, orchestrator):
+    started = time.time()
+    five_d_log_line(orchestrator, "stage %s start" % stage)
+    five_d_log_line(orchestrator, " ".join(argv))
+    handle = open(log_path, "a", buffering=1)
+    five_d_log_line(handle, "stage %s start" % stage)
+    proc = subprocess.Popen([str(part) for part in argv], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+    for line in proc.stdout:
+        five_d_log_line(handle, line)
+        five_d_log_line(orchestrator, line, echo=False)
+    code = proc.wait()
+    elapsed = time.time() - started
+    five_d_log_line(handle, "stage %s exit %s elapsed %.1f" % (stage, code, elapsed))
+    five_d_log_line(orchestrator, "stage %s exit %s elapsed %.1f" % (stage, code, elapsed))
+    handle.close()
+    return code
+
+
+def five_d_list_lines(path, list_name):
+    import ROOT
+    root_file = ROOT.TFile.Open(str(path), "READ")
+    if((root_file is None) or root_file.IsZombie()):
+        if(root_file is not None):
+            root_file.Close()
+        return None
+    listed = root_file.Get(list_name)
+    lines = []
+    try:
+        if((listed is not None) and listed.InheritsFrom("TList")):
+            for index in range(int(listed.GetSize())):
+                lines.append(str(listed.At(index).GetString()))
+    except Exception:
+        lines = []
+    root_file.Close()
+    return lines
+
+
+def five_d_config_map(path):
+    lines = five_d_list_lines(path, "Detected_5D_Config")
+    if(lines is None):
+        return None
+    mapped = {}
+    for line in lines:
+        if("=" in line):
+            key, value = line.split("=", 1)
+            mapped[key] = value
+    return mapped
+
+
+def five_d_acceptance_matches(mapped):
+    try:
+        return abs(float(mapped.get("Min_Allowed_Acceptance_Cut", "nan")) - 0.020) < 1e-4
+    except ValueError:
+        return False
+
+
+def five_d_series_from(path, hist_name):
+    import ROOT
+    from plot_iteration_study import extract_iteration_series
+    root_file = ROOT.TFile.Open(str(path), "READ")
+    if((root_file is None) or root_file.IsZombie()):
+        if(root_file is not None):
+            root_file.Close()
+        return None
+    hist = root_file.Get(hist_name)
+    if(hist is None):
+        root_file.Close()
+        return None
+    series = extract_iteration_series(hist, 10)
+    root_file.Close()
+    return series
+
+
+def five_d_study_is_valid(path, response):
+    if(not os.path.isfile(path)):
+        return False
+    names = five_d_list_lines(path, "Latest_List_of_File_Names")
+    mapped = five_d_config_map(path)
+    if((names is None) or (response not in names) or (mapped is None)):
+        return False
+    if(mapped.get("error_mode") != "errors"):
+        return False
+    if(mapped.get("study_only") != "1"):
+        return False
+    if(mapped.get("old_binning") != "0"):
+        return False
+    if(not five_d_acceptance_matches(mapped)):
+        return False
+    for hist_name in ["Iteration_Study_Chi2", "Iteration_Study_MeanResiduals", "Iteration_Study_RMSError"]:
+        series = five_d_series_from(path, hist_name)
+        if((series is None) or (any(k not in series for k in range(1, 11)))):
+            return False
+    return True
+
+
+def five_d_nominal_is_valid(path, response, k_value):
+    if(not os.path.isfile(path)):
+        return False
+    names = five_d_list_lines(path, "Latest_List_of_File_Names")
+    mapped = five_d_config_map(path)
+    if((names is None) or (response not in names) or (mapped is None)):
+        return False
+    if(mapped.get("error_mode") != "covariance"):
+        return False
+    if(mapped.get("old_binning") != "0"):
+        return False
+    if(not five_d_acceptance_matches(mapped)):
+        return False
+    if(str(mapped.get("bayes_iterations")) != str(int(k_value))):
+        return False
+    import ROOT
+    root_file = ROOT.TFile.Open(str(path), "READ")
+    if((root_file is None) or root_file.IsZombie()):
+        if(root_file is not None):
+            root_file.Close()
+        return False
+    found = False
+    for key in root_file.GetListOfKeys():
+        if("Bayesian" in str(key.GetName())):
+            found = True
+            break
+    root_file.Close()
+    return found
+
+
+def five_d_sibling(path):
+    base, ext = os.path.splitext(path)
+    return "%s_%s%s" % (base, time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()), ext)
+
+
+def five_d_selector_args():
+    class Clip(object):
+        pass
+    args = Clip()
+    args.clip_min = 1
+    args.clip_max = 10
+    args.epsilon = 1e-12
+    args.tau_trend = 0.03
+    args.tau_flat = 0.03
+    args.tau_confirm = 0.03
+    args.flag_spread = 4
+    return args
+
+
+def five_d_write_selection(out_dir, result):
+    from plot_iteration_study import draw_group
+    plot_dir = os.path.join(out_dir, "plots")
+    os.makedirs(plot_dir, exist_ok=True)
+    classes = result["classes"]
+    lines = [
+        "status %s" % result["status"],
+        "median %s" % ("" if(result["median"] is None) else str(result["median"])),
+        "spread %s" % ("" if(result["spread"] is None) else str(result["spread"])),
+        "spread_flag %s" % result["spread_flag"],
+        "chi2 k=%s %s" % (classes["chi2"]["k"], classes["chi2"]["reason"]),
+        "mean_abs k=%s %s" % (classes["mean_abs"]["k"], classes["mean_abs"]["reason"]),
+        "rms_error k=%s %s" % (classes["rms_error"]["k"], classes["rms_error"]["reason"]),
+    ]
+    for name, holes in result["holes"].items():
+        if(len(holes) > 0):
+            lines.append("missing %s %s" % (name, ",".join([str(k) for k in holes])))
+    text_path = os.path.join(plot_dir, "iteration_recommendations.txt")
+    handle = open(text_path, "w")
+    handle.write("\n".join(lines) + "\n")
+    handle.close()
+    try:
+        draw_group("all", result, plot_dir, five_d_selector_args())
+    except Exception as exc:
+        lines.append("plot failed: %s" % exc)
+        handle = open(text_path, "a")
+        handle.write("plot failed: %s\n" % exc)
+        handle.close()
+    return text_path, lines
+
+
+def run_unfold_5d_only(args):
+    response = five_d_only_response(args.data_root)
+    out_dir = five_d_only_root(args.data_root)
+    log_dir = os.path.join(out_dir, "logs")
+    study_root = os.path.join(out_dir, "iteration_study_errors.root")
+    nominal_root = os.path.join(out_dir, "nominal_covariance.root")
+    log_paths = {
+        "orchestrator": os.path.join(log_dir, "orchestrator.log"),
+        "study": os.path.join(log_dir, "iteration_study.log"),
+        "selection": os.path.join(log_dir, "selection.log"),
+        "nominal": os.path.join(log_dir, "nominal_unfold.log"),
+    }
+    print("5D-only input %s" % response)
+    for name in ["orchestrator", "study", "selection", "nominal"]:
+        print("5D-only log %s %s" % (name, log_paths[name]))
+    study_cmd = five_d_study_argv(args.data_root, response, study_root)
+    print("5D-only study")
+    print(" ".join(study_cmd))
+    print("5D-only nominal uses --error_mode covariance and the selected --bayes_iterations")
+    print(" ".join(five_d_nominal_argv(args.data_root, response, nominal_root, 0)).replace("--bayes_iterations 0", "--bayes_iterations <selected>"))
+    if(args.dry_run):
+        return 0
+    if(not os.path.isfile(response)):
+        mail_stop("unfold_5d_only", "thesis 5D response file is missing: %s" % response)
+        return 1
+    os.makedirs(log_dir, exist_ok=True)
+    orchestrator = open(log_paths["orchestrator"], "a", buffering=1)
+    five_d_log_line(orchestrator, "input %s" % response)
+    summary_lines = ["input %s" % response]
+    try:
+        if(five_d_study_is_valid(study_root, response)):
+            five_d_log_line(orchestrator, "reusing study %s" % study_root)
+            mail_note("SIDIS 5D iteration study already valid", "phase: unfold_5d_only\nstudy: %s\nThe existing study was accepted. Nominal unfolding follows selection.\n" % study_root)
+            summary_lines.append("study reused %s" % study_root)
+        else:
+            if(os.path.isfile(study_root)):
+                study_root = five_d_sibling(study_root)
+                study_cmd = five_d_study_argv(args.data_root, response, study_root)
+                five_d_log_line(orchestrator, "existing study was not reused. New study file %s" % study_root)
+            code = five_d_tee("iteration_study", study_cmd, log_paths["study"], orchestrator)
+            if(code != 0):
+                mail_stop("unfold_5d_only", "iteration study exited %s" % code)
+                summary_lines.append("study failed exit %s" % code)
+                return 1
+            if(not five_d_study_is_valid(study_root, response)):
+                mail_stop("unfold_5d_only", "iteration study exited 0 but the diagnostics or config do not match: %s" % study_root)
+                summary_lines.append("study invalid %s" % study_root)
+                return 1
+            summary_lines.append("study wrote %s" % study_root)
+        from plot_iteration_study import select_5d_iteration
+        chi2 = five_d_series_from(study_root, "Iteration_Study_Chi2")
+        mean = five_d_series_from(study_root, "Iteration_Study_MeanResiduals")
+        rms = five_d_series_from(study_root, "Iteration_Study_RMSError")
+        result = select_5d_iteration(chi2 or {}, mean or {}, rms or {}, five_d_selector_args())
+        text_path, selection_lines = five_d_write_selection(out_dir, result)
+        selection_log = open(log_paths["selection"], "a", buffering=1)
+        for line in selection_lines:
+            five_d_log_line(selection_log, line)
+            five_d_log_line(orchestrator, line)
+        selection_log.close()
+        summary_lines.extend(selection_lines)
+        summary_lines.append("selection text %s" % text_path)
+        if(result["status"] != "selected"):
+            mail_stop("unfold_5d_only", "iteration selection status %s. Nominal unfolding was not started.\n%s" % (result["status"], "\n".join(selection_lines)))
+            summary_lines.append("nominal not started")
+            return 1
+        k_value = int(result["median"])
+        if(five_d_nominal_is_valid(nominal_root, response, k_value)):
+            five_d_log_line(orchestrator, "reusing nominal %s" % nominal_root)
+            summary_lines.append("nominal reused %s" % nominal_root)
+        else:
+            if(os.path.isfile(nominal_root)):
+                nominal_root = five_d_sibling(nominal_root)
+                five_d_log_line(orchestrator, "existing nominal was not reused. New nominal file %s" % nominal_root)
+            code = five_d_tee("nominal_unfold", five_d_nominal_argv(args.data_root, response, nominal_root, k_value), log_paths["nominal"], orchestrator)
+            if(code != 0):
+                mail_stop("unfold_5d_only", "nominal unfold exited %s" % code)
+                summary_lines.append("nominal failed exit %s" % code)
+                return 1
+            if(not five_d_nominal_is_valid(nominal_root, response, k_value)):
+                mail_stop("unfold_5d_only", "nominal unfold exited 0 but the config does not match k=%s: %s" % (k_value, nominal_root))
+                summary_lines.append("nominal invalid %s" % nominal_root)
+                return 1
+            summary_lines.append("nominal wrote %s" % nominal_root)
+        summary_lines.append("selected k %s" % k_value)
+        summary_lines.append("error_mode study=errors nominal=covariance")
+        mail_note("SIDIS 5D-only workflow finished", "phase: unfold_5d_only\nselected k: %s\nstudy: %s\nnominal: %s\n" % (k_value, study_root, nominal_root))
+        return 0
+    finally:
+        summary_path = os.path.join(out_dir, "summary.txt")
+        try:
+            os.makedirs(out_dir, exist_ok=True)
+            handle = open(summary_path, "w")
+            handle.write("\n".join(summary_lines) + "\n")
+            handle.close()
+            five_d_log_line(orchestrator, "summary %s" % summary_path)
+        except Exception:
+            pass
+        orchestrator.close()
+
+
 def run_direct(args):
     os.environ["SIDIS_ANALYSIS_ROOT"] = _BOOT
     os.environ["SIDIS_DATA_ROOT"] = str(args.data_root)
@@ -1991,6 +2295,8 @@ def run_direct(args):
         code = run_campaign(args)
     elif(args.stage == "histogram_unfold"):
         code = run_histogram_unfold(args)
+    elif(args.stage == "unfold_5d_only"):
+        code = run_unfold_5d_only(args)
     else:
         print("direct orchestration does not run stage %s" % args.stage)
         code = 1

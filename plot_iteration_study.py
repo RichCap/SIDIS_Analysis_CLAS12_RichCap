@@ -222,6 +222,84 @@ def pick(group, stem):
     return None
 
 
+def series_missing(by_k, kmin, kmax):
+    return [k for k in range(int(kmin), int(kmax) + 1) if(k not in by_k)]
+
+
+def argmin_in_clip(by_k, args):
+    keys = [k for k in sorted(by_k) if(in_clip(k, args))]
+    if(len(keys) == 0):
+        return None, "empty series"
+    best = keys[0]
+    for k in keys[1:]:
+        if(strictly_lower(by_k[k], by_k[best], args.epsilon)):
+            best = k
+    return best, "minimum at k=%d value=%g" % (best, by_k[best])
+
+
+def minimum_before_rise(by_k, args):
+    # Keep the lowest point until a clear upward step. A later dip after that rise is not used.
+    keys = [k for k in sorted(by_k) if(in_clip(k, args))]
+    if(len(keys) == 0):
+        return None, "empty series"
+    best = keys[0]
+    steps = normalized_steps(by_k, args.epsilon)
+    for i in range(len(keys) - 1):
+        k = keys[i]
+        nxt = keys[i + 1]
+        if(nxt != (k + 1)):
+            break
+        if(strictly_lower(by_k[nxt], by_k[best], args.epsilon)):
+            best = nxt
+            continue
+        step = steps.get(k)
+        if((step is not None) and (step > args.tau_trend)):
+            return best, "minimum k=%d before rise r(%d)=%g" % (best, k, step)
+    return best, "minimum k=%d value=%g with no clear rise" % (best, by_k[best])
+
+
+def select_5d_iteration(chi2_by_k, mean_signed, rms_by_k, args):
+    # 5D has one scan. chi2 uses the 3D local-minimum then plateau rule. The other two are minima.
+    mean_abs = {k: abs(v) for k, v in mean_signed.items()}
+    chi2 = classify_series(chi2_by_k, args)
+    mean_k, mean_reason = argmin_in_clip(mean_abs, args)
+    rms_k, rms_reason = minimum_before_rise(rms_by_k, args)
+    holes = {
+        "chi2": series_missing(chi2_by_k, args.clip_min, args.clip_max),
+        "mean_abs": series_missing(mean_signed, args.clip_min, args.clip_max),
+        "rms_error": series_missing(rms_by_k, args.clip_min, args.clip_max),
+    }
+    result = {
+        "classes": {
+            "chi2": chi2,
+            "mean_abs": {"klass": "min" if(mean_k is not None) else "unresolved", "k": mean_k, "reason": mean_reason, "steps": {}},
+            "rms_error": {"klass": "min" if(rms_k is not None) else "unresolved", "k": rms_k, "reason": rms_reason, "steps": normalized_steps(rms_by_k, args.epsilon)},
+            "rms_resid": empty_class(),
+        },
+        "chi2_by_k": chi2_by_k,
+        "chi2_steps": chi2["steps"],
+        "mean_abs": mean_abs,
+        "rms_by_k": rms_by_k,
+        "holes": holes,
+        "status": "unresolved",
+        "median": None,
+        "spread": None,
+        "spread_flag": "no",
+    }
+    if(any(holes.values()) or (chi2["k"] is None) or (mean_k is None) or (rms_k is None)):
+        return result
+    chosen = [chi2["k"], mean_k, rms_k]
+    spread = max(chosen) - min(chosen)
+    result["spread"] = spread
+    result["median"] = sorted(chosen)[len(chosen) // 2]
+    if(spread >= args.flag_spread):
+        result["status"] = "flagged"
+        result["spread_flag"] = "YES"
+    else:
+        result["status"] = "selected"
+    return result
+
+
 def recommend(group, args):
     # Each diagnostic is classified on its own. No combined k is chosen here.
     chi2_h = pick(group, "Iteration_Study_Chi2")
