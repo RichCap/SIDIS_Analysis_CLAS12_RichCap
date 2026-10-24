@@ -148,7 +148,23 @@ def book_phi_response(df, histograms, missing):
     histograms["phi_response_4d"] = frame.Histo3D(model, "phi_t", "phi_t_gen", DENSE_CELL, weight)
 
 
-def book_diagnostics(df, sample, histograms, missing):
+def pid_columns_for_matching(matching):
+    # Same suffix map as MATCHING_SOURCE_SUFFIX. Historical _gen keeps unsuffixed PID_el and PID_pip.
+    from Histo_Files_ROOT.DataFrames.helper_functions_for_using_RDataFrames_python import MATCHING_SOURCE_SUFFIX, matching_source_column, normalize_matching_criteria
+    mode = normalize_matching_criteria(matching)
+    suffix = MATCHING_SOURCE_SUFFIX[mode]
+    el_col = matching_source_column("PID_el", suffix)
+    pip_col = matching_source_column("PID_pip", suffix)
+    return el_col, pip_col
+
+
+def match_category_expression(el_col, pip_col):
+    # No local names. ROOT names the jit column arguments var0, var1, ... and rejects assignments to them.
+    # 0 = matched (electron 11, pion 211), 1 = mismatched, 2 = unmatched (PID 0). Category is 3 * electron + pion.
+    return "return (((%s == 11) ? 0 : ((%s == 0) ? 2 : 1)) * 3) + ((%s == 211) ? 0 : ((%s == 0) ? 2 : 1));" % (el_col, el_col, pip_col, pip_col)
+
+
+def book_diagnostics(df, sample, histograms, missing, matching="Bank"):
     names = column_names(df)
     if("Event_Weight" in names):
         weight = "Event_Weight"
@@ -203,26 +219,18 @@ def book_diagnostics(df, sample, histograms, missing):
         x_bins, x_min, x_max = VAR_AXIS[column]
         model = ("%s_%s" % (sample, name), name, x_bins, x_min, x_max, Q2Y_BINS, Q2Y_MIN, Q2Y_MAX, ZPT_BINS, ZPT_MIN, ZPT_MAX)
         histograms["%s_%s" % (sample, name)] = df.Histo3D(model, column, "Q2_Y_Bin", "z_pT_Bin_Y_bin", weight)
-    if(("PID_el_Bank" in names) and ("PID_pip_Bank" in names)):
-        frame = df.Define("match_category", """
-            int el = 2;
-            int pip = 2;
-            if(PID_el_Bank == 0){ el = 2; }
-            else if(PID_el_Bank == 11){ el = 0; }
-            else { el = 1; }
-            if(PID_pip_Bank == 0){ pip = 2; }
-            else if(PID_pip_Bank == 211){ pip = 0; }
-            else { pip = 1; }
-            return el * 3 + pip;
-        """)
+    el_col, pip_col = pid_columns_for_matching(matching)
+    if((el_col in names) and (pip_col in names)):
+        # frame = df.Define("match_category", """ int el = 2; int pip = 2; if(PID_el_Bank == 0){ el = 2; } ... """)
+        frame = df.Define("match_category", match_category_expression(el_col, pip_col))
         model = ("%s_match_category" % sample, "match category", 9, -0.5, 8.5)
         histograms["%s_match_category" % sample] = frame.Histo1D(model, "match_category", weight)
-        histograms["%s_el_source" % sample] = df.Histo1D(("%s_el_source" % sample, "electron generated PID", 40, -20.5, 19.5), "PID_el_Bank", weight)
-        histograms["%s_pip_source" % sample] = df.Histo1D(("%s_pip_source" % sample, "pion generated PID", 80, -0.5, 79.5), "PID_pip_Bank", weight)
+        histograms["%s_el_source" % sample] = df.Histo1D(("%s_el_source" % sample, "electron generated PID", 40, -20.5, 19.5), el_col, weight)
+        histograms["%s_pip_source" % sample] = df.Histo1D(("%s_pip_source" % sample, "pion generated PID", 80, -0.5, 79.5), pip_col, weight)
         counted = df.Define("campaign_one", "1.0")
         histograms["%s_source_denominator" % sample] = counted.Histo1D(("%s_source_denominator" % sample, "reconstructed count", 1, -0.5, 0.5), "campaign_one", weight)
     else:
-        missing.append("%s bank PID columns" % sample)
+        missing.append("%s PID columns %s %s" % (sample, el_col, pip_col))
 
 
 def write_histograms(path, histograms):
@@ -258,7 +266,7 @@ def run_campaign_1d(args, all_root_files):
             if(sample == "mdf"):
                 book_phi_response(df, histograms, missing)
         if(getattr(args, "diagnostic_1d", False)):
-            book_diagnostics(df, sample, histograms, missing)
+            book_diagnostics(df, sample, histograms, missing, getattr(args, "matching_criteria", "Bank"))
     report_missing("1D", missing)
     if(len(histograms) == 0):
         raise SystemExit("1D mode booked no histograms")
