@@ -1619,7 +1619,26 @@ def acceptance_commands(data_root, matching=None):
     return pure_cmd, spline_cmd, pure, spline
 
 
-def response_submit_argv(args, only_key):
+def response_override_pairs(args):
+    # Temporary 2D/3D/5D overrides. Absent values stay off the command so the pipeline defaults remain.
+    pairs = []
+    if(getattr(args, "slurm_time", None) not in [None, ""]):
+        pairs.append(("-st", str(args.slurm_time)))
+    if(getattr(args, "batch_ids", None) not in [None, ""]):
+        pairs.append(("-bids", str(args.batch_ids)))
+    if(getattr(args, "hybrid_date", None) not in [None, ""]):
+        pairs.append(("-hdate", str(args.hybrid_date)))
+    return pairs
+
+
+def response_argv_has_jobs(argv):
+    for flag in ["-j2D", "-j3D", "-j5D", "-j1D", "-jdiag"]:
+        if((flag in argv) and (int(argv[argv.index(flag) + 1]) > 0)):
+            return True
+    return False
+
+
+def response_submit_argv(args, only_key, slots=None, pass_overrides=False):
     from Campaign.local_resource_gate import clamp_histogram_cap, histogram_ceilings
     ceilings = histogram_ceilings()
     submit = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py")
@@ -1627,15 +1646,16 @@ def response_submit_argv(args, only_key):
     hpp_name = campaign_hpp_tag(getattr(args, "hpp_old_name", None))
     argv.extend(["-hon", str(hpp_name)])
     counts = {"2D": 0, "3D": 0, "5D": 0, "1D": 0, "diag": 0}
-    if(only_key in ["", "2D"]):
+    allowed = None if(slots is None) else list(slots)
+    if((only_key in ["", "2D"]) and ((allowed is None) or ("2D" in allowed))):
         counts["2D"] = ceilings["Only_2D"]
-    if(only_key in ["", "3D"]):
+    if((only_key in ["", "3D"]) and ((allowed is None) or ("3D" in allowed))):
         counts["3D"] = ceilings["Only_3D"]
-    if(only_key in ["", "5D"]):
+    if((only_key in ["", "5D"]) and ((allowed is None) or ("5D" in allowed))):
         counts["5D"] = ceilings["Only_5D"]
-    if(only_key in ["", "1D"]):
+    if((only_key in ["", "1D"]) and ((allowed is None) or ("1D" in allowed))):
         counts["1D"] = ceilings["Only_1D"]
-    if(only_key in ["", "diag"]):
+    if((only_key in ["", "diag"]) and ((allowed is None) or ("diag" in allowed))):
         counts["diag"] = ceilings["Diagnostic_1D"]
     reuse = [("2D", "2D_Presentation", "Q2"), ("3D", "Only_3D", "MultiDim"), ("5D", "Only_5D", "MultiDim"), ("1D", "Only_1D", "phi_response_4d")]
     for slot, product_key, piece in reuse:
@@ -1649,7 +1669,32 @@ def response_submit_argv(args, only_key):
     cap = clamp_histogram_cap(getattr(args, "max_local_jobs", None))
     if(cap not in [None, ""]):
         argv.extend(["-hlc", str(cap)])
+    if(pass_overrides):
+        for flag, value in response_override_pairs(args):
+            argv.extend([flag, value])
     return argv
+
+
+def response_plan_argvs(args, only_key):
+    # One Submit_Full applies one batch list and one output date to every selected product.
+    # Recovery overrides stay on 2D, 3D, and 5D. Diagnostic_1D and Only_1D get a second command without them.
+    if(len(response_override_pairs(args)) == 0):
+        return [response_submit_argv(args, only_key)]
+    if(only_key in ["1D", "diag"]):
+        return [response_submit_argv(args, only_key)]
+    if(only_key in ["2D", "3D", "5D"]):
+        argv = response_submit_argv(args, only_key, pass_overrides=True)
+        if(response_argv_has_jobs(argv)):
+            return [argv]
+        return []
+    plans = []
+    recovery = response_submit_argv(args, "", slots=["2D", "3D", "5D"], pass_overrides=True)
+    if(response_argv_has_jobs(recovery)):
+        plans.append(recovery)
+    rest = response_submit_argv(args, "", slots=["1D", "diag"], pass_overrides=False)
+    if(response_argv_has_jobs(rest)):
+        plans.append(rest)
+    return plans
 
 
 def run_response(args, only_key):
@@ -1659,10 +1704,15 @@ def run_response(args, only_key):
     if(not hpp_pair_ready(args.data_root, hpp_name)):
         mail_stop("response", "acceptance weights for -hon %s are not usable, so histogram jobs were not started" % hpp_name)
         return 1
-    argv = response_submit_argv(args, only_key)
-    code = run_command("response", argv, os.path.dirname(argv[0]), args.dry_run, "", mail_success=False)
-    if(code != 0):
-        return code
+    # argv = response_submit_argv(args, only_key)
+    # code = run_command("response", argv, os.path.dirname(argv[0]), args.dry_run, "", mail_success=False)
+    plans = response_plan_argvs(args, only_key)
+    if(len(plans) == 0):
+        print("response histograms already usable")
+    for argv in plans:
+        code = run_command("response", argv, os.path.dirname(argv[0]), args.dry_run, "", mail_success=False)
+        if(code != 0):
+            return code
     if(args.dry_run):
         return 0
     needed = [("Only_3D", "MultiDim"), ("Only_5D", "MultiDim")]
@@ -1829,6 +1879,8 @@ def spawn_stage(args, stage, extra):
         argv.extend(["-mac", campaign_matching_value(args.matching_criteria)])
     if(("-hon" not in extra) and (getattr(args, "hpp_old_name", None) not in [None, ""])):
         argv.extend(["-hon", str(args.hpp_old_name)])
+    for flag, value in response_override_pairs(args):
+        argv.extend([flag, value])
     print("starting %s" % stage)
     show_command(argv)
     if(args.dry_run):
