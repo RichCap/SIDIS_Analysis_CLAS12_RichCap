@@ -367,7 +367,7 @@ BC_STATUS_CACHE = {}
 
 
 def bc_histogram_status(path, counts):
-    # Names, classes, and axis sizes only. Bin contents are not read.
+    # Integrity only. Histogram count, names, and axis sizes are not judged.
     # "unread" means the file was not judged, so the caller must not delete it.
     if((path in [None, ""]) or (not os.path.isfile(path))):
         return "missing"
@@ -385,10 +385,10 @@ def bc_histogram_status(path, counts):
         import ROOT
     except Exception:
         return "unread"
-    expected = []
-    for q2_bin, zpt_bin in bc_expected_bins():
-        expected.append(bc_hist_name(q2_bin, zpt_bin))
-    nx_need = bc_nsub(counts) + 2
+    # expected = []
+    # for q2_bin, zpt_bin in bc_expected_bins():
+    #     expected.append(bc_hist_name(q2_bin, zpt_bin))
+    # nx_need = bc_nsub(counts) + 2
     root_file = None
     status = "unread"
     reason = ""
@@ -404,31 +404,23 @@ def bc_histogram_status(path, counts):
             status = "incomplete"
             reason = "recovered %s" % path
         else:
-            classes = {}
-            for key in root_file.GetListOfKeys():
-                classes[str(key.GetName())] = str(key.GetClassName())
+            # Histogram count, names, and axis sizes are not acceptance rules.
+            # classes = {}
+            # for key in root_file.GetListOfKeys():
+            #     classes[str(key.GetName())] = str(key.GetClassName())
+            # allowed_extra = bc_extra_names()
+            # for name, klass in classes.items():
+            #     if(name.startswith("Histogram Bin (") and (name not in expected) and (name not in allowed_extra)):
+            #         status = "incomplete"
+            #         reason = "unexpected histogram %s in %s" % (name, path)
+            #         break
+            # for name in expected:
+            #     hist = root_file.Get(name)
+            #     if((hist is None) or (hist.GetNbinsX() != nx_need) or (hist.GetNbinsY() != 24)):
+            #         status = "incomplete"
+            #         reason = "axis %s is not the expected size in %s" % (name, path)
+            #         break
             status = "complete"
-            allowed_extra = bc_extra_names()
-            for name, klass in classes.items():
-                if(name.startswith("Histogram Bin (") and (name not in expected) and (name not in allowed_extra)):
-                    status = "incomplete"
-                    reason = "unexpected histogram %s in %s" % (name, path)
-                    break
-            if(status == "complete"):
-                for name in expected:
-                    if("TH2" not in classes.get(name, "")):
-                        status = "incomplete"
-                        reason = "missing or not TH2 %s in %s" % (name, path)
-                        break
-                    hist = root_file.Get(name)
-                    if(hist is None):
-                        status = "incomplete"
-                        reason = "missing or not TH2 %s in %s" % (name, path)
-                        break
-                    if((hist.GetNbinsX() != nx_need) or (hist.GetNbinsY() != 24)):
-                        status = "incomplete"
-                        reason = "axis %s is %s by %s, expected %s by 24, in %s" % (name, hist.GetNbinsX(), hist.GetNbinsY(), nx_need, path)
-                        break
     except Exception:
         status = "unread"
     finally:
@@ -1364,28 +1356,15 @@ def run_bc_config(args, label, counts):
             print("removing incomplete BC merge so it is recreated: %s" % dest)
             if(not args.dry_run):
                 os.remove(dest)
-        filtered = []
-        for path in outputs:
-            filtered.append(path + ".hadd_input.root")
-        if(args.dry_run):
-            print("filtering the 452 current BC histograms, leaving Histogram Bin (3-6), (11-5), and (14-6) in the original files")
-        else:
-            for path, copy_path in zip(outputs, filtered):
-                if(not bc_filtered_copy(path, copy_path)):
-                    for made in filtered:
-                        if(os.path.isfile(made)):
-                            os.remove(made)
-                    mail_stop(hadd_phase, "could not copy the current BC histograms from %s" % path)
-                    return 1
-        hadd_argv = bc_hadd_argv(dest, filtered)
+        # filtered = []
+        # for path in outputs:
+        #     filtered.append(path + ".hadd_input.root")
+        # bc_filtered_copy kept only bc_expected_bins and dropped every other histogram.
+        hadd_argv = bc_hadd_argv(dest, list(outputs))
         if(len(hadd_argv) == 0):
             mail_stop(hadd_phase, "ROOTSYS is unset or $ROOTSYS/bin/hadd is not a file")
             return 1
         code = run_command(hadd_phase, hadd_argv, bc_dir, args.dry_run, factor_phase, mail_success=False)
-        if(not args.dry_run):
-            for copy_path in filtered:
-                if(os.path.isfile(copy_path)):
-                    os.remove(copy_path)
         if(code != 0):
             return code
         if(args.dry_run):

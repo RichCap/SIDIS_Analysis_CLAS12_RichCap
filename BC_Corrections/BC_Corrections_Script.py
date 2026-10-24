@@ -807,10 +807,10 @@ def Get_Bin_Contents_for_BC(args):
     for                     Q2_y_Bin in Q2_y_Bin_Range:
         gdf_Q2_y_Bin         = gdf.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")
         for                 z_pT_Bin in z_pT_Bin_Range:
-            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
-                if(args.verbose and (z_pT_Bin < 35)):
-                    print(f"\t{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
-                continue
+            # if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+            #     if(args.verbose and (z_pT_Bin < 35)):
+            #         print(f"\t{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
+            #     continue
             gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
             for             phih_bin in phih_Bin_Range:
                 gdf_phih_Bin = gdf_z_pT_Bin.Filter(f"phi_t_bin == {phih_bin}")
@@ -867,10 +867,10 @@ def Create_Histograms_for_BC(args):
     for     Q2_y_Bin in Q2_y_Bin_Range:
         gdf_Q2_y_Bin         = gdf.Filter(f"Q2_Y_Bin == {Q2_y_Bin}")
         for z_pT_Bin in z_pT_Bin_Range:
-            if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
-                if(args.verbose and (z_pT_Bin < 35)):
-                    print(f"\t{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
-                continue
+            # if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+            #     if(args.verbose and (z_pT_Bin < 35)):
+            #         print(f"\t{color.Error}Skip Bin {Q2_y_Bin}-{z_pT_Bin}{color.END}")
+            #     continue
             gdf_z_pT_Bin     = gdf_Q2_y_Bin.Filter(f"z_pT_Bin_Y_bin == {z_pT_Bin}")
             Nominal_bin_name = f"Histogram Bin ({Q2_y_Bin}-{z_pT_Bin})-(Num SubBins={args.num_sub_bins})"
             if(args.num_phi_sub_bins > 0):
@@ -1471,8 +1471,8 @@ def Plot_BC_Q2_y_Images_Together_From_JSON(args):
 
             first_plot_objects = None
             for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
-                if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
-                    continue
+                # if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+                #     continue
                 if((args.z_pT_Bin not in [-1, z_pT_Bin])):
                     continue
                 pad_bin = _get_pad_for_bc_z_pT_bin(right_pad, z_pT_Bin, number_of_rows, number_of_cols)
@@ -1545,8 +1545,8 @@ def Plot_BC_Q2_y_Images_Together_From_JSON(args):
 
             first_bc_objects = None
             for z_pT_Bin in range(1, z_pT_Bin_Range + 1, 1):
-                if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
-                    continue
+                # if(skip_condition_z_pT_bins(Q2_Y_BIN=Q2_Y_Bin, Z_PT_BIN=z_pT_Bin, BINNING_METHOD="Y_bin")):
+                #     continue
                 if((args.z_pT_Bin not in [-1, z_pT_Bin])):
                     continue
                 pad_bin_bc = _get_pad_for_bc_z_pT_bin(right_pad_bc, z_pT_Bin, number_of_rows, number_of_cols)
