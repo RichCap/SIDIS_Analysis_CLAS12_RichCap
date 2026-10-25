@@ -5,6 +5,7 @@ import glob
 import argparse
 import subprocess
 import re
+import tempfile
 from datetime import datetime
 import time
 
@@ -110,7 +111,8 @@ def parse_args():
                         help="Forward --unsmeared to Response_Matrix (required for noSmear cut).\n")
     parser.add_argument('-mac', '--matching_criteria',
                         type=str,
-                        default="_gen",
+                        # default="_gen",
+                        default="Bank",
                         choices=["", "_gen", "gen", "P10T6", "Bank", "_gen_Bank", "P12T6", "_gen_P12T6", "P8T6", "_gen_P8T6", "P10T8", "_gen_P10T8", "P10T4", "_gen_P10T4"],
                         help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     parser.add_argument('-2Do', '--make_2D_only',
@@ -140,7 +142,10 @@ def parse_args():
     parser.add_argument('-nb', '--num_batches',
                         type=int,
                         default=171,
-                        help="Number of normal batches to create. The last 2 batches will be reserved for lundrho- and lundvpk-MC files.\n")
+                        help="Total batches, including the dedicated rho tails. The last batches are one per rho source.\n")
+    parser.add_argument('-rst', '--rho_source_token',
+                        default=None,
+                        help="Extra rho0 basename token. It gets its own final batch after lundvpk and lundrho.\n")
 
     # Directories
     add_data_root_argument(parser)
@@ -169,10 +174,23 @@ def parse_args():
     parser.add_argument('-st', '--slurm_time',
                         default="12:00:00",
                         help="SLURM time limit per array task.\n")
+    parser.add_argument('-bids', '--batch_ids',
+                        default=None,
+                        help="Comma list or ranges of batch indices allowed to run, such as 113 or 110-112. The merge still requires every batch file. Omitted runs 1 through the full set.\n")
     parser.add_argument('-sm', '--slurm_mem',
                         # default="4GB",
                         default="5GB",
-                        help="SLURM mem-per-cpu. Farm jobs typically get 2 CPUs, so the total request is twice this value (5GB → 10GB).\n")
+                        help="SLURM --mem-per-cpu. --cpus-per-task is set separately and defaults to 1, so this value is the task memory unless more CPUs are requested.\n")
+    parser.add_argument('-sc', '--slurm_cpus',
+                        default="1",
+                        help="SLURM --cpus-per-task for the histogram array. Histogram workers do not enable implicit multithreading.\n")
+    parser.add_argument('-crm', '--campaign_resource_mode',
+                        default=None,
+                        help="Local reservation name from Campaign/local_resource_gate.py. Unset skips the shared local ledger.\n")
+    parser.add_argument('-hlc', '--histogram_local_cap',
+                        type=int,
+                        default=None,
+                        help="Extra ceiling on histogram-kind local slots across campaign processes. Does not raise the per-mode ceiling.\n")
     parser.add_argument('-saj', '--slurm_array_jobid',
                         type=str,
                         default=None,
@@ -390,7 +408,8 @@ def _log_squeue_snapshot(array_jobid, raw):
         return
     _SQUEUE_SNAPSHOT_LOGGED.add(key)
     text = (raw or "").strip() or "<empty>"
-    print(f"{color.BBLUE}[INFO]{color.END} squeue snapshot for array {array_jobid}:\n{text}")
+    if(text == "<empty>"):
+        print(f"{color.BBLUE}[INFO]{color.END} squeue snapshot for array {array_jobid}:\n{text}")
 
 def _squeue_line_fields(line):
     parts = str(line).split()
@@ -467,32 +486,154 @@ def query_slurm_array_task_state(array_jobid, batch_index):
         fmt_out = fmt_proc.stdout or ""
     return _parse_squeue_task_state(array_jobid, batch_index, fmt_out, default_proc.stdout)
 
-def _scancel_once(job_str):
+
+# def _scancel_once(job_str):
+#     try:
+#         proc = subprocess.run(["scancel", "--ctld", str(job_str)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     except FileNotFoundError:
+#         return False, "scancel not found"
+#     except Exception as exc:
+#         return False, str(exc)
+#     if(proc.returncode == 0):
+#         return True, ""
+#     return False, ((proc.stderr or proc.stdout or "").strip() or f"scancel rc={proc.returncode}")
+
+# def cancel_slurm_array_task(array_jobid, batch_index):
+#     job_str = f"{array_jobid}_{batch_index}"
+#     ok, msg = _scancel_once(job_str)
+#     if(ok):
+#         print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
+#         return True
+#     print(f"{color.Error}[WARNING]{color.END} scancel failed for {job_str}: {msg}. Local job will not start while the farm task may still be pending.")
+#     return False
+
+
+# def cancel_slurm_array_task(array_jobid, batch_index):
+#     job_str = f"{array_jobid}_{batch_index}"
+#     try:
+#         proc = subprocess.run(["tcsh", "-ic", f"scancel {job_str}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     except FileNotFoundError:
+#         print(f"{color.Error}[WARNING]{color.END} tcsh/scancel not found; cannot cancel SLURM array task {job_str}.")
+#         return False
+#     except Exception as exc:
+#         print(f"{color.Error}[WARNING]{color.END} Exception while running scancel on {job_str}: {exc}")
+#         return False
+#     if(proc.returncode != 0):
+#         msg = proc.stderr.strip()
+#         if(msg == ""):
+#             msg = "(no additional message from scancel)"
+#         print(f"{color.Error}[WARNING]{color.END} scancel {job_str} failed with code {proc.returncode}: {msg}")
+#         return False
+#     print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str} (state was pending).")
+#     return True
+
+# _SCANCEL_ARRAY_TASK_CSH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scancel_slurm_array_task.csh")
+#
+# def cancel_slurm_array_task(array_jobid, batch_index):
+#     # Compact pending arrays need JOBID_[N]; split tasks use JOBID_N. The tcsh wrapper tries both.
+#     split_id = f"{array_jobid}_{batch_index}"
+#     bracket_id = f"{array_jobid}_[{batch_index}]"
+#     try:
+#         proc = subprocess.run(["/bin/tcsh", _SCANCEL_ARRAY_TASK_CSH, str(array_jobid), str(batch_index)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     except FileNotFoundError:
+#         print(f"{color.Error}[WARNING]{color.END} tcsh not found; cannot cancel SLURM array task {split_id} / {bracket_id}.")
+#         return False
+#     except Exception as exc:
+#         print(f"{color.Error}[WARNING]{color.END} Exception while running scancel wrapper on {split_id} / {bracket_id}: {exc}")
+#         return False
+#     stdout = (proc.stdout or "").strip()
+#     stderr = (proc.stderr or "").strip()
+#     if(proc.returncode != 0):
+#         msg = "\n".join([s for s in [stdout, stderr] if(s not in ["", None])])
+#         if(msg in ["", None]):
+#             msg = "(no additional message from scancel)"
+#         print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id} with code {proc.returncode}: {msg}. Local job will not start while the farm task may still be pending.")
+#         return False
+#     cancelled = stdout if(stdout not in ["", None]) else f"{split_id} or {bracket_id}"
+#     print(f"{color.BBLUE}[INFO]{color.END} {cancelled}")
+#     return True
+
+def _scancel_via_temp_bash(job_str):
+    # Unique per cancel: filename contains the job id so parallel workers never share a script.
+    name_id = str(job_str).replace("[", "L").replace("]", "R")
+    fd, path = None, None
     try:
-        proc = subprocess.run(["scancel", str(job_str)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    except FileNotFoundError:
-        return False, "scancel not found"
+        fd, path = tempfile.mkstemp(prefix=f"scancel_{name_id}_", suffix=".sh", text=True)
+        os.write(fd, f"#!/bin/bash\nscancel '{job_str}'\n".encode("utf-8"))
+        os.close(fd)
+        fd = None
+        os.chmod(path, 0o755)
+        proc = subprocess.run([path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, stdin=subprocess.DEVNULL)
+        out = "\n".join([s for s in [(proc.stdout or "").strip(), (proc.stderr or "").strip()] if(s not in ["", None])])
+        return (proc.returncode == 0), out
     except Exception as exc:
         return False, str(exc)
-    if(proc.returncode == 0):
-        return True, ""
-    return False, ((proc.stderr or proc.stdout or "").strip() or f"scancel rc={proc.returncode}")
+    finally:
+        if(fd is not None):
+            try:
+                os.close(fd)
+            except Exception:
+                pass
+        if((path not in [None, ""]) and os.path.exists(path)):
+            try:
+                os.remove(path)
+            except Exception:
+                pass
 
-def cancel_slurm_array_task(array_jobid, batch_index, retries=10, delay=3.0):
-    split_id = f"{array_jobid}_{batch_index}"
-    bracket_id = f"{array_jobid}_[{batch_index}]"
+def _slurm_jobid_digits(raw):
+    # Strip ANSI (e.g. {color.END} glued to a captured sbatch id) then take the first digit run.
+    text = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', str(raw))
+    match = re.search(r"\d+", text)
+    if(match is None):
+        raise ValueError(f"No SLURM job id digits in {raw!r}")
+    return match.group(0)
+
+def cancel_slurm_array_task(array_jobid, batch_index):
+    # jobid = str(int(str(array_jobid).strip()))
+    jobid = _slurm_jobid_digits(array_jobid)
+    task = str(int(batch_index))
+    split_id = f"{jobid}_{task}"
+    bracket_id = f"{jobid}_[{task}]"
     last_msg = ""
-    for attempt in range(int(retries)):
-        for job_str in [split_id, bracket_id]:
-            ok, msg = _scancel_once(job_str)
-            if(ok):
-                print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
-                return True
-            last_msg = msg
-        if(attempt < (int(retries) - 1)):
-            time.sleep(delay)
+    for job_str in [split_id, bracket_id]:
+        ok, msg = _scancel_via_temp_bash(job_str)
+        if(ok):
+            print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
+            return True
+        last_msg = msg if(msg not in ["", None]) else last_msg
+    if(last_msg in ["", None]):
+        last_msg = "(no additional message from scancel)"
     print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id}: {last_msg}. Local job will not start while the farm task may still be pending.")
+    # return True
+    # Must be False: a True here would start the local batch after both scancels failed, so farm and local could write the same output.
     return False
+    
+# def _scancel_once(job_str):
+#     try:
+#         proc = subprocess.run(["scancel", str(job_str)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     except FileNotFoundError:
+#         return False, "scancel not found"
+#     except Exception as exc:
+#         return False, str(exc)
+#     if(proc.returncode == 0):
+#         return True, ""
+#     return False, ((proc.stderr or proc.stdout or "").strip() or f"scancel rc={proc.returncode}")
+
+# def cancel_slurm_array_task(array_jobid, batch_index, retries=10, delay=0.0):
+#     split_id = f"{array_jobid}_{batch_index}"
+#     bracket_id = f"'{array_jobid}_[{batch_index}]'"
+#     last_msg = ""
+#     for attempt in range(int(retries)):
+#         for job_str in [split_id, bracket_id]:
+#             ok, msg = _scancel_once(job_str)
+#             if(ok):
+#                 print(f"{color.BBLUE}[INFO]{color.END} Cancelled SLURM array task {job_str}")
+#                 return True
+#             last_msg = msg if(last_msg == "") else f"{last_msg} | {msg}"
+#         if(attempt < (int(retries) - 1)):
+#             time.sleep(delay)
+#     print(f"{color.Error}[WARNING]{color.END} scancel failed for {split_id} and {bracket_id}: {last_msg}. Local job will not start while the farm task may still be pending.")
+#     return False
 
 def slurm_array_has_active_tasks(array_jobid):
     global SLURM_ARRAY_CHECK_DISABLED
@@ -594,23 +735,50 @@ def make_batches_mode(args):
         Crash_Report(args, crash_message=f"{color.Error}No RDF files found - cannot generate batches.{color.END}")
     # Determine number of normal batches
     num_normal_batches = max(1, args.num_batches if(getattr(args, "num_batches", len(rdf_files)) < len(rdf_files)) else len(rdf_files))
-    # Separate LUND files from both MDF and GDF
-    lundvpk_mdf   = [f for f in mdf_files if("lundvpk" in os.path.basename(f).lower())]
-    lundvpk_gdf   = [f for f in gdf_files if("lundvpk" in os.path.basename(f).lower())]
-    lundrho_mdf   = [f for f in mdf_files if("lundrho" in os.path.basename(f).lower())]
-    lundrho_gdf   = [f for f in gdf_files if("lundrho" in os.path.basename(f).lower())]
-    normal_mdf    = [f for f in mdf_files if(((f not in lundvpk_mdf) and (f not in lundrho_mdf)) and ("lund" not in os.path.basename(f).lower()))]
-    normal_gdf    = [f for f in gdf_files if(((f not in lundvpk_gdf) and (f not in lundrho_gdf)) and ("lund" not in os.path.basename(f).lower()))]
-    # Split normal files evenly across the first (N-2) batches
-    num_normal = max(1, num_normal_batches - 2)
+    # Existing order is lundvpk then lundrho. rho0_new is appended and is not swapped with them.
+    # rho_names = ["lundvpk", "lundrho"]
+    # extra_rho = getattr(args, "rho_source_token", None)
+    # if(extra_rho):
+    #     for token in str(extra_rho).replace(",", " ").split():
+    #         if((token) and (token not in rho_names)):
+    #             rho_names.append(token)
+    from Campaign.ifarm_inputs import classify_rho_name, source_order
+    rho_names = source_order()
+    extra_rho = getattr(args, "rho_source_token", None)
+    if(extra_rho):
+        for token in str(extra_rho).replace(",", " ").split():
+            if((token) and (token not in rho_names)):
+                rho_names.append(token)
+    rho_mdf = {}
+    rho_gdf = {}
+    # for token in rho_names:
+    #     rho_mdf[token] = [f for f in mdf_files if(token.lower() in os.path.basename(f).lower())]
+    #     rho_gdf[token] = [f for f in gdf_files if(token.lower() in os.path.basename(f).lower())]
+    for token in rho_names:
+        rho_mdf[token] = [f for f in mdf_files if(classify_rho_name(os.path.basename(f)) == token)]
+        rho_gdf[token] = [f for f in gdf_files if(classify_rho_name(os.path.basename(f)) == token)]
+    claimed_mdf = []
+    claimed_gdf = []
+    for token in rho_names:
+        claimed_mdf.extend(rho_mdf[token])
+        claimed_gdf.extend(rho_gdf[token])
+    normal_mdf = [f for f in mdf_files if((f not in claimed_mdf) and ("lund" not in os.path.basename(f).lower()))]
+    normal_gdf = [f for f in gdf_files if((f not in claimed_gdf) and ("lund" not in os.path.basename(f).lower()))]
+    num_tails  = len(rho_names)
+    num_normal = max(1, num_normal_batches - num_tails)
     rdf_chunks = split_evenly(rdf_files,  num_normal_batches)
     mdf_chunks = split_evenly(normal_mdf, num_normal)
     gdf_chunks = split_evenly(normal_gdf, num_normal)
-    # LUND batch goes at the end (batch N-1, and N)
-    lund_mdf_batch = {num_normal_batches-1: [os.path.abspath(f) for f in lundvpk_mdf],
-                      num_normal_batches:   [os.path.abspath(f) for f in lundrho_mdf]}
-    lund_gdf_batch = {num_normal_batches-1: [os.path.abspath(f) for f in lundvpk_gdf],
-                      num_normal_batches:   [os.path.abspath(f) for f in lundrho_gdf]}
+    lund_mdf_batch = {}
+    lund_gdf_batch = {}
+    for offset, token in enumerate(rho_names):
+        batch_id = num_normal_batches - num_tails + 1 + offset
+        lund_mdf_batch[batch_id] = [os.path.abspath(f) for f in rho_mdf[token]]
+        lund_gdf_batch[batch_id] = [os.path.abspath(f) for f in rho_gdf[token]]
+    lundvpk_mdf = rho_mdf["lundvpk"]
+    lundrho_mdf = rho_mdf["lundrho"]
+    lundvpk_gdf = rho_gdf["lundvpk"]
+    lundrho_gdf = rho_gdf["lundrho"]
     def to_absolute(flist):
         return [os.path.abspath(f) for f in flist]
     rdf_batch = {i+1: to_absolute(chunk) for i, chunk in enumerate(rdf_chunks) if(chunk)}
@@ -624,7 +792,8 @@ def make_batches_mode(args):
         f.write("rdf_batch = {}\n".format(rdf_batch))
         f.write("mdf_batch = {}\n".format(mdf_batch))
         f.write("gdf_batch = {}\n".format(gdf_batch))
-        f.write(f"# {num_normal_batches} total batches ({num_normal} normal + 2 LUND-only) - RDF:{len(rdf_files)} MDF:{len(normal_mdf)} GDF:{len(normal_gdf)} LUND_MDF:{len(lundvpk_mdf)}/{len(lundrho_mdf)} (lundvpk/lundrho) LUND_GDF:{len(lundvpk_gdf)}/{len(lundrho_gdf)} (lundvpk/lundrho)\n")
+        tail_note = ",".join(rho_names)
+        f.write(f"# {num_normal_batches} total batches ({num_normal} normal + {num_tails} rho tails: {tail_note}) - RDF:{len(rdf_files)} MDF:{len(normal_mdf)} GDF:{len(normal_gdf)} LUND_MDF:{len(lundvpk_mdf)}/{len(lundrho_mdf)} (lundvpk/lundrho) LUND_GDF:{len(lundvpk_gdf)}/{len(lundrho_gdf)} (lundvpk/lundrho)\n")
     # Update args for reporting
     args.rdf_per_batch =  len(rdf_files) // num_normal_batches if(num_normal_batches > 0) else 0
     args.mc_per_batch  = len(normal_mdf) // num_normal         if(num_normal         > 0) else 0
@@ -688,8 +857,11 @@ def build_main_command(args, batch_id, output_dir, slurm_placeholders=False):
         cmd.append("--run_rho_weight")
     if(getattr(args, "unsmeared", False)):
         cmd.append("--unsmeared")
-    mac = getattr(args, "matching_criteria", "_gen")
-    if(mac in [None, ""]):
+    mac = getattr(args, "matching_criteria", "Bank")
+    if(mac in [None]):
+        mac = "Bank"
+    # Blank remains the historical unsuffixed match. Bank is the omitted default.
+    if(mac == ""):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
     name_for_batch = f"{args.name}_{name_in_label(args.name_in)}_Batch{batch_pad}" if(args.name) else f"{name_in_label(args.name_in)}_Batch{batch_pad}"
@@ -704,15 +876,17 @@ def build_main_command(args, batch_id, output_dir, slurm_placeholders=False):
     return cmd
 
 
-def should_skip_batch_due_to_slurm(args, batch_index):
+def should_skip_batch_due_to_slurm(args, batch_index, output_dir):
     if(args.slurm_array_jobid is None):
         return False
     state = query_slurm_array_task_state(args.slurm_array_jobid, batch_index)
-    if(state == "IGNORE"):
-        return False
     target_id = f"{args.slurm_array_jobid}_{batch_index}"
-    if(state is None):
-        print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} already completed by SLURM - skipping")
+    batch_path = expected_batch_root_path(args, output_dir, batch_index)
+    if(state == "IGNORE"):
+        print(f"{color.BYELLOW}[INFO]{color.END} squeue failed; not starting a second writer for batch {batch_index}.")
+        return True
+    if(state in ["R", "CG", "CF"]):
+        print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} is {state} in SLURM - leaving it to SLURM")
         return True
     if(state == "PD"):
         print(f"{color.BBLUE}[INFO]{color.END} Cancelling pending SLURM task {target_id}")
@@ -720,12 +894,64 @@ def should_skip_batch_due_to_slurm(args, batch_index):
             print(f"{color.BYELLOW}[INFO]{color.END} Batch {batch_index} left to SLURM (could not cancel pending task).")
             return True
         return False
-    print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} is {state} in SLURM - skipping")
-    return True
+    if(os.path.isfile(batch_path) and (os.path.getsize(batch_path) > 0)):
+        if(getattr(args, "batch_ids", None) not in [None, ""]):
+            piece = required_batch_piece(args)
+            if(batch_root_is_valid(batch_path, piece)):
+                print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output is already present - skipping local start")
+                return True
+            print("replacing unusable batch file %s" % batch_path)
+            os.remove(batch_path)
+            return False
+        print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output is already present - skipping local start")
+        return True
+    print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} has no output and SLURM state is {state if(state) else 'missing'} - starting locally")
+    return False
 
-def start_job(args, batch_index, batch_output_dir, log_dir):
-    if(should_skip_batch_due_to_slurm(args, batch_index)):
+LOCAL_SLOT_WAIT = "local-slot-wait"
+
+
+def reserve_local_slot(args, block):
+    mode = getattr(args, "campaign_resource_mode", None)
+    if(mode in [None, ""]):
         return None
+    from Campaign.local_resource_gate import try_acquire
+    while(True):
+        ok, token = try_acquire(args.data_root, mode, histogram_cap=getattr(args, "histogram_local_cap", None))
+        if(ok):
+            return token
+        if(not block):
+            return LOCAL_SLOT_WAIT
+        time.sleep(15)
+
+
+def release_local_slot(args, token):
+    if(token in [None, "", LOCAL_SLOT_WAIT]):
+        return
+    from Campaign.local_resource_gate import release
+    release(args.data_root, token)
+
+
+def start_job(args, batch_index, batch_output_dir, log_dir, block_for_slot=False):
+    selected = parse_batch_id_spec(getattr(args, "batch_ids", None), args.num_batches)
+    if((selected is not None) and (int(batch_index) not in selected)):
+        return None
+    if(should_skip_batch_due_to_slurm(args, batch_index, batch_output_dir)):
+        return None
+    existing = expected_batch_root_path(args, batch_output_dir, batch_index)
+    if(os.path.isfile(existing)):
+        if(getattr(args, "batch_ids", None) in [None, ""]):
+            print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output appeared before local start - skipping")
+            return None
+        piece = required_batch_piece(args)
+        if(batch_root_is_valid(existing, piece)):
+            print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} output appeared before local start - skipping")
+            return None
+        print("replacing unusable batch file %s" % existing)
+        os.remove(existing)
+    token = reserve_local_slot(args, block_for_slot)
+    if(token == LOCAL_SLOT_WAIT):
+        return LOCAL_SLOT_WAIT
     cmd = build_main_command(args, batch_index, batch_output_dir)
     name_for_log = f"{args.name}_{name_in_label(args.name_in)}_batch_{batch_index:03d}" if(args.name) else f"{name_in_label(args.name_in)}_batch_{batch_index:03d}"
     name_for_log = str(name_for_log.replace("*", "")).replace(".root", "")
@@ -740,11 +966,18 @@ def start_job(args, batch_index, batch_output_dir, log_dir):
     err_handle = open(err_path, "w")
     log_handle.write(f"# {' '.join(cmd)}\n")
     log_handle.flush()
-    if(args.mode == "parallel"):
-        process = subprocess.Popen(cmd, stdout=log_handle, stderr=err_handle, cwd=batch_output_dir)
-    else:
-        process = subprocess.run(  cmd, stdout=log_handle, stderr=err_handle, cwd=batch_output_dir)
-    return {"process": process, "log_handle": log_handle, "err_handle": err_handle, "batch_index": batch_index}
+    try:
+        if(args.mode == "parallel"):
+            process = subprocess.Popen(cmd, stdout=log_handle, stderr=err_handle, cwd=batch_output_dir)
+        else:
+            process = subprocess.run(  cmd, stdout=log_handle, stderr=err_handle, cwd=batch_output_dir)
+    except Exception:
+        release_local_slot(args, token)
+        raise
+    if((args.mode == "parallel") and (token not in [None, ""])):
+        from Campaign.local_resource_gate import bind_worker
+        bind_worker(args.data_root, token, process.pid)
+    return {"process": process, "log_handle": log_handle, "err_handle": err_handle, "batch_index": batch_index, "slot_token": token}
 
 def finish_job(job_item, results, args):
     ret = job_item["process"].poll()
@@ -758,6 +991,7 @@ def finish_job(job_item, results, args):
         job_item["err_handle"].close()
     except Exception:
         pass
+    release_local_slot(args, job_item.get("slot_token"))
     if(ret == 0):
         Update_Email(args, update_message=f"{color.BGREEN}DONE {color.END}: Batch {job_item['batch_index']:>3} of {args.num_batches}", verbose_override=True, no_time=False)
     elif(not args.continue_on_failure):
@@ -785,12 +1019,180 @@ def expected_batch_root_path(args, batch_output_dir, batch_index):
     root_base = str(args.root).split(".root")[0]
     return os.path.join(batch_output_dir, f"{root_base}_{name_for_batch}.root")
 
+
+def parse_batch_id_spec(text, num_batches):
+    if(text in [None, ""]):
+        return None
+    chosen = []
+    for part in str(text).split(","):
+        part = part.strip()
+        if(part == ""):
+            continue
+        if("-" in part):
+            left, right = part.split("-", 1)
+            start = int(left)
+            stop = int(right)
+            for index in range(start, stop + 1):
+                chosen.append(index)
+        else:
+            chosen.append(int(part))
+    unique = []
+    for index in chosen:
+        if((index < 1) or (index > int(num_batches))):
+            raise ValueError("batch id %s is outside 1-%s" % (index, num_batches))
+        if(index not in unique):
+            unique.append(index)
+    return unique
+
+
+def slurm_array_spec(selected, num_batches):
+    if(selected is None):
+        return "1-%d" % int(num_batches)
+    return ",".join([str(index) for index in selected])
+
+
+def sbatch_script_stem(name_base):
+    # The .sh name drops a trailing run date. The script body still uses the full name.
+    import re
+    return re.sub(r"_\d{2}_\d{2}_\d{4}$", "", str(name_base))
+
+
+def required_batch_piece(args):
+    # if(getattr(args, "unfold_5D_only", False)):
+    #     return "MultiDim"
+    # Only_5D forwards --unfold_5D_only after --extra, so the pipeline flag stays false.
+    extra = list(getattr(args, "extra", None) or [])
+    if(getattr(args, "unfold_5D_only", False) or ("--unfold_5D_only" in extra)):
+        return "MultiDim"
+    if(getattr(args, "no_make_2D", False) and getattr(args, "no_unfold_5D", False)):
+        return "MultiDim"
+    if(str(getattr(args, "z_axis_2D", "")) == "Q2_Y_Bin"):
+        return "Q2"
+    return None
+
+
+def batch_root_is_valid(path, piece):
+    if((not os.path.isfile(path)) or (os.path.getsize(path) <= 0)):
+        return False
+    try:
+        import ROOT
+    except Exception:
+        return False
+    root_file = None
+    try:
+        root_file = ROOT.TFile.Open(str(path), "READ")
+        if((root_file is None) or root_file.IsZombie()):
+            return False
+        if(piece in [None, ""]):
+            return True
+        for key in root_file.GetListOfKeys():
+            if(piece in str(key.GetName())):
+                return True
+        return False
+    except Exception:
+        return False
+    finally:
+        if(root_file is not None):
+            try:
+                root_file.Close()
+            except Exception:
+                pass
+
+
+def outside_batch_problems(args, output_dir, num_batches):
+    selected = parse_batch_id_spec(getattr(args, "batch_ids", None), num_batches)
+    if(selected is None):
+        return None, []
+    piece = required_batch_piece(args)
+    problems = []
+    for index in range(1, int(num_batches) + 1):
+        if(index in selected):
+            continue
+        path = expected_batch_root_path(args, output_dir, index)
+        if(not batch_root_is_valid(path, piece)):
+            problems.append(path)
+    return selected, problems
+
+
+def stop_if_outside_batches_missing(args, output_dir, num_batches):
+    selected, problems = outside_batch_problems(args, output_dir, num_batches)
+    if(selected is None):
+        return None
+    if(len(problems) > 0):
+        print("recovery stopped. These batches are outside --batch_ids and are not valid, so nothing was submitted:")
+        for path in problems:
+            print(path)
+        sys.exit(1)
+    return selected
+
 def wait_for_remaining_slurm_tasks(args):
     if(args.slurm_array_jobid in [None, ""]):
         return
     while(slurm_array_has_active_tasks(args.slurm_array_jobid)):
         print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
         time.sleep(30.0)
+
+def merge_ch4_add_block(dest, block, int_keys):
+    for key in int_keys:
+        if(key in block):
+            dest[key] = int(dest.get(key, 0)) + int(block[key])
+    for flag in ["match_columns_present", "phi_t_present", "momentum_present"]:
+        if(flag in block):
+            dest[flag] = bool(dest.get(flag, True) and block[flag])
+    if(("note" in block) and ("note" not in dest)):
+        dest["note"] = block["note"]
+
+def merge_ch4_count_files(args, batch_output_dir, merged_file):
+    # Sum the per-batch Chapter 4 count JSON files and write the total next to the merged ROOT file.
+    # by_sample keeps clasdis, lundvpk, and lundrho separate. The top-level mdf/gdf sums mix those batches.
+    import json
+    count_paths = sorted(glob.glob(os.path.join(batch_output_dir, "*_ch4_counts.json")))
+    if(len(count_paths) == 0):
+        return
+    combined = {
+        "n_batch_files": 0,
+        "denominator": "",
+        "mdf": {},
+        "gdf": {},
+        "by_sample": {},
+        "batch_files": [],
+    }
+    int_keys = ["n_entries", "angular_matched", "angular_unmatched", "bank_matched", "bank_unmatched", "both", "angular_only", "bank_only", "neither"]
+    for count_path in count_paths:
+        with open(count_path) as count_file:
+            payload = json.load(count_file)
+        combined["n_batch_files"] += 1
+        combined["batch_files"].append(os.path.basename(count_path))
+        if(combined["denominator"] in ["", None]):
+            combined["denominator"] = payload.get("denominator", "")
+            combined["cut_mdf"] = payload.get("cut_mdf", "")
+            combined["cut_gdf"] = payload.get("cut_gdf", "")
+        for sample in ["mdf", "gdf"]:
+            merge_ch4_add_block(combined[sample], payload.get(sample, {}), int_keys)
+        sample_class = payload.get("sample_class", "unspecified")
+        slot = combined["by_sample"].setdefault(sample_class, {"n_batch_files": 0, "mdf": {}, "gdf": {}})
+        slot["n_batch_files"] += 1
+        for sample in ["mdf", "gdf"]:
+            merge_ch4_add_block(slot[sample], payload.get(sample, {}), int_keys)
+    out_json = str(merged_file).replace(".root", "_ch4_counts.json")
+    out_txt  = str(merged_file).replace(".root", "_ch4_counts.txt")
+    with open(out_json, "w") as out_file:
+        json.dump(combined, out_file, indent=2)
+        out_file.write("\n")
+    lines = [f"batches: {combined['n_batch_files']}", f"denominator: {combined['denominator']}", "all_samples_mixed"]
+    for sample in ["mdf", "gdf"]:
+        lines.append(sample)
+        for key, value in combined[sample].items():
+            lines.append(f"  {key}: {value}")
+    for sample_class, slot in combined["by_sample"].items():
+        lines.append(f"sample: {sample_class} batches: {slot['n_batch_files']}")
+        for sample in ["mdf", "gdf"]:
+            lines.append(f"  {sample}")
+            for key, value in slot[sample].items():
+                lines.append(f"    {key}: {value}")
+    with open(out_txt, "w") as out_file:
+        out_file.write("\n".join(lines) + "\n")
+    Update_Email(args, update_message=f"{color.BGREEN}Chapter 4 count file created: {out_json}{color.END}", verbose_override=True, no_time=False)
 
 def run_local_batches(args):
     batch_output_dir = resolved_batch_output_dir(args, slurm=False)
@@ -803,6 +1205,7 @@ def run_local_batches(args):
     # num_batches = max(len(rdf_batch), len(mdf_batch), len(gdf_batch))
     num_batches = len(rdf_batch)
     args.num_batches = num_batches
+    stop_if_outside_batches_missing(args, batch_output_dir, num_batches)
     Update_Email(args, update_message=f"{color.BBLUE}Starting {args.mode} run with {color.END_B}{num_batches}{color.BBLUE} batches → output dir: {color.BCYAN}{batch_output_dir}{color.END}\n", verbose_override=True, no_time=True)
     results = []
     if(args.mode == "parallel"):
@@ -811,7 +1214,9 @@ def run_local_batches(args):
         max_jobs     = args.jobs if(args.jobs > 0) else 1
         while((next_index < num_batches) or (len(running_jobs) > 0)):
             while((next_index < num_batches) and (len(running_jobs) < max_jobs)):
-                job = start_job(args, next_index + 1, batch_output_dir, log_dir)
+                job = start_job(args, next_index + 1, batch_output_dir, log_dir, block_for_slot=False)
+                if(job == LOCAL_SLOT_WAIT):
+                    break
                 if(job is not None):
                     running_jobs.append(job)
                 next_index += 1
@@ -826,10 +1231,11 @@ def run_local_batches(args):
                 time.sleep(1.0)
     else:  # sequential mode
         for b in range(1, num_batches + 1):
-            job = start_job(args, b, batch_output_dir, log_dir)
+            job = start_job(args, b, batch_output_dir, log_dir, block_for_slot=True)
             if(job is None):
                 continue
             ret = job["process"].returncode
+            release_local_slot(args, job.get("slot_token"))
             results.append(ret)
             if(ret == 0):
                 Update_Email(args, update_message=f"{color.BGREEN}DONE {color.END}: Batch {b:>3} of {args.num_batches}", verbose_override=True, no_time=False)
@@ -848,16 +1254,30 @@ def run_local_batches(args):
         name_for_merge = name_for_merge.replace(".root", "")
         merged_file    = os.path.join(args.work_dir, f"SIDIS_epip_Response_Matrices_from_RDataFrames_{name_for_merge}.root")
         batch_files    = [expected_batch_root_path(args, batch_output_dir, i) for i in range(1, num_batches + 1)]
-        missing_files  = [bf for bf in batch_files if(not os.path.isfile(bf))]
+        piece = required_batch_piece(args) if(getattr(args, "batch_ids", None) not in [None, ""]) else None
+        if(piece in [None, ""]):
+            missing_files = [bf for bf in batch_files if((not os.path.isfile(bf)) or (os.path.getsize(bf) <= 0))]
+        else:
+            missing_files = [bf for bf in batch_files if(not batch_root_is_valid(bf, piece))]
         if(missing_files):
+            print("hadd was not run. The merge still requires all %d batch files. Missing or invalid:" % num_batches)
+            for path in missing_files:
+                print(path)
             Crash_Report(args, crash_message=f"{color.Error}Cannot hadd: missing {len(missing_files)} expected batch ROOT files. First missing: {missing_files[0]}{color.END}", continue_run=False)
         Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
         hadd_cmd = ["hadd", "-f", merged_file] + batch_files
         subprocess.run(hadd_cmd, check=True)
         Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
+        merge_ch4_count_files(args, batch_output_dir, merged_file)
     # === NEW: Track peak memory used by all child jobs ===
     peak_mem_str = estimate_peak_memory_children()
-    Update_Email(args, update_message=f"{color.BBLUE}Peak memory used by child jobs: {peak_mem_str}{color.END}", verbose_override=True, no_time=True)
+    Update_Email(args, update_message=f"{color.BBLUE}max child RSS (not the sum of the pool): {peak_mem_str}{color.END}", verbose_override=True, no_time=True)
+    resource_mode = getattr(args, "campaign_resource_mode", None)
+    if(resource_mode not in [None, ""]):
+        from Campaign.local_resource_gate import MODE_TABLE, record_peak, mem_available_gb
+        reserved = MODE_TABLE.get(resource_mode, {}).get("mem_gb", "")
+        visible = "yes" if(mem_available_gb() is not None) else "no"
+        record_peak(args.data_root, resource_mode, reserved, peak_mem_str, visible)
     Construct_Email(args)
 
 def run_slurm_mode(args):
@@ -866,12 +1286,15 @@ def run_slurm_mode(args):
     # sys.path.remove(DATAFRAMES_BASE)
     rdf_batch, _mdf_batch, _gdf_batch, _batch_path = load_file_batches(args.data_root, execution_root=EXEC_ROOT)
     num_batches = len(rdf_batch)
+    args.num_batches = num_batches
 
     batch_output_dir = resolved_batch_output_dir(args, slurm=True)
+    selected = stop_if_outside_batches_missing(args, batch_output_dir, num_batches)
 
     name_base = args.run_subdir_name
-    array_script = f"slurm_array_{name_base}.sh"
-    hadd_script = f"slurm_hadd_{name_base}.sh"
+    script_stem = sbatch_script_stem(name_base)
+    array_script = f"slurm_array_{script_stem}.sh"
+    hadd_script = f"slurm_hadd_{script_stem}.sh"
 
     # Build array script
     with open(array_script, "w") as f:
@@ -884,9 +1307,10 @@ def run_slurm_mode(args):
         f.write("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err\n")
         f.write("#SBATCH --partition=production\n")
         f.write("#SBATCH --account=clas12\n")
+        f.write("#SBATCH --cpus-per-task=%s\n" % (getattr(args, "slurm_cpus", None) or "1"))
         f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
         f.write(f"#SBATCH --time={args.slurm_time}\n")
-        f.write(f"#SBATCH --array=1-{num_batches}\n\n")
+        f.write("#SBATCH --array=%s\n\n" % slurm_array_spec(selected, num_batches))
         f.write('BATCH_ID=${SLURM_ARRAY_TASK_ID}\n')
         f.write('BATCH_PAD=$(printf "%03d" "${BATCH_ID}")\n')
         f.write(f'cd {batch_output_dir}\n')
@@ -934,7 +1358,8 @@ def run_slurm_mode(args):
 
     if(response not in ["y", "yes"]):
         print(f"{color.Error}[ERROR]{color.END} SLURM scripts not approved. Exiting.")
-        sys.exit(0)
+        # sys.exit(0)
+        sys.exit(1)
 
     proc = subprocess.run(["sbatch", "--parsable", array_script], capture_output=True, text=True)
     array_id = proc.stdout.strip()

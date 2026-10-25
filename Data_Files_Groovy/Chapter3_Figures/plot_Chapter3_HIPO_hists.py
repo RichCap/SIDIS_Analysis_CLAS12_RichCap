@@ -149,6 +149,27 @@ def fill_histograms(root_path, cut_names):
     h_pcal = ptr(rdf_ele.Histo1D(("h_pcal_energy", "Electron PCAL energy;E_{PCAL} [GeV];Counts",     120, 0.0,  1.2), "pcal_energy"))
     h_beta = ptr(rdf_had.Histo2D(("h_beta_poshad", "Positive hadrons;p [GeV];#beta", 120, 0.0, 8.0, 120, 0.4, 1.2), "had_p", "had_beta"))
     h_vz   = ptr(rdf_ele.Histo1D(("h_ele_vz", "Electron v_{z};v_{z} [cm];Counts", 120, -20.0, 10.0), "vz"))
+    h_vz_sec = {}
+    h_hxhy_sec = {}
+    h_vw_sec = {}
+    for sec in range(1, 7):
+        rdf_vz_sec = rdf_ele.Filter("esec == %d" % sec)
+        h_vz_sec[sec] = ptr(rdf_vz_sec.Histo1D(
+            ("h_ele_vz_s%d" % sec, "Sector %d;v_{z} [cm];Counts" % sec, 120, -20.0, 10.0), "vz"
+        ))
+        if(rdf_has(rdf_ele, "Hx") and rdf_has(rdf_ele, "Hy")):
+            h_hxhy_sec[sec] = ptr(rdf_vz_sec.Histo2D(
+                ("h_pcal_hxhy_s%d" % sec, "Sector %d;H_{x} [cm];H_{y} [cm]" % sec, 120, -400, 400, 120, -400, 400),
+                "Hx", "Hy"
+            ))
+        if(rdf_has(rdf_ele, "V_PCal") and rdf_has(rdf_ele, "W_PCal")):
+            rdf_vw = rdf_vz_sec
+            if(rdf_has(rdf_ele, "U_PCal")):
+                rdf_vw = rdf_vz_sec.Filter("U_PCal < 395.0")
+            h_vw_sec[sec] = ptr(rdf_vw.Histo2D(
+                ("h_pcal_vw_s%d" % sec, "Sector %d;V [cm];W [cm]" % sec, 120, 0, 450, 120, 0, 450),
+                "V_PCal", "W_PCal"
+            ))
     h_e_edge = [
         ptr(rdf_ele.Histo1D(("h_e_edge1", "Electron DC edge R1;edge [cm];Counts", 120, -5.0, 40.0), "e_edge1")),
         ptr(rdf_ele.Histo1D(("h_e_edge2", "Electron DC edge R2;edge [cm];Counts", 120, -5.0, 40.0), "e_edge2")),
@@ -194,8 +215,9 @@ def fill_histograms(root_path, cut_names):
             h_dc[(3, sec)] = ptr(rdf_sec.Histo2D(dc_args_3[0], dc_args_3[1], dc_args_3[2]))
     return {
         "htcc": h_htcc, "pcal": h_pcal, "sftot": h_sftot, "beta": h_beta, "dc": h_dc,
-        "vz": h_vz, "e_edge": h_e_edge, "p_edge": h_p_edge, "pip_chi2": h_pip_chi2,
-        "dvz": h_dvz, "hxhy": h_hxhy, "vw": h_vw,
+        "vz": h_vz, "vz_sec": h_vz_sec, "e_edge": h_e_edge, "p_edge": h_p_edge,
+        "pip_chi2": h_pip_chi2, "dvz": h_dvz, "hxhy": h_hxhy, "hxhy_sec": h_hxhy_sec,
+        "vw": h_vw, "vw_sec": h_vw_sec,
     }
 
 
@@ -443,6 +465,102 @@ def plot_colz(hist, outdir, name, title, overlays=None):
     return save(can, outdir, name)
 
 
+def plot_vz_sectors(h_vz_sec, outdir):
+    can = ROOT.TCanvas("c_vz_sec", "c_vz_sec", 800, 600)
+    apply_grid()
+    colors = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, ROOT.kMagenta, ROOT.kOrange + 7]
+    keep = []
+    ymax = 0.0
+    first = True
+    for sec in range(1, 7):
+        hist = h_vz_sec.get(sec)
+        if(not hist):
+            continue
+        hist.SetLineColor(colors[sec - 1])
+        hist.SetLineWidth(2)
+        hist.SetTitle("Electron v_{z} by sector;v_{z} [cm];Counts")
+        hist.Draw("hist" if(first) else "hist same")
+        first = False
+        keep.append(hist)
+        ymax = max(ymax, hist.GetMaximum())
+    if(not keep):
+        print("SKIP electron_vz.pdf (no sector histograms)")
+        return None
+    ymax = ymax * 1.15 if(ymax > 0) else 1.0
+    keep[0].SetMaximum(ymax)
+    legend = ROOT.TLegend(0.65, 0.55, 0.88, 0.88)
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    for sec, hist in zip(range(1, 7), keep):
+        legend.AddEntry(hist, "Sector %d" % sec, "l")
+    legend.Draw()
+    keep.append(legend)
+    for cut in (-8.0, 2.0):
+        line = ROOT.TLine(cut, 0.0, cut, ymax)
+        line.SetLineColor(ROOT.kBlue)
+        line.SetLineWidth(2)
+        line.SetLineStyle(2)
+        line.Draw("same")
+        keep.append(line)
+    can.keep = keep
+    return save(can, outdir, "electron_vz.pdf")
+
+
+def plot_pcal_vw_sectors(h_vw_sec, outdir):
+    can = ROOT.TCanvas("c_pcal_vw_sec", "c_pcal_vw_sec", 1400, 900)
+    can.Divide(3, 2)
+    keep = []
+    for sec in range(1, 7):
+        pad = can.cd(sec)
+        pad.SetRightMargin(0.12)
+        pad.SetLeftMargin(0.14)
+        hist = h_vw_sec.get(sec)
+        if(not hist):
+            print("SKIP PCAL V-W sector %d" % sec)
+            continue
+        hist.SetTitle("#scale[1.4]{Sector %d};V [cm];W [cm]" % sec)
+        ROOT.gPad.SetLogz(1)
+        apply_grid(pad)
+        hist.Draw("colz")
+        keep.append(hist)
+        vline = ROOT.TLine(19.0, 0.0, 19.0, 450.0)
+        hline = ROOT.TLine(0.0, 19.0, 450.0, 19.0)
+        for line in (vline, hline):
+            line.SetLineColor(ROOT.kRed)
+            line.SetLineWidth(2)
+            line.Draw("L same")
+            keep.append(line)
+    if(not keep):
+        print("SKIP PCAL_Fiducial_Cuts.pdf")
+        return None
+    can.keep = keep
+    return save(can, outdir, "PCAL_Fiducial_Cuts.pdf")
+
+
+def plot_pcal_hxhy_sectors(h_hxhy_sec, outdir):
+    can = ROOT.TCanvas("c_pcal_hxhy_sec", "c_pcal_hxhy_sec", 1400, 900)
+    can.Divide(3, 2)
+    keep = []
+    for sec in range(1, 7):
+        pad = can.cd(sec)
+        pad.SetRightMargin(0.12)
+        pad.SetLeftMargin(0.14)
+        hist = h_hxhy_sec.get(sec)
+        if(not hist):
+            print("SKIP PCAL HxHy sector %d" % sec)
+            continue
+        hist.SetTitle("#scale[1.4]{Sector %d};H_{x} [cm];H_{y} [cm]" % sec)
+        ROOT.gPad.SetLogz(1)
+        apply_grid(pad)
+        hist.Draw("colz")
+        keep.append(hist)
+    if(not keep):
+        print("SKIP PCAL_channel_vetoes.pdf")
+        return None
+    can.keep = keep
+    return save(can, outdir, "PCAL_channel_vetoes.pdf")
+
+
 def plot_one_config(root_path, outdir, cut_names):
     h = fill_histograms(root_path, cut_names)
     written = []
@@ -452,16 +570,15 @@ def plot_one_config(root_path, outdir, cut_names):
         plot_sftot(h["sftot"], outdir),
         plot_beta(h["beta"], outdir),
         plot_electron_dc(h["dc"], outdir),
-        plot_1d_cut(h["vz"], outdir, "electron_vz.pdf", "Electron v_{z};v_{z} [cm];Counts", [-8.0, 2.0]),
+        plot_vz_sectors(h.get("vz_sec", {}), outdir),
         plot_edge_row(h["e_edge"], outdir, "electron_DC_edge.pdf",
                       ["R1;edge [cm];Counts", "R2;edge [cm];Counts", "R3;edge [cm];Counts"], [5.0, 5.0, 10.0]),
         plot_pip_chi2(h["pip_chi2"], outdir),
         plot_1d_cut(h["dvz"], outdir, "delta_vz.pdf", "Electron-pion #Delta v_{z};#Delta v_{z} [cm];Counts", [-DVZ_MID, DVZ_MID]),
         plot_edge_row(h["p_edge"], outdir, "pion_DC_edge.pdf",
                       ["R1;edge [cm];Counts", "R2;edge [cm];Counts", "R3;edge [cm];Counts"], [2.5, 2.5, 9.0]),
-        plot_colz(h["hxhy"], outdir, "PCAL_inefficient.pdf", "PCAL occupancy;H_{x} [cm];H_{y} [cm]"),
-        plot_colz(h["vw"], outdir, "PCAL_VW.pdf", "PCAL V-W fiducial;V [cm];W [cm]",
-                  [ROOT.TLine(14.0, 0.0, 14.0, 450.0), ROOT.TLine(0.0, 14.0, 450.0, 14.0)]),
+        plot_pcal_hxhy_sectors(h.get("hxhy_sec", {}), outdir),
+        plot_pcal_vw_sectors(h.get("vw_sec", {}), outdir),
     ):
         if(path):
             written.append(path)

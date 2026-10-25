@@ -4,6 +4,7 @@ import sys
 import os
 import re
 import json
+import math
 import ROOT
 import argparse
 # import traceback
@@ -76,6 +77,17 @@ def total_corrected_charge(json_path=DEFAULT_CHARGE_SUMMARY, apply_beam_correcti
         total_charge = total_charge + charge_run
     return total_charge
 
+def use_pT2_bin_width(args):
+    # Default remains Delta(pT). --pT2 replaces only that factor with Delta(pT2).
+    return bool(getattr(args, "pT2", False)) if(args is not None) else False
+
+def pT_differential_width(pT_max, pT_min, args):
+    pT_hi = float(pT_max)
+    pT_lo = float(pT_min)
+    if(use_pT2_bin_width(args)):
+        return abs((pT_hi * pT_hi) - (pT_lo * pT_lo))
+    return abs(pT_hi - pT_lo)
+
 def Bin_Area_by_Widths_Calc(args=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15):
     # phi_t_bin should be 15 for the default phi_t plots since while the scale is applied to the full histogram, the per bin ∆phi_t is just the normal bin width
         # Update phi_t_bin whenever the bin sizes are changed
@@ -96,15 +108,62 @@ def Bin_Area_by_Widths_Calc(args=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15):
             if((skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpT_bin, BINNING_METHOD="Y_bin")) or (str(z_pT_Bin) not in ["0", "All", str(zpT_bin)])):
                 continue
             z_max, z_min, pTmax, pTmin = Full_Bin_Definition_Array[f'Q2-y={q2y_bin}, z-pT={zpT_bin}']
-            Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"] = {"q2yTotal": Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"], "zpTTotal": abs(z_max - z_min)*abs(pTmax - pTmin), "d_z": abs(z_max - z_min), "dpT": abs(pTmax - pTmin)}
+            dpT = pT_differential_width(pTmax, pTmin, args)
+            Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"] = {"q2yTotal": Bin_Area[f"Q2-y={q2y_bin}"]["q2yTotal"], "zpTTotal": abs(z_max - z_min)*dpT, "d_z": abs(z_max - z_min), "dpT": dpT}
             Bin_Area[f"Q2-y={q2y_bin}"]["zpTTotal"]       += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
             Bin_Area[f"Q2-y={q2y_bin}"]["d_z"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["d_z"]
             Bin_Area[f"Q2-y={q2y_bin}"]["dpT"]            += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["dpT"]
             Bin_Area["zpTTotal"]                          += Bin_Area[f"Q2-y={q2y_bin}"][f"z-pT={zpT_bin}"]["zpTTotal"]
     Bin_Width_Area_Scale = Bin_Area["q2yTotal"]*Bin_Area["zpTTotal"]*Bin_Area["dphi_t"]
     if((not hasattr(args, "verbose")) or args.verbose):
-        print(f"Bin Area (∆Q2∆y∆z∆pT∆phi_t) for Bin ({Q2_y_Bin}-{z_pT_Bin}) = {Bin_Width_Area_Scale}")
+        width_name = "∆pT2" if(use_pT2_bin_width(args)) else "∆pT"
+        print(f"Bin Area (∆Q2∆y∆z{width_name}∆phi_t) for Bin ({Q2_y_Bin}-{z_pT_Bin}) = {Bin_Width_Area_Scale}")
     return Bin_Width_Area_Scale, Bin_Area
+
+# Same proton mass and Pass-2 beam energy as evaluate_spline_reference.py.
+PROTON_MASS = 0.938272
+BEAM_ENERGY = 10.6
+FINE_STRUCTURE = 1.0/137.035999
+
+def representative_q2_y(q2y_bin):
+    # Same edge midpoint already stored as Q2range[0] and y_range[0] in Construct_JSON_Info.
+    Q2_max, Q2_min, y_max, y_min = Full_Bin_Definition_Array["Q2-y=%s, Q2-y" % q2y_bin]
+    return (float(Q2_max) + float(Q2_min))/2.0, (float(y_max) + float(y_min))/2.0
+
+def virtual_photon_polarization(Q2, y, beam_energy=BEAM_ENERGY):
+    q2 = float(Q2)
+    yy = float(y)
+    e2 = float(beam_energy)*float(beam_energy)
+    numer = 1.0 - yy - (q2/(4.0*e2))
+    denom = 1.0 - yy + ((yy*yy)/2.0) + (q2/(4.0*e2))
+    return numer/denom
+
+def virtual_photon_flux_y(Q2, y, beam_energy=BEAM_ENERGY, proton_mass=PROTON_MASS):
+    # Gamma_nu_y(Q2, y) = Gamma_nu(W, Q2) * (Mp*E/W). The Jacobian is included once.
+    q2 = float(Q2)
+    yy = float(y)
+    energy = float(beam_energy)
+    mass = float(proton_mass)
+    if((q2 <= 0.0) or (energy <= 0.0) or (mass <= 0.0)):
+        raise ValueError("virtual-photon flux is not finite and positive: Q2=%s y=%s" % (q2, yy))
+    epsilon = virtual_photon_polarization(q2, yy, energy)
+    if((not math.isfinite(epsilon)) or (epsilon >= 1.0)):
+        raise ValueError("virtual-photon flux is not finite and positive: Q2=%s y=%s eps=%s" % (q2, yy, epsilon))
+    flux = (FINE_STRUCTURE/(4.0*math.pi))*((2.0*mass*energy*yy - q2)/(mass*energy*q2))*(1.0/(1.0 - epsilon))
+    if((not math.isfinite(flux)) or (flux <= 0.0)):
+        raise ValueError("virtual-photon flux is not finite and positive: Q2=%s y=%s eps=%s flux=%s" % (q2, yy, epsilon, flux))
+    return flux
+
+def virtual_photon_flux_from_w(Q2, y, beam_energy=BEAM_ENERGY, proton_mass=PROTON_MASS):
+    q2 = float(Q2)
+    yy = float(y)
+    energy = float(beam_energy)
+    mass = float(proton_mass)
+    w2 = (mass*mass) + (2.0*mass*energy*yy) - q2
+    inv_mass = math.sqrt(w2)
+    epsilon = virtual_photon_polarization(q2, yy, energy)
+    flux_w = (FINE_STRUCTURE/(4.0*math.pi))*((inv_mass*(w2 - (mass*mass)))/((mass*mass)*(energy*energy)*q2))*(1.0/(1.0 - epsilon))
+    return flux_w*(mass*energy/inv_mass)
 
 def lumi(charge):
     # Calculate the luminosity factor from input charge.
@@ -160,12 +219,18 @@ def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15
     class args_custom:
         verbose = (args_in.verbose if(hasattr(args_in, "verbose")) else verbose_in) or ((Histo is None) and getattr(args_in, "verbose", True))
         charge  = charge_used
+        pT2     = use_pT2_bin_width(args_in)
     Bin_Width_Area_Scale, _ = Bin_Area_by_Widths_Calc(args=args_custom, Q2_y_Bin=Q2_y_Bin, z_pT_Bin=z_pT_Bin, phi_t_bin=phi_t_bin)
     Luminosity = lumi(args_custom.charge)
+    if(str(Q2_y_Bin) in ["0", "All"]):
+        raise ValueError("virtual-photon flux needs one Q2-y bin, not %s" % Q2_y_Bin)
+    Q2_rep, y_rep = representative_q2_y(Q2_y_Bin)
+    Photon_Flux = virtual_photon_flux_y(Q2_rep, y_rep)
     Normalize_Factor = 1.0
     if(args_custom.verbose):
         print(f"Charge used (nC) = {args_custom.charge}  (beam corrections {'ON' if(apply_corr) else 'OFF'})")
         print(f"Luminosity = {Luminosity}")
+        print(f"Representative Q2 = {Q2_rep}  y = {y_rep}  photon flux = {Photon_Flux}")
     if(Histo is not None):
         if(Bin_Width_Area_Scale != 0.0):
             Histo.Scale(1.0/Bin_Width_Area_Scale)
@@ -179,10 +244,16 @@ def Cross_Section_Normalization(Histo=None, Q2_y_Bin=1, z_pT_Bin=1, phi_t_bin=15
         else:
             print(f"\n{color.Error}Failed to scale histogram: {color.END_B}{Histo.GetName()}{color.END}\n")
             raise ValueError(f"Failed to scale histogram to 'Luminosity'. Luminosity = 0.")
+        Histo.Scale(1.0/Photon_Flux)
+        Normalize_Factor *= Photon_Flux
         if(Rename_Axis):
-            Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}d#phi_{h}}")
+            if(use_pT2_bin_width(args_in)):
+                Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}^{2}d#phi_{h}}")
+            else:
+                Histo.GetYaxis().SetTitle("#frac{#sigma}{dQ^{2}dydzdP_{T}d#phi_{h}}")
         Histo.Normalize_Factor = Normalize_Factor
-    return Histo, Bin_Width_Area_Scale, Luminosity
+    # return Histo, Bin_Width_Area_Scale, Luminosity
+    return Histo, Bin_Width_Area_Scale, Luminosity, Photon_Flux
     
 if(__name__ == "__main__"):
     class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
@@ -211,11 +282,15 @@ if(__name__ == "__main__"):
                    type=str,
                    default=DEFAULT_CHARGE_SUMMARY,
                    help="Path to Charge_Summary JSON used for per-run charge and beam current.\n")
+    p.add_argument("-pt2", "--pT2",
+                   action="store_true",
+                   help="Replace only Delta(pT) in the bin area with Delta(pT2) = |pTmax^2 - pTmin^2|.\n")
     p.add_argument('-v', '--verbose',
                    action='store_true',
                    help="Verbose prints.")
     args = p.parse_args()
     # If user passes --charge explicitly, honor it and skip summary rebuild
     args.charge_from_summary = (args.charge is None)
-    Cross_Section_Normalization(Histo=None, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin, phi_t_bin=args.phi_t_bin, Rename_Axis=False, args_in=args, charge_in=args.charge, verbose_in=args.verbose, apply_beam_corrections=(not args.no_apply_beam_corrections), charge_summary_json=args.charge_summary_json)
+    _, bin_area, luminosity, photon_flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=args.Q2_y_Bin, z_pT_Bin=args.z_pT_Bin, phi_t_bin=args.phi_t_bin, Rename_Axis=False, args_in=args, charge_in=args.charge, verbose_in=args.verbose, apply_beam_corrections=(not args.no_apply_beam_corrections), charge_summary_json=args.charge_summary_json)
+    print("Bin area = %s  Luminosity = %s  Photon flux = %s" % (bin_area, luminosity, photon_flux))
     print("\nDone\n")

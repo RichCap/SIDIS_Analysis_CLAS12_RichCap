@@ -1,0 +1,8 @@
+{
+  "default_source_reduction": "per_variation_signed",
+  "total_combination": "quadrature",
+  "source_reduction": {
+    "bc_subdivision": "not_combined",
+    "diagnostic_matching": "not_combined"
+  }
+}

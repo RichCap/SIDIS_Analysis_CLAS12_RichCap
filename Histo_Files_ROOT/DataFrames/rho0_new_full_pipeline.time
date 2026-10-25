@@ -1,0 +1,10 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-18T00:01:17 name=rho0_new mode=hybrid email=children =====
+=== TASK: rho0-slurm-slurm-submit | cut=cut_Complete_SIDIS_MM_None | mode=slurm | rc=0 ===
+wall_time: 2.31 s
+peak_memory: 495.53 MB
+
+=== TASK: rho0 | cut=cut_Complete_SIDIS_MM_None | mode=hybrid-parallel | rc=0 ===
+wall_time: 1973.24 s
+peak_memory: 940.05 MB
+

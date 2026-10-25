@@ -303,10 +303,10 @@ Issue was with:
             normalization_to_histo1, normalization_to_histo2 = 1.0, 1.0
     if(args.normalize_cross_section):
         normalization_types.append("Differential_Cross_Section")
-        histo1, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=histo1, Q2_y_Bin=Q2y_str, z_pT_Bin=zPT_str, phi_t_bin=15, Rename_Axis=True, args_in=args)
-        normalization_to_histo1 = Bin_Width_Area_Scale*Luminosity
-        histo2, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=histo2, Q2_y_Bin=Q2y_str, z_pT_Bin=zPT_str, phi_t_bin=15, Rename_Axis=True, args_in=args)
-        normalization_to_histo2 = Bin_Width_Area_Scale*Luminosity
+        histo1, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=histo1, Q2_y_Bin=Q2y_str, z_pT_Bin=zPT_str, phi_t_bin=15, Rename_Axis=True, args_in=args)
+        normalization_to_histo1 = Bin_Width_Area_Scale*Luminosity*Photon_Flux
+        histo2, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=histo2, Q2_y_Bin=Q2y_str, z_pT_Bin=zPT_str, phi_t_bin=15, Rename_Axis=True, args_in=args)
+        normalization_to_histo2 = Bin_Width_Area_Scale*Luminosity*Photon_Flux
     histo_key = f"{Q2y_str}_{zPT_str}"
     if(histo_key not in Unfolding_Diff_Data_In):
         Unfolding_Diff_Data_In[histo_key] = []

@@ -24,7 +24,9 @@ ROOT.gStyle.SetGridWidth(1)
 # ROOT.gStyle.SetLabelSize(0.18,  "y")      # bigger, easier to read
 # ROOT.gStyle.SetLabelSize(0.038, "y")      # bigger, easier to read
 ROOT.gStyle.SetLabelFont(62, "y")         # Helvetica bold → looks "thicker"
+# ROOT.gStyle.SetTitleX(0.5)
 ROOT.gStyle.SetTitleX(0.58)
+ROOT.gStyle.SetTitleAlign(23)
 ROOT.gStyle.SetTitleFont(62)              # bold title too
 # ROOT.gStyle.SetLabelSize(0.15,  "x")      # optional but nice for x-axis
 # ROOT.gStyle.SetLabelSize(0.035, "x")      # optional but nice for x-axis
@@ -58,7 +60,11 @@ def Construct_JSON_Info(Q2_y_Bin, z_pT_Bin, return_info={}):
         pT_marker = marker_mapper[str(pT_group)]
         z__marker = marker_mapper[str(z__group)]
         Q2_max, Q2_min, y_max, y_min = Full_Bin_Definition_Array[f"Q2-y={Q2_y_Bin}, Q2-y"]
-        z_max, z_min, pT_max, pT_min = Full_Bin_Definition_Array[f"Q2-y={Q2_y_Bin}, z-pT={z_pT_Bin}"]
+        zpt_key = f"Q2-y={Q2_y_Bin}, z-pT={z_pT_Bin}"
+        if(zpt_key not in Full_Bin_Definition_Array):
+            print(f"{color.Error}WARNING: MUST SKIP BIN {Q2_y_Bin}-{z_pT_Bin}... missing {zpt_key} in Full_Bin_Definition_Array{color.END}")
+            return return_info
+        z_max, z_min, pT_max, pT_min = Full_Bin_Definition_Array[zpt_key]
         Q2val = (Q2_max + Q2_min)/2
         y_val = (y_max  +  y_min)/2
         z_val = (z_max  +  z_min)/2
@@ -70,6 +76,39 @@ def Construct_JSON_Info(Q2_y_Bin, z_pT_Bin, return_info={}):
         return_info[key] = {"pT_group": pT_group, "z__group": z__group, "pT_color": pT_color, "z__color": z__color, "pT_marker": pT_marker, "z__marker": z__marker, "Q2range": Q2range, "y_range": y_range, "z_range": z_range, "pTrange": pTrange}
     else:
         return return_info
+
+def use_pT2(args):
+    return bool(getattr(args, "pT2", False))
+
+def transverse_plot_coordinate(pT_point, pT_min, pT_max, args):
+    # pT_min and pT_max are unused today. A later pT2 bin-centering correction replaces only this branch.
+    point = float(pT_point)
+    if(use_pT2(args)):
+        return point * point
+    return point
+
+def transverse_displayed_edge(pT_edge, args):
+    edge = float(pT_edge)
+    if(use_pT2(args)):
+        return edge * edge
+    return edge
+
+def plotted_x_value(args, info):
+    if(str(args.x_mode).lower() == "z"):
+        return float(info["z_range"][0])
+    return transverse_plot_coordinate(info["pTrange"][0], info["pTrange"][1], info["pTrange"][2], args)
+
+def x_axis_symbol(args):
+    if(str(args.x_mode).lower() == "z"):
+        return "z"
+    if(use_pT2(args)):
+        return "P_{T}^{2}"
+    return "P_{T}"
+
+def x_file_tag(args):
+    if(str(args.x_mode).lower() == "pt"):
+        return "pT2" if(use_pT2(args)) else "pT"
+    return "z"
 
 # ------------------------------------------------------------
 # Argparse
@@ -186,6 +225,9 @@ def parse_args():
     p.add_argument("-T", "--title_text",
                    default="",
                    help="Optional extra title text to include in the global title.\n")
+    p.add_argument("-ptl", "--plain_title",
+                   action="store_true",
+                   help="Single-bin header is only the parameter title. Omits CLAS12 Preliminary and the BC/RC subtitle.\n")
 
     p.add_argument("-leg", "--draw_legends",
                    action="store_true",
@@ -259,6 +301,17 @@ def parse_args():
                    choices=["z", "pt", "pT", "Q2", "q2", "y", "xB", "xb"],
                    default="z",
                    help=f"Choose X axis: 'z' plots vs z center, 'pt'/'pT' plots vs pT center, etc.\n{color.RED}'Q2'/'q2', 'y', and 'xB'/'xb' all only work with the '--Spline_Only' images (as of 4/17/2026).{color.END}\n")
+    p.add_argument("-pt2", "--pT2",
+                   action="store_true",
+                   help="Use Delta(pT2) = |pTmax^2 - pTmin^2| in the A normalization, and plot versus the square of the existing pT coordinate.\n")
+    p.add_argument("-dbw", "--diag_bin_widths",
+                   action="store_true",
+                   help="Write Delta(pT) and Delta(pT2) diagnostic plots for the selected Q2-y bin and z row, then exit. Default off.\n")
+
+    p.add_argument("-row", "-col", "--select_row_or_column",
+                   type=int,
+                   default=None,
+                   help="Used to select a single z/pT row/column when plotting individual lines in the Q2-y bin plots.\nVersus z, the integer is the pT column (1 = lowest pT; filename tag _pTcolN).\nVersus pT, the integer is the z row (1 = highest z; filename tag _zrowN).\nUnset plots every series.\n")
 
     p.add_argument("-k", "--pad_label_mode",
                    choices=["none", "bin", "bin_Q2", "bin_Q2y", "Q2y_only"],
@@ -348,6 +401,9 @@ def parse_args():
                    nargs="+",
                    default=None,
                    help=f"Fixed xB kinematics for the '--Spline_Only' Image Option.\n{color.RED}Note: Will replace either the 'Fixed_Q2' or 'Fixed_y'.{color.END}\n")
+    p.add_argument("-pres", "--presentation",
+                   action="store_true", 
+                   help="For 'presentation mode' settings that were premade as of the last presentation (manually editted on 9/27/2026).\n")
     
     return p.parse_args()
 
@@ -364,7 +420,8 @@ def ensure_positive_y_range_for_log(ymin, ymax):
     if(ymin > 0.0):
         return ymin, ymax
     if(ymax > 0.0):
-        return max(ymax * 1e-4, 1e-12), ymax
+        # return max(ymax * 1e-4, 1e-12), ymax
+        return max(ymax * 1e-3, 1e-11), ymax
     # Both non-positive: give ROOT a tiny valid log window so drawing does not immediately fail
     return 1e-12, 1.0
 
@@ -499,15 +556,79 @@ def build_q2y_ranges(grouped, info_map):
             q2y_ranges[q2y_bin] = {"Q2range": info_map[first_key]["Q2range"], "y_range": info_map[first_key]["y_range"]}
     return q2y_ranges
 
+def zpt_matches_row_or_column(args, q2y_bin, zpt_bin):
+    # None keeps every series. Versus z, N is pT_group (column 1 = lowest pT). Versus pT, N is z__group (row 1 = highest z).
+    n_sel = getattr(args, "select_row_or_column", None)
+    if(n_sel is None):
+        return True
+    if(getattr(args, "Spline_Only", False)):
+        return True
+    xm = str(args.x_mode).lower()
+    if(xm not in ["z", "pt"]):
+        return True
+    rows_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=int(q2y_bin))
+    n_cols    = int(rows_cols[1])
+    pT_group  = ((int(zpt_bin) - 1) % n_cols) + 1
+    z_group   = int((int(zpt_bin) - 1) / n_cols) + 1
+    if(xm == "z"):
+        return (pT_group == int(n_sel))
+    return (z_group == int(n_sel))
+
+def row_or_column_filename_tag(args):
+    n_sel = getattr(args, "select_row_or_column", None)
+    if((n_sel is None) or (getattr(args, "Spline_Only", False))):
+        return ""
+    xm = str(args.x_mode).lower()
+    if(xm == "z"):
+        return f"_pTcol{int(n_sel)}"
+    if(xm == "pt"):
+        return f"_zrow{int(n_sel)}"
+    return ""
+
+def validate_row_or_column_selection(args, grouped):
+    n_sel = getattr(args, "select_row_or_column", None)
+    if(n_sel is None):
+        return
+    xm = str(args.x_mode).lower()
+    if((getattr(args, "Spline_Only", False)) or (xm not in ["z", "pt"])):
+        print(f"{color.BYELLOW}[WARN] --select_row_or_column is ignored for --Spline_Only and for x axes other than z or pT.{color.END}")
+        return
+    if(int(n_sel) < 1):
+        raise SystemExit(f"{color.Error}ERROR:{color.END_R} --select_row_or_column must be an integer >= 1 (got {n_sel}). Row/column numbers start at 1.{color.END}")
+    present_groups = set()
+    missing_q2y    = []
+    for q2y_bin in grouped.keys():
+        rows_cols   = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=int(q2y_bin))
+        n_cols      = int(rows_cols[1])
+        groups_here = set()
+        for zpt_bin, key_str in grouped[q2y_bin]:
+            pT_group = ((int(zpt_bin) - 1) % n_cols) + 1
+            z_group  = int((int(zpt_bin) - 1) / n_cols) + 1
+            group_id = pT_group if(xm == "z") else z_group
+            groups_here.add(int(group_id))
+            present_groups.add(int(group_id))
+        if(int(n_sel) not in groups_here):
+            missing_q2y.append(int(q2y_bin))
+    kind_label = "pT column" if(xm == "z") else "z row"
+    if(int(n_sel) not in present_groups):
+        present_txt = ", ".join([str(gg) for gg in sorted(present_groups)]) if(len(present_groups) > 0) else "(none)"
+        raise SystemExit(f"{color.Error}ERROR:{color.END_R} --select_row_or_column {n_sel} is not a {kind_label} in any Q2-y bin. Groups present: {present_txt}{color.END}")
+    if(len(missing_q2y) > 0):
+        print(f"{color.BYELLOW}[WARN] {kind_label} {int(n_sel)} is missing from Q2-y bin(s): {sorted(missing_q2y)}. Those pads will have no points.{color.END}")
+    print(f"{color.CYAN}[INFO] Selecting {kind_label} {int(n_sel)} (filename tag {row_or_column_filename_tag(args)}).{color.END}")
+
 def compute_global_x_range(args, grouped, info_map):
     xmin = None
     xmax = None
     for q2y_bin in grouped.keys():
         for zpt_bin, key_str in grouped[q2y_bin]:
+            if(not zpt_matches_row_or_column(args, q2y_bin, zpt_bin)):
+                continue
             if(key_str not in info_map):
                 continue
-            xval = info_map[key_str]["z_range"][0] if(args.x_mode == "z") else info_map[key_str]["pTrange"][0]
-            xval = float(xval)
+            # xval = info_map[key_str]["z_range"][0] if(args.x_mode == "z") else info_map[key_str]["pTrange"][0]
+            # xval = float(xval)
+            xval = plotted_x_value(args, info_map[key_str])
             if((xmin is None) or (xval < xmin)):
                 xmin = xval
             if((xmax is None) or (xval > xmax)):
@@ -526,6 +647,8 @@ def compute_global_y_range(args, grouped, fit_dict, y_par, include_errors=True):
     err_key = f"{y_par}{args.err_suffix}"
     for q2y_bin in grouped.keys():
         for zpt_bin, key_str in grouped[q2y_bin]:
+            if(not zpt_matches_row_or_column(args, q2y_bin, zpt_bin)):
+                continue
             if(key_str not in fit_dict):
                 continue
             entry = fit_dict[key_str]
@@ -536,10 +659,12 @@ def compute_global_y_range(args, grouped, fit_dict, y_par, include_errors=True):
             yv = float(entry[y_par])
             ye = float(entry[err_key]) if((include_errors) and (err_key in entry)) else 0.0
             if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
-                _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-                if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
-                    yv = yv/(Bin_Width_Area_Scale*Luminosity)
-                    ye = ye/(Bin_Width_Area_Scale*Luminosity)
+                if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
+                    continue
+                _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+                if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
+                    yv = yv/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
+                    ye = ye/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
             lo = yv - abs(ye) if(include_errors) else yv
             hi = yv + abs(ye) if(include_errors) else yv
             if((ymin is None) or (lo < ymin)):
@@ -560,6 +685,8 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
     if(q2y_bin not in grouped):
         return series_map
     for zpt_bin, key_str in grouped[q2y_bin]:
+        if(not zpt_matches_row_or_column(args, q2y_bin, zpt_bin)):
+            continue
         if((key_str not in fit_dict) or (key_str not in info_map)):
             continue
         entry = fit_dict[key_str]
@@ -568,14 +695,17 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
         if(entry_is_failed_fit(entry, ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"], getattr(args, "err_suffix", "_ERR"))):
             continue
         inf  = info_map[key_str]
-        xval = inf["z_range"][0] if(args.x_mode == "z") else inf["pTrange"][0]
+        # xval = inf["z_range"][0] if(args.x_mode == "z") else inf["pTrange"][0]
+        xval = plotted_x_value(args, inf)
         yval = float(entry[y_par])
         yerr = float(entry[err_key])
         if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
-            _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-            if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
-                yval = yval/(Bin_Width_Area_Scale*Luminosity)
-                yerr = yerr/(Bin_Width_Area_Scale*Luminosity)
+            if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
+                continue
+            _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+            if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
+                yval = yval/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
+                yerr = yerr/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
         if(args.x_mode == "z"):
             series_id = str(inf["pT_group"])
             scolor    = inf["pT_color"]
@@ -602,7 +732,7 @@ def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
     return None
 
 class ExpRBFWrapper:
-    """Wrap an RBF fit on log(A) so evaluation returns Amplitude = exp(rbf(x))."""
+    # Wrap an RBF fit on log(A) so evaluation returns Amplitude = exp(rbf(x)).
     def __init__(self, rbf):
         self.rbf = rbf
     def __call__(self, x):
@@ -681,14 +811,19 @@ def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
             xB_center = Convert_xB_var(Q2_in=q2_center, y_in=y__center, Var_out="xB")
             query_points = np.column_stack([np.full(len(x_grid), xB_center), np.full(len(x_grid), y__center), x_grid, np.full(len(x_grid), pT_center)])
     else:
+        # query_pT = x_grid
+        query_pT = np.sqrt(np.maximum(x_grid, 0.0)) if(use_pT2(args)) else x_grid
         if(args.dimension_mode == "4D"):
-            query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid])
+            # query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid])
+            query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), query_pT])
         elif(args.dimension_mode == "5D"):
             xB_center = Convert_xB_var(Q2_in=q2_center, y_in=y__center, Var_out="xB")
-            query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid, np.full(len(x_grid), xB_center)])
+            # query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid, np.full(len(x_grid), xB_center)])
+            query_points = np.column_stack([np.full(len(x_grid), q2_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), query_pT, np.full(len(x_grid), xB_center)])
         elif(args.dimension_mode == "4D_xB"):
             xB_center = Convert_xB_var(Q2_in=q2_center, y_in=y__center, Var_out="xB")
-            query_points = np.column_stack([np.full(len(x_grid), xB_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid])
+            # query_points = np.column_stack([np.full(len(x_grid), xB_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), x_grid])
+            query_points = np.column_stack([np.full(len(x_grid), xB_center), np.full(len(x_grid), y__center), np.full(len(x_grid), z__center), query_pT])
     try:
         y_grid = spline_models[y_par](query_points)
     except Exception:
@@ -709,7 +844,8 @@ def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
     gr_spline.SetLineWidth(0)
     gr_spline.SetLineStyle(7)
     gr_spline.SetMarkerColorAlpha(int(series_map[sid]["color"]), 0.45)
-    gr_spline.SetMarkerSize(1)
+    # gr_spline.SetMarkerSize(1)
+    gr_spline.SetMarkerSize(1.5)
     gr_spline.SetMarkerStyle(29)
     return gr_spline
 
@@ -920,9 +1056,12 @@ def expand_y_range_for_spline_bands(args, grouped, fit_dict, info_map, y_par, y_
 # ------------------------------------------------------------
 # Title logic
 # ------------------------------------------------------------
-def Get_Default_Y_Title(y_par, fit_set):
-    y_title_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "Cos(#phi) Moment", "Fit_Par_C": "Cos(2#phi) Moment"}
+def Get_Default_Y_Title(y_par, fit_set, apply_A_corr=False):
+    # y_title_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "Cos(#phi) Moment", "Fit_Par_C": "Cos(2#phi) Moment"}
+    y_title_map = {"Fit_Par_A": "A_{0}", "Fit_Par_B": "A_{UU}^{cos #scale[1.05]{#phi}}", "Fit_Par_C": "A_{UU}^{cos 2#scale[1.05]{#phi}}"}
     base = y_title_map.get(str(y_par), str(y_par))
+    # if((apply_A_corr) and (str(y_par) == "Fit_Par_A")):
+    #     return "Normalized A"
     if(("(Normalized)" in str(fit_set)) and (str(y_par) in y_title_map)):
         base = f"{base} from the Cross Section Fits"
     return base
@@ -1009,7 +1148,8 @@ def build_comparison_source_phrases(sources):
     return phrases, " ".join(shared_bits).strip()
 
 def build_comparison_canvas_title(args, sources, y_par, ctype):
-    x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    # x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    x_label = x_axis_symbol(args)
     y_obs = Get_Default_Y_Title(y_par, sources[0]["fit_set"]).replace("from the Cross Section Fits", "").strip()
     if(str(ctype) == "overlay"):
         line1 = f"Comparison Overlay: {y_obs} vs {x_label}"
@@ -1042,8 +1182,11 @@ def style_graph(gr, color_val, marker_val, line_width=2):
     gr.SetLineColor(int(color_val))
     gr.SetMarkerColor(int(color_val))
     gr.SetMarkerStyle(int(marker_val))
-    gr.SetLineWidth(line_width)
-    gr.SetMarkerSize(1.0)
+    # gr.SetLineWidth(line_width)
+    gr.SetLineWidth(2*line_width)
+    # gr.SetMarkerSize(1.0)
+    # gr.SetMarkerSize(2.0)
+    gr.SetMarkerSize(1.75)
 
 def build_global_title(args, fit_set, y_par):
     if(args.title_mode == "none"):
@@ -1056,8 +1199,9 @@ def build_global_title(args, fit_set, y_par):
     else:
         fit_label = Get_Default_FitSet_Title(fit_set)
 
-    x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
-    y_label = Get_Default_Y_Title(y_par, fit_set)
+    # x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    x_label = x_axis_symbol(args)
+    y_label = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
     line1 = f"{y_label} vs {x_label}"
     line2 = f"{fit_label}"
     if(str(args.title_text).strip() != ""):
@@ -1090,9 +1234,17 @@ def draw_pad_label(args, q2y_bin, q2y_ranges):
     Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
     ymin = float(q2y_ranges[q2y_bin]["y_range"][1])
     ymax = float(q2y_ranges[q2y_bin]["y_range"][2])
-    if(args.pad_label_mode == "Q2y_only"):
-        lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
-        lab.DrawLatex(x0, y0 - line_step, f"{ymin:.2f} < y < {ymax:.2f}")
+    if((args.pad_label_mode == "Q2y_only") or (getattr(args, "presentation", False))):
+        if("BC" not in str(args.fit_set)):
+            lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+            lab.DrawLatex(x0, y0 - line_step, f"{ymin:.2f} < y < {ymax:.2f}")
+        else:
+            Q2_center = (Q2min + Q2max)/2
+            y_center  = (ymin  + ymax)/2
+            lab.DrawLatex(x0, y0,             f"Q^{{2}} = {Q2_center:.2f}")
+            lab.DrawLatex(x0, y0 - line_step, f"y = {y_center:.2f}")
+        # lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+        # lab.DrawLatex(x0, y0 - line_step, f"{ymin:.2f} < y < {ymax:.2f}")
         return
     lab.DrawLatex(x0, y0, f"Q^{{2}}-y Bin {q2y_bin}")
     if(args.pad_label_mode == "bin"):
@@ -1125,11 +1277,12 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         title_space = float(title_space_override)
     else:
         title_space = 0.090 if(args.title_mode != "none") else 0.00
-    x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    # x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    x_axis_title = x_axis_symbol(args)
     if(y_axis_title_override is not None):
         y_axis_title = str(y_axis_title_override)
     else:
-        y_axis_title = Get_Default_Y_Title(y_par, fit_set)
+        y_axis_title = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
         y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
 
     # -------------------------------------------------------------------------
@@ -1274,7 +1427,8 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
                     if(str(args.x_mode).lower() == "z"):
                         xw = float(info_map[key_str]["z_range"][2]) - float(info_map[key_str]["z_range"][1])
                     else:
-                        xw = float(info_map[key_str]["pTrange"][2]) - float(info_map[key_str]["pTrange"][1])
+                        # xw = float(info_map[key_str]["pTrange"][2]) - float(info_map[key_str]["pTrange"][1])
+                        xw = transverse_displayed_edge(info_map[key_str]["pTrange"][2], args) - transverse_displayed_edge(info_map[key_str]["pTrange"][1], args)
                     xerr = 0.5 * float(args.x_error_fraction) * float(xw)
                 gr.SetPointError(ip, float(xerr), float(ey))
             style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=2 if("pdf" not in str(args.formats)) else 1)
@@ -1285,7 +1439,8 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
             c1._keepalive.append(gr)
 
         if(args.draw_legends):
-            legend_title = "P_{T} Bins" if(args.x_mode == "z") else "z Bins"
+            # legend_title = "P_{T} Bins" if(args.x_mode == "z") else "z Bins"
+            legend_title = "P_{T}^{2} Bins" if((args.x_mode == "z") and use_pT2(args)) else ("P_{T} Bins" if(args.x_mode == "z") else "z Bins")
             legend_entries = []
             for sid in sid_list:
                 pts = series_map[sid]["points"]
@@ -1294,7 +1449,8 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
                 key0 = pts[0][3]
                 if(key0 not in info_map):
                     continue
-                other_val = float(info_map[key0]["pTrange"][0]) if(args.x_mode == "z") else float(info_map[key0]["z_range"][0])
+                # other_val = float(info_map[key0]["pTrange"][0]) if(args.x_mode == "z") else float(info_map[key0]["z_range"][0])
+                other_val = transverse_plot_coordinate(info_map[key0]["pTrange"][0], info_map[key0]["pTrange"][1], info_map[key0]["pTrange"][2], args) if(args.x_mode == "z") else float(info_map[key0]["z_range"][0])
                 legend_entries.append((other_val, int(series_map[sid]["color"])))
             legend_entries.sort(key=lambda tt: tt[0])
 
@@ -1353,6 +1509,8 @@ def FitSet_Has_BC(fit_set):
 def Build_SingleBin_Subtitle(args, fit_set):
     has_rc = FitSet_Has_RC(fit_set)
     has_bc = FitSet_Has_BC(fit_set)
+    if(getattr(args, "presentation", False)):
+        return "" # No subtitles in presentations
     if(has_bc and has_rc):
         subtitle = "With BC + RC Factors"
         if((str(args.title_text).strip() != "")):
@@ -1369,10 +1527,15 @@ def Build_SingleBin_Subtitle(args, fit_set):
     return ""
 
 def Draw_SingleBin_Title_Block(args, canvas, fit_set, y_par):
-    y_label = Get_Default_Y_Title(y_par, fit_set)
+    y_label = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
     y_label = y_label.replace(" from the Cross Section Fits", "")
-    line1 = f"CLAS12 Preliminary #topbar {y_label}"
-    line2 = Build_SingleBin_Subtitle(args, fit_set)
+    plain_title = bool(getattr(args, "plain_title", False))
+    title_extra = str(getattr(args, "title_text", "")).strip()
+    if(plain_title):
+        line1 = f"{title_extra} #topbar {y_label}" if(title_extra != "") else y_label
+    else:
+        line1 = f"#color[{ROOT.kRed}]{{CLAS12 Preliminary}} #topbar {y_label}"
+    line2 = "" if(plain_title) else Build_SingleBin_Subtitle(args, fit_set)
     canvas.cd()
     tex = ROOT.TLatex()
     tex.SetNDC(True)
@@ -1416,7 +1579,7 @@ def Draw_SingleBin_Preliminary_Watermark(args):
         wm.SetTextColor(ROOT.kRed)
     wm.DrawLatex(0.52, 0.50, "PRELIMINARY")
 
-def Compute_SingleBin_AutoYRange(series_map):
+def Compute_SingleBin_AutoYRange(series_map, args=None):
     ymin = None
     ymax = None
     for sid in series_map.keys():
@@ -1433,11 +1596,21 @@ def Compute_SingleBin_AutoYRange(series_map):
         return (ymin - 1.0, ymax + 1.0)
     span = ymax - ymin
     ymin = ymin - 0.35 * span
-    ymax = ymax + 0.10 * span
+    if(ymax > 1):
+        ymax = ymax + 0.10 * span
+    else:
+        ymax = ymax + 3.50 * span
+    if(args is not None):
+        # print(f"\nymin was = {ymin}")
+        ymin = ymin if(args.draw_legends) else ymin + (0.25 * span)
+        # print(f"Now = {ymin}\n\n")
     return (ymin, ymax)
 
-def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges):
+def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges, args=None):
     if(q2y_bin not in q2y_ranges):
+        return
+    mode = "Q2y_only" if(args is None) else str(args.pad_label_mode)
+    if(mode == "none"):
         return
     Q2min = float(q2y_ranges[q2y_bin]["Q2range"][1])
     Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
@@ -1456,9 +1629,32 @@ def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges):
     x0 = float(lm) + 0.02
     y0 = 1.0 - float(tm) - 0.02
     step = 0.055
-
-    lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
-    lab.DrawLatex(x0, y0 - step, f"{yminv:.2f} < y < {ymaxv:.2f}")
+    
+    # # Sit in the top margin, above the frame, so the bin/range lines do not cover the points.
+    y0 = min(0.90, 0.98 - float(tm))
+    # step = 0.028
+    # lab.SetTextSize(0.022)
+    # Same choices as --pad_label_mode / draw_pad_label: bin, bin_Q2, bin_Q2y, Q2y_only.
+    if((mode == "Q2y_only") or (getattr(args, "presentation", False))):
+        # y0 += step
+        if("BC" not in str(args.fit_set)):
+            lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+            lab.DrawLatex(x0, y0 - step, f"{yminv:.2f} < y < {ymaxv:.2f}")
+        else:
+            Q2_center = (Q2min + Q2max)/2
+            y_center  = (yminv + ymaxv)/2
+            lab.DrawLatex(x0, y0,        f"Q^{{2}} = {Q2_center:.2f}")
+            lab.DrawLatex(x0, y0 - step, f"y = {y_center:.2f}")
+        return
+    step = 0.028
+    lab.SetTextSize(0.022)
+    lab.DrawLatex(x0, y0, f"Q^{{2}}-y Bin {int(q2y_bin)}")
+    if(mode == "bin"):
+        return
+    lab.DrawLatex(x0, y0 - step, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
+    if(mode == "bin_Q2"):
+        return
+    lab.DrawLatex(x0, y0 - 2.0 * step, f"{yminv:.2f} < y < {ymaxv:.2f}")
 
 def Draw_SingleBin_Legend(args, series_map, info_map):
     # Legend entries show the full bin width of the variable NOT on the x-axis
@@ -1473,10 +1669,19 @@ def Draw_SingleBin_Legend(args, series_map, info_map):
         if(key0 not in info_map):
             continue
         if(other_is_pT):
-            cen = float(info_map[key0]["pTrange"][0])
-            vmin = float(info_map[key0]["pTrange"][1])
-            vmax = float(info_map[key0]["pTrange"][2])
-            label = f"{vmin:.2f} < P_{{T}} < {vmax:.2f}"
+            # cen = float(info_map[key0]["pTrange"][0])
+            # vmin = float(info_map[key0]["pTrange"][1])
+            # vmax = float(info_map[key0]["pTrange"][2])
+            # label = f"{vmin:.2f} < P_{{T}} < {vmax:.2f}"
+            cen = transverse_plot_coordinate(info_map[key0]["pTrange"][0], info_map[key0]["pTrange"][1], info_map[key0]["pTrange"][2], args)
+            vmin = transverse_displayed_edge(info_map[key0]["pTrange"][1], args)
+            vmax = transverse_displayed_edge(info_map[key0]["pTrange"][2], args)
+            if(use_pT2(args) and (len(series_map) == 1)):
+                label = f"P_{{T}}^{{2}} = {cen:.6g}"
+            elif(use_pT2(args)):
+                label = f"{vmin:.4g} < P_{{T}}^{{2}} < {vmax:.4g}"
+            else:
+                label = f"{vmin:.2f} < P_{{T}} < {vmax:.2f}"
         else:
             cen = float(info_map[key0]["z_range"][0])
             vmin = float(info_map[key0]["z_range"][1])
@@ -1543,6 +1748,7 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
     subtitle_tmp = Build_SingleBin_Subtitle(args, fit_set)
     # top_margin = 0.22 if((str(subtitle_tmp).strip() != "")) else 0.18
     top_margin = 0.16 if((str(subtitle_tmp).strip() != "")) else 0.16
+    # top_margin = 0.30 if((str(subtitle_tmp).strip() != "")) else 0.26
 
     pad = ROOT.TPad(f"pad_single_{y_par}_{q2y_bin}", f"pad_single_{y_par}_{q2y_bin}", 0.0, 0.0, 1.0, 1.0)
     pad.SetFillColor(0)
@@ -1564,11 +1770,12 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
     gymin, gymax = float(y_range[0]), float(y_range[1])
     if(use_log_y):
         gymin, gymax = ensure_positive_y_range_for_log(gymin, gymax)
-    x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    # x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    x_axis_title = x_axis_symbol(args)
     if(y_axis_title_override is not None):
         y_axis_title = str(y_axis_title_override)
     else:
-        y_axis_title = Get_Default_Y_Title(y_par, fit_set)
+        y_axis_title = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
         y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
 
     frame = pad.DrawFrame(xmin, gymin, xmax, gymax)
@@ -1624,7 +1831,8 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
                 if(str(args.x_mode).lower() == "z"):
                     xw = float(info_map[key_str]["z_range"][2]) - float(info_map[key_str]["z_range"][1])
                 else:
-                    xw = float(info_map[key_str]["pTrange"][2]) - float(info_map[key_str]["pTrange"][1])
+                    # xw = float(info_map[key_str]["pTrange"][2]) - float(info_map[key_str]["pTrange"][1])
+                    xw = transverse_displayed_edge(info_map[key_str]["pTrange"][2], args) - transverse_displayed_edge(info_map[key_str]["pTrange"][1], args)
                 xerr = 0.5 * float(args.x_error_fraction) * float(xw)
             gr.SetPointError(ip, float(xerr), float(ey))
         style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=1 if("pdf" not in str(args.formats)) else 1)
@@ -1638,30 +1846,30 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
         c1._keepalive.append(gr)
         graphs_by_sid[sid] = gr
 
-    Draw_SingleBin_Q2yText(int(q2y_bin), q2y_ranges)
+    Draw_SingleBin_Q2yText(int(q2y_bin), q2y_ranges, args=args)
 
-    leg_pack = Draw_SingleBin_Legend(args, series_map, info_map)
-    if(leg_pack is not None):
-        leg, entries = leg_pack
-        for cen, label, colv, sid in entries:
-            gr = graphs_by_sid.get(sid, None)
-            if(gr is None):
-                continue
-            if(gr.GetLineColor() != ROOT.kGreen):
-                continue
-            leg_opt = "LP"
-            if(args.x_error_bars):
-                leg_opt = "PE"
-            ent = leg.AddEntry(gr, str(label), leg_opt)
-            if(ent):
-                ent.SetTextColor(int(colv))
-                try:
-                    ent.SetTextSize(0.030)
-                except Exception:
-                    pass
-        leg.Draw("SAME")
-        c1._keepalive.append(leg)
-
+    if(args.draw_legends):
+        leg_pack = Draw_SingleBin_Legend(args, series_map, info_map)
+        if(leg_pack is not None):
+            leg, entries = leg_pack
+            for cen, label, colv, sid in entries:
+                gr = graphs_by_sid.get(sid, None)
+                if(gr is None):
+                    continue
+                # if(gr.GetLineColor() != ROOT.kGreen):
+                #     continue
+                leg_opt = "LP"
+                if(args.x_error_bars):
+                    leg_opt = "PE"
+                ent = leg.AddEntry(gr, str(label), leg_opt)
+                if(ent):
+                    ent.SetTextColor(int(colv))
+                    try:
+                        ent.SetTextSize(0.030)
+                    except Exception:
+                        pass
+            leg.Draw("SAME")
+            c1._keepalive.append(leg)
     # Title/subtitle in the pad top margin
     Draw_SingleBin_Title_Block(args, pad, fit_set, y_par)
 
@@ -1679,9 +1887,11 @@ def Validate_Output_Filename(filename):
             raise SystemExit(f"{color.Error}ERROR:{color.END_R} Forbidden character '{ch}' in output filename:{color.END} {filename}")
     return
 
-def Get_Default_Y_FileTag(y_par, fit_set):
+def Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=False):
     y_tag_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "CosPhiMoment", "Fit_Par_C": "Cos2PhiMoment"}
     base_tag  = y_tag_map.get(str(y_par), sanitize_for_filename(str(y_par)))
+    if((apply_A_corr) and (str(y_par) == "Fit_Par_A")):
+        base_tag = "NormalizedA"
     if(("(Normalized)" in str(fit_set)) and (str(y_par) in y_tag_map)):
         base_tag = f"{base_tag}_XsecFits"
     return sanitize_for_filename(base_tag)
@@ -1716,20 +1926,24 @@ def Get_Default_FitSet_FileTag(fit_set):
     return sanitize_for_filename(tag)
 
 def Build_Output_Filename(args, fit_set, y_par):
-    stem  = sanitize_for_filename(args.name)
-    fs_tag = Get_Default_FitSet_FileTag(fit_set)
-    x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
-    y_tag  = Get_Default_Y_FileTag(y_par, fit_set)
-    filename = f"{stem}_{fs_tag}_{x_tag}_{y_tag}.{args.formats}"
+    stem    = sanitize_for_filename(args.name)
+    fs_tag  = Get_Default_FitSet_FileTag(fit_set)
+    # x_tag   = "pT" if(str(args.x_mode).lower() == "pt") else "z"
+    x_tag   = x_file_tag(args)
+    sel_tag = row_or_column_filename_tag(args)
+    y_tag   = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
+    filename = f"{stem}_{fs_tag}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
 
 def Build_SingleBin_Output_Filename(args, fit_set, y_par, q2y_bin):
-    stem  = sanitize_for_filename(args.name)
-    fs_tag = Get_Default_FitSet_FileTag(fit_set)
-    x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
-    y_tag  = Get_Default_Y_FileTag(y_par, fit_set)
-    filename = f"{stem}_SingleBin_Q2yBin{int(q2y_bin)}_{fs_tag}_{x_tag}_{y_tag}.{args.formats}"
+    stem    = sanitize_for_filename(args.name)
+    fs_tag  = Get_Default_FitSet_FileTag(fit_set)
+    # x_tag   = "pT" if(str(args.x_mode).lower() == "pt") else "z"
+    x_tag   = x_file_tag(args)
+    sel_tag = row_or_column_filename_tag(args)
+    y_tag   = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
+    filename = f"{stem}_SingleBin_Q2yBin{int(q2y_bin)}_{fs_tag}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
 
@@ -1860,7 +2074,9 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
         if(y_ranges is not None):
             y_min, y_max = y_ranges[y_par]
         else:
-            if(str(y_par) == "Fit_Par_B"):
+            if((getattr(args, "presentation", False)) and (y_par in ["Fit_Par_B", "Fit_Par_C"])):
+                y_min, y_max = -0.5, 0.2
+            elif(str(y_par) == "Fit_Par_B"):
                 # y_min, y_max = -0.8, 0.125
                 y_min, y_max = -0.2, 0.125
             elif(str(y_par) == "Fit_Par_C"):
@@ -1870,7 +2086,7 @@ def Spline_Plots_Only(args, spline_models, y_ranges=None):
         use_log_y = use_log_y_for_par(args, y_par)
         if(use_log_y):
             y_min, y_max = ensure_positive_y_range_for_log(y_min, y_max)
-
+        
         Titles_y = Get_Default_Y_Title(y_par, str(args.fit_set).strip())
         Titles = ""
         if("from the Cross Section Fits" not in Titles_y):
@@ -2246,10 +2462,12 @@ def get_entry_value_error(args, fit_dict, key_str, y_par, q2y_bin, zpt_bin):
     yval = float(fit_dict[key_str][y_par])
     yerr = float(fit_dict[key_str][err_key])
     if((getattr(args, "apply_A_corr", False)) and (str(y_par) == "Fit_Par_A")):
-        _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-        if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)) != 0.0)):
-            yval = yval / (Bin_Width_Area_Scale * Luminosity)
-            yerr = yerr / (Bin_Width_Area_Scale * Luminosity)
+        if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
+            return None
+        _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+        if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
+            yval = yval / (Bin_Width_Area_Scale * Luminosity * Photon_Flux)
+            yerr = yerr / (Bin_Width_Area_Scale * Luminosity * Photon_Flux)
     return (yval, abs(yerr))
 
 def compute_pair_comparison(ctype, v1, e1, v2, e2):
@@ -2328,8 +2546,9 @@ def write_comparison_table(args, sources, y_par):
     ctypes = list(getattr(args, "comparison_types", ["overlay"]))
     y_tag = Get_Default_Y_FileTag(y_par, sources[0]["fit_set"])
     labels = [src["label"] for src in sources]
-    stem = sanitize_for_filename(args.name)
-    filename = f"{stem}_Compare_Table_{y_tag}.txt"
+    stem     = sanitize_for_filename(args.name)
+    sel_tag  = row_or_column_filename_tag(args)
+    filename = f"{stem}_Compare_Table{sel_tag}_{y_tag}.txt"
     Validate_Output_Filename(filename)
 
     # Union of keys across sources
@@ -2360,6 +2579,8 @@ def write_comparison_table(args, sources, y_par):
         try:
             q2y_bin, zpt_bin = parse_inner_key(key_str)
         except Exception:
+            continue
+        if(not zpt_matches_row_or_column(args, q2y_bin, zpt_bin)):
             continue
         # Prefer first source that has this key for range labels
         q2y_lab = str(q2y_bin)
@@ -2509,7 +2730,8 @@ def draw_mosaic_comparison_overlay(args, sources, y_par, x_range, y_range, y_axi
         gymin, gymax = ensure_positive_y_range_for_log(gymin, gymax)
     # Extra headroom for multi-line comparison titles (#splitline nesting)
     title_space = 0.120 if(args.title_mode != "none") else 0.00
-    x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    # x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    x_axis_title = x_axis_symbol(args)
     if(y_axis_title_override is not None):
         y_axis_title = str(y_axis_title_override)
     else:
@@ -2618,7 +2840,8 @@ def draw_mosaic_comparison_overlay(args, sources, y_par, x_range, y_range, y_axi
                         if(str(args.x_mode).lower() == "z"):
                             xw = float(src["info_map"][key_str]["z_range"][2]) - float(src["info_map"][key_str]["z_range"][1])
                         else:
-                            xw = float(src["info_map"][key_str]["pTrange"][2]) - float(src["info_map"][key_str]["pTrange"][1])
+                            # xw = float(src["info_map"][key_str]["pTrange"][2]) - float(src["info_map"][key_str]["pTrange"][1])
+                            xw = transverse_displayed_edge(src["info_map"][key_str]["pTrange"][2], args) - transverse_displayed_edge(src["info_map"][key_str]["pTrange"][1], args)
                         xerr = 0.5 * float(args.x_error_fraction) * float(xw)
                     gr.SetPointError(ip, float(xerr), float(ey))
                 style_graph(gr, colr, mark, line_width=2 if("pdf" not in str(args.formats)) else 1)
@@ -2632,7 +2855,8 @@ def draw_mosaic_comparison_overlay(args, sources, y_par, x_range, y_range, y_axi
         if(args.draw_legends):
             series_map_leg = build_series_for_q2y(args, primary["grouped"], primary["fit_dict"], primary["info_map"], q2y_bin, y_par)
             sid_list_leg = sorted(list(series_map_leg.keys()), key=lambda ss: int(ss) if(re.fullmatch(r"\d+", ss)) else ss)
-            legend_title = "P_{T} Bins" if(args.x_mode == "z") else "z Bins"
+            # legend_title = "P_{T} Bins" if(args.x_mode == "z") else "z Bins"
+            legend_title = "P_{T}^{2} Bins" if((args.x_mode == "z") and use_pT2(args)) else ("P_{T} Bins" if(args.x_mode == "z") else "z Bins")
             legend_entries = []
             for sid in sid_list_leg:
                 pts = series_map_leg[sid]["points"]
@@ -2641,7 +2865,8 @@ def draw_mosaic_comparison_overlay(args, sources, y_par, x_range, y_range, y_axi
                 key0 = pts[0][3]
                 if(key0 not in primary["info_map"]):
                     continue
-                other_val = float(primary["info_map"][key0]["pTrange"][0]) if(args.x_mode == "z") else float(primary["info_map"][key0]["z_range"][0])
+                # other_val = float(primary["info_map"][key0]["pTrange"][0]) if(args.x_mode == "z") else float(primary["info_map"][key0]["z_range"][0])
+                other_val = transverse_plot_coordinate(primary["info_map"][key0]["pTrange"][0], primary["info_map"][key0]["pTrange"][1], primary["info_map"][key0]["pTrange"][2], args) if(args.x_mode == "z") else float(primary["info_map"][key0]["z_range"][0])
                 legend_entries.append((other_val, int(series_map_leg[sid]["color"])))
             legend_entries.sort(key=lambda tt: tt[0])
             if(len(legend_entries) > 0):
@@ -2705,16 +2930,17 @@ def draw_mosaic_comparison_overlay(args, sources, y_par, x_range, y_range, y_axi
     return c1
 
 def Build_Comparison_Output_Filename(args, y_par, kind_title, pair_labels=None, extra_tag=""):
-    stem = sanitize_for_filename(args.name)
-    x_tag = "pT" if(str(args.x_mode).lower() == "pt") else "z"
-    y_tag = Get_Default_Y_FileTag(y_par, "Compare")
+    stem     = sanitize_for_filename(args.name)
+    x_tag    = "pT" if(str(args.x_mode).lower() == "pt") else "z"
+    sel_tag  = row_or_column_filename_tag(args)
+    y_tag    = Get_Default_Y_FileTag(y_par, "Compare")
     kind_tag = sanitize_for_filename(kind_title)
     extra = f"_{sanitize_for_filename(extra_tag)}" if(str(extra_tag).strip() != "") else ""
     if(pair_labels is None):
-        filename = f"{stem}_Compare_{kind_tag}{extra}_{x_tag}_{y_tag}.{args.formats}"
+        filename = f"{stem}_Compare_{kind_tag}{extra}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     else:
         pair_tag = sanitize_for_filename(f"{pair_labels[0]} vs {pair_labels[1]}")
-        filename = f"{stem}_Compare_{kind_tag}_{pair_tag}{extra}_{x_tag}_{y_tag}.{args.formats}"
+        filename = f"{stem}_Compare_{kind_tag}_{pair_tag}{extra}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
 
@@ -2858,11 +3084,11 @@ def run_comparison_plots(args, sources):
                             args.draw_with_log_A = saved_log_A
                             continue
                         if((not force_log) and (str(y_par) == "Fit_Par_B")):
-                            y_range = (-0.8, 0.125)
+                            y_range = (-0.8, 0.125) if(args.draw_legends) else (-0.5, 0.125)
                         elif((not force_log) and (str(y_par) == "Fit_Par_C")):
-                            y_range = (-0.3, 0.25)
+                            y_range = (-0.3, 0.25) if(args.draw_legends) else (-0.1, 0.25)
                         elif(not force_log):
-                            y_range = Compute_SingleBin_AutoYRange(build_series_for_q2y(args, grouped, fit_dict_cmp, info_map, int(q2y_bin), y_par))
+                            y_range = Compute_SingleBin_AutoYRange(build_series_for_q2y(args, grouped, fit_dict_cmp, info_map, int(q2y_bin), y_par), args)
                         canv = draw_single_bin(args, grouped, fit_dict_cmp, info_map, q2y_ranges, sources[ia]["fit_set"], y_par, q2y_bin, (xmin, xmax), y_range, spline_models={}, y_axis_title_override=yat, force_log_y=force_log)
                     else:
                         canv = draw_mosaic(args, grouped, fit_dict_cmp, info_map, q2y_ranges, sources[ia]["fit_set"], y_par, (xmin, xmax), y_range, spline_models={}, y_axis_title_override=yat, canvas_name_suffix=c_suffix, title_space_override=0.120, force_log_y=force_log)
@@ -2908,7 +3134,8 @@ def draw_single_bin_comparison_overlay(args, sources, y_par, q2y_bin, x_range, y
     gymin, gymax = float(y_range[0]), float(y_range[1])
     if(use_log_y):
         gymin, gymax = ensure_positive_y_range_for_log(gymin, gymax)
-    x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    # x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
+    x_axis_title = x_axis_symbol(args)
     y_axis_title = Get_Default_Y_Title(y_par, sources[0]["fit_set"]).replace("from the Cross Section Fits", "")
     frame = pad.DrawFrame(xmin, gymin, xmax, gymax)
     c1._keepalive.append(frame)
@@ -2936,7 +3163,8 @@ def draw_single_bin_comparison_overlay(args, sources, y_par, q2y_bin, x_range, y
                     if(str(args.x_mode).lower() == "z"):
                         xw = float(src["info_map"][key_str]["z_range"][2]) - float(src["info_map"][key_str]["z_range"][1])
                     else:
-                        xw = float(src["info_map"][key_str]["pTrange"][2]) - float(src["info_map"][key_str]["pTrange"][1])
+                        # xw = float(src["info_map"][key_str]["pTrange"][2]) - float(src["info_map"][key_str]["pTrange"][1])
+                        xw = transverse_displayed_edge(src["info_map"][key_str]["pTrange"][2], args) - transverse_displayed_edge(src["info_map"][key_str]["pTrange"][1], args)
                     xerr = 0.5 * float(args.x_error_fraction) * float(xw)
                 gr.SetPointError(ip, float(xerr), float(ey))
             style_graph(gr, colr, mark, line_width=1)
@@ -2946,7 +3174,7 @@ def draw_single_bin_comparison_overlay(args, sources, y_par, q2y_bin, x_range, y
                 draw_opt = "P E1 SAME"
             gr.Draw(draw_opt)
             c1._keepalive.append(gr)
-    Draw_SingleBin_Q2yText(int(q2y_bin), sources[0]["q2y_ranges"])
+    Draw_SingleBin_Q2yText(int(q2y_bin), sources[0]["q2y_ranges"], args=args)
     Draw_SingleBin_Title_Block(args, pad, sources[0]["fit_set"], y_par)
     pad.Modified()
     pad.Update()
@@ -2957,6 +3185,8 @@ def draw_single_bin_comparison_overlay(args, sources, y_par, q2y_bin, x_range, y
 
 def run_comparison_mode(args):
     sources = build_comparison_sources(args)
+    if(len(sources) > 0):
+        validate_row_or_column_selection(args, sources[0]["grouped"])
     if(args.verbose):
         for src in sources:
             print(f"{color.CYAN}[INFO] Comparison source: {src['label']} | fit_set={src['fit_set']} | json={src['json_path']} | n={len(src['fit_dict'])}{color.END}")
@@ -2979,8 +3209,130 @@ def run_comparison_mode(args):
 # ------------------------------------------------------------
 # Main
 # ------------------------------------------------------------
+def run_diag_bin_widths(args):
+    # Inspection only. Does not normalize, fit, or draw the A0 canvases.
+    from Cross_Section_Normalization import pT_differential_width
+    if((args.single_q2y_bin is None) or (args.select_row_or_column is None)):
+        raise SystemExit(f"{color.Error}ERROR:{color.END_R} --diag_bin_widths requires --single_q2y_bin and --select_row_or_column (the z row).{color.END}")
+    q2y_bin = int(args.single_q2y_bin)
+    z_row   = int(args.select_row_or_column)
+    rows_cols = Get_Num_of_z_pT_Rows_and_Columns(Q2_Y_Bin_Input=q2y_bin)
+    n_cols = int(rows_cols[1])
+    class WidthOff:
+        pT2 = False
+    class WidthOn:
+        pT2 = True
+    rows = []
+    for col in range(1, n_cols + 1):
+        zpt_bin = ((z_row - 1) * n_cols) + col
+        key = f"Q2-y={q2y_bin}, z-pT={zpt_bin}"
+        if(key not in Full_Bin_Definition_Array):
+            continue
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpt_bin, BINNING_METHOD="Y_bin")):
+            continue
+        z_max, z_min, pT_max, pT_min = Full_Bin_Definition_Array[key]
+        pT_point = 0.5 * (float(pT_max) + float(pT_min))
+        pT2_point = transverse_plot_coordinate(pT_point, pT_min, pT_max, WidthOn())
+        d_pT  = pT_differential_width(pT_max, pT_min, WidthOff())
+        d_pT2 = pT_differential_width(pT_max, pT_min, WidthOn())
+        rows.append((col, pT_point, pT2_point, d_pT, d_pT2))
+    if(len(rows) == 0):
+        raise SystemExit(f"{color.Error}ERROR:{color.END_R} No P_T bins found for Q2-y bin {q2y_bin}, z row {z_row}.{color.END}")
+
+    def draw_one(xs, ys, x_title, y_title, out_name, color_val):
+        canvas = ROOT.TCanvas(out_name, out_name, 1000, 800)
+        # canvas.SetMargin(0.14, 0.06, 0.12, 0.08)
+        canvas.SetMargin(0.17, 0.06, 0.13, 0.08)
+        canvas.SetGrid(1, 1)
+        graph = ROOT.TGraph(len(xs))
+        for i_pt, (xx, yy) in enumerate(zip(xs, ys)):
+            graph.SetPoint(i_pt, float(xx), float(yy))
+        graph.SetMarkerStyle(ROOT.kFullDotLarge)
+        graph.SetMarkerColor(int(color_val))
+        graph.SetLineColor(int(color_val))
+        graph.SetLineWidth(2)
+        graph.SetTitle("")
+        graph.GetXaxis().SetTitle(x_title)
+        graph.GetYaxis().SetTitle(y_title)
+        graph.GetXaxis().SetTitleSize(0.045)
+        graph.GetYaxis().SetTitleSize(0.045)
+        graph.GetXaxis().SetTitleOffset(1.05)
+        graph.GetYaxis().SetTitleOffset(1.55)
+        graph.GetXaxis().SetLabelSize(0.040)
+        graph.GetYaxis().SetLabelSize(0.040)
+        graph.Draw("APL")
+        canvas.SaveAs(out_name)
+        canvas._keep = graph
+        return canvas
+
+    # draw_one([r[1] for r in rows], [r[3] for r in rows], "P_{T}", "#DeltaP_{T}", "Delta_pT_vs_pT.pdf", ROOT.kRed)
+    # draw_one([r[2] for r in rows], [r[4] for r in rows], "P_{T}^{2}", "#DeltaP_{T}^{2}", "Delta_pT2_vs_pT2.pdf", ROOT.kBlue)
+    draw_one([r[1] for r in rows], [r[3] for r in rows], "P_{T} (GeV)", "#DeltaP_{T} (GeV)", "Delta_pT_vs_pT.pdf", ROOT.kRed)
+    draw_one([r[2] for r in rows], [r[4] for r in rows], "P_{T}^{2} (GeV^{2})", "#DeltaP_{T}^{2} (GeV^{2})", "Delta_pT2_vs_pT2.pdf", ROOT.kBlue)
+
+    canvas = ROOT.TCanvas("Delta_compare", "Delta_compare", 1000, 800)
+    # canvas.SetMargin(0.14, 0.14, 0.12, 0.08)
+    canvas.SetMargin(0.22, 0.06, 0.13, 0.08)
+    canvas.SetGrid(1, 1)
+    gr_dpt = ROOT.TGraph(len(rows))
+    gr_dpt2 = ROOT.TGraph(len(rows))
+    for i_pt, row in enumerate(rows):
+        gr_dpt.SetPoint(i_pt, float(row[0]), float(row[3]))
+        gr_dpt2.SetPoint(i_pt, float(row[0]), float(row[4]))
+    # left_hi = max([r[3] for r in rows]) * 1.25
+    # right_hi = max([r[4] for r in rows]) * 1.25
+    y_hi = max([max(r[3], r[4]) for r in rows]) * 1.25
+    gr_dpt.SetTitle("")
+    gr_dpt.GetXaxis().SetTitle("Common P_{T} / P_{T}^{2} bin")
+    # gr_dpt.GetYaxis().SetTitle("#DeltaP_{T}")
+    gr_dpt.GetYaxis().SetTitle("#DeltaP_{T} (GeV) / #DeltaP_{T}^{2} (GeV^{2})")
+    gr_dpt.SetMinimum(0.0)
+    gr_dpt.SetMaximum(y_hi)
+    gr_dpt.GetXaxis().SetTitleSize(0.042)
+    gr_dpt.GetYaxis().SetTitleSize(0.036)
+    gr_dpt.GetXaxis().SetTitleOffset(1.10)
+    gr_dpt.GetYaxis().SetTitleOffset(1.85)
+    gr_dpt.GetXaxis().SetLabelSize(0.040)
+    gr_dpt.GetYaxis().SetLabelSize(0.040)
+    gr_dpt.SetMarkerStyle(ROOT.kFullDotLarge)
+    gr_dpt.SetMarkerColor(ROOT.kRed)
+    gr_dpt.SetLineColor(ROOT.kRed)
+    gr_dpt.SetLineWidth(2)
+    gr_dpt2.SetMarkerStyle(ROOT.kFullSquare)
+    gr_dpt2.SetMarkerColor(ROOT.kBlue)
+    gr_dpt2.SetLineColor(ROOT.kBlue)
+    gr_dpt2.SetLineWidth(2)
+    gr_dpt.Draw("APL")
+    gr_dpt2.Draw("PL SAME")
+    # scale = left_hi / right_hi if(right_hi != 0.0) else 1.0
+    # gr_scaled points were row[4] * scale, drawn on a second TGaxis
+    # legend = ROOT.TLegend(0.18, 0.64, 0.46, 0.90)
+    legend = ROOT.TLegend(0.42, 0.62, 0.70, 0.88)
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    legend.SetTextFont(42)
+    legend.SetTextSize(0.038)
+    # legend.AddEntry(gr_left, "#DeltaP_{T} (left)", "LP")
+    # legend.AddEntry(gr_scaled, "#DeltaP_{T}^{2} (right)", "LP")
+    legend.AddEntry(gr_dpt, "#DeltaP_{T}", "LP")
+    legend.AddEntry(gr_dpt2, "#DeltaP_{T}^{2}", "LP")
+    legend.Draw()
+    canvas.SaveAs("Delta_pT_vs_Delta_pT2_by_bin.pdf")
+    canvas._keep = (gr_dpt, gr_dpt2, legend)
+
+    lines = ["bin_index  P_T  P_T2  Delta_pT  Delta_pT2"]
+    for row in rows:
+        lines.append(f"{row[0]}  {row[1]:.10g}  {row[2]:.10g}  {row[3]:.10g}  {row[4]:.10g}")
+    with open("bin_width_diagnostics.txt", "w") as out_file:
+        out_file.write("\n".join(lines) + "\n")
+    print("\n".join(lines))
+    print(f"{color.GREEN}[INFO] Wrote bin-width diagnostics in the current directory.{color.END}")
+
 def main():
     args = parse_args()
+    if(getattr(args, "diag_bin_widths", False)):
+        run_diag_bin_widths(args)
+        return
     print(f"\n{color.BBLUE}Beginning to run 'Full_Moment_Plots_Creation_From_JSON.py'{color.END}\n")
     args.timer = RuntimeTimer()
     args.timer.start()
@@ -3061,6 +3413,7 @@ def main():
     grouped       = group_by_q2y(fit_dict)
     info_map      = build_info_map(args, fit_dict)
     q2y_ranges    = build_q2y_ranges(grouped, info_map)
+    validate_row_or_column_selection(args, grouped)
 
     spline_models = load_spline_models(args, fit_set)
     if(args.Spline_Only):
@@ -3105,13 +3458,21 @@ def main():
             print(f"{color.CYAN}[INFO] Global X range: [{xmin}, {xmax}]{color.END}")
 
         for y_par in args.y_pars:
-            if((str(y_par) == "Fit_Par_B")):
-                y_range = (-0.8, 0.125)
+            if((getattr(args, "presentation", False)) and (str(y_par) in ["Fit_Par_B", "Fit_Par_C"])):
+                y_range = (-0.5, 0.2)
+            elif((str(y_par) == "Fit_Par_B")):
+                # y_range = (-0.8, 0.125)
+                y_range = (-0.8, 0.175) if(args.draw_legends) else (-0.5, 0.175)
             elif((str(y_par) == "Fit_Par_C")):
-                y_range = (-0.3, 0.25)
+                y_range = (-0.3, 0.25)  if(args.draw_legends) else (-0.1, 0.2)
             else:
-                series_map_tmp = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
-                y_range = Compute_SingleBin_AutoYRange(series_map_tmp)
+                # series_map_tmp = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
+                # y_range = Compute_SingleBin_AutoYRange(series_map_tmp, args)
+                if(args.global_y_range is not None):
+                    y_range = (float(args.global_y_range[0]), float(args.global_y_range[1]))
+                else:
+                    series_map_tmp = build_series_for_q2y(args, grouped, fit_dict, info_map, int(q2y_bin), y_par)
+                    y_range = Compute_SingleBin_AutoYRange(series_map_tmp, args)
             y_range = expand_y_range_for_spline_bands(args, grouped, fit_dict, info_map, y_par, y_range, spline_models, q2y_bins=[q2y_bin])
 
             if(args.test):

@@ -1,0 +1,41 @@
+{
+  "include_in_all": [
+    "missing_mass",
+    "fiducial",
+    "particle_match",
+    "acceptance_threshold",
+    "phi_merge",
+    "acceptance_weight",
+    "background_source"
+  ],
+  "acceptance_threshold_cuts": ["0.0005", "0.010", "0.020", "0.030", "0.040"],
+  "acceptance_threshold_nominal": "0.020",
+  "acceptance_threshold_stored_not_in_all": ["0.050"],
+  "particle_match_nominal": "",
+  "particle_match_variations": ["P12T6", "P8T6", "P10T8", "P10T4", "Bank"],
+  "phi_merge_nominal": 24,
+  "phi_merge_variation": 12,
+  "background_nominal": "lundvpk",
+  "bc_nominal": {"q2": 3, "y": 3, "z": 3, "pt": 3, "phi": 5},
+  "bc_sensitivity": {
+    "q2": [3, 5, 7],
+    "y": [3, 5, 7],
+    "z": [3, 5, 7],
+    "pt": [3, 5, 7],
+    "phi": [5, 7, 9]
+  },
+  "bc_systematic_variation": null,
+  "sources": {
+    "particle_match": {"earliest_stage": "response", "comparison": "fitted_moments", "default_reduction": "per_variation_signed"},
+    "acceptance_threshold": {"earliest_stage": "unfold_3d", "comparison": "fitted_moments", "default_reduction": "per_variation_signed"},
+    "phi_merge": {"earliest_stage": "unfold_3d", "comparison": "fitted_moments", "default_reduction": "per_variation_signed"},
+    "missing_mass": {"earliest_stage": "response", "comparison": "fitted_moments", "default_reduction": "per_variation_signed"},
+    "fiducial": {"earliest_stage": "response", "comparison": "fitted_moments", "default_reduction": "per_variation_signed"},
+    "acceptance_weight": {"earliest_stage": "response", "comparison": "asymmetric_bar", "default_reduction": "per_variation_signed"},
+    "background_source": {"earliest_stage": "unfold_3d", "comparison": "fitted_moments", "default_reduction": "per_variation_signed"},
+    "dimension": {"earliest_stage": "unfold_3d", "comparison": "fitted_moments", "default_reduction": "per_variation_signed"},
+    "correction_method": {"earliest_stage": "unfold_3d", "comparison": "fitted_moments", "default_reduction": "per_variation_signed"},
+    "bc_subdivision": {"earliest_stage": "bc", "comparison": "rank_then_one_pair", "default_reduction": "not_combined"},
+    "diagnostic_matching": {"earliest_stage": "diagnostic_background", "comparison": "excluded", "default_reduction": "not_combined"}
+  }
+}

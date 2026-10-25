@@ -99,6 +99,34 @@ PRODUCTS = [{
         "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
         "extra": ["--binning_presentation_only", "--run_rho_weight"],
         "jobs_attr": "jobs_Binning",
+        }, {
+        "key": "CH4_Diagnostics",
+        "label": "Chapter 4 matching counts and phi_h smearing",
+        "name_fmt": "CH4_MatchSmear_Diagnostics_{shared}",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--ch4_diagnostics", "--mc_only"],
+        "jobs_attr": "jobs_ch4",
+        }, {
+        "key": "Delta_Phi_h",
+        "label": "Per-bin Delta phi_h diagnostic",
+        "name_fmt": "Delta_Phi_h_{shared}",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--delta_phi_h"],
+        "jobs_attr": "jobs_dphi",
+        }, {
+        "key": "Only_1D",
+        "label": "1D phi response and kinematic distributions",
+        "name_fmt": "Only_1D_{shared}_Kinematics",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--only_1d"],
+        "jobs_attr": "jobs_1d",
+        }, {
+        "key": "Diagnostic_1D",
+        "label": "1D momentum, matching, and contamination diagnostics",
+        "name_fmt": "Diagnostic_1D_{shared}",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D", "--no_unfold_5D"],
+        "extra": ["--diagnostic_1d"],
+        "jobs_attr": "jobs_diag",
         },
 ]
 
@@ -157,7 +185,8 @@ def parse_args():
                    help="Unsmeared reconstructed-MC mode (required for noSmear cut).\n")
     p.add_argument("-mac", "--matching_criteria",
                    type=str,
-                   default="_gen",
+                   # default="_gen",
+                   default="Bank",
                    choices=["", "_gen", "gen", "P10T6", "Bank", "_gen_Bank", "P12T6", "_gen_P12T6", "P8T6", "_gen_P8T6", "P10T8", "_gen_P10T8", "P10T4", "_gen_P10T4"],
                    help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     p.add_argument("-sys", "--systematic_runs",
@@ -169,7 +198,7 @@ def parse_args():
     p.add_argument("-rho0", "--rho0_source",
                    type=str,
                    default="lundvpk",
-                   choices=["lundvpk", "lundrho"],
+                   choices=["lundvpk", "lundrho", "rho0_new"],
                    help="Exclusive-rho MC source for Acceptance when rho weights are ON (default lundvpk). Forwarded as --rho0_source.\n")
     p.add_argument("-cn", "--cut_name",
                    type=str,
@@ -180,6 +209,9 @@ def parse_args():
                    default="parallel",
                    choices=["parallel", "sequential", "slurm", "hybrid"],
                    help="Response stage mode (default parallel). hybrid: submit SLURM with --yes, then local parallel with -saj; both write batch ROOT files under /volatile and local hadd goes to the parallel work_dir destination. Acceptance is always local.\n")
+    p.add_argument("-y", "--yes",
+                   action="store_true",
+                   help="Approve a pure slurm submission without a prompt. Hybrid already approves its own slurm leg. Omit -y and a manual slurm run still asks.\n")
     p.add_argument("-saj", "--slurm_array_jobid",
                    type=str,
                    default=None,
@@ -187,7 +219,23 @@ def parse_args():
     p.add_argument("-sm", "--slurm_mem",
                    type=str,
                    default=None,
-                   help="SLURM mem-per-cpu forwarded to pipeline children (hybrid/slurm). Unset → pipeline default (5GB). Farm jobs typically get 2 CPUs, so the total request is twice this value.\n")
+                   help="SLURM mem-per-cpu forwarded to pipeline children that are not one of the five campaign histogram modes. Those five modes keep their own CPU and memory requests.\n")
+    p.add_argument("-st", "--slurm_time",
+                   type=str,
+                   default=None,
+                   help="SLURM time forwarded to pipeline children. Omitted keeps the pipeline default of 12:00:00.\n")
+    p.add_argument("-bids", "--batch_ids",
+                   type=str,
+                   default=None,
+                   help="Batch indices allowed to run, forwarded as --batch_ids. The merge still requires every batch. Omitted runs the full set.\n")
+    p.add_argument("-hdate", "--hybrid_date",
+                   type=str,
+                   default=None,
+                   help="Existing hybrid directory date MM_DD_YYYY. Omitted uses today.\n")
+    p.add_argument("-hlc", "--histogram_local_cap",
+                   type=int,
+                   default=None,
+                   help="Extra ceiling on histogram-kind local slots. Clamped by the campaign ledger. Does not raise a mode ceiling.\n")
     p.add_argument("-j", "--jobs",
                    type=int,
                    default=5,
@@ -208,6 +256,25 @@ def parse_args():
                    type=int,
                    default=0,
                    help="Concurrent batch jobs for the Binning_Presentation_Only product only. Default 0 skips this product. Unlike --jobs_2D/--jobs_3D/--jobs_5D, unset does not inherit --jobs.\n")
+    p.add_argument("-jdph", "--jobs_dphi",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Delta phi_h diagnostic. Default 0 skips this product.\n")
+    p.add_argument("-jch4", "--jobs_ch4",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Chapter 4 matching-count and phi_h-smearing product only. Default 0 skips this product.\n")
+    p.add_argument("-j1D", "--jobs_1d",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Only_1D product. Default 0 skips this product.\n")
+    p.add_argument("-jdiag", "--jobs_diag",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Diagnostic_1D product. Default 0 skips this product.\n")
+    p.add_argument("-mco", "--mc_only",
+                   action="store_true",
+                   help="Accepted on this command line. The Chapter 4 product already forwards --mc_only to Response_Matrix.\n")
     p.add_argument("-rho", "--rho0",
                    dest="rho0_mode",
                    action="store_true",
@@ -367,7 +434,7 @@ def matching_output_tag(matching):
 def product_shared_name(args, cut_name, matching=None):
     # args.name, then matching tag if not historical, then non-default cut. Backend never appears.
     name = str(args.name)
-    mac = matching if(matching is not None) else getattr(args, "matching_criteria", "_gen")
+    mac = matching if(matching is not None) else getattr(args, "matching_criteria", "Bank")
     tag = matching_output_tag(mac)
     if(tag not in ["", None]):
         name = f"{name}_{tag}"
@@ -490,8 +557,11 @@ def build_acceptance_cmd(args, spline_on, hpp_out, cut_name):
         cmd.extend(["--spline_file", args.spline_file])
     if(args.unsmeared):
         cmd.append("--unsmeared")
-    mac = getattr(args, "matching_criteria", "_gen")
-    if(mac in [None, ""]):
+    mac = getattr(args, "matching_criteria", "Bank")
+    if(mac in [None]):
+        mac = "Bank"
+    # Blank remains the historical unsuffixed match. Bank is the omitted default.
+    if(mac == ""):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
     if(email_children(args)):
@@ -513,6 +583,9 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     run_mode = args.mode if(mode is None) else mode
     if(run_mode == "hybrid"):
         run_mode = "parallel"
+    # Chapter 4 reads stored columns only. Do not require an HPP file before those counts and histograms.
+    if(product.get("key") in ["CH4_Diagnostics", "Delta_Phi_h", "Only_1D", "Diagnostic_1D"]):
+        use_hpp = False
     cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-m", run_mode])
     cmd.extend(["-cn", cut_name])
@@ -530,11 +603,14 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
             cmd.extend(["--hpp_weight_file_spline", comb_hpp])
     if(args.unsmeared):
         cmd.append("--unsmeared")
-    mac = getattr(args, "matching_criteria", "_gen")
-    if(mac in [None, ""]):
+    mac = getattr(args, "matching_criteria", "Bank")
+    if(mac in [None]):
+        mac = "Bank"
+    # Blank remains the historical unsuffixed match. Bank is the omitted default.
+    if(mac == ""):
         mac = "_gen"
     cmd.extend(["--matching_criteria", str(mac)])
-    if((not args.no_run_rho_weight) and (product.get("key") != "rho0")):
+    if((not args.no_run_rho_weight) and (product.get("key") not in ["rho0", "CH4_Diagnostics", "Delta_Phi_h"])):
         # Pipeline-level -rrw (also kept in product --extra for Response passthrough).
         # rho0 histogram-creation must stay unweighted so the resulting ROOT file can be used to derive n_rho.
         cmd.append("--run_rho_weight")
@@ -554,8 +630,22 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["--run_subdir_name", str(run_subdir_name)])
     if(skip_slurm_hadd and (run_mode == "slurm")):
         cmd.append("--skip_slurm_hadd")
-    if(getattr(args, "slurm_mem", None) not in [None, ""]):
+    from Campaign.local_resource_gate import slurm_for_product
+    reserved = slurm_for_product(product.get("key"))
+    if(reserved is not None):
+        mode_name, mode_mem, _ceiling = reserved
+        # Per-mode memory stays in force for these products. A shared -sm must not under-request 5D or over-request 2D.
+        if(getattr(args, "slurm_mem", None) not in [None, ""]):
+            print("ignoring shared --slurm_mem %s for %s; using %s" % (args.slurm_mem, mode_name, mode_mem))
+        cmd.extend(["--slurm_mem", mode_mem, "--slurm_cpus", "1", "-crm", mode_name])
+    elif(getattr(args, "slurm_mem", None) not in [None, ""]):
         cmd.extend(["--slurm_mem", str(args.slurm_mem)])
+    if(getattr(args, "histogram_local_cap", None) not in [None, ""]):
+        cmd.extend(["--histogram_local_cap", str(args.histogram_local_cap)])
+    if(getattr(args, "slurm_time", None) not in [None, ""]):
+        cmd.extend(["--slurm_time", str(args.slurm_time)])
+    if(getattr(args, "batch_ids", None) not in [None, ""]):
+        cmd.extend(["--batch_ids", str(args.batch_ids)])
     # Hybrid SLURM leg always passes --yes so sbatch is noninteractive. Pure slurm stays interactive.
     if((auto_yes) and (run_mode == "slurm")):
         cmd.append("--yes")
@@ -719,17 +809,21 @@ def submit_slurm_capture_array_id(args, cmd, task_label, cut_name):
     write_time_entry(args, f"{task_label}-slurm-submit", cut_name, "slurm", proc.returncode, wall)
     if(proc.returncode != 0):
         raise RuntimeError(f"SLURM submission failed for {task_label} (rc={proc.returncode})")
-    match = re.search(r"Submitted SLURM array job\s+(\S+)", out)
+    # match = re.search(r"Submitted SLURM array job\s+(\S+)", out)
+    # (\S+) swallowed the trailing {color.END} on "Submitted SLURM array job {id}{color.END}" and passed "11172113\\x1b[0m" as --slurm_array_jobid.
+    out_plain = ansi_to_plain(out)
+    match = re.search(r"Submitted SLURM array job\s+(\d+)", out_plain)
     if(match is None):
         # Fallback: last parsable job-id-like token from sbatch
-        match = re.search(r"(?m)^(\d+)(?:;[\w.-]+)?\s*$", out)
+        # match = re.search(r"(?m)^(\d+)(?:;[\w.-]+)?\s*$", out)
+        match = re.search(r"(?m)^(\d+)(?:;[\w.-]+)?\s*$", out_plain)
     if(match is None):
         raise RuntimeError(f"Could not parse SLURM array job id from pipeline output for {task_label}")
     array_id = match.group(1).split(";")[0]
     log_print(args, f"{color.BGREEN}Captured SLURM array job id {array_id} for {task_label}{color.END}")
     return array_id
 
-HYBRID_SQUEUE_SETTLE_S = 15.0
+HYBRID_SQUEUE_SETTLE_S = 1.0
 
 def wait_after_slurm_submit(args, array_id=None):
     extra = f" {array_id}" if(array_id not in [None, ""]) else ""
@@ -836,7 +930,7 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
     if(mode == "slurm"):
         # Interactive per-product approval (stdio inherited; no --yes).
         for product, jobs in selected:
-            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=False, jobs=jobs)
+            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=args.yes, jobs=jobs)
             rc = run_cmd_interactive(args, cmd, f"{product['key']}-slurm", cut_name, "slurm")
             results.append((product["key"], rc))
         return results
@@ -879,7 +973,7 @@ def run_rho0_stage(args):
         cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="sequential", jobs=jobs, use_hpp=False, naming_cut=naming_cut)
         return run_cmd_blocking(args, cmd, "rho0", cut_name, "sequential", tee_terminal=bool(args.verbose))
     if(mode == "slurm"):
-        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=False, jobs=jobs, use_hpp=False, naming_cut=naming_cut)
+        cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="slurm", auto_yes=args.yes, jobs=jobs, use_hpp=False, naming_cut=naming_cut)
         return run_cmd_interactive(args, cmd, "rho0-slurm", cut_name, "slurm")
     cmd = build_pipeline_cmd(args, cut_name, product, None, None, mode="parallel", jobs=jobs, use_hpp=False, naming_cut=naming_cut)
     job = launch_cmd(args, cmd, "rho0", tee_terminal=bool(args.verbose))
@@ -907,7 +1001,11 @@ def main():
     args.time_log_fh.write(header)
     args.time_log_fh.flush()
 
-    args.hybrid_date = datetime.now().strftime("%m_%d_%Y")
+    # args.hybrid_date = datetime.now().strftime("%m_%d_%Y")
+    if(getattr(args, "hybrid_date", None) not in [None, ""]):
+        args.hybrid_date = str(args.hybrid_date)
+    else:
+        args.hybrid_date = datetime.now().strftime("%m_%d_%Y")
     log_print(args, f"{color.BBLUE}\n{Script_Name} ready.{color.END}")
     log_print(args, f"Execution repository: {root_label(EXEC_ROOT)} ({EXEC_ROOT})")
     log_print(args, f"Data root: {args.data_root} ({data_root_path(args.data_root)})")

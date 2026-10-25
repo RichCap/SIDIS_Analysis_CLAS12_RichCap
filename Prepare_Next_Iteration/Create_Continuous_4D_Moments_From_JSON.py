@@ -384,9 +384,9 @@ def build_data(fit_dict, info_map, y_par, args):
         # === Apply normalization correction to A only ===
         if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
             q2y_bin, zpt_bin = parse_inner_key(key_str)
-            _, Bin_Width_Area_Scale, Luminosity = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
-            if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"])):
-                scale = float(Bin_Width_Area_Scale) * float(Luminosity)
+            _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+            if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"])):
+                scale = float(Bin_Width_Area_Scale) * float(Luminosity) * float(Photon_Flux)
                 if(scale != 0.0):
                     val = val/scale
                     err = err/scale

@@ -837,6 +837,55 @@ def wait_for_remaining_slurm_tasks(args):
         print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
         time.sleep(30.0)
 
+def array_task_states(array_jobid, expected_indexes):
+    # Task rows only. Step rows such as 123_1.batch are ignored. Array task ids here are 1-based.
+    wanted = set([int(index) for index in expected_indexes])
+    found = {}
+    for attempt in range(4):
+        try:
+            proc = subprocess.run(["sacct", "-j", str(array_jobid), "--parsable2", "-n", "--format=JobID,State,ExitCode"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except Exception as exc:
+            print(f"{color.Error}[WARNING]{color.END} sacct failed for {array_jobid}: {exc}")
+            time.sleep(15)
+            continue
+        if(proc.returncode != 0):
+            print(f"{color.Error}[WARNING]{color.END} sacct for {array_jobid} returned {proc.returncode}: {proc.stderr.strip()}")
+            time.sleep(15)
+            continue
+        found = {}
+        prefix = "%s_" % array_jobid
+        for line in proc.stdout.splitlines():
+            parts = line.split("|")
+            if(len(parts) < 2):
+                continue
+            job_id = parts[0].strip()
+            if(("." in job_id) or (not job_id.startswith(prefix))):
+                continue
+            index_text = job_id[len(prefix):]
+            if(not index_text.isdigit()):
+                continue
+            exit_code = parts[2].strip() if(len(parts) > 2) else ""
+            found[int(index_text)] = (parts[1].strip().split()[0], exit_code)
+        if(wanted.issubset(set(found))):
+            return found
+        time.sleep(15)
+    return found
+
+def classify_owner_slurm(state, exit_code):
+    # Outcome of the SLURM path only. A signal is not proof that another path owns the input.
+    if((state == "COMPLETED") and str(exit_code).startswith("0:")):
+        return "success"
+    if(state in ["FAILED", "TIMEOUT", "OUT_OF_MEMORY", "NODE_FAIL", "CANCELLED"]):
+        return "failed"
+    return "unresolved"
+
+# def slurm_task_is_failure(state, index, local_ok):
+#     if(state == "COMPLETED"):
+#         return False
+#     if((state == "CANCELLED") and (index in local_ok)):
+#         return False
+#     return True
+
 def write_hybrid_filelist(output_dir, job_base, files):
     list_path = os.path.join(output_dir, f"{job_base}_filelist.txt")
     with open(list_path, "w") as fh:
@@ -884,7 +933,8 @@ def run_slurm_mode(args, variant_settings, files, output_dir, log_dir, auto_yes=
             response = "n"
     if(response not in ["y", "yes"]):
         print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting.")
-        sys.exit(0)
+        # sys.exit(0)
+        sys.exit(1)
     proc = subprocess.run(["sbatch", "--parsable", array_script], capture_output=True, text=True)
     array_id = (proc.stdout or "").strip()
     if(proc.returncode != 0 or array_id in [None, ""]):
@@ -934,12 +984,14 @@ def run_sequential(args, variant_settings, files, output_dir, log_dir):
 def run_parallel(args, variant_settings, files, output_dir, log_dir):
     results      = []
     running_jobs = []
+    slurm_owned  = []
     job_base     = variant_settings["job_base"]
     max_jobs     = args.max_jobs if(args.max_jobs > 0) else 1
     next_index   = 0
 
     def start_job(file_index, input_file):
         if(should_skip_file_due_to_slurm(args, file_index + 1)):
+            slurm_owned.append(file_index)
             Update_Email(args, update_message=f"{color.BBLUE}SKIP {color.END}: {file_index + 1:>3} of {len(files)}  (SLURM owns this file job)", verbose_override=True, no_time=False)
             return
         command = build_main_command(args, variant_settings, input_file)
@@ -976,6 +1028,12 @@ def run_parallel(args, variant_settings, files, output_dir, log_dir):
         if(return_code is None):
             return False
         job_item["result"]["returncode"] = return_code
+        job_item["result"]["owner"] = "local"
+        job_item["result"]["outcome"] = "success" if(return_code == 0) else "failed"
+        try:
+            job_item["log_handle"].write("# owner=local rc=%s outcome=%s\n" % (return_code, job_item["result"]["outcome"]))
+        except Exception:
+            pass
         try:
             job_item["log_handle"].close()
         except Exception:
@@ -985,9 +1043,9 @@ def run_parallel(args, variant_settings, files, output_dir, log_dir):
         except Exception:
             pass
         if(return_code == 0):
-            Update_Email(args, update_message=f"{color.BGREEN}DONE {color.END}: {job_item['result']['index'] + 1:>3} of {len(files)}", verbose_override=True, no_time=False)
+            Update_Email(args, update_message=f"{color.BGREEN}DONE {color.END}: {job_item['result']['index'] + 1:>3} of {len(files)} owner=local", verbose_override=True, no_time=False)
         else:
-            Update_Email(args, update_message=f"{color.Error}FAIL {color.END}: {job_item['result']['index'] + 1:>3} of {len(files)}  (rc={return_code})", verbose_override=True, no_time=False)
+            Update_Email(args, update_message=f"{color.Error}FAIL {color.END}: {job_item['result']['index'] + 1:>3} of {len(files)}  (rc={return_code}) owner=local", verbose_override=True, no_time=False)
         results.append(job_item["result"])
         return True
     
@@ -1033,6 +1091,20 @@ def run_parallel(args, variant_settings, files, output_dir, log_dir):
         else:
             time.sleep(0.50)
     wait_for_remaining_slurm_tasks(args)
+    if(getattr(args, "slurm_array_jobid", None) not in [None, ""]):
+        expected = list(range(1, len(files) + 1))
+        states = array_task_states(args.slurm_array_jobid, expected)
+        owned = set([int(result["index"]) for result in results])
+        for task_id in expected:
+            file_index = task_id - 1
+            if(file_index in owned):
+                continue
+            if(file_index not in slurm_owned):
+                results.append({"index": file_index, "input_file": files[file_index], "command": [], "log_path": "", "err_path": "", "returncode": 1, "owner": "", "outcome": "unresolved", "slurm_state": ""})
+                continue
+            state, exit_code = states.get(task_id, ("", ""))
+            outcome = classify_owner_slurm(state, exit_code)
+            results.append({"index": file_index, "input_file": files[file_index], "command": [], "log_path": "", "err_path": "", "returncode": 0 if(outcome == "success") else 1, "owner": "slurm", "outcome": outcome, "slurm_state": state, "slurm_exit": exit_code})
     return sorted(results, key=lambda item: item["index"])
 
 
@@ -1086,6 +1158,15 @@ def main():
     # === NEW: Track peak memory used by all child jobs ===
     peak_mem_str = estimate_peak_memory_children()
     build_email_summary(args, variant_settings, files, results, output_dir, log_dir, Peak_Mem=peak_mem_str)
+    fail_jobs = 0
+    for result in results:
+        outcome = result.get("outcome")
+        if(outcome in ["failed", "unresolved"]):
+            fail_jobs += 1
+        elif((outcome != "success") and (result.get("returncode", 1) != 0)):
+            fail_jobs += 1
+    if(fail_jobs > 0):
+        sys.exit(1)
 
 
 if(__name__ == "__main__"):

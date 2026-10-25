@@ -479,6 +479,58 @@ def slurm_array_has_active_tasks(array_jobid):
     return True
 
 
+def array_task_states(array_jobid, expected_indexes):
+    # Task rows only. Step rows such as 123_0.batch are ignored.
+    wanted = set([int(index) for index in expected_indexes])
+    found = {}
+    for attempt in range(4):
+        try:
+            proc = subprocess.run(["sacct", "-j", str(array_jobid), "--parsable2", "-n", "--format=JobID,State,ExitCode"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except Exception as exc:
+            print(f"{color.Error}[WARNING]{color.END} sacct failed for {array_jobid}: {exc}")
+            time.sleep(15)
+            continue
+        if(proc.returncode != 0):
+            print(f"{color.Error}[WARNING]{color.END} sacct for {array_jobid} returned {proc.returncode}: {proc.stderr.strip()}")
+            time.sleep(15)
+            continue
+        found = {}
+        prefix = "%s_" % array_jobid
+        for line in proc.stdout.splitlines():
+            parts = line.split("|")
+            if(len(parts) < 2):
+                continue
+            job_id = parts[0].strip()
+            if(("." in job_id) or (not job_id.startswith(prefix))):
+                continue
+            index_text = job_id[len(prefix):]
+            if(not index_text.isdigit()):
+                continue
+            exit_code = parts[2].strip() if(len(parts) > 2) else ""
+            found[int(index_text)] = (parts[1].strip().split()[0], exit_code)
+        if(wanted.issubset(set(found))):
+            return found
+        time.sleep(15)
+    return found
+
+
+def classify_owner_slurm(state, exit_code):
+    # Outcome of the SLURM path only. A signal is not proof that another path owns the input.
+    if((state == "COMPLETED") and str(exit_code).startswith("0:")):
+        return "success"
+    if(state in ["FAILED", "TIMEOUT", "OUT_OF_MEMORY", "NODE_FAIL", "CANCELLED"]):
+        return "failed"
+    return "unresolved"
+
+
+# def slurm_task_is_failure(state, index, local_ok):
+#     if(state == "COMPLETED"):
+#         return False
+#     if((state == "CANCELLED") and (index in local_ok)):
+#         return False
+#     return True
+
+
 def build_slurm_array_script_text(script_path, manifest_path, job_name, email_address, slurm_time, slurm_mem_per_cpu, slurm_partition, slurm_account, array_spec, work_dir, mkdir_work_dir=False):
     safe_script_path   = str(script_path).replace('"', '\\"')
     safe_manifest_path = str(manifest_path).replace('"', '\\"')
@@ -961,6 +1013,7 @@ Overall success: {overall_success}
         args.email_message = f"{args.email_message}\n{parallel_email_text}" if(args.email_message) else parallel_email_text
 
         running = []   # list of dicts: {"proc":..., "fh":..., "log":..., "filepath":..., "idx":...}
+        owners  = {}
         num_started = 0
         num_done    = 0
         num_fail    = 0
@@ -972,16 +1025,19 @@ Overall success: {overall_success}
                 if(state == "IGNORE"):
                     pass
                 elif(state is None):
-                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{job_num} not found; assuming completed and skipping.")
+                    owners[job_num] = "slurm"
+                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{job_num} not found; leaving it to SLURM.")
                     return
                 elif(state == "PD"):
                     print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{job_num} is pending; attempting to cancel.")
                     cancelled = cancel_slurm_array_task(args.slurm_array_jobid, job_num)
                     if(not cancelled):
-                        print(f"{color.BYELLOW}[INFO]{color.END} Could not cancel task {args.slurm_array_jobid}_{job_num}; skipping to avoid double-processing.")
+                        owners[job_num] = "slurm"
+                        print(f"{color.BYELLOW}[INFO]{color.END} Could not cancel task {args.slurm_array_jobid}_{job_num}; leaving it to SLURM.")
                         return
                 else:
-                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{job_num} is in state '{state}'; skipping to avoid double-processing.")
+                    owners[job_num] = "slurm"
+                    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {args.slurm_array_jobid}_{job_num} is in state '{state}'; leaving it to SLURM.")
                     return
             command   = ["run-groovy", script_path_final, filepath]
             base      = os.path.basename(filepath).replace(" ", "_")
@@ -989,6 +1045,7 @@ Overall success: {overall_success}
                 log_p = os.path.join(log_dir, f"job_gen_{job_num:05d}_{base}.log")
             else:
                 log_p = os.path.join(log_dir, f"job_{job_num:05d}_{base}.log")
+            owners[job_num] = "local"
             fh        = open(log_p, "w")
             fh.write(f"# {' '.join(shlex.quote(x) for x in command)}\n")
             fh.flush()
@@ -1001,18 +1058,20 @@ Overall success: {overall_success}
         def finish_job(item, rc):
             nonlocal num_done, num_fail
             num_done += 1
+            outcome = "success" if(rc == 0) else "failed"
             try:
+                item["fh"].write("# owner=local rc=%s outcome=%s\n" % (rc, outcome))
                 item["fh"].close()
             except Exception:
                 pass
             base = os.path.basename(item["filepath"]).replace(" ", "_")
             if(rc == 0):
-                print(f"{color.BGREEN}DONE {color.END}: {item['idx']+1:>3.0f} of {len(batch_iterable)}  ->  {base}")
+                print(f"{color.BGREEN}DONE {color.END}: {item['idx']+1:>3.0f} of {len(batch_iterable)}  ->  {base} owner=local")
             else:
                 num_fail += 1
-                print(f"{color.Error}FAIL {color.END}: {item['idx']+1:>3.0f} of {len(batch_iterable)}  ->  {base} (rc={rc})")
+                print(f"{color.Error}FAIL {color.END}: {item['idx']+1:>3.0f} of {len(batch_iterable)}  ->  {base} (rc={rc}) owner=local")
                 print(f"\tlog: {item['log']}")
-            results.append({"index": item["idx"], "file": item["filepath"], "rc": rc})
+            results.append({"index": item["idx"], "file": item["filepath"], "rc": rc, "owner": "local", "outcome": outcome})
             return
 
         # Start jobs
@@ -1053,8 +1112,32 @@ Overall success: {overall_success}
             finish_job(finished_item, finished_rc)
 
         # === REUSE THE SAME POST-PROCESSING + EMAIL LOGIC AS SEQUENTIAL MODE ===
-        failed = [rr for rr in results if(rr.get("rc", 0) != 0)] if(results) else []
-        overall_success = (len(failed) == 0)
+        if(args.slurm_array_jobid not in [None, ""]):
+            while(slurm_array_has_active_tasks(args.slurm_array_jobid)):
+                print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
+                time.sleep(60)
+            expected = []
+            for item in batch_iterable:
+                if(isinstance(item, int)):
+                    expected.append(item)
+            states = array_task_states(args.slurm_array_jobid, expected)
+            owned = set([rr["index"] for rr in results])
+            for index in expected:
+                if(index in owned):
+                    continue
+                if(owners.get(index) != "slurm"):
+                    results.append({"index": index, "file": expanded_files[index], "rc": 1, "owner": "", "outcome": "unresolved", "slurm_state": ""})
+                    continue
+                state, exit_code = states.get(index, ("", ""))
+                outcome = classify_owner_slurm(state, exit_code)
+                rc = 0 if(outcome == "success") else 1
+                if(outcome == "failed"):
+                    num_fail += 1
+                results.append({"index": index, "file": expanded_files[index], "rc": rc, "owner": "slurm", "outcome": outcome, "slurm_state": state, "slurm_exit": exit_code})
+                print(f"{color.BBLUE}[INFO]{color.END} index {index} owner=slurm outcome={outcome} state={state if(state) else 'missing'}")
+        failed = [rr for rr in results if(rr.get("outcome", "failed" if(rr.get("rc", 0) != 0) else "success") == "failed")] if(results) else []
+        unresolved = [rr for rr in results if(rr.get("outcome") == "unresolved")] if(results) else []
+        overall_success = ((len(failed) == 0) and (len(unresolved) == 0))
 
         peak_mem_str = estimate_peak_memory_children()
 
@@ -1065,12 +1148,17 @@ Overall success: {overall_success}
         if(len(failed) > 0):
             failures_block = ""
             for rr in failed:
-                failures_block = f"{failures_block}  [{rr['index']:05d}] rc={rr['rc']} file={rr['file']}\n"
+                failures_block = f"{failures_block}  [{rr['index']:05d}] owner={rr.get('owner', '')} outcome=failed rc={rr['rc']} state={rr.get('slurm_state', '')} file={rr['file']}\n"
             failures_block = failures_block.rstrip("\n")
+        if(len(unresolved) > 0):
+            unresolved_block = ""
+            for rr in unresolved:
+                unresolved_block = f"{unresolved_block}  [{rr['index']:05d}] owner={rr.get('owner', '')} outcome=unresolved file={rr['file']}\n"
+            failures_block = f"{failures_block}\nUnresolved items:\n{unresolved_block.rstrip(chr(10))}"
 
         processed_block = ""
         for rr in results:
-            line = f"[{rr['index']:05d}] {rr['file']} ({rr.get('done', 'N/A')}) [rc={rr['rc']}]"
+            line = f"[{rr['index']:05d}] {rr['file']} ({rr.get('done', 'N/A')}) [owner={rr.get('owner', '')} outcome={rr.get('outcome', '')} rc={rr['rc']}]"
             processed_block = f"{processed_block}{line}\n"
         processed_block = processed_block.rstrip("\n")
 

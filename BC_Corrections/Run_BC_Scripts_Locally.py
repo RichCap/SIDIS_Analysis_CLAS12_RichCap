@@ -21,6 +21,47 @@ del script_dir
 
 SLURM_ARRAY_CHECK_DISABLED = False
 
+def bc_popen_when_slot(command, stdout_handle, running, finish_job):
+    # campaign local resource gate
+    boot = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if(boot not in sys.path):
+        sys.path.insert(0, boot)
+    from Campaign.local_resource_gate import try_acquire, bind_worker, release
+    data_root = os.environ.get("SIDIS_DATA_ROOT", "work_b")
+    while(True):
+        ok, token = try_acquire(data_root, "bc")
+        if(ok):
+            break
+        still = []
+        progressed = False
+        for item in list(running):
+            rc = item["proc"].poll()
+            if(rc is None):
+                still.append(item)
+            else:
+                finish_job(item, rc)
+                progressed = True
+        running[:] = still
+        if(not progressed):
+            time.sleep(1.0)
+    try:
+        proc = subprocess.Popen(command, stdout=stdout_handle, stderr=stdout_handle)
+    except Exception:
+        release(data_root, token)
+        raise
+    bind_worker(data_root, token, proc.pid)
+    return proc, token, data_root
+
+def bc_release_slot(item):
+    token = item.get("slot")
+    if(token in [None, ""]):
+        return
+    boot = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if(boot not in sys.path):
+        sys.path.insert(0, boot)
+    from Campaign.local_resource_gate import release
+    release(item.get("data_root", os.environ.get("SIDIS_DATA_ROOT", "work_b")), token)
+
 class RawDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
     pass
 def parse_args():
@@ -99,12 +140,14 @@ def parse_args():
                         help="Noninteractive approval of SLURM submission (slurm/hybrid).\n")
 
     parser.add_argument("-ord", "--output_root_dir",
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/ROOT_Files_Output/Path_to_Volatile",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/ROOT_Files_Output/Path_to_Volatile",
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "ROOT_Files_Output", "Path_to_Volatile"),
                         type=str,
                         help="Parent directory for run-specific ROOT outputs (a <run_tag> subdirectory is created).\n")
 
     parser.add_argument("-ld", "--log_dir",
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/BC_Log_and_Old_Files",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections/BC_Log_and_Old_Files",
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "BC_Log_and_Old_Files"),
                         type=str,
                         help="Parent directory for run-specific logs, file lists, and SLURM scripts.\n")
 
@@ -401,7 +444,9 @@ def write_slurm_array_script(args, script_path, file_list_path, base_cmd, array_
         raise ValueError("SLURM array range is empty.")
     array_spec = f"{array_lo}-{array_hi}"
     cmd_prefix = " ".join([shlex.quote(x) for x in base_cmd])
-    work_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections"
+    # work_dir = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/BC_Corrections"
+    # The checkout that launches this script is the one SLURM must run. A shelf cd writes the old code's outputs.
+    work_dir = os.path.dirname(os.path.abspath(__file__))
 
     lines = []
     lines.append("#!/bin/bash")
@@ -541,6 +586,55 @@ def wait_until_slurm_idle(array_jobid, poll_seconds=30.0):
         time.sleep(max(1.0, float(poll_seconds)))
     print(f"{color.BGREEN}[INFO]{color.END} No active SLURM tasks remain for array job {array_jobid}.")
 
+def array_task_states(array_jobid, expected_indexes):
+    # Task rows only. Step rows such as 123_0.batch are ignored.
+    wanted = set([int(index) for index in expected_indexes])
+    found = {}
+    for attempt in range(4):
+        try:
+            proc = subprocess.run(["sacct", "-j", str(array_jobid), "--parsable2", "-n", "--format=JobID,State,ExitCode"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except Exception as exc:
+            print(f"{color.Error}[WARNING]{color.END} sacct failed for {array_jobid}: {exc}")
+            time.sleep(15)
+            continue
+        if(proc.returncode != 0):
+            print(f"{color.Error}[WARNING]{color.END} sacct for {array_jobid} returned {proc.returncode}: {proc.stderr.strip()}")
+            time.sleep(15)
+            continue
+        found = {}
+        prefix = "%s_" % array_jobid
+        for line in proc.stdout.splitlines():
+            parts = line.split("|")
+            if(len(parts) < 2):
+                continue
+            job_id = parts[0].strip()
+            if(("." in job_id) or (not job_id.startswith(prefix))):
+                continue
+            index_text = job_id[len(prefix):]
+            if(not index_text.isdigit()):
+                continue
+            exit_code = parts[2].strip() if(len(parts) > 2) else ""
+            found[int(index_text)] = (parts[1].strip().split()[0], exit_code)
+        if(wanted.issubset(set(found))):
+            return found
+        time.sleep(15)
+    return found
+
+def classify_owner_slurm(state, exit_code):
+    # Outcome of the SLURM path only. A signal is not proof that another path owns the input.
+    if((state == "COMPLETED") and str(exit_code).startswith("0:")):
+        return "success"
+    if(state in ["FAILED", "TIMEOUT", "OUT_OF_MEMORY", "NODE_FAIL", "CANCELLED"]):
+        return "failed"
+    return "unresolved"
+
+# def slurm_task_is_failure(state, index, local_ok):
+#     if(state == "COMPLETED"):
+#         return False
+#     if((state == "CANCELLED") and (index in local_ok)):
+#         return False
+#     return True
+
 def should_start_local_hybrid_job(array_jobid, job_index):
     # Hybrid ownership (squeue-based): PD -> cancel then local; active/absent/IGNORE -> skip local.
     state = query_slurm_array_task_state(array_jobid, job_index)
@@ -651,8 +745,8 @@ def main():
             fh.write(f"# expected_output={expected}\n")
             fh.write(f"# command={' '.join(shlex.quote(x) for x in command)}\n")
             fh.flush()
-            proc    = subprocess.Popen(command, stdout=fh, stderr=fh)
-            running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "num": job_num})
+            proc, token, data_root = bc_popen_when_slot(command, fh, running, finish_job)
+            running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "num": job_num, "slot": token, "data_root": data_root})
             # Original style (1-based progress count of N files):
             print(f"{color.BCYAN}START{color.END}: {job_num+1:>3.0f} of {len(files)}  ->  {base}")
             # Alternate zero-based index form: print(f"{color.BCYAN}START{color.END}: index {job_num:>3d} of 0..{n_files-1}  ->  {base}")
@@ -662,6 +756,7 @@ def main():
             nonlocal num_done
             nonlocal num_fail
             num_done += 1
+            bc_release_slot(item)
             try:
                 item["fh"].close()
             except Exception:
@@ -794,7 +889,8 @@ def main():
         if(not approve_submission(args)):
             print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting without submission.")
             timer.stop()
-            return 0
+            # return 0
+            return 1
         array_id = submit_sbatch(script_path)
         jobid_path = os.path.join(log_run_dir, "slurm_array_jobid.txt")
         with open(jobid_path, "w") as fh:
@@ -844,6 +940,7 @@ def main():
         num_fail = 0
         failed_indices = []
         skipped_indices = []
+        local_ok = []
 
         if(array_lo is not None):
             script_path = os.path.join(log_run_dir, f"slurm_array_{run_tag}.sh")
@@ -854,7 +951,8 @@ def main():
             if(not approve_submission(args)):
                 print(f"{color.Error}[ERROR]{color.END} SLURM script not approved. Exiting without hybrid run.")
                 timer.stop()
-                return 0
+                # return 0
+                return 1
             array_id = submit_sbatch(script_path)
             jobid_path = os.path.join(log_run_dir, "slurm_array_jobid.txt")
             with open(jobid_path, "w") as fh:
@@ -875,19 +973,23 @@ def main():
                 fh.write(f"# expected_output={expected}\n")
                 fh.write(f"# command={' '.join(shlex.quote(x) for x in command)}\n")
                 fh.flush()
-                proc = subprocess.Popen(command, stdout=fh, stderr=fh)
-                running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "num": job_num})
+                proc, token, data_root = bc_popen_when_slot(command, fh, running, finish_job)
+                running.append({"proc": proc, "fh": fh, "log": log_p, "filepath": filepath, "num": job_num, "slot": token, "data_root": data_root})
                 print(f"{color.BCYAN}START{color.END}: {job_num+1:>3.0f} of {len(files)}  ->  {base}")
 
             def finish_job(item, rc):
                 nonlocal num_fail
+                bc_release_slot(item)
+                outcome = "success" if(rc == 0) else "failed"
                 try:
+                    item["fh"].write("# owner=local rc=%s outcome=%s\n" % (rc, outcome))
                     item["fh"].close()
                 except Exception:
                     pass
                 base = os.path.basename(item["filepath"]).replace(" ", "_")
                 if(rc == 0):
-                    print(f"{color.BGREEN}DONE {color.END}: {item['num']+1:>3.0f} of {len(files)}  ->  {base}")
+                    local_ok.append(item["num"])
+                    print(f"{color.BGREEN}DONE {color.END}: {item['num']+1:>3.0f} of {len(files)}  ->  {base} owner=local")
                 else:
                     num_fail += 1
                     failed_indices.append(item["num"])
@@ -947,6 +1049,26 @@ def main():
                     return 1
 
             wait_until_slurm_idle(array_id, poll_seconds=args.poll_seconds)
+            if(array_id not in [None, ""]):
+                expected = list(range(0, max(0, n_files - 1)))
+                states = array_task_states(array_id, expected)
+                local_owned = set(local_ok) | set(failed_indices)
+                for index in expected:
+                    if(index in local_owned):
+                        continue
+                    if(index not in skipped_indices):
+                        num_fail += 1
+                        failed_indices.append(index)
+                        print(f"{color.Error}UNRESOLVED {color.END}: index {index} has no owning path")
+                        continue
+                    state, exit_code = states.get(index, ("", ""))
+                    outcome = classify_owner_slurm(state, exit_code)
+                    if(outcome != "success"):
+                        num_fail += 1
+                        failed_indices.append(index)
+                        print(f"{color.Error}{outcome.upper()} {color.END}: index {index} owner=slurm state={state if(state) else 'missing'}")
+                    else:
+                        print(f"{color.BGREEN}DONE {color.END}: index {index} owner=slurm")
 
         if(n_files > 0):
             final_rc = run_final_file(args, base_cmd, files[-1], timer)

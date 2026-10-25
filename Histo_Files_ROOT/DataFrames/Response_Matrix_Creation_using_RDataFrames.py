@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import argparse
+import json
 import ROOT, re
 # import traceback
 import os
@@ -115,6 +116,21 @@ def parse_args():
     parser.add_argument('-bpo', '--binning_presentation_only',
                         action='store_true',
                         help="Book only the binning-presentation TH3D families (no 3D/5D response matrices and no ordinary 2D set: the kinematic plots filled against Q2-y bins rather than z-pT bins).\n")
+    parser.add_argument('-dph', '--delta_phi_h',
+                        action='store_true',
+                        help="Book per-analysis-bin Delta phi_h diagnostics. MC uses phi_t_smeared - phi_t. This is not the particle-matching systematic and not Only_1D unfolding.\n")
+    parser.add_argument('-o1d', '--only_1d',
+                        action='store_true',
+                        help="Book the 1D phi_h response and kinematic distributions, then exit before the 2D/3D/5D response matrices.\n")
+    parser.add_argument('-d1d', '--diagnostic_1d',
+                        action='store_true',
+                        help="Book the 1D momentum, matching, and contamination diagnostics, then exit before the 2D/3D/5D response matrices.\n")
+    parser.add_argument('-ch4', '--ch4_diagnostics',
+                        action='store_true',
+                        help="Book only the Chapter 4 delta-phi_h and electron/pion momentum-smearing histograms, and write per-batch matching counts. Skips real data and the response matrices.\n")
+    parser.add_argument('-mco', '--mc_only',
+                        action='store_true',
+                        help="Do not open real-data DataFrames. Used with --ch4_diagnostics.\n")
     parser.add_argument('-u5D', '--unfold_5D',
                         action='store_true',
                         help='Makes the response matrices for the full 5D unfolding (will run in addition to the 3D unfolding done by default).\n')
@@ -171,7 +187,8 @@ def parse_args():
                         help="Use unsmeared reconstructed-MC columns (Histo_Smear=''). Required for cut_Complete_SIDIS_noSmear.\n")
     parser.add_argument('-mac', '--matching_criteria',
                         type=str,
-                        default="_gen",
+                        # default="_gen",
+                        default="Bank",
                         choices=list(MATCHING_MODE_ALIASES),
                         help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     parser.add_argument('-f', '--fast',
@@ -527,6 +544,9 @@ def Create_z1_plus_z2(args, df, df_name="rdf"):
                 Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{df_name}' cannot define 'z1_plus_z2{col_type}' due to missing columns{color.END}", verbose_override=True, no_time=True)
     return df
 
+# RHO_NORM_RHO0_NEW = 1.0
+RHO_NORM_RHO0_NEW = 2.4020823572173544
+
 def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
     if(( not df.HasColumn("exclusive_rho_full")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho", "pim_present", "proton_present"])):
         print(f"\t{color.Error}WARNING: '{dfname}' is missing 'exclusive_rho_full'){color.END}")
@@ -564,8 +584,12 @@ def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
         elif(not df.HasColumn(f"exclusive_rho_individual{smear}")):
             Update_Email(args, update_message=f"\t{color.ERROR}MAJOR WARNING{color.END_e}: '{dfname}' cannot define 'exclusive_rho_full{smear}' due to missing columns{color.END}", verbose_override=True, no_time=True)
     if(getattr(args, "run_rho_weight", False) and (not df.HasColumn("exclusive_rho_weight")) and all(df.HasColumn(needed_rho) for needed_rho in ["exclusive_rho"])):
-        weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 4.526912 if(lundrho_files in ["lundrho"]) else 4.624974 if(lundrho_files in ["lundvpk"]) else 1.0
-        weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 4.526912 if(lundrho_files in ["lundrho"]) else 4.624974 if(lundrho_files in ["lundvpk"]) else 1.0
+        rho0_new_norm = RHO_NORM_RHO0_NEW
+        if(lundrho_files in ["rho0_new"]):
+            from Campaign.ifarm_inputs import registered_rho0_new_norm
+            rho0_new_norm = registered_rho0_new_norm()
+        weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 4.526912 if(lundrho_files in ["lundrho"]) else 4.624974 if(lundrho_files in ["lundvpk"]) else rho0_new_norm if(lundrho_files in ["rho0_new"]) else 1.0
+        weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 4.526912 if(lundrho_files in ["lundrho"]) else 4.624974 if(lundrho_files in ["lundvpk"]) else rho0_new_norm if(lundrho_files in ["rho0_new"]) else 1.0
         # Invalid (rho weights were already applied to the ROOT inputs used to derive these factors — do not use):
         # weight_with_rho = 1.0 if(dfname == "rdf") else 0.0 if(lundrho_files in [""]) else 1.084134 if(lundrho_files in ["lundrho"]) else 1.083707 if(lundrho_files in ["lundvpk"]) else 1.0
         # weight_wout_rho = 1.0 if(dfname == "rdf") else 1.0 if(lundrho_files in [""]) else 1.084134 if(lundrho_files in ["lundrho"]) else 1.083707 if(lundrho_files in ["lundvpk"]) else 1.0 
@@ -579,6 +603,237 @@ def Make_exclusive_rho_Flags(args, df, dfname, lundrho_files=""):
         df = df.Define("exclusive_rho_weight", f'''double exclusive_rho_weight = 1.0;
             return exclusive_rho_weight;''')
     return df
+
+def rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC=False, data=""):
+    # Previous expression, kept for reference:
+    # None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk"
+    # None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk"
+    if("rdf" in str(data)):
+        return None
+    if(rho0_new_MC):
+        return "rho0_new"
+    if(not (lundrho_MC or lundvpk_MC)):
+        return None
+    if(lundrho_MC):
+        return "lundrho"
+    return "lundvpk"
+
+def ch4_sample_class(paths):
+    # File_Batches keeps clasdis, lundvpk, lundrho, and rho0_new in separate batches.
+    from Campaign.ifarm_inputs import classify_rho_name
+    labels = []
+    for path in paths:
+        low = str(path).lower()
+        rho_label = classify_rho_name(path)
+        if(rho_label in ["lundvpk", "lundrho", "rho0_new"]):
+            label = rho_label
+        # elif("lundvpk" in low):
+        #     label = "lundvpk"
+        # elif("lundrho" in low):
+        #     label = "lundrho"
+        else:
+            label = "clasdis"
+        if(label not in labels):
+            labels.append(label)
+    if(len(labels) == 0):
+        return "none"
+    if(len(labels) == 1):
+        return labels[0]
+    return "mixed"
+
+def ch4_column_names(df):
+    return set(str(name) for name in df.GetColumnNames())
+
+def ch4_particle_matched(pid_name, px_name, py_name, pz_name, columns):
+    # Groovy writes an unmatched particle as PID 0 and zero generated momentum. Saved DataFrames keep PID_el for the default angular match but drop unsuffixed ex_gen.
+    if(pid_name not in columns):
+        return None
+    if(all(name in columns for name in [px_name, py_name, pz_name])):
+        return f"(({pid_name}!=0) || ({px_name}!=0) || ({py_name}!=0) || ({pz_name}!=0))"
+    return f"({pid_name}!=0)"
+
+def ch4_match_counts(df, columns):
+    angular_el  = ch4_particle_matched("PID_el",      "ex_gen",      "ey_gen",      "ez_gen",      columns)
+    angular_pip = ch4_particle_matched("PID_pip",     "pipx_gen",    "pipy_gen",    "pipz_gen",    columns)
+    bank_el     = ch4_particle_matched("PID_el_Bank", "ex_gen_Bank", "ey_gen_Bank", "ez_gen_Bank", columns)
+    bank_pip    = ch4_particle_matched("PID_pip_Bank","pipx_gen_Bank","pipy_gen_Bank","pipz_gen_Bank", columns)
+    pending = {"n_entries": df.Count()}
+    if((angular_el is None) or (angular_pip is None) or (bank_el is None) or (bank_pip is None)):
+        return pending, {"match_columns_present": False}
+    angular = f"({angular_el} && {angular_pip})"
+    bank    = f"({bank_el} && {bank_pip})"
+    pending["angular_matched"] = df.Filter(angular).Count()
+    pending["bank_matched"]    = df.Filter(bank).Count()
+    pending["both"]            = df.Filter(f"({angular} && {bank})").Count()
+    pending["angular_only"]    = df.Filter(f"({angular} && !({bank}))").Count()
+    pending["bank_only"]       = df.Filter(f"(!({angular}) && {bank})").Count()
+    pending["neither"]         = df.Filter(f"(!({angular}) && !({bank}))").Count()
+    return pending, {"match_columns_present": True}
+
+def ch4_book_histograms(df, histograms, columns):
+    if(("phi_t" in columns) and ("phi_t_smeared" in columns)):
+        df = df.Define("ch4_delta_phi_h", """
+            double dphi = phi_t_smeared - phi_t;
+            while(dphi > 180.0){ dphi -= 360.0; }
+            while(dphi <= -180.0){ dphi += 360.0; }
+            return dphi;""")
+        histograms["ch4_delta_phi_h"] = df.Histo1D(("ch4_delta_phi_h", "#Delta#phi_{h} = #phi_{h,smeared} - #phi_{h};#Delta#phi_{h} [deg];Events", 180, -180.0, 180.0), "ch4_delta_phi_h")
+    if(("el" in columns) and ("el_smeared" in columns)):
+        df = df.Define("ch4_delta_P_el", "el_smeared - el")
+        df = df.Define("ch4_rel_P_el", "(el!=0) ? ((el_smeared - el)/el) : 0")
+        histograms["ch4_delta_P_el"] = df.Histo1D(("ch4_delta_P_el", "Electron #DeltaP = P_{smeared} - P;#DeltaP [GeV];Events", 200, -0.5, 0.5), "ch4_delta_P_el")
+        histograms["ch4_rel_P_el"]   = df.Histo1D(("ch4_rel_P_el", "Electron (P_{smeared}-P)/P;(P_{smeared}-P)/P;Events", 200, -0.2, 0.2), "ch4_rel_P_el")
+    if(("pip" in columns) and ("pip_smeared" in columns)):
+        df = df.Define("ch4_delta_P_pip", "pip_smeared - pip")
+        df = df.Define("ch4_rel_P_pip", "(pip!=0) ? ((pip_smeared - pip)/pip) : 0")
+        histograms["ch4_delta_P_pip"] = df.Histo1D(("ch4_delta_P_pip", "Pion #DeltaP = P_{smeared} - P;#DeltaP [GeV];Events", 200, -0.5, 0.5), "ch4_delta_P_pip")
+        histograms["ch4_rel_P_pip"]   = df.Histo1D(("ch4_rel_P_pip", "Pion (P_{smeared}-P)/P;(P_{smeared}-P)/P;Events", 200, -0.2, 0.2), "ch4_rel_P_pip")
+    if(("Q2_Y_Bin" in ch4_column_names(df)) and ("z_pT_Bin_Y_bin" in ch4_column_names(df))):
+        if("Q2_y_z_pT_4D_Bins" not in ch4_column_names(df)):
+            df = df.Define("Q2_y_z_pT_4D_Bins", Q2_y_z_pT_4D_Bin_Def_Function_New(""))
+        if("ch4_delta_phi_h" in ch4_column_names(df)):
+            histograms["ch4_delta_phi_h_vs_4D"] = df.Histo2D(("ch4_delta_phi_h_vs_4D", "#Delta#phi_{h} vs 4D bin;4D bin;#Delta#phi_{h} [deg]", 516, -0.5, 515.5, 180, -180.0, 180.0), "Q2_y_z_pT_4D_Bins", "ch4_delta_phi_h")
+        if("ch4_delta_P_el" in ch4_column_names(df)):
+            histograms["ch4_delta_P_el_vs_4D"] = df.Histo2D(("ch4_delta_P_el_vs_4D", "Electron #DeltaP vs 4D bin;4D bin;#DeltaP [GeV]", 516, -0.5, 515.5, 200, -0.5, 0.5), "Q2_y_z_pT_4D_Bins", "ch4_delta_P_el")
+            histograms["ch4_rel_P_el_vs_4D"]   = df.Histo2D(("ch4_rel_P_el_vs_4D", "Electron (P_{smeared}-P)/P vs 4D bin;4D bin;(P_{smeared}-P)/P", 516, -0.5, 515.5, 200, -0.2, 0.2), "Q2_y_z_pT_4D_Bins", "ch4_rel_P_el")
+        if("ch4_delta_P_pip" in ch4_column_names(df)):
+            histograms["ch4_delta_P_pip_vs_4D"] = df.Histo2D(("ch4_delta_P_pip_vs_4D", "Pion #DeltaP vs 4D bin;4D bin;#DeltaP [GeV]", 516, -0.5, 515.5, 200, -0.5, 0.5), "Q2_y_z_pT_4D_Bins", "ch4_delta_P_pip")
+            histograms["ch4_rel_P_pip_vs_4D"]   = df.Histo2D(("ch4_rel_P_pip_vs_4D", "Pion (P_{smeared}-P)/P vs 4D bin;4D bin;(P_{smeared}-P)/P", 516, -0.5, 515.5, 200, -0.2, 0.2), "Q2_y_z_pT_4D_Bins", "ch4_rel_P_pip")
+    return df
+
+def run_ch4_diagnostics(args, all_root_files):
+    # Same post-selection snapshot as the histogram workflow. Counts use the columns before matching_criteria rewrites the canonical generated momenta.
+    summary = {
+        "denominator": "entries remaining after the cut already applied by this RDataFrame snapshot",
+        "cut_mdf": str(args.cut_name_mdf),
+        "cut_gdf": str(args.cut_name_gdf),
+        "mdf_files": list(all_root_files.get("mdf_clasdis", [])),
+        "gdf_files": list(all_root_files.get("gdf_clasdis", [])),
+    }
+    summary["sample_class"] = ch4_sample_class(summary["mdf_files"] if(len(summary["mdf_files"]) > 0) else summary["gdf_files"])
+    histograms = {}
+    mdf_files = summary["mdf_files"]
+    gdf_files = summary["gdf_files"]
+    if(len(mdf_files) > 0):
+        mdf = ROOT.RDataFrame("h22", mdf_files)
+        if(args.cut_name_mdf not in ["", "no_cut"]):
+            mdf = mdf.Filter(args.cut_name_mdf)
+        columns = ch4_column_names(mdf)
+        pending_counts, count_flags = ch4_match_counts(mdf, columns)
+        summary["mdf"] = dict(count_flags)
+        summary["mdf"]["phi_t_present"] = ("phi_t" in columns) and ("phi_t_smeared" in columns)
+        summary["mdf"]["momentum_present"] = ("el" in columns) and ("el_smeared" in columns) and ("pip" in columns) and ("pip_smeared" in columns)
+        ch4_book_histograms(mdf, histograms, columns)
+        actions = list(pending_counts.values()) + list(histograms.values())
+        if(hasattr(ROOT, "RDF") and hasattr(ROOT.RDF, "RunGraphs")):
+            ROOT.RDF.RunGraphs(actions)
+        filled = {}
+        for key, action in pending_counts.items():
+            filled[key] = int(action.GetValue())
+        if("n_entries" in filled):
+            if("angular_matched" in filled):
+                filled["angular_unmatched"] = filled["n_entries"] - filled["angular_matched"]
+            if("bank_matched" in filled):
+                filled["bank_unmatched"] = filled["n_entries"] - filled["bank_matched"]
+        summary["mdf"].update(filled)
+    else:
+        summary["mdf"] = {"n_entries": 0, "match_columns_present": False}
+    if(len(gdf_files) > 0):
+        gdf = ROOT.RDataFrame("h22", gdf_files)
+        summary["gdf"] = {"n_entries": int(gdf.Count().GetValue()), "note": "generated DataFrame entries with cut_name_gdf=no_cut; reconstructed matching is not applied"}
+    else:
+        summary["gdf"] = {"n_entries": 0, "note": "no generated files in this batch"}
+    sample_class = summary["sample_class"]
+    out_root = ROOT.TFile(args.root, "RECREATE")
+    if(len(histograms) == 0):
+        empty = ROOT.TH1D(f"ch4_{sample_class}_no_reconstructed_histograms", "No reconstructed Chapter 4 histograms in this batch", 1, 0, 1)
+        empty.SetBinContent(1, float(summary["gdf"]["n_entries"]))
+        empty.Write()
+    else:
+        for histo in histograms.values():
+            obj = histo.GetValue()
+            old_name = str(obj.GetName())
+            if(old_name.startswith("ch4_")):
+                obj.SetName(f"ch4_{sample_class}_{old_name[4:]}")
+            obj.Write()
+    out_root.Close()
+    json_path = str(args.root).replace(".root", "_ch4_counts.json")
+    with open(json_path, "w") as json_file:
+        json.dump(summary, json_file, indent=2)
+        json_file.write("\n")
+    print(f"Chapter 4 diagnostics wrote {args.root} and {json_path}")
+    sys.exit(0)
+
+def wrap_delta_phi_code(expression):
+    return """
+        double dphi = %s;
+        while(dphi > 180.0){ dphi -= 360.0; }
+        while(dphi <= -180.0){ dphi += 360.0; }
+        return dphi;
+    """ % expression
+
+def book_delta_phi_histograms(df, sample, kind, value_column):
+    # Temporary axis is the Chapter 4 booking: 180 bins on [-180, 180].
+    from MyCommonAnalysisFunction_richcap import Get_Num_of_z_pT_Bins_w_Migrations, skip_condition_z_pT_bins
+    booked = []
+    for q2y in range(1, 18):
+        total = int(Get_Num_of_z_pT_Bins_w_Migrations(Q2_y_Bin_Num_In=q2y)[0])
+        for zpt in range(1, total + 1):
+            if(skip_condition_z_pT_bins(q2y, zpt)):
+                continue
+            name = "(Diag_DPhi)_(%s)_(%s)_(Q2_y_Bin_%d)_(z_pT_Bin_%d)" % (kind, sample, q2y, zpt)
+            sliced = df.Filter("(Q2_Y_Bin == %d) && (z_pT_Bin_Y_bin == %d)" % (q2y, zpt))
+            booked.append(sliced.Histo1D((name, "%s;#Delta#phi_{h} [deg];Events" % name, 180, -180.0, 180.0), value_column))
+    return booked
+
+def run_delta_phi_diagnostic(args, all_root_files):
+    # MC smearing keeps phi_t_smeared - phi_t. Momentum correction does not overwrite phi_t.
+    histograms = []
+    mdf_files = list(all_root_files.get("mdf_clasdis", []))
+    rdf_files = list(all_root_files.get("rdf", []))
+    if(len(mdf_files) > 0):
+        mdf = ROOT.RDataFrame("h22", mdf_files)
+        columns = ch4_column_names(mdf)
+        if(("phi_t" in columns) and ("phi_t_smeared" in columns)):
+            mdf = mdf.Define("diag_delta_phi_smear", wrap_delta_phi_code("phi_t_smeared - phi_t"))
+            histograms.extend(book_delta_phi_histograms(mdf, "mdf", "smear", "diag_delta_phi_smear"))
+    if(len(rdf_files) > 0):
+        rdf = ROOT.RDataFrame("h22", rdf_files)
+        columns = ch4_column_names(rdf)
+        if(("phi_t" in columns) and ("Complete_Correction_Factor_Pip" in columns) and ("pipx" in columns)):
+            # Same C++ strings dataframe_makeROOT declares before it builds phi_t. Production phi_t is not redefined.
+            ROOT.gInterpreter.Declare(Correction_Code_Full_In)
+            ROOT.gInterpreter.Declare(Rotation_Matrix)
+            rdf = rdf.Define("diag_phi_t_uncorrected", """
+                auto fpip = (dppC(pipx, pipy, pipz, pipsec, 1, 3) + 1)/(Complete_Correction_Factor_Pip);
+                auto beamM = ROOT::Math::PxPyPzMVector(0, 0, 10.6, 0);
+                auto eleM  = ROOT::Math::PxPyPzMVector(ex, ey, ez, 0);
+                auto pip0M = ROOT::Math::PxPyPzMVector(pipx*fpip, pipy*fpip, pipz*fpip, 0.13957);
+                TLorentzVector beam(0, 0, 10.6, beamM.E());
+                TLorentzVector ele(ex, ey, ez, eleM.E());
+                TLorentzVector pip0(pipx*fpip, pipy*fpip, pipz*fpip, pip0M.E());
+                TLorentzVector lv_q = beam - ele;
+                auto pip0_Clone = Rot_Matrix(pip0, -1, lv_q.Theta(), ele.Phi());
+                double phi_h_uncorrected = pip0_Clone.Phi()*TMath::RadToDeg();
+                if(phi_h_uncorrected < 0){ phi_h_uncorrected += 360; }
+                return phi_h_uncorrected;
+            """)
+            rdf = rdf.Define("diag_delta_phi_mom", wrap_delta_phi_code("phi_t - diag_phi_t_uncorrected"))
+            histograms.extend(book_delta_phi_histograms(rdf, "rdf", "mom", "diag_delta_phi_mom"))
+        else:
+            print("Delta phi_h momentum diagnostic skipped: stored data columns for the uncorrected angle are absent")
+    if(len(histograms) == 0):
+        raise SystemExit("delta_phi_h found no smear or momentum columns to book")
+    if(hasattr(ROOT, "RDF") and hasattr(ROOT.RDF, "RunGraphs")):
+        ROOT.RDF.RunGraphs(histograms)
+    out_root = ROOT.TFile(args.root, "RECREATE")
+    for histo in histograms:
+        histo.GetValue().Write()
+    note = ROOT.TNamed("DiagDPhiAxis", "temporary Chapter-4 axis: 180 bins, -180 to 180; ifarm percentile check may replace it")
+    note.Write()
+    out_root.Close()
+    print("Delta phi_h diagnostics wrote %s (%d histograms)" % (args.root, len(histograms)))
+    sys.exit(0)
 
 if(__name__ == "__main__"):
     args = parse_args()
@@ -662,30 +917,49 @@ if(__name__ == "__main__"):
 
     all_root_files = {}
     print(f"\n\n{color.BOLD}Will Run With:{color.END}\n")
+    skip_real_data = (getattr(args, "ch4_diagnostics", False) or getattr(args, "mc_only", False))
     if(args.batch_id > 0):
-        all_root_files = build_all_root_files(mdf_batch[args.batch_id], gdf_batch[args.batch_id], pair_key_after_marker, rdf_list=rdf_batch[args.batch_id], mc_key="_clasdis", all_root_files=all_root_files)
+        rdf_list_for_build = [] if(skip_real_data) else rdf_batch[args.batch_id]
+        all_root_files = build_all_root_files(mdf_batch[args.batch_id], gdf_batch[args.batch_id], pair_key_after_marker, rdf_list=rdf_list_for_build, mc_key="_clasdis", all_root_files=all_root_files)
     else:
         mdf_all = combine_batches(mdf_batch, args.number_of_files)
         gdf_all = combine_batches(gdf_batch, args.number_of_files)
-        rdf_all = combine_batches(rdf_batch, args.number_of_files)
+        rdf_all = [] if(skip_real_data) else combine_batches(rdf_batch, args.number_of_files)
         all_root_files = build_all_root_files(mdf_all, gdf_all, pair_key_after_marker, rdf_list=rdf_all, mc_key="_clasdis", all_root_files=all_root_files)
 
-    lundrho_MC, lundvpk_MC = False, False
+    lundrho_MC, lundvpk_MC, rho0_new_MC = False, False, False
+    from Campaign.ifarm_inputs import classify_rho_name
     for ii in all_root_files:
         print(f"\n\t{color.BLUE}{ii}:{color.END}")
         for jj in all_root_files[ii]:
             print(f"\t\t{jj}")
-            if(("lundrho" in str(jj)) and ("rdf" not in str(ii))):
-                lundrho_MC = True
-            if(("lundvpk" in str(jj)) and ("rdf" not in str(ii))):
-                lundvpk_MC = True
+            # if(("lundrho" in str(jj)) and ("rdf" not in str(ii))):
+            #     lundrho_MC = True
+            # if(("lundvpk" in str(jj)) and ("rdf" not in str(ii))):
+            #     lundvpk_MC = True
+            if("rdf" not in str(ii)):
+                rho_label = classify_rho_name(jj)
+                if(rho_label == "lundrho"):
+                    lundrho_MC = True
+                if(rho_label == "lundvpk"):
+                    lundvpk_MC = True
+                if(rho_label == "rho0_new"):
+                    rho0_new_MC = True
         print(f"\n\t{color.CYAN}Total Number of files = {color.BBLUE}{len(all_root_files[ii])}{color.END}")
     # if(args.unfold_5D and (lundrho_MC or lundvpk_MC)):
     #     Update_Email(args, update_message=f"{color.Error}WARNING: Cannot run the 5D response matrices with the lundrho/lundvpk files (as of 5/2/2026)\n\t{color.END}Turning off this option now...", verbose_override=True)
     #     args.unfold_5D = False
-    args.num_rdf_files = len(all_root_files["rdf"])
+    args.num_rdf_files = len(all_root_files.get("rdf", []))
     args.num_MC_files  = len(all_root_files["mdf_clasdis"])
-    
+    if(getattr(args, "delta_phi_h", False)):
+        run_delta_phi_diagnostic(args, all_root_files)
+    if(getattr(args, "ch4_diagnostics", False)):
+        run_ch4_diagnostics(args, all_root_files)
+    if(getattr(args, "only_1d", False) or getattr(args, "diagnostic_1d", False)):
+        from book_1d_campaign_histograms import run_campaign_1d
+        run_campaign_1d(args, all_root_files)
+        sys.exit(0)
+
     Update_Email(args, update_message=f"\n{color.BOLD}LOADING DATAFRAMES{color.END}", verbose_override=True)
     
     rdf           = ROOT.RDataFrame("h22", all_root_files["rdf"])
@@ -749,15 +1023,30 @@ if(__name__ == "__main__"):
 
     from helper_functions_for_using_RDataFrames_python import apply_matching_and_redefine_gen
     try:
-        mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "_gen"))
+        mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "Bank"))
         Update_Email(args, update_message=f"{color.BBLUE}Matching: {color.END_B}{match_msg}{color.END}", verbose_override=True)
         if(args.Use_EvGen):
-            mdf_EvGen, match_msg_ev = apply_matching_and_redefine_gen(mdf_EvGen, getattr(args, "matching_criteria", "_gen"))
+            mdf_EvGen, match_msg_ev = apply_matching_and_redefine_gen(mdf_EvGen, getattr(args, "matching_criteria", "Bank"))
             Update_Email(args, update_message=f"{color.BBLUE}Matching (EvGen): {color.END_B}{match_msg_ev}{color.END}", verbose_override=True)
     except (ValueError, RuntimeError) as match_err:
         Crash_Report(args, crash_message=str(match_err), continue_run=False)
         
     Update_Email(args, update_message=f"\n{color.BOLD}DATAFRAMES LOADED\nAPPLYING (BASE) CUTS{color.END}\n", verbose_override=True)
+    # Only 2D kinematic plots need a frame that still contains events outside one kinematic cut.
+    rdf_before_base_cut = None
+    mdf_before_base_cut = None
+    if((args.make_2D) and (not args.make_2D_rho_normalization_only)):
+        omit_columns = ["cut_Complete_SIDIS_MM_None"]
+        keep_unfiltered = False
+        for frame in [rdf, mdf_clasdis]:
+            if(frame is None):
+                continue
+            for column_name in omit_columns:
+                if(frame.HasColumn(column_name)):
+                    keep_unfiltered = True
+        if(keep_unfiltered):
+            rdf_before_base_cut = rdf
+            mdf_before_base_cut = mdf_clasdis
     rdf           =         rdf.Filter(args.cut_name_rdf)
     mdf_clasdis   = mdf_clasdis.Filter(args.cut_name_mdf)
     if(args.cut_rho0 not in [""]):
@@ -904,8 +1193,12 @@ if(__name__ == "__main__"):
             mdf_clasdis = Create_z1_plus_z2(args, df=mdf_clasdis, df_name="mdf_clasdis")
             gdf_clasdis = Create_z1_plus_z2(args, df=gdf_clasdis, df_name="gdf_clasdis")
             rdf         = Make_exclusive_rho_Flags(args, rdf, "rdf")
-            mdf_clasdis = Make_exclusive_rho_Flags(args, mdf_clasdis, "mdf_clasdis", lundrho_files="lundrho" if(lundrho_MC) else "lundvpk" if(lundvpk_MC) else "")
-            gdf_clasdis = Make_exclusive_rho_Flags(args, gdf_clasdis, "gdf_clasdis", lundrho_files="lundrho" if(lundrho_MC) else "lundvpk" if(lundvpk_MC) else "")
+            # lundrho_files="lundrho" if(lundrho_MC) else "lundvpk" if(lundvpk_MC) else ""
+            rho_weight_source = "rho0_new" if(rho0_new_MC) else "lundrho" if(lundrho_MC) else "lundvpk" if(lundvpk_MC) else ""
+            if((rho_weight_source == "rho0_new") and getattr(args, "run_rho_weight", False) and (not os.path.isfile(os.path.join(os.path.dirname(__file__), "..", "..", "Campaign", "rho_factors.json")))):
+                raise SystemExit("rho0_new weight requested but Campaign/rho_factors.json is not registered. Finish the unweighted normalization first.")
+            mdf_clasdis = Make_exclusive_rho_Flags(args, mdf_clasdis, "mdf_clasdis", lundrho_files=rho_weight_source)
+            gdf_clasdis = Make_exclusive_rho_Flags(args, gdf_clasdis, "gdf_clasdis", lundrho_files=rho_weight_source)
             for smear_exclusive in ["exclusive_rho", "exclusive_rho_full", "exclusive_rho_individual"]:
                 if((mdf_clasdis.HasColumn(smear_exclusive)) and (not mdf_clasdis.HasColumn(f"{smear_exclusive}_smeared"))):
                     # Dummy columns to make later code easier to run...
@@ -1186,10 +1479,10 @@ if(__name__ == "__main__"):
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}rdf{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
                 Histograms_All = make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut=f"{args.cut_name_rdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_Data)) else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, weight_specs=[("", None)])
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_mdf)
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_mdf)
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}gdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
-                Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_gdf)
+                Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_gdf)
                 if(args.Use_EvGen):
                     # EvGen has no HPP Acc columns; use phys-only specs (same as gdf)
                     Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_EvGen{color.END_B} (Q2-y Bin {Q2_y_Bins}){color.END}", verbose_override=True)
@@ -1205,10 +1498,10 @@ if(__name__ == "__main__"):
             sys.stdout.flush()
             Histograms_All = make_rm5d_single(sdf=rdf,             Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut=f"{args.cut_name_rdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_Data)) else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, weight_specs=[("", None)])
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}rdf{color.END})'",              verbose_override=True)
-            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
-            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_mdf)
+            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_mdf)
+            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_mdf)
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}mdf_clasdis{color.END})'",      verbose_override=True)
-            Histograms_All = make_rm5d_single(sdf=gdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=None if(not (lundrho_MC or lundvpk_MC)) else "lundrho" if(lundrho_MC) else "lundvpk", weight_specs=weight_specs_gdf)
+            Histograms_All = make_rm5d_single(sdf=gdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_gdf)
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}gdf_clasdis{color.END})'",      verbose_override=True)
             if(args.Use_EvGen):
                 # EvGen has no HPP Acc columns; use phys-only specs (same as gdf)
@@ -1240,6 +1533,7 @@ if(__name__ == "__main__"):
             y_Binning        = ['y',      0.05,     1.05,   100]
             z_Binning        = ['z',         0,      1.0,   100]
             pT_Binning       = ['pT',        0,     1.05,   105]
+            pT2_Binning      = ['pT2',       0, 1.05 * 1.05, 105]
             MM_Binning       = ['MM',      0.5,      4.5,    80]
             W_Binning        = ['W',      0.99,     4.99,    80]
             List_of_2D_Plots = []
@@ -1247,6 +1541,7 @@ if(__name__ == "__main__"):
                 List_of_2D_Plots.append([Q2_Binning,        xB_Binning])
                 List_of_2D_Plots.append([Q2_Binning,         y_Binning])
                 List_of_2D_Plots.append([z_Binning,         pT_Binning])
+                List_of_2D_Plots.append([z_Binning,        pT2_Binning])
                 List_of_2D_Plots.append([MM_Binning,         W_Binning])
                 List_of_2D_Plots.append([el_Binning,      elth_Binning])
                 List_of_2D_Plots.append([el_Binning,     elPhi_Binning])
@@ -1270,6 +1565,7 @@ if(__name__ == "__main__"):
                     List_of_2D_Plots.append([Q2_Binning,    xB_Binning])
                     List_of_2D_Plots.append([Q2_Binning,     y_Binning])
                     List_of_2D_Plots.append([z_Binning,     pT_Binning])
+                    List_of_2D_Plots.append([z_Binning,    pT2_Binning])
                     List_of_2D_Plots.append([MM_Binning,     W_Binning])
             elif(str(args.z_axis_2D) in ["z_Bins"]):
                 List_of_2D_Plots.append([["W_pippim", 0.0, 2.5, 100], ["exclusive_rho_individual",  -0.5, 255.5, 256]])
@@ -1278,6 +1574,7 @@ if(__name__ == "__main__"):
                     List_of_2D_Plots.append([Q2_Binning,    xB_Binning])
                     List_of_2D_Plots.append([Q2_Binning,     y_Binning])
                     List_of_2D_Plots.append([z_Binning,     pT_Binning])
+                    List_of_2D_Plots.append([z_Binning,    pT2_Binning])
                     List_of_2D_Plots.append([["phi_t", 0, 360, 24],   ["Q2_y_z_pT_4D_Bins",         -0.5, 515.5, 516]])
             else:
                 List_of_2D_Plots.append([["phi_t", 0, 360, 24],       ["Q2_y_z_pT_4D_Bins",         -0.5, 515.5, 516]])
@@ -1296,6 +1593,7 @@ if(__name__ == "__main__"):
                     List_of_2D_Plots.append([Q2_Binning,    xB_Binning])
                     List_of_2D_Plots.append([Q2_Binning,     y_Binning])
                     List_of_2D_Plots.append([z_Binning,     pT_Binning])
+                    List_of_2D_Plots.append([z_Binning,    pT2_Binning])
             # List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180],     ["exclusive_rho",             -1.5,   2.5,   4]])
             # List_of_2D_Plots.append([["z1_plus_z2", 0, 1.8, 180],     ["exclusive_rho_full",        -1.5,   2.5,   4]])
 
@@ -1317,6 +1615,17 @@ if(__name__ == "__main__"):
                 # List_of_2D_Plots.append([["Par_PID_pim",      -3322.5, 3324.5, 6647],  ["exclusive_rho", -1.5,   2.5, 4]])
                 # === END NEW RHO BLOCK ===
 
+            def _with_pt2(df):
+                if(df is None):
+                    return df
+                if(df.HasColumn("pT") and (not df.HasColumn("pT2"))):
+                    df = df.Define("pT2", "pT * pT")
+                if(df.HasColumn("pT_smeared") and (not df.HasColumn("pT2_smeared"))):
+                    df = df.Define("pT2_smeared", "pT_smeared * pT_smeared")
+                return df
+            rdf = _with_pt2(rdf)
+            mdf_clasdis = _with_pt2(mdf_clasdis)
+            gdf_clasdis = _with_pt2(gdf_clasdis)
             for data, df, cut in [["rdf", rdf, args.cut_name_rdf], ["mdf", mdf_clasdis, args.cut_name_mdf], ["gdf", gdf_clasdis, args.cut_name_gdf]]:
                 if(data in ["mdf"]):
                     weight_specs_2d = weight_specs_mdf
@@ -1331,10 +1640,44 @@ if(__name__ == "__main__"):
                     Use_Smear = (data not in ["rdf", "gdf"]) and (not getattr(args, "unsmeared", False)) and all(MC_only not in str(Vars) for MC_only in ["rho0", "Par_PID"])
                     # print(f"{data} ==> {Use_Smear}")
                     # if(args.verbose):
-                    Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_2d)
+                    Histograms_All = make_TH2D_histos(sdf=df if("rho0" not in str(Vars)) else df.Filter("Par_PID_pip == 113"), Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=Vars, Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_2d)
                     Update_Email(args, update_message=f"{color.BBLUE}Created ({data}) plot for: {color.END_B}{str(Vars)}{color.END}", verbose_override=False, no_time=True)
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}{'clasdis_' if('rdf' not in data) else ''}{data}{color.END_C})'{color.END}", verbose_override=True)
+            if((not args.make_2D_rho_normalization_only) and (rdf_before_base_cut is not None)):
+                omit_pairs = [
+                    ("cut_Complete_SIDIS_MM_None", [list(MM_Binning), list(W_Binning)]),
+                ]
+                for data, df_src in [["rdf", rdf_before_base_cut], ["mdf", mdf_before_base_cut]]:
+                    if(df_src is None):
+                        continue
+                    if(data == "mdf"):
+                        weight_specs_2d = weight_specs_mdf
+                    else:
+                        weight_specs_2d = [("", None)]
+                    for cut_name, var_pair in omit_pairs:
+                        if(not df_src.HasColumn(cut_name)):
+                            print(f"Omit-cut column missing, skip {data} {cut_name}")
+                            continue
+                        use_smear = (data == "mdf") and (not getattr(args, "unsmeared", False))
+                        Histograms_All = make_TH2D_histos(sdf=df_src.Filter(cut_name), Histo_Data=data, Histo_Cut=cut_name, Histo_Smear=mdf_smear_type if(use_smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=var_pair, Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_2d)
+                        Update_Email(args, update_message=f"{color.BBLUE}Created ({data}) omit-cut plot for: {color.END_B}{cut_name}{color.END}", verbose_override=False, no_time=True)
+            if((mdf_clasdis is not None) and (not args.make_2D_rho_normalization_only)):
+                gen_pairs = [
+                    (["Q2_gen", 0, 12, 140], ["y_gen", 0.05, 1.05, 100]),
+                    (["Q2_gen", 0, 12, 140], ["xB_gen", 0, 1.0, 100]),
+                    (["z_gen", 0, 1.0, 100], ["pT_gen", 0, 1.05, 105]),
+                    (["MM_gen", 0.5, 4.5, 80], ["W_gen", 0.99, 4.99, 80]),
+                ]
+                gen_cut = f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}"
+                for x_spec, y_spec in gen_pairs:
+                    if((not mdf_clasdis.HasColumn(x_spec[0])) or (not mdf_clasdis.HasColumn(y_spec[0]))):
+                        print(f"Matched generated column missing, skip {x_spec[0]} {y_spec[0]}")
+                        continue
+                    Histograms_All = make_TH2D_histos(sdf=mdf_clasdis, Histo_Data="mdf", Histo_Cut=gen_cut, Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[list(x_spec), list(y_spec)], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, "mdf"), args_in=args, axis_Z=args.z_axis_2D, weight_specs=weight_specs_mdf)
+                    Update_Email(args, update_message=f"{color.BBLUE}Created (mdf) matched-generated plot for: {color.END_B}{x_spec[0]} {y_spec[0]}{color.END}", verbose_override=False, no_time=True)
             if(args.Use_EvGen):
+                mdf_EvGen = _with_pt2(mdf_EvGen)
+                gdf_EvGen = _with_pt2(gdf_EvGen)
                 for Vars in List_of_2D_Plots:
                     if("rho0" in str(Vars)):
                         continue # EvGen files do not use rho0 at all
@@ -1351,9 +1694,23 @@ if(__name__ == "__main__"):
             y_Binning        = ['y',      0.05,     1.05,   100]
             z_Binning        = ['z',         0,      1.0,   100]
             pT_Binning       = ['pT',        0,     1.05,   105]
+            pT2_Binning      = ['pT2',       0, 1.05 * 1.05, 105]
             Q2_Y_Binning     = ['Q2_Y_Bin', -0.5,    17.5,    18]
             phi_t_Binning    = ['phi_t',     0,     360,    24]
             q2y_bin_range    = range(1, 18) if(not args.valerii_bins) else range(1, 17)
+            def _with_pt2_presentation(df):
+                if(df is None):
+                    return df
+                if(df.HasColumn("pT") and (not df.HasColumn("pT2"))):
+                    df = df.Define("pT2", "pT * pT")
+                if(df.HasColumn("pT_smeared") and (not df.HasColumn("pT2_smeared"))):
+                    df = df.Define("pT2_smeared", "pT_smeared * pT_smeared")
+                return df
+            rdf = _with_pt2_presentation(rdf)
+            mdf_clasdis = _with_pt2_presentation(mdf_clasdis)
+            gdf_clasdis = _with_pt2_presentation(gdf_clasdis)
+            mdf_EvGen = _with_pt2_presentation(mdf_EvGen)
+            gdf_EvGen = _with_pt2_presentation(gdf_EvGen)
             for data, df, cut in [["rdf", rdf, args.cut_name_rdf], ["mdf", mdf_clasdis, args.cut_name_mdf], ["gdf", gdf_clasdis, args.cut_name_gdf]]:
                 if(data in ["mdf"]):
                     weight_specs_2d = weight_specs_mdf
@@ -1362,25 +1719,31 @@ if(__name__ == "__main__"):
                 else:
                     weight_specs_2d = [("", None)]
                 Use_Smear = (data not in ["rdf", "gdf"]) and (not getattr(args, "unsmeared", False))
-                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_2d)
-                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_2d)
-                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[phi_t_Binning, Q2_Y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d)
+                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_2d)
+                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_2d)
+                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT2_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_2d)
+                Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[phi_t_Binning, Q2_Y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d)
                 for q2y_bin in q2y_bin_range:
-                    Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d, q2y_bin_num=q2y_bin)
-                    Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=None if((not (lundrho_MC or lundvpk_MC)) or ("rdf" in str(data))) else "lundrho" if(lundrho_MC) else "lundvpk", args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=df, Histo_Data=data, Histo_Cut=f"{cut}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or (args.cut_Data and (data in ["rdf"])) or (args.cut_MC and (data in ["mdf", "gdf"])))) else '_Extra'}", Histo_Smear=mdf_smear_type if(Use_Smear) else "", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT2_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC, data), args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_2d, q2y_bin_num=q2y_bin)
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}{'clasdis_' if('rdf' not in data) else ''}{data}{color.END_C} binning presentation)'{color.END}", verbose_override=True)
             if(args.Use_EvGen):
                 Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
                 Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
                 Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
+                Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT2_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
                 Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
+                Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT2_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="Q2_Y_Bin", weight_specs=weight_specs_gdf)
                 Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[phi_t_Binning, Q2_Y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf)
                 Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[phi_t_Binning, Q2_Y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf)
                 for q2y_bin in q2y_bin_range:
                     Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
                     Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[Q2_Binning, y_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
                     Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=mdf_EvGen, Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT2_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
                     Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
+                    Histograms_All = make_TH2D_histos(sdf=gdf_EvGen, Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC)) else '_Extra'}", Histo_Smear="", Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Vars_Input=[z_Binning, pT2_Binning], Use_Weight=False, Histograms_All=Histograms_All, Histo_Group="Normal_2D", custom_title=args.title, args_in=args, axis_Z="z_pT_Bin_Y_bin", weight_specs=weight_specs_gdf, q2y_bin_num=q2y_bin)
                 Update_Email(args, update_name=f"'make_TH2D_histos({color.BGREEN}EvGen, binning presentation{color.END_C})'{color.END}", verbose_override=True)
         Update_Email(args, update_message=f"\n{color.BCYAN}Done Collecting Histograms. Ready to Save.{color.END}\n", verbose_override=True, no_time=True)
         args.timer.time_elapsed()

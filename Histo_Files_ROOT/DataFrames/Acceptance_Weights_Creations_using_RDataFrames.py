@@ -150,14 +150,15 @@ def parse_args():
     parser.add_argument('-rho0', '--rho0_source',
                         type=str,
                         default="lundvpk",
-                        choices=["lundvpk", "lundrho"],
+                        choices=["lundvpk", "lundrho", "rho0_new"],
                         help="Exclusive-rho MC source used when --run_rho_weight is set (default lundvpk). Other exclusive sample is zeroed.\n")
     parser.add_argument('-us', '--unsmeared',
                         action='store_true',
                         help='Use unsmeared reconstructed-MC columns (no *_smeared). Required for cut_Complete_SIDIS_noSmear.\n')
     parser.add_argument('-mac', '--matching_criteria',
                         type=str,
-                        default="_gen",
+                        # default="_gen",
+                        default="Bank",
                         choices=list(MATCHING_MODE_ALIASES),
                         help="See MATCHING_MODE_ALIASES in helper_functions_for_using_RDataFrames_python.py (choices are aliases used by the code).\n")
     add_data_root_argument(parser)
@@ -180,6 +181,8 @@ def acceptance_mode_tag(args):
 # Match Response_Matrix Make_exclusive_rho_Flags norms
 RHO_NORM_LUNDRHO = 4.526912
 RHO_NORM_LUNDVPK = 4.624974
+# RHO_NORM_RHO0_NEW = 1.0
+RHO_NORM_RHO0_NEW = 2.4020823572173544
 # Invalid (rho weights were already applied to the ROOT inputs used to derive these factors — do not use):
 # RHO_NORM_LUNDRHO = 1.084134
 # RHO_NORM_LUNDVPK = 1.083707
@@ -421,15 +424,14 @@ def make_pair_key_fn(paths):
     return pair_key
 
 def classify_mc_source_from_path(path_str):
-    n = Path(path_str).name.lower()
-    if("lundvpk" in n):
-        return "lundvpk"
-    if("lundrho" in n):
-        return "lundrho"
+    from Campaign.ifarm_inputs import classify_rho_name
+    label = classify_rho_name(path_str)
+    if(label in ["lundvpk", "lundrho", "rho0_new"]):
+        return label
     return "clasdis"
 
 def count_mc_sources(paths):
-    counts = {"clasdis": 0, "lundrho": 0, "lundvpk": 0}
+    counts = {"clasdis": 0, "lundrho": 0, "lundvpk": 0, "rho0_new": 0}
     for p in paths:
         counts[classify_mc_source_from_path(p)] += 1
     return counts
@@ -444,6 +446,7 @@ def ensure_acc_rho_source_cpp():
 #define ACC_RHO_SOURCE_CODE_DEFINED
 int AccRhoSourceCode(unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
     const std::string n = id.AsString();
+    if((n.find("output-rho0_10.6gev") != std::string::npos) || (n.find("rho0_new") != std::string::npos)){ return 3; }
     if(n.find("lundvpk") != std::string::npos){ return 2; }
     if(n.find("lundrho") != std::string::npos){ return 1; }
     return 0;
@@ -457,10 +460,14 @@ def define_exclusive_rho_weight_by_file(df, rho0_source="lundvpk"):
     # Production path only — no partition / Snapshot / histo-Add.
     ensure_acc_rho_source_cpp()
     selected = str(rho0_source)
-    if(selected not in ["lundvpk", "lundrho"]):
+    if(selected not in ["lundvpk", "lundrho", "rho0_new"]):
         selected = "lundvpk"
-    selected_code = 2 if(selected == "lundvpk") else 1
-    selected_norm = RHO_NORM_LUNDVPK if(selected == "lundvpk") else RHO_NORM_LUNDRHO
+    selected_code = 3 if(selected == "rho0_new") else 2 if(selected == "lundvpk") else 1
+    if(selected == "rho0_new"):
+        from Campaign.ifarm_inputs import registered_rho0_new_norm
+        selected_norm = registered_rho0_new_norm()
+    else:
+        selected_norm = RHO_NORM_LUNDVPK if(selected == "lundvpk") else RHO_NORM_LUNDRHO
     if(not df.HasColumn("acc_rho_source")):
         df = df.DefinePerSample("acc_rho_source", "AccRhoSourceCode(rdfslot_, rdfsampleinfo_)")
     if(df.HasColumn("exclusive_rho_weight")):
@@ -535,7 +542,7 @@ def Collect_DataFrames(args):
     else:
         print("Fast Load...")
     from helper_functions_for_using_RDataFrames_python import apply_matching_and_redefine_gen
-    mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "_gen"))
+    mdf_clasdis, match_msg = apply_matching_and_redefine_gen(mdf_clasdis, getattr(args, "matching_criteria", "Bank"))
     print(f"{color.BBLUE}Matching: {color.END_B}{match_msg}{color.END}")
     print(f"\n{color.BOLD}DATAFRAMES LOADED\n{color.END}")
     args.timer.time_elapsed()

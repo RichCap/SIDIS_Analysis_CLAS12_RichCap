@@ -17,7 +17,7 @@ PREDEFINED_COLUMN_GROUPS = {"Binning":            ["MultiDim_Q2_y_z_pT_phi_h",  
 
 
 from datetime import datetime
-from MyCommonAnalysisFunction_richcap import color, color_bg, variable_Title_name, RuntimeTimer, silence_root_import#, root_color
+from MyCommonAnalysisFunction_richcap import color, color_bg, variable_Title_name, RuntimeTimer, silence_root_import, cpp_production_skip_condition#, root_color
 from ExtraAnalysisCodeValues          import *
 
 import ROOT
@@ -25,6 +25,29 @@ import math
 # import array
 # import copy
 import traceback
+
+def classify_dataframe_file(file_num):
+    # rho0_new is matched from the configured discriminator before the .rho0. -> lundrho rule.
+    # import os
+    text  = str(file_num)
+    # lower = text.lower()
+    if(".wProton." in text):
+        return "wProton"
+    if(".wPim." in text):
+        return "wPim"
+    # extra = os.environ.get("SIDIS_RHO_SOURCE_TOKEN", "")
+    # for token in extra.replace(",", " ").split():
+    #     if((token) and (token.lower() not in ["lundvpk", "lundrho"]) and (token.lower() in lower)):
+    #         return token
+    # if((".rho0." in lower) and ("lundvpk" in lower)):
+    #     return "lundvpk"
+    # if((".rho0." in lower) or ("lundrho" in lower)):
+    #     return "lundrho"
+    from Campaign.ifarm_inputs import classify_rho_name
+    label = classify_rho_name(text)
+    if(label):
+        return label
+    return "SIDIS"
 
 silence_root_import()
 
@@ -237,11 +260,12 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
         new_variation_cut_mode = True
         file_num = (file_num.split("/"))[-1]
         file_num = (file_num.split(".hipo"))[0]
-        file_type = "wProton" if(".wProton." in file_num) else "wPim" if(".wPim." in file_num) else "lundvpk" if((".rho0." in file_num) and ("lundvpk" in file_num)) else "lundrho" if((".rho0." in file_num) or ("lundrho" in file_num)) else "SIDIS"
+        file_type = classify_dataframe_file(file_num)
         file_num = (file_num.split(".new6." if(".new6." in file_num) else ".new7." if(".new7." in file_num) else ".new8." if(".new8." in file_num) else ".new9." if(".new9." in file_num) else ".new10."))[-1]
         file_num = file_num.replace("nSidis_00", "")
         mc = "EvGen_" if("EvGen" in file_num) else ""
-        background = "45nA_" if ("45nA" in file_num) else "50nA_" if ("50nA" in file_num) else ""
+        # background = "45nA_" if ("45nA" in file_num) else "50nA_" if ("50nA" in file_num) else ""
+        background = "45nA_" if("45nA" in file_num) else "50nA_" if("50nA" in file_num) else "55nA_" if("55na" in file_num.lower()) else ""
         file_num = f'{background}{(file_num.split("10604MeV-"))[-1]}'
         file_num = f'{mc}{(file_num.split("-"))[-1]}'
     else:
@@ -3519,7 +3543,7 @@ if(datatype in ['rdf', 'mdf', 'gdf', 'pdf']):
     //     MultiDim5D_Bin_val = 0;
     // }""", f"""
     // Refinement of Migration/Overflow Bins
-    if((({Q2_xB_Bin_event_name} == 1) && ((z_pT_Bin_event_val == 21) || (z_pT_Bin_event_val == 27) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 33) || (z_pT_Bin_event_val == 34) || (z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 2) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 3) && ((z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 4) && ((z_pT_Bin_event_val == 6) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 5) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 6) && ((z_pT_Bin_event_val == 18) || (z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 7) && ((z_pT_Bin_event_val == 6) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 8) && ((z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 9) && ((z_pT_Bin_event_val == 21) || (z_pT_Bin_event_val == 27) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 33) || (z_pT_Bin_event_val == 34) || (z_pT_Bin_event_val == 35))) || (({Q2_xB_Bin_event_name} == 10) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 11) && ((z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 12) && ((z_pT_Bin_event_val == 5) || (z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 13) && ((z_pT_Bin_event_val == 20) || (z_pT_Bin_event_val == 25) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 14) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 30) || (z_pT_Bin_event_val == 35) || (z_pT_Bin_event_val == 36))) || (({Q2_xB_Bin_event_name} == 15) && ((z_pT_Bin_event_val == 5) || (z_pT_Bin_event_val == 20) || (z_pT_Bin_event_val == 25))) || (({Q2_xB_Bin_event_name} == 16) && ((z_pT_Bin_event_val == 18) || (z_pT_Bin_event_val == 23) || (z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 28) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30))) || (({Q2_xB_Bin_event_name} == 17) && ((z_pT_Bin_event_val == 24) || (z_pT_Bin_event_val == 29) || (z_pT_Bin_event_val == 30)))){{
+    if({cpp_production_skip_condition(Q2_xB_Bin_event_name)}){{
         z_pT_Bin_event_val = 0;
         MultiDim3D_Bin_val = 0;
         MultiDim5D_Bin_val = 0;
