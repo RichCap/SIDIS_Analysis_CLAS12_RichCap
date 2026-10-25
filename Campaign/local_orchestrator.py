@@ -1785,7 +1785,8 @@ def run_iteration(args, dimension):
         return 1
     argv = [script, "-droot", args.data_root, "--iteration_study", "--parm_min", "1", "--parm_max", "10", "--parm_step", "1", "--Min_Allowed_Acceptance_Cut", str(args.acceptance_cut), "-r", out_path, "-sfin", response]
     if(dimension == "5D"):
-        argv.extend(["--background_source", "lundvpk"])
+        # argv.extend(["--background_source", "lundvpk"])  # 10/25/2026
+        argv.extend(["--background_source", "rho0_new"])
     code = run_reserved("iteration_%s" % dimension.lower(), argv, _BOOT, args.dry_run, "iteration_%s" % dimension.lower(), args.data_root)
     if(code != 0):
         return code
@@ -1973,13 +1974,15 @@ def five_d_only_root(data_root):
 
 
 def five_d_study_argv(data_root, response, root_out):
+    # Previous argv used "--background_source", "lundvpk".  # 10/25/2026
     script = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
-    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--iteration_study", "--study_only", "--error_mode", "errors", "--parm_min", "1", "--parm_max", "10", "--parm_step", "1", "--background_source", "lundvpk", "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24", "--email"]
+    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--iteration_study", "--study_only", "--error_mode", "errors", "--parm_min", "1", "--parm_max", "10", "--parm_step", "1", "--background_source", "rho0_new", "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24", "--email"]
 
 
 def five_d_nominal_argv(data_root, response, root_out, k_value):
+    # Previous argv used "--background_source", "lundvpk".  # 10/25/2026
     script = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
-    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--error_mode", "covariance", "--bayes_iterations", str(int(k_value)), "--background_source", "lundvpk", "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24"]
+    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--error_mode", "covariance", "--bayes_iterations", str(int(k_value)), "--background_source", "rho0_new", "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24"]
 
 
 def five_d_log_line(handle, text, echo=True):

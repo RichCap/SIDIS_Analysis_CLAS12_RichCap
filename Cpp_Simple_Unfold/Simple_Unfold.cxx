@@ -216,7 +216,8 @@ bool Is_Simple_Matrix_Candidate(const std::string& name, const UnfoldArgs& args)
     if(contains(name, "_Proton")){ return false; }
     if(contains(name, "Multi_Dim_")){ return false; }
     if(!contains(name, "phi_t")){ return false; }
-    if(contains(name, "_(lundvpk)") || contains(name, "_(lundrho)")){ return false; }
+    // if(contains(name, "_(lundvpk)") || contains(name, "_(lundrho)")){ return false; }  // 10/25/2026
+    if(contains(name, "_(lundvpk)") || contains(name, "_(lundrho)") || contains(name, "_(rho0_new)")){ return false; }
     const bool want_3d = args.unfolding_3D && (!args.unfolding_1D);
     const bool want_1d = args.unfolding_1D && (!args.unfolding_3D);
     if(want_3d){

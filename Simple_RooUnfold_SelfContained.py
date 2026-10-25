@@ -212,11 +212,12 @@ def parse_args():
                    action='store_true',
                    help="Include the older JSON file format when saving with '--save_json'.\n(Will still use the newer format as backup)\n")
     
+    # default="lundvpk", choices=["lundrho", "lundvpk", "None"],  # 10/25/2026
     p.add_argument('-bgs', '--background_source',
                    type=str,
-                   default="lundvpk",
-                   choices=["lundrho", "lundvpk", "None"],
-                   help="Source of rho0 background subtractions.\n(Option 'None' skips the subtraction all together)\n")
+                   default="rho0_new",
+                   choices=["rho0_new", "lundvpk", "lundrho", "None"],
+                   help="Source of rho0 background subtractions from experimental data.\n(Option 'None' skips the subtraction all together)\n")
 
     p.add_argument('-urho', '--unfold_exclusive_rho0',
                    action='store_true',

@@ -253,7 +253,8 @@ struct UnfoldArgs {
     std::string single_file_input = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_1st_Order_V2_Response_Matrices_Final_Analysis_Iterations_I0_All.root";
     bool email = false;
     std::string email_message = "";
-    std::string background_source = "lundvpk";
+    // std::string background_source = "lundvpk";  // 10/25/2026
+    std::string background_source = "rho0_new";
     bool require_weighed = false;
     std::string weight_tag = "";
     // Simple_Unfold only. Weighted pseudo-data on the nominal response. 9/26/2026
@@ -334,7 +335,8 @@ inline void print_help(){
         "  -sfin, --single_file_input PATH\n"
         "  -e, --email                Mail when finished\n"
         "  -em, --email_message TEXT\n"
-        "  -bgs, --background_source lundvpk|lundrho|None\n"
+        // "  -bgs, --background_source lundvpk|lundrho|None\n"  // 10/25/2026
+        "  -bgs, --background_source rho0_new|lundvpk|lundrho|None\n"
         "  -rw, --require_weighed\n"
         "  -wt, --weight_tag ''|Acc|JSON|Spline|AccJSON|AccSpline\n"
         "  -cw, --closure_weight Acc|AccSpline\n"
@@ -474,7 +476,8 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             std::exit(2);
         }
     }
-    if((args.background_source != "lundvpk") && (args.background_source != "lundrho") && (args.background_source != "None")){
+    // 10/25/2026: rho0_new joins lundvpk, lundrho, and None.
+    if((args.background_source != "rho0_new") && (args.background_source != "lundvpk") && (args.background_source != "lundrho") && (args.background_source != "None")){
         std::cerr << "Invalid --background_source: " << args.background_source << std::endl;
         std::exit(2);
     }

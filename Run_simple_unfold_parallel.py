@@ -111,9 +111,10 @@ Script: {Name_of_Script}""",
                         default='--unfolding_3D --Apply_RC --fit --smear --save_json',
                         help="Command-line arguments passed to the unfolding script (excluding -em, -ti, and bin number).\n")
     
+    # default='lundvpk', choices=["lundvpk","lundrho","None"],  # 10/25/2026
     parser.add_argument('-bkgs', '--background_source',
-                        default='lundvpk',
-                        choices=["lundvpk","lundrho","None"],
+                        default='rho0_new',
+                        choices=["rho0_new", "lundvpk", "lundrho", "None"],
                         help="Command-line `--background_source` argument (3D: appended to args_command; 5D: passed directly to Dedicated_5D_Unfold.py).\n")
 
     parser.add_argument('-r', '--root',

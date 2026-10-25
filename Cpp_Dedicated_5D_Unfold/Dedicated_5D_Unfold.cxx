@@ -119,7 +119,8 @@ bool Is_5D_Matrix_Slice_Candidate(const std::string& name, const UnfoldArgs& arg
     if(contains(name, "cut_Complete_SIDIS_eS")){ return false; }
     if(contains(name, "cut_Complete_EDIS")){ return false; }
     if(contains(name, "no_cut_eS")){ return false; }
-    if(contains(name, "_(lundvpk)") || contains(name, "_(lundrho)")){ return false; }
+    // if(contains(name, "_(lundvpk)") || contains(name, "_(lundrho)")){ return false; }  // 10/25/2026
+    if(contains(name, "_(lundvpk)") || contains(name, "_(lundrho)") || contains(name, "_(rho0_new)")){ return false; }
     if(!Passes_Weighed_Filter(name, args)){ return false; }
     if(contains(name, "5D_Response_Matrix") && contains(name, "_Slice_")){
         // keep

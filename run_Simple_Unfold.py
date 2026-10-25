@@ -83,9 +83,10 @@ def parse_args():
                    help="Extra email message (use with --email).\n")
     p.add_argument('-ph', '--phi_bins', type=int, default=24, choices=[12, 24],
                    help="Phi_h bins in the unfolding. 24 is nominal. 12 merges adjacent bins before the acceptance skip.\n")
-    p.add_argument('-bgs', '--background_source', type=str, default="lundvpk",
-                   choices=["lundrho", "lundvpk", "None"],
-                   help="Source of rho0 background subtractions from rdf.\n")
+    # default="lundvpk", choices=["lundrho", "lundvpk", "None"],  # 10/25/2026: rho0_new is the data-subtraction default
+    p.add_argument('-bgs', '--background_source', type=str, default="rho0_new",
+                   choices=["rho0_new", "lundvpk", "lundrho", "None"],
+                   help="Source of rho0 background subtractions from experimental data.\n")
     p.add_argument('-urho', '--unfold_exclusive_rho0', action='store_true',
                    help="Optional 3D acceptance-only exclusive rho0 unfold. Uses Simple_RooUnfold_SelfContained.py. Default launches stay on the C++ binary.\n")
     p.add_argument('-rw', '--require_weighed', action='store_true',

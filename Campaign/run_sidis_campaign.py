@@ -177,7 +177,8 @@ def iteration_study_command(dimension, cut, bins, k_max, data_root):
             "--parm_max", str(k_max),
             "--parm_step", "1",
             "--Min_Allowed_Acceptance_Cut", cut_text,
-            "--background_source", "lundvpk",
+            # "--background_source", "lundvpk",  # 10/25/2026
+            "--background_source", "rho0_new",
         ]
     else:
         script = checkout_script(os.path.join(_BOOT, "run_Simple_Unfold.py"))
@@ -244,7 +245,8 @@ def main():
     parser.add_argument("-rc", "--rc_mode", default="reuse", choices=["reuse", "regenerate"])
     parser.add_argument("-k", "--iteration_action", default="use_lookup", choices=["use_lookup", "refresh"])
     parser.add_argument("-ph", "--phi_bins", default=24, type=int, choices=[12, 24])
-    parser.add_argument("-bg", "--background_source", default="lundvpk")
+    # default="lundvpk"  # 10/25/2026
+    parser.add_argument("-bg", "--background_source", default="rho0_new")
     parser.add_argument("-droot", "--data_root", default="work_b", help="Analysis data root. This campaign defaults to work_b.")
     parser.add_argument("-n", "--dry_run", action="store_true")
     parser.add_argument("-mlj", "--max_local_jobs", default=None, type=int, help="Extra ceiling on histogram-kind local slots. Omit to use each mode's own ceiling. A value above 48 is clamped. It cannot raise a mode ceiling or the 110 GB ledger.\n")

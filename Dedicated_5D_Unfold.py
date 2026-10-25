@@ -95,11 +95,12 @@ def parse_args():
                    type=str,
                    default="",
                    help="Extra email message (use with --email).\n")
+    # default="lundvpk", choices=["lundrho", "lundvpk", "None"],  # 10/25/2026
     p.add_argument('-bgs', '--background_source',
                    type=str,
-                   default="lundvpk",
-                   choices=["lundrho", "lundvpk", "None"],
-                   help="Source of rho0 background subtractions from rdf.\n")
+                   default="rho0_new",
+                   choices=["rho0_new", "lundvpk", "lundrho", "None"],
+                   help="Source of rho0 background subtractions from experimental data.\n")
     p.add_argument('-rw', '--require_weighed',
                    action='store_true',
                    help="Require a weight tag on mdf/gdf/slice keys (legacy _(Weighed) or Acc/JSON/Spline tags). Default: reject weighed.\n")
