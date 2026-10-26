@@ -1,0 +1,18 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-26T01:45:23 name=SIDIS_Workflow_V2 mode=hybrid email=children =====
+=== TASK: Only_1D-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 0.90 s
+peak_memory: 482.13 MB
+
+=== TASK: Diagnostic_1D-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 0.87 s
+peak_memory: 487.05 MB
+
+=== TASK: Only_1D-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 2514.69 s
+peak_memory: 901.74 MB
+
+=== TASK: Diagnostic_1D-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 2514.70 s
+peak_memory: 901.74 MB
+
