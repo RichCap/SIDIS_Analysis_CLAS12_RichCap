@@ -1,0 +1,23 @@
+{
+  "phases": {
+    "groovy": "success",
+    "dataframe": "success",
+    "make_batches": "success",
+    "rho_hist": "success",
+    "bc_hist": "success",
+    "rc_build": "success",
+    "rc_compare": "success",
+    "response": "success",
+    "bc_hadd": "success",
+    "bc_factors": "success",
+    "bc_hist_sens_q2_3": "success",
+    "bc_hadd_sens_q2_3": "success",
+    "bc_factors_sens_q2_3": "success",
+    "bc_hist_sens_q2_5": "success",
+    "bc_hadd_sens_q2_5": "success",
+    "bc_factors_sens_q2_5": "success",
+    "bc_hist_sens_q2_7": "success",
+    "bc_hadd_sens_q2_7": "success",
+    "bc_factors_sens_q2_7": "success"
+  }
+}

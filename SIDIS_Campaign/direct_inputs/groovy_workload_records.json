@@ -1,0 +1,13 @@
+{
+  "records": [
+    {
+      "source": "rho0",
+      "mc": "gdf",
+      "event": "epipX",
+      "inputs_sha256": "295251783f1905c7c7f65db4b98a2902a67013958d650e3e825fe7a4ae9aeee2",
+      "nfiles": 40,
+      "job_id": "13118092",
+      "job_name": "MC_Gen_epipX_rho0_10_16_2026"
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-09-2026 20:08:34 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0001.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0001.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31360291744
+reader:: **** scan trailer #bytes :       202488
+reader:: ***** number of  records :         6327
+reader:: ***** number of  events  :      9910000
+
+Total number of completly matched events = 1332874
+True number of events (i.e., those that would have survived the Pass 2 PID cuts) = 765805
+Total number of events that survived the original Pass 1 PID cuts = 955174
+Total number of failed Electron matches  = 17469
+Total number of failed Pi+ Pion matches  = 147494
+Number of times the reconstructed particles are matched to the same generated particle = 0
+
+Total number of generated events = 8897846
+Number of Reconstructed Electron candidates = 6410014
+Number of Reconstructed Electron found      = 2558434
+Number of Reconstructed Pi+ Pion candidates = 18462241
+Number of Reconstructed Pi+ Pion found      = 1494726
+
+Number of times that Multiple Pions were found per Electron = 237249
+
+Number of rho0 Parents found                = 265049
+Number of (Exclusive) rho0 Parents found    = 52581
+Number of (Reconstructed) Exclusive rho0s   = 52374
+
+Total number of failed yesbs.every() conditions  = 3499986
+
+
+=== Script FINISHED at: 10-09-2026 22:19:43 ===
+
+This code's runtime (in hours) is: 
+2
+
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-09-2026 22:19:50 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0002.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0002.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31493679664
+reader:: **** scan trailer #bytes :       203352
+reader:: ***** number of  records :         6354
+reader:: ***** number of  events  :      9950000
+
+Total number of completly matched events = 1339802
+True number of events (i.e., those that would have survived the Pass 2 PID cuts) = 768730
+Total number of events that survived the original Pass 1 PID cuts = 959326
+Total number of failed Electron matches  = 17500
+Total number of failed Pi+ Pion matches  = 148041
+Number of times the reconstructed particles are matched to the same generated particle = 0
+
+Total number of generated events = 8936733
+Number of Reconstructed Electron candidates = 6436332
+Number of Reconstructed Electron found      = 2566685
+Number of Reconstructed Pi+ Pion candidates = 18522603
+Number of Reconstructed Pi+ Pion found      = 1502226
+
+Number of times that Multiple Pions were found per Electron = 238578
+
+Number of rho0 Parents found                = 265976
+Number of (Exclusive) rho0 Parents found    = 52886
+Number of (Reconstructed) Exclusive rho0s   = 52385
+
+Total number of failed yesbs.every() conditions  = 3513668
+
+
+=== Script FINISHED at: 10-10-2026 00:00:52 ===
+
+This code's runtime (in hours) is: 
+1
+
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 00:00:59 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0003.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0003.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31522211768
+reader:: **** scan trailer #bytes :       203544
+reader:: ***** number of  records :         6360
+reader:: ***** number of  events  :      9960000
+
+Total number of completly matched events = 1343013
+True number of events (i.e., those that would have survived the Pass 2 PID cuts) = 772443
+Total number of events that survived the original Pass 1 PID cuts = 963621
+Total number of failed Electron matches  = 17687
+Total number of failed Pi+ Pion matches  = 147610
+Number of times the reconstructed particles are matched to the same generated particle = 0
+
+Total number of generated events = 8943108
+Number of Reconstructed Electron candidates = 6443158
+Number of Reconstructed Electron found      = 2570213
+Number of Reconstructed Pi+ Pion candidates = 18537279
+Number of Reconstructed Pi+ Pion found      = 1505187
+
+Number of times that Multiple Pions were found per Electron = 239568
+
+Number of rho0 Parents found                = 266317
+Number of (Exclusive) rho0 Parents found    = 52634
+Number of (Reconstructed) Exclusive rho0s   = 52545
+
+Total number of failed yesbs.every() conditions  = 3516842
+
+
+=== Script FINISHED at: 10-10-2026 02:01:35 ===
+
+This code's runtime (in hours) is: 
+2
+
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 02:01:42 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0004.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0004.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31518789644
+reader:: **** scan trailer #bytes :       203512
+reader:: ***** number of  records :         6359
+reader:: ***** number of  events  :      9960000
+
+Total number of completly matched events = 1342559
+True number of events (i.e., those that would have survived the Pass 2 PID cuts) = 770689
+Total number of events that survived the original Pass 1 PID cuts = 962168
+Total number of failed Electron matches  = 17602
+Total number of failed Pi+ Pion matches  = 149205
+Number of times the reconstructed particles are matched to the same generated particle = 0
+
+Total number of generated events = 8945714
+Number of Reconstructed Electron candidates = 6447098
+Number of Reconstructed Electron found      = 2574054
+Number of Reconstructed Pi+ Pion candidates = 18560708
+Number of Reconstructed Pi+ Pion found      = 1506144
+
+Number of times that Multiple Pions were found per Electron = 238896
+
+Number of rho0 Parents found                = 266699
+Number of (Exclusive) rho0 Parents found    = 52561
+Number of (Reconstructed) Exclusive rho0s   = 53268
+
+Total number of failed yesbs.every() conditions  = 3512902
+
+
+=== Script FINISHED at: 10-10-2026 03:59:29 ===
+
+This code's runtime (in hours) is: 
+1
+
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 03:59:36 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0005.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0005.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31394077548
+reader:: **** scan trailer #bytes :       202712
+reader:: ***** number of  records :         6334
+reader:: ***** number of  events  :      9920000

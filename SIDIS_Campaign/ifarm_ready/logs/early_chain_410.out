@@ -1,0 +1,459 @@
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-09-2026 20:08:35 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0001.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0001.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31360291744
+reader:: **** scan trailer #bytes :       202488
+reader:: ***** number of  records :         6327
+reader:: ***** number of  events  :      9910000
+
+Total number of events found                                = 13204201
+
+Number of times that Multiple Pions were found per Electron = 4278246
+
+Number of rho0 Parents found                                = 2420699
+Number of (Exclusive) rho0 Parents found                    = 557563
+
+Total number of generated events found with Q2 > 1.5        = 4596957
+Total number of generated events found with Q2 < 1.5        = 5313043
+Total number of   SIDIS   events found with Q2 > 1.5        = 6197573
+
+
+=== Script FINISHED at: 10-09-2026 20:51:43 ===
+
+This code's runtime (in min) is: 
+43
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-09-2026 20:51:48 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0002.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0002.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31493679664
+reader:: **** scan trailer #bytes :       203352
+reader:: ***** number of  records :         6354
+reader:: ***** number of  events  :      9950000
+
+Total number of events found                                = 13258844
+
+Number of times that Multiple Pions were found per Electron = 4294380
+
+Number of rho0 Parents found                                = 2430634
+Number of (Exclusive) rho0 Parents found                    = 560528
+
+Total number of generated events found with Q2 > 1.5        = 4613491
+Total number of generated events found with Q2 < 1.5        = 5336509
+Total number of   SIDIS   events found with Q2 > 1.5        = 6219710
+
+
+=== Script FINISHED at: 10-09-2026 21:32:23 ===
+
+This code's runtime (in min) is: 
+40
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-09-2026 21:32:29 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0003.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0003.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31522211768
+reader:: **** scan trailer #bytes :       203544
+reader:: ***** number of  records :         6360
+reader:: ***** number of  events  :      9960000
+
+Total number of events found                                = 13268210
+
+Number of times that Multiple Pions were found per Electron = 4296351
+
+Number of rho0 Parents found                                = 2431482
+Number of (Exclusive) rho0 Parents found                    = 559134
+
+Total number of generated events found with Q2 > 1.5        = 4620080
+Total number of generated events found with Q2 < 1.5        = 5339920
+Total number of   SIDIS   events found with Q2 > 1.5        = 6229411
+
+
+=== Script FINISHED at: 10-09-2026 22:12:15 ===
+
+This code's runtime (in min) is: 
+39
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-09-2026 22:12:21 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0004.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0004.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31518789644
+reader:: **** scan trailer #bytes :       203512
+reader:: ***** number of  records :         6359
+reader:: ***** number of  events  :      9960000
+
+Total number of events found                                = 13264340
+
+Number of times that Multiple Pions were found per Electron = 4295367
+
+Number of rho0 Parents found                                = 2431430
+Number of (Exclusive) rho0 Parents found                    = 559249
+
+Total number of generated events found with Q2 > 1.5        = 4623193
+Total number of generated events found with Q2 < 1.5        = 5336807
+Total number of   SIDIS   events found with Q2 > 1.5        = 6231893
+
+
+=== Script FINISHED at: 10-09-2026 22:48:14 ===
+
+This code's runtime (in min) is: 
+35
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-09-2026 22:48:20 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0005.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0005.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31394077548
+reader:: **** scan trailer #bytes :       202712
+reader:: ***** number of  records :         6334
+reader:: ***** number of  events  :      9920000
+
+Total number of events found                                = 13214866
+
+Number of times that Multiple Pions were found per Electron = 4280501
+
+Number of rho0 Parents found                                = 2421919
+Number of (Exclusive) rho0 Parents found                    = 557400
+
+Total number of generated events found with Q2 > 1.5        = 4602684
+Total number of generated events found with Q2 < 1.5        = 5317316
+Total number of   SIDIS   events found with Q2 > 1.5        = 6206003
+
+
+=== Script FINISHED at: 10-09-2026 23:24:58 ===
+
+This code's runtime (in min) is: 
+36
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-09-2026 23:25:04 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0006.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0006.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31519483440
+reader:: **** scan trailer #bytes :       203544
+reader:: ***** number of  records :         6360
+reader:: ***** number of  events  :      9960000
+
+Total number of events found                                = 13267332
+
+Number of times that Multiple Pions were found per Electron = 4296009
+
+Number of rho0 Parents found                                = 2433539
+Number of (Exclusive) rho0 Parents found                    = 561551
+
+Total number of generated events found with Q2 > 1.5        = 4620659
+Total number of generated events found with Q2 < 1.5        = 5339341
+Total number of   SIDIS   events found with Q2 > 1.5        = 6228772
+
+
+=== Script FINISHED at: 10-10-2026 00:04:32 ===
+
+This code's runtime (in min) is: 
+39
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 00:04:38 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0007.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0007.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31486978048
+reader:: **** scan trailer #bytes :       203320
+reader:: ***** number of  records :         6353
+reader:: ***** number of  events  :      9950000
+
+Total number of events found                                = 13256451
+
+Number of times that Multiple Pions were found per Electron = 4292801
+
+Number of rho0 Parents found                                = 2431885
+Number of (Exclusive) rho0 Parents found                    = 559719
+
+Total number of generated events found with Q2 > 1.5        = 4614811
+Total number of generated events found with Q2 < 1.5        = 5335189
+Total number of   SIDIS   events found with Q2 > 1.5        = 6222568
+
+
+=== Script FINISHED at: 10-10-2026 00:42:48 ===
+
+This code's runtime (in min) is: 
+38
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 00:42:55 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0008.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0008.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31489116248
+reader:: **** scan trailer #bytes :       203320
+reader:: ***** number of  records :         6353
+reader:: ***** number of  events  :      9950000
+
+Total number of events found                                = 13255050
+
+Number of times that Multiple Pions were found per Electron = 4291723
+
+Number of rho0 Parents found                                = 2429656
+Number of (Exclusive) rho0 Parents found                    = 559770
+
+Total number of generated events found with Q2 > 1.5        = 4614066
+Total number of generated events found with Q2 < 1.5        = 5335934
+Total number of   SIDIS   events found with Q2 > 1.5        = 6218787
+
+
+=== Script FINISHED at: 10-10-2026 01:21:11 ===
+
+This code's runtime (in min) is: 
+38
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 01:21:18 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0009.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0009.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31458803512
+reader:: **** scan trailer #bytes :       203128
+reader:: ***** number of  records :         6347
+reader:: ***** number of  events  :      9940000
+
+Total number of events found                                = 13242736
+
+Number of times that Multiple Pions were found per Electron = 4289246
+
+Number of rho0 Parents found                                = 2427811
+Number of (Exclusive) rho0 Parents found                    = 559296
+
+Total number of generated events found with Q2 > 1.5        = 4610725
+Total number of generated events found with Q2 < 1.5        = 5329275
+Total number of   SIDIS   events found with Q2 > 1.5        = 6215158
+
+
+=== Script FINISHED at: 10-10-2026 01:55:50 ===
+
+This code's runtime (in min) is: 
+34
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 01:55:57 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0010.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0010.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31464853616
+reader:: **** scan trailer #bytes :       203160
+reader:: ***** number of  records :         6348
+reader:: ***** number of  events  :      9940000
+
+Total number of events found                                = 13241681
+
+Number of times that Multiple Pions were found per Electron = 4288199
+
+Number of rho0 Parents found                                = 2425069
+Number of (Exclusive) rho0 Parents found                    = 558721
+
+Total number of generated events found with Q2 > 1.5        = 4611221
+Total number of generated events found with Q2 < 1.5        = 5328779
+Total number of   SIDIS   events found with Q2 > 1.5        = 6217344
+
+
+=== Script FINISHED at: 10-10-2026 02:28:52 ===
+
+This code's runtime (in min) is: 
+32
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 02:28:58 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0011.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0011.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31466109420
+reader:: **** scan trailer #bytes :       203160
+reader:: ***** number of  records :         6348
+reader:: ***** number of  events  :      9940000
+
+Total number of events found                                = 13242998
+
+Number of times that Multiple Pions were found per Electron = 4288913
+
+Number of rho0 Parents found                                = 2428746
+Number of (Exclusive) rho0 Parents found                    = 559123
+
+Total number of generated events found with Q2 > 1.5        = 4611853
+Total number of generated events found with Q2 < 1.5        = 5328147
+Total number of   SIDIS   events found with Q2 > 1.5        = 6216989
+
+
+=== Script FINISHED at: 10-10-2026 03:02:24 ===
+
+This code's runtime (in min) is: 
+33
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 03:02:31 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0012.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0012.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31651813032
+reader:: **** scan trailer #bytes :       204344
+reader:: ***** number of  records :         6385
+reader:: ***** number of  events  :     10000000
+
+Total number of events found                                = 13323705
+
+Number of times that Multiple Pions were found per Electron = 4316039
+
+Number of rho0 Parents found                                = 2443730
+Number of (Exclusive) rho0 Parents found                    = 561606
+
+Total number of generated events found with Q2 > 1.5        = 4635519
+Total number of generated events found with Q2 < 1.5        = 5364481
+Total number of   SIDIS   events found with Q2 > 1.5        = 6251333
+
+
+=== Script FINISHED at: 10-10-2026 03:35:29 ===
+
+This code's runtime (in min) is: 
+32
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 03:35:36 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0013.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0013.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31466621332
+reader:: **** scan trailer #bytes :       203160
+reader:: ***** number of  records :         6348
+reader:: ***** number of  events  :      9940000
+
+Total number of events found                                = 13242981
+
+Number of times that Multiple Pions were found per Electron = 4287957
+
+Number of rho0 Parents found                                = 2427471
+Number of (Exclusive) rho0 Parents found                    = 559274
+
+Total number of generated events found with Q2 > 1.5        = 4610030
+Total number of generated events found with Q2 < 1.5        = 5329970
+Total number of   SIDIS   events found with Q2 > 1.5        = 6216294
+
+
+=== Script FINISHED at: 10-10-2026 04:05:01 ===
+
+This code's runtime (in min) is: 
+29
+
+****************************************
+*    Running COATJAVA Groovy Script    *
+****************************************
+
+
+
+=== Script STARTED at: 10-10-2026 04:05:08 ===
+
+
+/cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0014.hipo
+reader:: *****>>>>> openning file : /cache/clas12/rg-a/production/montecarlo/clasdis_pass2/fa18_inb/clasdis_rga_fa18_inb_45nA_10604MeV-0014.hipo
+reader:: ***** dictionary entries :           32
+reader:: ************ file size   :  31549867164
+reader:: **** scan trailer #bytes :       203736
+reader:: ***** number of  records :         6366
+reader:: ***** number of  events  :      9970000
