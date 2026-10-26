@@ -24,7 +24,13 @@ BINNED_EVGEN = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_File
 RC_RUNTIME = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/build_EvGen_PerFile_Hists_Runtime_ifarm_rc"
 GEN_DIR = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/GEN_MC/Pass2"
 REC_DIR = "/w/hallb-scshelf2102/clas12/richcap/SIDIS/Matched_REC_MC/With_BeamCharge/Pass2/More_Cut_Info"
-BC_NO_RAD = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root"
+# BC_NO_RAD = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root"
+# Final_Groups supplements Old_MM in the same directory. A name contains only one of the two prefixes.
+BC_NO_RAD_PATTERNS = [
+    BINNED_EVGEN + "/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root",
+    BINNED_EVGEN + "/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Final_Groups_*No_Rad*.root",
+]
+BC_NO_RAD_BRACE = BINNED_EVGEN + "/LUND_EvGen_Iterative_richcap_SBATCH_richcap_{Old_MM_Cut_Groups,Final_Groups}_*No_Rad*.root"
 
 
 def mail_note(subject, body):
@@ -1274,7 +1280,7 @@ def run_bc_config(args, label, counts):
     factor = os.path.join(bc_dir, "BC_Corrections_Script.py")
     tag = bc_run_tag(label, getattr(args, "run_tag", None))
     per_file = bc_worker_command(label, counts)
-    bc_inputs = expand_patterns([BC_NO_RAD])
+    bc_inputs = expand_patterns(BC_NO_RAD_PATTERNS)
     if(args.dry_run):
         print("BC inventory %s directory %s" % (hist_phase, bc_run_directory(tag)))
         for bc_input in bc_inputs:
@@ -1310,7 +1316,7 @@ def run_bc_config(args, label, counts):
             if(not remove_incomplete_bc_outputs(bc_input, label, counts, args.dry_run, tag)):
                 mail_stop(hist_phase, "could not inspect an existing BC output; it was left in place")
                 return 1
-        argv = [runner, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, hist_phase), "-rt", tag, "-c", per_file]
+        argv = [runner, "-d", BC_NO_RAD_BRACE, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, hist_phase), "-rt", tag, "-c", per_file]
         if(len(done_inputs) > 0):
             argv.extend(["-ex", ",".join([os.path.basename(path) for path in done_inputs])])
         code = run_command(hist_phase, argv, bc_dir, args.dry_run, hadd_phase, mail_success=False)
@@ -1610,6 +1616,13 @@ def response_override_pairs(args):
     return pairs
 
 
+def response_workflow_name(only_key):
+    # histogram_1d, response_1d, and diagnostic_1d write SIDIS_Workflow_V2. histogram_unfold keeps SIDIS_Workflow.
+    if(only_key in ["1D", "diag", "both1d"]):
+        return "SIDIS_Workflow_V2"
+    return WORKFLOW_NAME
+
+
 def response_argv_has_jobs(argv):
     for flag in ["-j2D", "-j3D", "-j5D", "-j1D", "-jdiag"]:
         if((flag in argv) and (int(argv[argv.index(flag) + 1]) > 0)):
@@ -1621,7 +1634,8 @@ def response_submit_argv(args, only_key, slots=None, pass_overrides=False):
     from Campaign.local_resource_gate import clamp_histogram_cap, histogram_ceilings
     ceilings = histogram_ceilings()
     submit = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py")
-    argv = [submit, "-droot", args.data_root, "-m", "hybrid", "-y", "-sa", "-n", "SIDIS_Workflow", "-mac", campaign_matching_value(getattr(args, "matching_criteria", None)), "-j", "0", "-jBin", "0", "-jch4", "0", "-jdph", "0", "-jrho0", "0"]
+    workflow = response_workflow_name(only_key)
+    argv = [submit, "-droot", args.data_root, "-m", "hybrid", "-y", "-sa", "-n", workflow, "-mac", campaign_matching_value(getattr(args, "matching_criteria", None)), "-j", "0", "-jBin", "0", "-jch4", "0", "-jdph", "0", "-jrho0", "0"]
     hpp_name = campaign_hpp_tag(getattr(args, "hpp_old_name", None))
     argv.extend(["-hon", str(hpp_name)])
     counts = {"2D": 0, "3D": 0, "5D": 0, "1D": 0, "diag": 0}
@@ -1632,15 +1646,18 @@ def response_submit_argv(args, only_key, slots=None, pass_overrides=False):
         counts["3D"] = ceilings["Only_3D"]
     if((only_key in ["", "5D"]) and ((allowed is None) or ("5D" in allowed))):
         counts["5D"] = ceilings["Only_5D"]
-    if((only_key in ["", "1D"]) and ((allowed is None) or ("1D" in allowed))):
+    if((only_key in ["", "1D", "both1d"]) and ((allowed is None) or ("1D" in allowed))):
         counts["1D"] = ceilings["Only_1D"]
-    if((only_key in ["", "diag"]) and ((allowed is None) or ("diag" in allowed))):
+    if((only_key in ["", "diag", "both1d"]) and ((allowed is None) or ("diag" in allowed))):
         counts["diag"] = ceilings["Diagnostic_1D"]
     reuse = [("2D", "2D_Presentation", "Q2"), ("3D", "Only_3D", "MultiDim"), ("5D", "Only_5D", "MultiDim"), ("1D", "Only_1D", "phi_response_4d")]
+    # Diagnostic reuse looks at the V2 merge only. The unversioned Diagnostic job count is unchanged.
+    if(workflow == "SIDIS_Workflow_V2"):
+        reuse.append(("diag", "Diagnostic_1D", "match_category"))
     for slot, product_key, piece in reuse:
         if(counts[slot] == 0):
             continue
-        merged = histogram_response_path(args, product_key)
+        merged = response_merged_path(args.data_root, product_key, workflow, getattr(args, "matching_criteria", None))
         if(response_file_ready(merged, piece)):
             print("reusing merged %s" % merged)
             counts[slot] = 0
@@ -1656,10 +1673,10 @@ def response_submit_argv(args, only_key, slots=None, pass_overrides=False):
 
 def response_plan_argvs(args, only_key):
     # One Submit_Full applies one batch list and one output date to every selected product.
-    # Recovery overrides stay on 2D, 3D, and 5D. Diagnostic_1D and Only_1D get a second command without them.
+    # Recovery overrides stay on 2D, 3D, and 5D. histogram_1d, Diagnostic_1D, and Only_1D do not receive them.
     if(len(response_override_pairs(args)) == 0):
         return [response_submit_argv(args, only_key)]
-    if(only_key in ["1D", "diag"]):
+    if(only_key in ["1D", "diag", "both1d"]):
         return [response_submit_argv(args, only_key)]
     if(only_key in ["2D", "3D", "5D"]):
         argv = response_submit_argv(args, only_key, pass_overrides=True)
@@ -1699,14 +1716,17 @@ def run_response(args, only_key):
         needed = [("Only_1D", "phi_response_4d")]
     elif(only_key == "diag"):
         needed = [("Diagnostic_1D", "match_category")]
+    elif(only_key == "both1d"):
+        needed = [("Only_1D", "phi_response_4d"), ("Diagnostic_1D", "match_category")]
     elif(only_key == "3D"):
         needed = [("Only_3D", "MultiDim")]
     elif(only_key == "5D"):
         needed = [("Only_5D", "MultiDim")]
     elif(only_key == "2D"):
         needed = [("2D_Presentation", "Q2")]
+    workflow = response_workflow_name(only_key)
     for product_key, piece in needed:
-        path = histogram_response_path(args, product_key)
+        path = response_merged_path(args.data_root, product_key, workflow, getattr(args, "matching_criteria", None))
         if(not response_file_ready(path, piece)):
             mail_stop("response", "aggregated file is missing its histograms: %s" % path)
             return 1
@@ -2286,6 +2306,8 @@ def run_direct(args):
         code = run_response(args, "1D")
     elif(args.stage == "diagnostic_1d"):
         code = run_response(args, "diag")
+    elif(args.stage == "histogram_1d"):
+        code = run_response(args, "both1d")
     elif(args.stage == "iteration_3d"):
         code = run_iteration(args, "3D")
     elif(args.stage == "iteration_5d"):

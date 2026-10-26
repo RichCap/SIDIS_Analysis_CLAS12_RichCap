@@ -10,7 +10,7 @@ if(_BOOT not in sys.path):
 
 from Campaign.ifarm_inputs import classify_rho_name, load_ifarm_inputs, rho_source_token
 from Campaign.local_orchestrator import (
-    GEN_DIR, RC_RUNTIME, REC_DIR, expand_patterns, groovy_sbatch_path,
+    BC_NO_RAD_PATTERNS, GEN_DIR, RC_RUNTIME, REC_DIR, expand_patterns, groovy_sbatch_path,
     input_folder, matching_groovy_roots, parse_groovy_sbatch, read_manifest_patterns, response_merged_path, sacct_tasks,
 )
 from jlab_work_paths import REL_FILE_BATCHES, REL_HADD, data_root_path, dataframe_output_dir, resolve_pipeline_input
@@ -18,7 +18,7 @@ from jlab_work_paths import REL_FILE_BATCHES, REL_HADD, data_root_path, datafram
 BC_DIR = os.path.join(_BOOT, "BC_Corrections")
 BC_FLAT = os.path.join(BC_DIR, "ROOT_Files_Output")
 BC_VOLATILE = os.path.join(BC_FLAT, "Path_to_Volatile")
-BC_NO_RAD = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root"
+# BC_NO_RAD = "/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root"
 GROOVY = os.path.join(_BOOT, "Data_Files_Groovy", "run_groovy_scripts_with_emails.py")
 HELPER = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "run_dataframe_makeROOT_helper.py")
 BATCHES = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "run_sidis_DataFrame_pipeline.py")
@@ -351,7 +351,7 @@ def bc_output(input_path):
 
 def report_bc(recovery):
     print("workflow bc")
-    inputs = expand_patterns([BC_NO_RAD])
+    inputs = expand_patterns(BC_NO_RAD_PATTERNS)
     if(len(inputs) == 0):
         print("  uncertain: No_Rad glob matched nothing")
         add_action("blocked", "bc inputs were not found")

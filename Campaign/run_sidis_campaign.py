@@ -282,6 +282,8 @@ def main():
         return
     if(args.stage == "unfold_5d_only"):
         raise SystemExit("unfold_5d_only runs with -orch direct. swif2 was not started.")
+    if(args.stage == "histogram_1d"):
+        raise SystemExit("histogram_1d runs with -orch direct. swif2 was not started.")
     data_root_key = args.data_root
     registry_root = data_root_path(data_root_key) if(data_root_key in WORK_ROOTS) else data_root_key
     if((data_root_key in WORK_ROOTS) and (not os.path.isdir(registry_root))):

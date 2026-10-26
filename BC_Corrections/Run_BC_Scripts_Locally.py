@@ -83,9 +83,10 @@ def parse_args():
                         # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Binned_Groups_Q2_Row_*.root",
                         # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Binned_Groups_Q2_Row_[1-5]_V2*.root",
                         # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_Q2_Row*No_Rad*.root",
-                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root",
+                        # default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_Old_MM_Cut_Groups_*No_Rad*.root",
+                        default="/lustre24/expphy/volatile/clas12/richcap/Radiative_MC_EvGen_Files/Binned_Files_Made_through_sbatch/LUND_EvGen_Iterative_richcap_SBATCH_richcap_{Old_MM_Cut_Groups,Final_Groups}_*No_Rad*.root",
                         type=str,
-                        help="Directory path OR glob pattern of files to process. Supports explicit brace-branch patterns like '{New,richcap}'.\nDefault is the full No_Rad Old_MM_Cut_Groups_* set (all Q2_Row and later groups).\n")
+                        help="Directory path OR glob pattern of files to process. Supports explicit brace-branch patterns like '{New,richcap}'.\nDefault is the No_Rad Old_MM_Cut_Groups and Final_Groups sets in Binned_Files_Made_through_sbatch.\n")
 
     parser.add_argument("-check", "--check",
                         action="store_true",
