@@ -249,7 +249,8 @@ struct UnfoldArgs {
     std::vector<std::string> bins = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17"};
     bool verbose = false;
     // double Min_Allowed_Acceptance_Cut = 0.0005; // Changed to 0.025 on 9/16/2026
-    double Min_Allowed_Acceptance_Cut = 0.025;
+    // double Min_Allowed_Acceptance_Cut = 0.025; // Changed to 0.020 on 10/26/2026
+    double Min_Allowed_Acceptance_Cut = 0.020;
     std::string single_file_input = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_1st_Order_V2_Response_Matrices_Final_Analysis_Iterations_I0_All.root";
     bool email = false;
     std::string email_message = "";

@@ -34,7 +34,8 @@ class RecSkipMap:
 
 
 # def build_rec_skip_map(rdf, mdf, gdf, bdf=None, min_acc=0.0005, warn=None):  # Changed min_acc to 0.025 on 9/16/2026
-def build_rec_skip_map(rdf, mdf, gdf, bdf=None, min_acc=0.025, warn=None):
+# def build_rec_skip_map(rdf, mdf, gdf, bdf=None, min_acc=0.025, warn=None):  # Changed min_acc to 0.020 on 10/26/2026
+def build_rec_skip_map(rdf, mdf, gdf, bdf=None, min_acc=0.020, warn=None):
     if(warn is None):
         warn = lambda msg: print(msg, file=sys.stderr)
     n = int(rdf.GetNbinsX())

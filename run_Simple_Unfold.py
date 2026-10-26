@@ -73,7 +73,8 @@ def parse_args():
                    help="Prints each Histogram name to be saved.\n")
     p.add_argument('-ac', '-acceptance-cut', '--Min_Allowed_Acceptance_Cut',
                    # type=float, default=0.0005,  # Changed to 0.025 on 9/16/2026
-                   type=float, default=0.025,
+                   # type=float, default=0.025,  # Changed to 0.020 on 10/26/2026
+                   type=float, default=0.020,
                    help="Cut made on acceptance before a bin is removed from unfolding.\n")
     p.add_argument('-sfin', '--single_file_input', type=str, default=DEFAULT_INPUT,
                    help="Path to the INPUT ROOT file.\n")
