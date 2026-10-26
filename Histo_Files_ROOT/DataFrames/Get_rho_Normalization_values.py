@@ -142,6 +142,9 @@ def parse_args():
                         action='store_true',
                         help="Uses the 'z_Bins' binning instead of the 4D kinematic bins in the 'Wpions' fit mode.\n")
     parser.add_argument('-st', '--source_token', default=None, help="Rho source token for histogram names. Omit to keep lundvpk, or lundrho when --old_lund is set.\n")
+    parser.add_argument('-pw', '--presentation_weighted',
+                        action='store_true',
+                        help="Draw the existing SIDIS comparison figures from already weighted cut_Complete_SIDIS histograms in --file2. Does not scale those histograms again.\n")
     parser.add_argument('-ol', '--old_lund',
                         action='store_true',
                         help="Use Harut's old files instead of the newer ones.\n")
@@ -2887,6 +2890,57 @@ def Create_Diagnostic_Weight_Impact_Plots(args):
     file2.Close()
     print(f"\n{color.BOLD}Diagnostic weight impact plots completed.{color.END}\n")
 
+def presentation_project_xy(hist, clone_name):
+    # Keep phi or the kinematic pair on X and Y. Sum only Q2-y centers 1 through 17.
+    detached = hist.Clone(clone_name)
+    detached.SetDirectory(0)
+    detached.GetZaxis().SetRange(2, 18)
+    projected = detached.Project3D("yx")
+    projected.SetDirectory(0)
+    return projected
+
+
+def load_presentation_weighted_histograms(args):
+    # The 2D presentation rho0_new histograms are already multiplied by n_rho.
+    n_rho = 2.4020823572173544
+    token = rho_hist_token(args)
+    if(token != "rho0_new"):
+        raise SystemExit("presentation_weighted requires --source_token rho0_new")
+    root_file = ROOT.TFile.Open(args.file2)
+    if((not root_file) or root_file.IsZombie()):
+        raise SystemExit("could not open %s" % args.file2)
+    stage_name = "Full_SIDIS"
+    variables = ["(phi_t)_(Q2_y_z_pT_4D_Bins)", "(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)"]
+    histograms = {}
+    for variable in variables:
+        smeared = variable.replace(")", "_smeared)")
+        source_data = "(Normal_2D)_(rdf)_(cut_Complete_SIDIS)_(SMEAR='')_(Q2_Y_Bin)_%s" % variable
+        source_mc   = "(Normal_2D)_(mdf)_(cut_Complete_SIDIS)_(SMEAR=smear)_(Q2_Y_Bin)_%s_(%s)" % (smeared, token)
+        data_hist = root_file.Get(source_data)
+        mc_hist   = root_file.Get(source_mc)
+        if((not data_hist) or (not mc_hist)):
+            raise SystemExit("missing %s or %s" % (source_data, source_mc))
+        if("phi_t" in variable):
+            raw_count = mc_hist.Integral() / n_rho
+            print("presentation phi MC integral %.6f raw count %.6f" % (mc_hist.Integral(), raw_count))
+            if(abs(raw_count - 261381.0) > 0.5):
+                raise SystemExit("phi MC integral is not the weighted rho0_new sample")
+        data_xy = presentation_project_xy(data_hist, "presentation_data_%s" % variable)
+        mc_xy   = presentation_project_xy(mc_hist,   "presentation_mc_%s" % variable)
+        dest_data = "(Normal_2D)_(rdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR='')_(exclusive_rho_individual)_%s_%s" % (variable, stage_name)
+        dest_mc   = "(Normal_2D)_(mdf)_(cut_Complete_SIDIS_MM_None)_(SMEAR=smear)_(exclusive_rho_individual)_%s_(%s)_%s_(Scaled)" % (smeared, token, stage_name)
+        data_xy.SetName(dest_data)
+        mc_xy.SetName(dest_mc)
+        removed = data_xy.Clone("%s_(Removed_Background)" % dest_data)
+        removed.SetDirectory(0)
+        removed.Add(mc_xy, -1.0)
+        histograms[dest_data] = data_xy
+        histograms[dest_mc] = mc_xy
+        histograms[removed.GetName()] = removed
+    root_file.Close()
+    return histograms
+
+
 if(__name__ == "__main__"):
     args = parse_args()
     apply_input_if_default(args, "file1", ["-f1", "--file1"], args.data_root)
@@ -2895,7 +2949,12 @@ if(__name__ == "__main__"):
     args.timer.start()
     if(args.Kinematic_Bin_Select not in ["All", "Full"]):
         args.Kinematic_Bin_Select = int(args.Kinematic_Bin_Select)
-    if(getattr(args, "run_all_base_diagnostic_images", False)):
+    if(getattr(args, "presentation_weighted", False)):
+        diagnostic_hist_list = load_presentation_weighted_histograms(args)
+        phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_Data", stage_name="Full_SIDIS", Draw_Type="data_scale")
+        for var_choices in ["(Q2)_(y)", "(Q2)_(xB)", "(z)_(pT)"]:
+            Other_1D_Kinematic_Comparison_Images(args, diagnostic_hist_list, Vars_Input=var_choices, Comparison_Type="In_Data", stage_name="Full_SIDIS", Draw_Type="data_scale")
+    elif(getattr(args, "run_all_base_diagnostic_images", False)):
         diagnostic_hist_list = make_diagnostic_cut_images(args)
         diagnostic_hist_list = create_rho_normalized_diagnostic_plots(args, diagnostic_hist_list)
         canvas_list = phi_h_1D_Compare_in_z_pT_Images_Together(diagnostic_hist_list, args, Comparison_Type="In_Data",        stage_name="Full_SIDIS", Draw_Type="data_scale")
