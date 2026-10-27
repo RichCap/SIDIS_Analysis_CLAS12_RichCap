@@ -891,7 +891,8 @@ def should_skip_batch_due_to_slurm(args, batch_index, output_dir):
     target_id = f"{args.slurm_array_jobid}_{batch_index}"
     batch_path = expected_batch_root_path(args, output_dir, batch_index)
     if(state == "IGNORE"):
-        print(f"{color.BYELLOW}[INFO]{color.END} squeue failed; not starting a second writer for batch {batch_index}.")
+        Update_Email(args, update_message=f"{color.BYELLOW}[INFO]{color.END} squeue failed; not starting a second writer for batch {batch_index}.", verbose_override=True, no_time=True)
+        # print(f"{color.BYELLOW}[INFO]{color.END} squeue failed; not starting a second writer for batch {batch_index}.")
         return True
     if(state in ["R", "CG", "CF"]):
         print(f"{color.BBLUE}[INFO]{color.END} Batch {batch_index} is {state} in SLURM - leaving it to SLURM")
@@ -899,7 +900,8 @@ def should_skip_batch_due_to_slurm(args, batch_index, output_dir):
     if(state == "PD"):
         print(f"{color.BBLUE}[INFO]{color.END} Cancelling pending SLURM task {target_id}")
         if(not cancel_slurm_array_task(args.slurm_array_jobid, batch_index)):
-            print(f"{color.BYELLOW}[INFO]{color.END} Batch {batch_index} left to SLURM (could not cancel pending task).")
+            Update_Email(args, update_message=f"{color.BYELLOW}[INFO]{color.END} Batch {batch_index} left to SLURM (could not cancel pending task).", verbose_override=True, no_time=True)
+            # print(f"{color.BYELLOW}[INFO]{color.END} Batch {batch_index} left to SLURM (could not cancel pending task).")
             return True
         return False
     if(os.path.isfile(batch_path) and (os.path.getsize(batch_path) > 0)):
@@ -1150,18 +1152,24 @@ def stop_if_outside_batches_missing(args, output_dir, num_batches):
     if(selected is None):
         return None
     if(len(problems) > 0):
-        print("recovery stopped. These batches are outside --batch_ids and are not valid, so nothing was submitted:")
+        # print("recovery stopped. These batches are outside --batch_ids and are not valid, so nothing was submitted:")
+        Failure_message = "Recovery stopped. These batches are outside --batch_ids and are not valid, so nothing was submitted:"
         for path in problems:
-            print(path)
+            # print(path)
+            Failure_message = f"{Failure_message}\n{path}"
+        Crash_Report(args, crash_message=Failure_message, continue_run=False)
         sys.exit(1)
     return selected
 
 def wait_for_remaining_slurm_tasks(args):
     if(args.slurm_array_jobid in [None, ""]):
         return
+    loop_message_counts = 0
     while(slurm_array_has_active_tasks(args.slurm_array_jobid)):
-        print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
+        if(loop_message_counts%10 == 0):
+            print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM array tasks of {args.slurm_array_jobid}...")
         time.sleep(30.0)
+        loop_message_counts += 1
 
 def merge_ch4_add_block(dest, block, int_keys):
     for key in int_keys:
