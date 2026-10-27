@@ -1,0 +1,514 @@
+#!/usr/bin/env python3
+# One entry point for the 34+7 SIDIS 3D systematic campaign.
+# --dry_run writes the manifest and prints commands. It does not submit work.
+import argparse
+import os
+import subprocess
+import sys
+import time
+
+_BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if(_BOOT not in sys.path):
+    sys.path.insert(0, _BOOT)
+
+from Campaign.systematics_campaign import (
+    EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, append_log, bin_root, branch_settings, build_manifest,
+    campaign_directory, command_text, file_nonempty, job_stem, manifest_path, output_counts,
+    phase1_command, read_manifest, regen_command, root_key_names, sbatch_script, unfold_bin_ok,
+    unfold_command, unfold_final_ok, worker_cap, write_manifest,
+)
+from Campaign.systematics_worker_ledger import bind_worker, pid_alive, release, try_acquire
+
+SUBMIT_SCRIPT = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py")
+UNFOLD_SCRIPT = os.path.join(_BOOT, "run_Simple_Unfold.py")
+DATAFRAMES_DIR = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
+
+
+def response_ok(path):
+    if(not file_nonempty(path)):
+        return False
+    try:
+        names = root_key_names(path)
+    except Exception:
+        return False
+    return (names is not None) and (len(names) > 0)
+
+
+def send_mail(enabled, subject, body):
+    if(not enabled):
+        return
+    try:
+        subprocess.run(["mail", "-s", subject, EMAIL_TO], input=body.encode(), check=False)
+    except Exception as exc:
+        print("mail was not sent: %s" % exc)
+
+
+def slurm_helpers():
+    if(DATAFRAMES_DIR not in sys.path):
+        sys.path.insert(0, DATAFRAMES_DIR)
+    import run_sidis_DataFrame_pipeline as pipeline
+    return pipeline.query_slurm_array_task_state, pipeline.cancel_slurm_array_task
+
+
+def fill_commands(manifest, python):
+    for row in manifest["phase1"]:
+        config = {"id": row["id"], "cut": row["cut"], "unsmeared": row["unsmeared"], "nominal": row["nominal"]}
+        row["command"] = phase1_command(
+            python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"],
+            manifest["max_local_workers"], config, row["hpp_nospline"], row["hpp_spline"],
+        )
+
+
+def print_plan(manifest, regen_cmd):
+    arrays, tasks, files = output_counts(manifest["weight_mode"])
+    print("dry-run only: no sbatch, no histogram process, no unfold process")
+    print("campaign %s  weight_mode %s  local_workers %s" % (manifest["campaign"], manifest["weight_mode"], manifest["max_local_workers"]))
+    print("phase1 configurations %s" % len(manifest["phase1"]))
+    print("phase2 arrays %s  tasks %s  final files %s" % (arrays, tasks, files))
+    if(regen_cmd is not None):
+        print("HPP regen (nominal waits; others do not):")
+        print(command_text(regen_cmd))
+    for row in manifest["phase1"]:
+        print("PHASE1 %s %s" % (row["id"], row["status"]))
+        print("  hpp_nospline %s" % row["hpp_nospline"])
+        print("  hpp_spline %s" % row["hpp_spline"])
+        print("  response %s" % row["response"])
+        print("  %s" % command_text(row["command"]))
+    camp = campaign_directory(manifest["data_root"], manifest["campaign"])
+    parts = os.path.join(camp, "unfold_parts")
+    logs = os.path.join(camp, "slurm_logs")
+    for row in manifest["phase2"]:
+        settings = branch_settings(row["branch"], 1, row["weight_tag"])
+        sample = unfold_command(sys.executable, UNFOLD_SCRIPT, manifest["data_root"], row["response"], bin_root(parts, row, 1), 1, settings)
+        print("PHASE2 %s lineage %s" % (row["key"], row["lineage"]))
+        print("  final %s" % row["final"])
+        print("  bin1 %s" % command_text(sample))
+        script = sbatch_script(job_stem(row), logs, sys.executable, UNFOLD_SCRIPT, manifest["data_root"], row["response"], parts, job_stem(row), row["branch"], row["weight_tag"])
+        print("  sbatch %s" % script.splitlines()[3])
+    print("manifest %s" % manifest_path(camp))
+    sys.stdout.flush()
+
+
+def reconcile_existing(manifest):
+    for row in manifest["phase1"]:
+        if((row["status"] == "running") and (not pid_alive(row.get("pid")))):
+            if(response_ok(row["response"])):
+                row["status"] = "success"
+                row["reason"] = ""
+            else:
+                row["status"] = "failed"
+                row["reason"] = row.get("reason") or "phase1 process ended without a response file"
+        elif((row["status"] == "success") and (not response_ok(row["response"]))):
+            row["status"] = "failed"
+            row["reason"] = "recorded success has no valid response file"
+    for row in manifest["phase2"]:
+        if((row["status"] == "success") and (not unfold_final_ok(row["final"]))):
+            row["status"] = "failed"
+            row["reason"] = "recorded success has no complete unfolded file"
+
+
+def phase1_needs_start(row):
+    if((row["status"] == "success") and response_ok(row["response"])):
+        return False
+    if((row["status"] == "running") and pid_alive(row.get("pid"))):
+        return False
+    return True
+
+
+def start_phase1(manifest, row, enabled_mail, camp):
+    proc = subprocess.Popen(row["command"])
+    row["pid"] = proc.pid
+    row["status"] = "running"
+    row["reason"] = ""
+    append_log(camp, "phase1", row["id"], "", "", "", "local", "", "started", "", row["response"])
+    send_mail(enabled_mail, "SIDIS systematics started %s" % row["id"], "Phase 1 started for %s\n%s\n" % (row["id"], row["response"]))
+    return proc
+
+
+def submit_sbatch(script_path):
+    proc = subprocess.run(["sbatch", "--parsable", script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if(proc.returncode != 0):
+        message = (proc.stderr or proc.stdout or "sbatch failed").strip()
+        return "", message
+    text = (proc.stdout or "").strip().split(";")[0].strip()
+    return text, ""
+
+
+def write_sbatch(camp, manifest, row):
+    logs = os.path.join(camp, "slurm_logs")
+    parts = os.path.join(camp, "unfold_parts")
+    os.makedirs(logs, exist_ok=True)
+    os.makedirs(parts, exist_ok=True)
+    path = os.path.join(camp, "sbatch", job_stem(row) + ".sh")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    text = sbatch_script(
+        job_stem(row), logs, sys.executable, UNFOLD_SCRIPT, manifest["data_root"],
+        row["response"], parts, job_stem(row), row["branch"], row["weight_tag"],
+    )
+    handle = open(path, "w")
+    handle.write(text)
+    handle.close()
+    os.chmod(path, 0o755)
+    return path
+
+
+def bin_needs_work(slot):
+    return slot.get("status") not in ["success", "failed"]
+
+
+def lineage_busy(running, lineage):
+    return lineage in running
+
+
+def first_pending_bin(row, query_state, now):
+    if(row.get("array_id") in [None, ""]):
+        return None
+    if(row.get("submit_time") in [None, ""]):
+        return None
+    if((now - float(row["submit_time"])) < LOCAL_DELAY_S):
+        return None
+    for q2y in Q2Y_BINS:
+        slot = row["bins"][str(q2y)]
+        if(not bin_needs_work(slot)):
+            continue
+        if(file_nonempty(slot["root"]) and unfold_bin_ok(slot["root"], q2y)):
+            slot["status"] = "success"
+            slot["where"] = slot.get("where") or "slurm"
+            continue
+        state = query_state(row["array_id"], q2y)
+        slot["slurm_state"] = "" if(state in [None]) else str(state)
+        if(state == "PD"):
+            return q2y
+    return None
+
+
+def choose_local(rows, running, query_state, now):
+    by_lineage = {}
+    for row in rows:
+        if(row["status"] in ["success", "failed", "waiting_phase1"]):
+            continue
+        by_lineage.setdefault(row["lineage"], []).append(row)
+    for lineage, group in by_lineage.items():
+        if(lineage_busy(running, lineage)):
+            continue
+        ordered = sorted(group, key=lambda item: item.get("local_order", 0))
+        for row in ordered:
+            if(row.get("submit_time") in [None, ""]):
+                break
+            if((now - float(row["submit_time"])) < LOCAL_DELAY_S):
+                break
+            q2y = first_pending_bin(row, query_state, now)
+            if(q2y is not None):
+                return row, q2y
+    return None, None
+
+
+def launch_local(manifest, camp, row, q2y, cap):
+    ok, token = try_acquire(manifest["data_root"], manifest["campaign"], cap, "unfold", row["key"])
+    if(not ok):
+        return None
+    return token
+
+
+def run_live(args, manifest):
+    camp = campaign_directory(args.data_root, args.campaign)
+    os.makedirs(os.path.join(camp, "unfolded"), exist_ok=True)
+    os.makedirs(os.path.join(camp, "final"), exist_ok=True)
+    reconcile_existing(manifest)
+    fill_commands(manifest, sys.executable)
+    write_manifest(camp, manifest)
+    query_state, cancel_task = slurm_helpers()
+    procs = {}
+    regen_proc = None
+    nominal = None
+    for row in manifest["phase1"]:
+        if(row["nominal"]):
+            nominal = row
+    regen_out = nominal["hpp_spline"] if((args.regenerate_nominal_spline_hpp) and (nominal is not None)) else ""
+    if((regen_out not in [None, ""]) and phase1_needs_start(nominal) and (not file_nonempty(regen_out))):
+        regen_cmd = regen_command(sys.executable, SUBMIT_SCRIPT, args.data_root, regen_out)
+        append_log(camp, "hpp", "nominal", "", "AccSpline", "", "local", "", "started", "", regen_out)
+        regen_proc = subprocess.Popen(regen_cmd)
+    for row in manifest["phase1"]:
+        if(row["nominal"] and (regen_proc is not None)):
+            continue
+        if(not phase1_needs_start(row)):
+            continue
+        procs[row["id"]] = start_phase1(manifest, row, args.email, camp)
+    write_manifest(camp, manifest)
+    compiled = False
+    compile_failed = False
+    running_local = {}
+    while(True):
+        if(regen_proc is not None):
+            regen_rc = regen_proc.poll()
+            if(regen_rc is not None):
+                if((regen_rc == 0) and file_nonempty(regen_out)):
+                    append_log(camp, "hpp", "nominal", "", "AccSpline", "", "local", "", "success", "", regen_out)
+                    if(phase1_needs_start(nominal)):
+                        procs[nominal["id"]] = start_phase1(manifest, nominal, args.email, camp)
+                else:
+                    nominal["status"] = "failed"
+                    nominal["reason"] = "nominal spline HPP regeneration failed"
+                    append_log(camp, "hpp", "nominal", "", "AccSpline", "", "local", "", "failed", nominal["reason"], regen_out)
+                    send_mail(args.email, "SIDIS systematics failed nominal", nominal["reason"] + "\n")
+                regen_proc = None
+                write_manifest(camp, manifest)
+        finished = []
+        for config_id, proc in procs.items():
+            rc = proc.poll()
+            if(rc is None):
+                continue
+            finished.append(config_id)
+            row = [item for item in manifest["phase1"] if(item["id"] == config_id)][0]
+            if((rc == 0) and response_ok(row["response"])):
+                row["status"] = "success"
+                row["reason"] = ""
+                append_log(camp, "phase1", row["id"], "", "", "", "local", "", "success", "", row["response"])
+                send_mail(args.email, "SIDIS systematics Phase 1 success %s" % row["id"], row["response"] + "\n")
+            else:
+                row["status"] = "failed"
+                row["reason"] = "histogram pipeline exited %s" % rc
+                append_log(camp, "phase1", row["id"], "", "", "", "local", "", "failed", row["reason"], row["response"])
+                send_mail(args.email, "SIDIS systematics Phase 1 failed %s" % row["id"], row["reason"] + "\n")
+        for config_id in finished:
+            del procs[config_id]
+        if((not compiled) and any(row["status"] == "success" for row in manifest["phase1"])):
+            compile_rc = subprocess.run([sys.executable, UNFOLD_SCRIPT, "--compile_only"]).returncode
+            compiled = compile_rc == 0
+            compile_failed = not compiled
+            if(compile_failed):
+                append_log(camp, "phase2", "", "", "", "", "local", "", "failed", "Simple_Unfold compile failed", "")
+        for row in manifest["phase2"]:
+            parent = [item for item in manifest["phase1"] if(item["id"] == row["config_id"])][0]
+            if(parent["status"] != "success"):
+                continue
+            if(row["status"] in ["success", "failed"]):
+                continue
+            if(compile_failed):
+                row["status"] = "failed"
+                row["reason"] = "Simple_Unfold compile failed"
+                continue
+            if(not compiled):
+                continue
+            if(row.get("array_id") not in [None, ""]):
+                row["status"] = "submitted"
+                continue
+            script_path = write_sbatch(camp, manifest, row)
+            array_id, message = submit_sbatch(script_path)
+            if(array_id in [None, ""]):
+                row["status"] = "failed"
+                row["reason"] = message
+                append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "slurm", "", "failed", message, "")
+                continue
+            row["array_id"] = array_id
+            row["submit_time"] = time.time()
+            row["status"] = "submitted"
+            append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "slurm", array_id, "submitted", "", row["final"])
+            send_mail(args.email, "SIDIS systematics Phase 2 started %s" % row["key"], "array %s\n%s\n" % (array_id, row["final"]))
+        done_local = []
+        for lineage, slot in running_local.items():
+            rc = slot["proc"].poll()
+            if(rc is None):
+                continue
+            done_local.append(lineage)
+            release(manifest["data_root"], manifest["campaign"], slot["token"])
+            q2y = slot["q2y"]
+            bin_slot = slot["row"]["bins"][str(q2y)]
+            if((rc == 0) and unfold_bin_ok(bin_slot["root"], q2y)):
+                bin_slot["status"] = "success"
+                bin_slot["where"] = "local"
+                append_log(camp, "phase2", slot["row"]["config_id"], slot["row"]["branch"], slot["row"]["weight_label"], q2y, "local", slot["row"].get("array_id"), "success", "", bin_slot["root"])
+            else:
+                bin_slot["status"] = "failed"
+                bin_slot["where"] = "local"
+                slot["row"]["status"] = "failed"
+                slot["row"]["reason"] = "local unfold bin %s exited %s" % (q2y, rc)
+                append_log(camp, "phase2", slot["row"]["config_id"], slot["row"]["branch"], slot["row"]["weight_label"], q2y, "local", slot["row"].get("array_id"), "failed", slot["row"]["reason"], bin_slot["root"])
+        for lineage in done_local:
+            del running_local[lineage]
+        now = time.time()
+        row, q2y = choose_local(manifest["phase2"], running_local, query_state, now)
+        if((row is not None) and (q2y is not None)):
+            state_now = query_state(row["array_id"], q2y)
+            if(state_now == "PD"):
+                token = launch_local(manifest, camp, row, q2y, args.max_local_workers)
+                if(token not in [None, ""]):
+                    state_again = query_state(row["array_id"], q2y)
+                    if(state_again != "PD"):
+                        release(manifest["data_root"], manifest["campaign"], token)
+                    elif(not cancel_task(row["array_id"], q2y)):
+                        release(manifest["data_root"], manifest["campaign"], token)
+                        append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], q2y, "slurm", row["array_id"], "cancel_failed", "left on SLURM", "")
+                    else:
+                        settings = branch_settings(row["branch"], q2y, row["weight_tag"])
+                        cmd = unfold_command(sys.executable, UNFOLD_SCRIPT, args.data_root, row["response"], row["bins"][str(q2y)]["root"], q2y, settings)
+                        log_handle = open(os.path.join(camp, "slurm_logs", "%s_q2y%02d.local.log" % (job_stem(row), q2y)), "w")
+                        proc = subprocess.Popen(cmd, stdout=log_handle, stderr=subprocess.STDOUT)
+                        bind_worker(manifest["data_root"], manifest["campaign"], token, proc.pid)
+                        running_local[row["lineage"]] = {"proc": proc, "token": token, "row": row, "q2y": q2y}
+                        append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], q2y, "local", row["array_id"], "started", "", row["bins"][str(q2y)]["root"])
+        for row in manifest["phase2"]:
+            if(row["status"] in ["success", "failed", "waiting_phase1"]):
+                continue
+            if(row.get("array_id") in [None, ""]):
+                continue
+            pending = False
+            failed_bin = False
+            for q2y in Q2Y_BINS:
+                slot = row["bins"][str(q2y)]
+                if(slot["status"] == "failed"):
+                    failed_bin = True
+                    continue
+                if(slot["status"] == "success"):
+                    continue
+                if(file_nonempty(slot["root"]) and unfold_bin_ok(slot["root"], q2y)):
+                    slot["status"] = "success"
+                    slot["where"] = slot.get("where") or "slurm"
+                    slot["missing_polls"] = 0
+                    continue
+                state = "" if(row.get("array_id") in [None, ""]) else query_state(row["array_id"], q2y)
+                slot["slurm_state"] = "" if(state in [None]) else str(state)
+                if(state in ["F", "CA", "TO", "NF", "OOM"]):
+                    slot["status"] = "failed"
+                    failed_bin = True
+                    row["reason"] = "SLURM bin %s state %s" % (q2y, state)
+                    continue
+                waited = (row.get("submit_time") not in [None, ""]) and ((time.time() - float(row["submit_time"])) >= LOCAL_DELAY_S)
+                if((state in [None, ""]) and waited):
+                    slot["missing_polls"] = int(slot.get("missing_polls") or 0) + 1
+                    if(slot["missing_polls"] >= 15):
+                        slot["status"] = "failed"
+                        failed_bin = True
+                        row["reason"] = "Q2-y bin %s left the queue without an output file" % q2y
+                        continue
+                else:
+                    slot["missing_polls"] = 0
+                pending = True
+            if(failed_bin):
+                row["status"] = "failed"
+                send_mail(args.email, "SIDIS systematics Phase 2 failed %s" % row["key"], row.get("reason") or "bin failed")
+            elif((not pending) and (row["lineage"] not in running_local)):
+                if(merge_bins(row)):
+                    if(unfold_final_ok(row["final"])):
+                        row["status"] = "success"
+                        append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "local", row.get("array_id"), "success", "", row["final"])
+                        send_mail(args.email, "SIDIS systematics Phase 2 success %s" % row["key"], row["final"] + "\n")
+                    else:
+                        row["status"] = "failed"
+                        row["reason"] = "merged file failed validation"
+                else:
+                    row["status"] = "failed"
+                    row["reason"] = "hadd failed"
+        write_manifest(camp, manifest)
+        phase1_open = any(row["status"] in ["planned", "running"] for row in manifest["phase1"]) or (len(procs) > 0) or (regen_proc is not None)
+        still = False
+        for row in manifest["phase2"]:
+            parent = [item for item in manifest["phase1"] if(item["id"] == row["config_id"])][0]
+            if(parent["status"] == "failed"):
+                if(row["status"] == "waiting_phase1"):
+                    row["status"] = "failed"
+                    row["reason"] = "phase1 failed"
+                continue
+            if(row["status"] not in ["success", "failed"]):
+                still = True
+        if((not phase1_open) and (not still) and (len(running_local) == 0)):
+            break
+        time.sleep(2)
+    collect_finals(camp, manifest)
+    write_manifest(camp, manifest)
+    print("campaign log %s" % os.path.join(camp, "campaign.log"))
+    print("final directory %s" % os.path.join(camp, "final"))
+
+
+def phase1_parent_success(manifest, row):
+    parent = [item for item in manifest["phase1"] if(item["id"] == row["config_id"])][0]
+    return parent["status"] == "success"
+
+
+def merge_bins(row):
+    paths = [row["bins"][str(q2y)]["root"] for q2y in Q2Y_BINS]
+    final = row["final"]
+    os.makedirs(os.path.dirname(final), exist_ok=True)
+    tmp = final + ".hadd_tmp.root"
+    if(os.path.exists(tmp)):
+        os.remove(tmp)
+    proc = subprocess.run(["hadd", "-f", tmp] + paths)
+    if(proc.returncode != 0):
+        return False
+    os.replace(tmp, final)
+    return True
+
+
+def collect_finals(camp, manifest):
+    final_dir = os.path.join(camp, "final")
+    os.makedirs(final_dir, exist_ok=True)
+    for row in manifest["phase2"]:
+        if(row["status"] != "success"):
+            continue
+        if(not unfold_final_ok(row["final"])):
+            continue
+        dest = os.path.join(final_dir, os.path.basename(row["final"]))
+        if(os.path.isfile(dest) and unfold_final_ok(dest)):
+            row["collected"] = dest
+            continue
+        if(os.path.isfile(dest)):
+            os.remove(dest)
+        try:
+            os.link(row["final"], dest)
+        except OSError:
+            import shutil
+            shutil.copy2(row["final"], dest)
+        row["collected"] = dest
+        append_log(camp, "final", row["config_id"], row["branch"], row["weight_label"], "", "local", row.get("array_id"), "collected", "", dest)
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(description="Run the two-phase SIDIS 3D systematic campaign. The default dry-run switch is off; pass --dry_run to print commands without submitting.")
+    parser.add_argument("-c", "--campaign", default="systematics_3d")
+    parser.add_argument("-droot", "--data_root", default="work_b")
+    parser.add_argument("-wm", "--weight_mode", default="unweighted", choices=["unweighted", "weighted", "both"])
+    parser.add_argument("-rnh", "--regenerate_nominal_spline_hpp", action="store_true")
+    parser.add_argument("-mlw", "--max_local_workers", type=int, default=41)
+    parser.add_argument("-n", "--dry_run", action="store_true")
+    parser.add_argument("-rs", "--resume", action="store_true")
+    parser.add_argument("-e", "--email", action="store_true")
+    parser.add_argument("-ht", "--hpp_tag", default="Final_Thesis")
+    parser.add_argument("-em", "--email_message", default="")
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(sys.argv[1:] if(argv is None) else argv)
+    try:
+        args.max_local_workers = worker_cap(args.max_local_workers)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    camp = campaign_directory(args.data_root, args.campaign)
+    previous = read_manifest(camp) if(args.resume or os.path.isfile(manifest_path(camp))) else None
+    if(args.resume and (previous is None)):
+        print("no manifest to resume at %s" % manifest_path(camp), file=sys.stderr)
+        return 1
+    stamp = time.strftime("%Y%m%d_%H%M%S")
+    manifest = build_manifest(
+        args.data_root, args.campaign, args.weight_mode, args.max_local_workers,
+        args.hpp_tag, args.regenerate_nominal_spline_hpp, stamp, previous=previous if(args.resume) else None,
+    )
+    fill_commands(manifest, sys.executable)
+    regen_cmd = None
+    if(args.regenerate_nominal_spline_hpp):
+        nominal = [row for row in manifest["phase1"] if(row["nominal"])][0]
+        regen_cmd = regen_command(sys.executable, SUBMIT_SCRIPT, args.data_root, nominal["hpp_spline"])
+    write_manifest(camp, manifest)
+    if(args.dry_run):
+        print_plan(manifest, regen_cmd)
+        return 0
+    if(args.email_message not in [None, ""]):
+        print(args.email_message)
+    run_live(args, manifest)
+    return 0
+
+
+if(__name__ == "__main__"):
+    sys.exit(main())

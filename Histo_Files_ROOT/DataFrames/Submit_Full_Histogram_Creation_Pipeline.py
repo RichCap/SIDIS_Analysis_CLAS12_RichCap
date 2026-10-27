@@ -148,10 +148,10 @@ def parse_args():
     p.add_argument("-e", "--email",
                    type=str,
                    default="children",
-                   choices=["children", "runner", "all"],
+                   choices=["children", "runner", "all", "none"],
                    nargs="?",
                    const="children",
-                   help="Email mode: children (default: child scripts email, runner only prints), runner (only this script emails), all (both).\n")
+                   help="Email mode: children (default: child scripts email, runner only prints), runner (only this script emails), all (both), none (no mail from this script).\n")
     p.add_argument("-em", "--email_message",
                    type=str,
                    default="",
@@ -237,6 +237,25 @@ def parse_args():
                    type=int,
                    default=None,
                    help="Extra ceiling on histogram-kind local slots. Clamped by the campaign ledger. Does not raise a mode ceiling.\n")
+    p.add_argument("-cwc", "--campaign_worker_cap",
+                   type=int,
+                   default=None,
+                   help="When set with --campaign_worker_name, local histogram workers use that campaign ledger instead of the Only_3D mode ceiling.\n")
+    p.add_argument("-cwn", "--campaign_worker_name",
+                   default=None,
+                   help="Campaign name for the systematic-campaign worker ledger.\n")
+    p.add_argument("-hso", "--hpp_spline_only",
+                   action="store_true",
+                   help="Write only the spline-weighted HPP file, then exit before response-matrix products.\n")
+    p.add_argument("-hsp", "--hpp_spline_output",
+                   default=None,
+                   help="Output path for --hpp_spline_only. Refuses to overwrite an existing file.\n")
+    p.add_argument("-hpf", "--hpp_weight_file",
+                   default=None,
+                   help="Explicit noSpline HPP path. Skips tag lookup when set.\n")
+    p.add_argument("-hps", "--hpp_weight_file_spline",
+                   default=None,
+                   help="Explicit withSpline HPP path. Skips tag lookup when set.\n")
     p.add_argument("-j", "--jobs",
                    type=int,
                    default=5,
@@ -407,6 +426,10 @@ def hpp_paths_from_tag(name_tag, data_root_key=None):
 
 def resolve_hpp_for_cut(args, cut_name):
     # Returns (pure, comb) or (None, None) to let children use defaults.
+    explicit_pure = getattr(args, "hpp_weight_file", None)
+    explicit_comb = getattr(args, "hpp_weight_file_spline", None)
+    if((explicit_pure not in [None, ""]) or (explicit_comb not in [None, ""])):
+        return explicit_pure, explicit_comb
     if(not args.skip_acceptance):
         tag = hpp_tag_for_cut(args.name, cut_name)
         return hpp_paths_from_tag(tag, args.data_root)
@@ -643,6 +666,10 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["--slurm_mem", str(args.slurm_mem)])
     if(getattr(args, "histogram_local_cap", None) not in [None, ""]):
         cmd.extend(["--histogram_local_cap", str(args.histogram_local_cap)])
+    if(getattr(args, "campaign_worker_cap", None) not in [None, ""]):
+        cmd.extend(["--campaign_worker_cap", str(args.campaign_worker_cap)])
+    if(getattr(args, "campaign_worker_name", None) not in [None, ""]):
+        cmd.extend(["--campaign_worker_name", str(args.campaign_worker_name)])
     if(getattr(args, "slurm_time", None) not in [None, ""]):
         cmd.extend(["--slurm_time", str(args.slurm_time)])
     if(getattr(args, "batch_ids", None) not in [None, ""]):
@@ -849,8 +876,38 @@ def select_cuts(args):
         return cuts
     return [args.cut_name]
 
+def run_spline_hpp_only(args, cuts):
+    hpp_map = {}
+    jobs = []
+    for cut_name in cuts:
+        pure, comb = resolve_hpp_for_cut(args, cut_name)
+        spline_out = getattr(args, "hpp_spline_output", None)
+        if(spline_out not in [None, ""]):
+            comb = str(spline_out)
+        if(comb in [None, ""]):
+            Crash_Report(args, crash_message="--hpp_spline_only needs an output path.", continue_run=False)
+        if(os.path.isfile(comb)):
+            Crash_Report(args, crash_message="Refusing to overwrite HPP file %s" % comb, continue_run=False)
+        parent = os.path.dirname(comb)
+        if(parent not in [None, ""]):
+            os.makedirs(parent, exist_ok=True)
+        hpp_map[cut_name] = (pure, comb)
+        cmd_comb = build_acceptance_cmd(args, spline_on=True, hpp_out=comb, cut_name=cut_name)
+        log_print(args, f"\n{color.BGREEN}Spline HPP only for cut {color.END_B}{cut_name}{color.END}")
+        jobs.append((cut_name, "withSpline", launch_cmd(args, cmd_comb, f"HPP-withSpline-{cut_name}", tee_terminal=bool(args.verbose))))
+    failed = []
+    for cut_name, label, job in jobs:
+        rc = wait_launched(args, job, cut_name, "acceptance")
+        if(rc != 0):
+            failed.append(f"{cut_name}:{label}")
+    if(failed):
+        Crash_Report(args, crash_message=f"Acceptance stage failed for: {failed}", continue_run=False)
+    return hpp_map
+
 def run_acceptance_stage(args, cuts):
     os.makedirs(HPP_OUT_DIR, exist_ok=True)
+    if(getattr(args, "hpp_spline_only", False)):
+        return run_spline_hpp_only(args, cuts)
     hpp_map = {}
     jobs = []
     for cut_name in cuts:
@@ -1030,6 +1087,21 @@ def main():
             Crash_Report(args, crash_message=f"Standalone rho0 production failed (rc={rc}).", continue_run=False)
         Update_Email(args, update_message=f"{color.BGREEN}Standalone rho0 histogram production finished successfully.{color.END}", verbose_override=True, no_time=False)
         Construct_Email(args, final_count=1, Count_Type="rho0 product run")
+        try:
+            args.master_log_fh.close()
+        except Exception:
+            pass
+        try:
+            args.time_log_fh.close()
+        except Exception:
+            pass
+        return
+
+    if(getattr(args, "hpp_spline_only", False)):
+        log_print(args, f"{color.BGREEN}Spline-only HPP generation, then exit (no response-matrix products).{color.END}")
+        run_acceptance_stage(args, [args.cut_name])
+        Update_Email(args, update_message=f"{color.BGREEN}Spline HPP generation finished.{color.END}", verbose_override=True, no_time=False)
+        Construct_Email(args, final_count=1, Count_Type="spline HPP")
         try:
             args.master_log_fh.close()
         except Exception:

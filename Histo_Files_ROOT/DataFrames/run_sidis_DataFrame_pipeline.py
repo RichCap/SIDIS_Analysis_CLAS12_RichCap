@@ -192,6 +192,13 @@ def parse_args():
                         type=int,
                         default=None,
                         help="Extra ceiling on histogram-kind local slots across campaign processes. Does not raise the per-mode ceiling.\n")
+    parser.add_argument('-cwc', '--campaign_worker_cap',
+                        type=int,
+                        default=None,
+                        help="Systematic-campaign local worker cap. Used only with --campaign_worker_name.\n")
+    parser.add_argument('-cwn', '--campaign_worker_name',
+                        default=None,
+                        help="Systematic-campaign name for the shared local-worker ledger.\n")
     parser.add_argument('-saj', '--slurm_array_jobid',
                         type=str,
                         default=None,
@@ -912,7 +919,22 @@ def should_skip_batch_due_to_slurm(args, batch_index, output_dir):
 LOCAL_SLOT_WAIT = "local-slot-wait"
 
 
+def using_campaign_ledger(args):
+    cap = getattr(args, "campaign_worker_cap", None)
+    name = getattr(args, "campaign_worker_name", None)
+    return (cap not in [None, "", 0]) and (name not in [None, ""])
+
+
 def reserve_local_slot(args, block):
+    if(using_campaign_ledger(args)):
+        from Campaign.systematics_worker_ledger import try_acquire
+        while(True):
+            ok, token = try_acquire(args.data_root, args.campaign_worker_name, int(args.campaign_worker_cap), "histogram", "phase1")
+            if(ok):
+                return token
+            if(not block):
+                return LOCAL_SLOT_WAIT
+            time.sleep(5)
     mode = getattr(args, "campaign_resource_mode", None)
     if(mode in [None, ""]):
         return None
@@ -928,6 +950,10 @@ def reserve_local_slot(args, block):
 
 def release_local_slot(args, token):
     if(token in [None, "", LOCAL_SLOT_WAIT]):
+        return
+    if(using_campaign_ledger(args)):
+        from Campaign.systematics_worker_ledger import release
+        release(args.data_root, args.campaign_worker_name, token)
         return
     from Campaign.local_resource_gate import release
     release(args.data_root, token)
@@ -976,8 +1002,12 @@ def start_job(args, batch_index, batch_output_dir, log_dir, block_for_slot=False
         release_local_slot(args, token)
         raise
     if((args.mode == "parallel") and (token not in [None, ""])):
-        from Campaign.local_resource_gate import bind_worker
-        bind_worker(args.data_root, token, process.pid)
+        if(using_campaign_ledger(args)):
+            from Campaign.systematics_worker_ledger import bind_worker
+            bind_worker(args.data_root, args.campaign_worker_name, token, process.pid)
+        else:
+            from Campaign.local_resource_gate import bind_worker
+            bind_worker(args.data_root, token, process.pid)
     return {"process": process, "log_handle": log_handle, "err_handle": err_handle, "batch_index": batch_index, "slot_token": token}
 
 def finish_job(job_item, results, args):
