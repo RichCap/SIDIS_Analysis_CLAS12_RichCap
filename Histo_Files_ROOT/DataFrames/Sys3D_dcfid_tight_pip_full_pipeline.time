@@ -1,0 +1,6 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-27T02:29:11 name=Sys3D_dcfid_tight_pip mode=hybrid email=none =====
+=== TASK: Only_3D-slurm-slurm-submit | cut=cut_Complete_SIDIS_dcfid_tight_pip | mode=slurm | rc=0 ===
+wall_time: 1.14 s
+peak_memory: 484.17 MB
+
