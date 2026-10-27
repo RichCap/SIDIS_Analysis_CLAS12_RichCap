@@ -21,6 +21,12 @@
     "bc_factors_sens_q2_7": "success",
     "bc_hist_sens_y_3": "success",
     "bc_hadd_sens_y_3": "success",
-    "bc_factors_sens_y_3": "success"
+    "bc_factors_sens_y_3": "success",
+    "bc_hist_sens_y_5": "success",
+    "bc_hadd_sens_y_5": "success",
+    "bc_factors_sens_y_5": "success",
+    "bc_hist_sens_y_7": "success",
+    "bc_hadd_sens_y_7": "success",
+    "bc_factors_sens_y_7": "success"
   }
 }
