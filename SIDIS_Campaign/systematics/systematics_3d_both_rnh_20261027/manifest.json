@@ -112,9 +112,9 @@
         "-e",
         "none"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 2833845,
-      "reason": ""
+      "reason": "histogram pipeline exited 1"
     },
     {
       "id": "dcfid_loose_el",
@@ -222,9 +222,9 @@
         "-e",
         "none"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 2833857,
-      "reason": ""
+      "reason": "histogram pipeline exited 1"
     },
     {
       "id": "dcfid_loose_pip",
@@ -2843,7 +2843,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_rnh_20261027/unfolded/Sys3D_chi2_strict_pip_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -2948,7 +2948,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "chi2_strict_pip__inherited__Unweighted",
@@ -2962,7 +2962,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_rnh_20261027/unfolded/Sys3D_chi2_strict_pip_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -3067,7 +3067,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "dcfid_loose_el__inherited__Spline",
@@ -3319,7 +3319,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_rnh_20261027/unfolded/Sys3D_dcfid_tight_el_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -3424,7 +3424,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "dcfid_tight_el__inherited__Unweighted",
@@ -3438,7 +3438,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_rnh_20261027/unfolded/Sys3D_dcfid_tight_el_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -3543,7 +3543,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "dcfid_loose_pip__inherited__Spline",
