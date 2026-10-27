@@ -97,7 +97,8 @@ def parse_args():
     parser.add_argument('-spf', '--spline_file',
                         type=str,
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",  # 2026-10-26 previous nominal 5D MC weight; raw-A 3D is the event-weight default
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                         help="Path to the spline weight file when '--spline_weights' is used.\n")
     parser.add_argument('-hpp_in', '--hpp_input_file',
                         type=str,

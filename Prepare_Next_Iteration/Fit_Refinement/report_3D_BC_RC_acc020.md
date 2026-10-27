@@ -103,6 +103,8 @@ A is not comparable until the photon flux is removed. Median (A_3D / A_5D) × Γ
 
 ## Downstream defaults
 
+This section records the decision at the end of the fit campaign. The follow-up below replaces the nominal weight file with the raw-A 3D spline.
+
 The new spline file has the same function signature, coordinate mode, and A/B/C layout as the July file. It is not weight-compatible. Pointing the defaults at it would multiply event weights by a Q²- and y-dependent factor of order 10³.
 
 These defaults were left on the July 5D file:
@@ -120,3 +122,40 @@ Historical SLURM scripts were not rewritten. A 3D file can become the nominal we
 ## Not run
 
 Monte Carlo generation, response matrices, unfolding, radiative corrections, bin-centering, and the next analysis iteration were not started.
+
+## Follow-up: raw-A spline
+
+The 452 φ_h fits, their ROOT objects, the fit JSON, and the normalized spline family were left in place. No histogram was refit.
+
+A second spline family was built from `Fit_Pars_from_3D_BC_RC_Bayesian` with the same `4D_xB` settings and `--log_A`, and without `--apply_A_corr`. B and C `.npz` files in this family are byte-identical to the existing 3D B and C models. The C++ weight file was rebuilt from that raw A plus those copied B and C models.
+
+Raw-A products, under `Prepare_Next_Iteration/`:
+
+- `acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt`
+- `acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Fit_Par_A.npz` and `.pkl`
+- the B and C `.npz` and `.pkl` copies beside them
+
+The normalized family `acc020_3D_BC_RC_4D_xB_...` and the July 5D file were not overwritten.
+
+At all 452 training centers, the raw-A spline was divided by bin area × luminosity × Γ_γ, with beam-blocker and tracking corrections on, and compared with the spline that was fit to already-normalized A. Every bin was above the relative floor (2% of the median |A|). Median signed difference −0.35%. Median absolute difference 10.5%. The 16th and 84th percentiles are −15% and +17%. The 95th percentile of the absolute difference is 42%, and the maximum is +79% at Q²-y 8, z-pT 24. The raw spline itself tracks the JSON amplitudes (median ratio 0.994). The extra spread is the log-space interpolant of A versus the log-space interpolant of A divided by a bin-dependent scale. Both fits are kept.
+
+Figures:
+
+- `Prepare_Next_Iteration/Fit_Refinement/plots/3D_BC_RC_acc020_review/rawA_comparison/`
+- Mosaics in `Prepare_Next_Iteration/Fit_Refinement/plots/3D_BC_RC_acc020_review/mosaic/`: `acc020_normA_3D_BayesianUnfold_BC_RC_z_NormalizedA.pdf`, `acc020_rawA_3D_BayesianUnfold_BC_RC_z_Amplitude.pdf`, `acc020_B_3D_BayesianUnfold_BC_RC_z_CosPhiMoment.pdf`, `acc020_C_3D_BayesianUnfold_BC_RC_z_Cos2PhiMoment.pdf`
+
+Six slides were appended to `3D_BC_RC_acc020_Final_Review.pptx` (now 490 slides). The earlier 484 slides were not rebuilt.
+
+The event weight is `ComputeSplineWeight(Q2, xB, y, z, pT, phi_h)` with `4D_xB` coordinates and log-space A. The raw-A file evaluates to a finite weight and returns the fit amplitude, not the flux-divided amplitude. That is the intended Monte Carlo convention. The July 5D absolute scale is only a historical reference.
+
+These defaults now name the raw-A file. The previous 5D path is the commented line above each one:
+
+- `jlab_work_paths.py`
+- `Histo_Files_ROOT/DataFrames/Acceptance_Weights_Creations_using_RDataFrames.py`
+- `Histo_Files_ROOT/DataFrames/Submit_Full_Histogram_Creation_Pipeline.py`
+- `Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py`
+- `Histo_Files_ROOT/DataFrames/run_sidis_DataFrame_pipeline.py`
+- `Campaign/local_orchestrator.py`
+- `evaluate_spline_reference.py`
+
+Historical SLURM scripts were not rewritten. The normalized 3D file remains the cross-section spline. Monte Carlo generation, response matrices, and unfolding were not started. The raw-A file still has to be present at the ifarm path named in those defaults before a farm job can read it.

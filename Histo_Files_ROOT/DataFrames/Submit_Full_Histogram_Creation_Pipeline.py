@@ -159,7 +159,8 @@ def parse_args():
     p.add_argument("-spf", "--spline_file",
                    type=str,
                    # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
-                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                   # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",  # 2026-10-26 previous nominal 5D MC weight; raw-A 3D is the event-weight default
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                    help="Spline weight file for combined HPP and response-matrix spline weights. Default is resolved under --data_root with fallback to the other JLab tree unless this flag is given.\n")
     add_data_root_argument(p)
     p.add_argument("-n", "--name",

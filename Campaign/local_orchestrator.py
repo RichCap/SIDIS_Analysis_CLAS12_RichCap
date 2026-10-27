@@ -1596,7 +1596,8 @@ def hpp_was_rewritten(path, previous_mtime, started):
 def acceptance_commands(data_root, matching=None):
     script = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Acceptance_Weights_Creations_using_RDataFrames.py")
     pure, spline = regenerated_hpp_paths(data_root)
-    spline_file = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt"
+    # spline_file = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt"  # 2026-10-26 previous nominal 5D MC weight; raw-A 3D is the event-weight default
+    spline_file = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt"
     # shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", "_gen"]
     shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", campaign_matching_value(matching)]
     pure_cmd = shared + ["--hpp_output_file", pure]

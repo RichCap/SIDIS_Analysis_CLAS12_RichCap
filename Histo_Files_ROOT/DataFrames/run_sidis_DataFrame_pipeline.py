@@ -88,7 +88,8 @@ def parse_args():
                         help="Use spline-based event weights.\n")
     parser.add_argument('-swf', '--spline_weight_file',
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                        # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",  # 2026-10-26 previous nominal 5D MC weight; raw-A 3D is the event-weight default
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                         help="Spline weight file path. Default is resolved under --data_root with fallback unless this flag is given.\n")
     parser.add_argument('-jsw', '--json_weights',
                         action='store_true',

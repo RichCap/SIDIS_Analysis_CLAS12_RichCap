@@ -6,7 +6,8 @@
 import math
 import re
 
-SPLINE_FILE = "Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt"
+# SPLINE_FILE = "Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt"  # 2026-10-26 previous nominal 5D MC weight; raw-A 3D is the event-weight default and carries the same 3D B and C models
+SPLINE_FILE = "Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt"
 PROTON_MASS = 0.938272
 BEAM_ENERGY = 10.6
 
