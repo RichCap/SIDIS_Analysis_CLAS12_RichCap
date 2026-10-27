@@ -2418,6 +2418,14 @@ special_fit_parameters_set = {
         "Allow_Multiple_Fits":   True,
         "Allow_Multiple_Fits_C": True
     },
+    ("9", "32", "3D", "BC"): {
+        "B_initial": -0.14,
+        "B_limits":  [-0.35, -0.02],
+        "C_initial": 0.0,
+        "C_limits":  [-0.12, 0.12],
+        "Allow_Multiple_Fits":   True,
+        "Allow_Multiple_Fits_C": True
+    },
     ("10", "All"): {
         "B_initial": -0.09074,
         "B_limits":  [-0.1, -0.05],
