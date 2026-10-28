@@ -1411,3 +1411,39 @@ FAIL [Only_3D-parallel] cut=cut_Complete_SIDIS_dcv_tight_el rc=1 wall=55461.2s
 [Only_3D-parallel] 
 [Only_3D-parallel]     
 --- end child output snippet ---
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-28T11:15:13 name=Sys3D_dcv_tight_el mode=slurm email=none =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=Sys3D_dcv_tight_el  mode=slurm  email=none  skip_acceptance=True  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=lundvpk
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Sys3D_dcv_tight_el_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Sys3D_dcv_tight_el_full_pipeline.time
+  default --jobs=1  overrides: jobs_2D=0  jobs_3D=1  jobs_5D=0  jobs_Binning=0
+rho0_source for Acceptance: lundvpk
+
+=== Stage 1: Acceptance SKIPPED (-sa / -rac / defaults) ===
+  HPP cut=cut_Complete_SIDIS_dcv_tight_el: pure=/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_noSpline.hpp
+                 comb=/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.hpp
+
+=== Stage 2: Response-matrix products (Only_3D×1 when parallel) ===
+Phase-2 product job plan:
+  2D_Presentation: SKIPPED (jobs_2D=0)
+  Only_3D: jobs=1 (from --jobs_3D)
+  Only_5D: SKIPPED (jobs_5D=0)
+  Binning_Presentation_Only: SKIPPED (jobs_Binning=0)
+  CH4_Diagnostics: SKIPPED (jobs_ch4=0)
+  Delta_Phi_h: SKIPPED (jobs_dphi=0)
+  Only_1D: SKIPPED (jobs_1d=0)
+  Diagnostic_1D: SKIPPED (jobs_diag=0)
+
+Products for cut cut_Complete_SIDIS_dcv_tight_el matching=Bank unsmeared=False
+SKIP product 2D_Presentation for cut cut_Complete_SIDIS_dcv_tight_el (jobs_2D=0)
+SKIP product Only_5D for cut cut_Complete_SIDIS_dcv_tight_el (jobs_5D=0)
+SKIP product Binning_Presentation_Only for cut cut_Complete_SIDIS_dcv_tight_el (jobs_Binning=0)
+SKIP product CH4_Diagnostics for cut cut_Complete_SIDIS_dcv_tight_el (jobs_ch4=0)
+SKIP product Delta_Phi_h for cut cut_Complete_SIDIS_dcv_tight_el (jobs_dphi=0)
+SKIP product Only_1D for cut cut_Complete_SIDIS_dcv_tight_el (jobs_1d=0)
+SKIP product Diagnostic_1D for cut cut_Complete_SIDIS_dcv_tight_el (jobs_diag=0)
+CMD [Only_3D-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS_dcv_tight_el -n Only_3D_Sys3D_dcv_tight_el_Bank_cut_Complete_SIDIS_dcv_tight_el_Response_Matrices --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --use_hpp --spline_weights --spline_weight_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_noSpline.hpp --hpp_weight_file_spline /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.hpp --matching_criteria Bank --run_rho_weight --no_make_2D_rho --no_make_2D --no_unfold_5D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_dcv_tight_el_Bank_cut_Complete_SIDIS_dcv_tight_el_Response_Matrices_Final_Thesis_Files_10_27_2026 --run_subdir_name Only_3D_Sys3D_dcv_tight_el_Bank_cut_Complete_SIDIS_dcv_tight_el_Response_Matrices_Final_Thesis_Files_10_27_2026 --slurm_mem 4500M --slurm_cpus 1 -crm Only_3D --campaign_worker_name systematics_3d_both_recovery_20261028 --slurm_time 24:00:00 --batch_ids 2-14,100,104-105,108-109,111-113,123-162,164-168 --replace_listed_batches -scf dcv_tight_el --yes --extra --run_rho_weight
