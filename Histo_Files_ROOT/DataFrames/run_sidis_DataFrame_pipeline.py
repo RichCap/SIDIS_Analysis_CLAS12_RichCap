@@ -178,6 +178,12 @@ def parse_args():
     parser.add_argument('-bids', '--batch_ids',
                         default=None,
                         help="Comma list or ranges of batch indices allowed to run, such as 113 or 110-112. The merge still requires every batch file. Omitted runs 1 through the full set.\n")
+    parser.add_argument('-rlb', '--replace_listed_batches',
+                        action='store_true',
+                        help="With --batch_ids, remove only that array task's batch file inside the array script and skip the outside-batch ROOT gate. Unlisted batches are not submitted. Ordinary runs keep the skip-if-valid path and the outside-batch gate.\n")
+    parser.add_argument('-scf', '--submission_config',
+                        default=None,
+                        help="Configuration id recorded in submission_history.jsonl. Omitted records --name.\n")
     parser.add_argument('-sm', '--slurm_mem',
                         # default="4GB",
                         default="5GB",
@@ -1090,6 +1096,95 @@ def sbatch_script_stem(name_base):
     return re.sub(r"_\d{2}_\d{2}_\d{4}$", "", str(name_base))
 
 
+def listed_batch_remove_line(args, batch_output_dir):
+    # One array task deletes only its own batch file. Unlisted indices never run this script.
+    sample = expected_batch_root_path(args, batch_output_dir, 1)
+    marker = "_Batch001.root"
+    if(not str(sample).endswith(marker)):
+        raise ValueError("batch path does not end with %s" % marker)
+    target = str(sample)[:-len(marker)] + "_Batch${BATCH_PAD}.root"
+    return "rm -f %s" % target
+
+
+def slurm_array_script_text(args, batch_output_dir, num_batches, selected):
+    name_base = args.run_subdir_name
+    lines = [
+        "#!/bin/bash",
+        "#SBATCH --ntasks=1",
+        "#SBATCH --job-name=RMatrix_%s" % name_base,
+        "#SBATCH --mail-type=ALL",
+        "#SBATCH --mail-user=richard.capobianco@uconn.edu",
+        "#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out",
+        "#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err",
+        "#SBATCH --partition=production",
+        "#SBATCH --account=clas12",
+        "#SBATCH --cpus-per-task=%s" % (getattr(args, "slurm_cpus", None) or "1"),
+        "#SBATCH --mem-per-cpu=%s" % args.slurm_mem,
+        "#SBATCH --time=%s" % args.slurm_time,
+        "#SBATCH --array=%s" % slurm_array_spec(selected, num_batches),
+        "",
+        "BATCH_ID=${SLURM_ARRAY_TASK_ID}",
+        'BATCH_PAD=$(printf "%03d" "${BATCH_ID}")',
+        "cd %s" % batch_output_dir,
+    ]
+    if(getattr(args, "replace_listed_batches", False)):
+        lines.append(listed_batch_remove_line(args, batch_output_dir))
+    cmd_parts = build_main_command(args, 1, batch_output_dir, slurm_placeholders=True)
+    lines.append(" ".join(cmd_parts))
+    return "\n".join(lines) + "\n"
+
+
+def record_histogram_submission(args, array_id):
+    campaign = getattr(args, "campaign_worker_name", None)
+    if(campaign in [None, ""]):
+        return
+    from Campaign.systematics_campaign import append_submission_history, campaign_directory
+    camp = campaign_directory(args.data_root, campaign)
+    config_id = getattr(args, "submission_config", None)
+    if(config_id in [None, ""]):
+        config_id = args.name
+    index_spec = getattr(args, "batch_ids", None)
+    if(index_spec in [None, ""]):
+        index_spec = slurm_array_spec(None, args.num_batches)
+    append_submission_history(camp, {
+        "campaign": str(campaign),
+        "configuration": str(config_id),
+        "phase": "phase1",
+        "job_name": "RMatrix_%s" % args.run_subdir_name,
+        "slurm_id": str(array_id).split(";")[0].strip(),
+        "index_spec": str(index_spec),
+        "memory": str(args.slurm_mem),
+        "wall": str(args.slurm_time),
+        "cpus": str(getattr(args, "slurm_cpus", None) or "1"),
+    })
+
+
+def hadd_response_batches(args, batch_output_dir, num_batches):
+    # Moved out of run_local_batches so listed-batch recovery can use the same merge.
+    # Update_Email, Crash_Report, the hadd command, and the Chapter 4 count merge are unchanged.
+    # Every batch file is still required, including files this array did not rewrite.
+    name_for_merge = f"{args.name}_{name_in_label(args.name_in)}_All" if(args.name) else f"{name_in_label(args.name_in)}_All"
+    name_for_merge = name_for_merge.replace("*",     "")
+    name_for_merge = name_for_merge.replace(".root", "")
+    merged_file    = os.path.join(args.work_dir, f"SIDIS_epip_Response_Matrices_from_RDataFrames_{name_for_merge}.root")
+    batch_files    = [expected_batch_root_path(args, batch_output_dir, i) for i in range(1, num_batches + 1)]
+    piece = required_batch_piece(args) if(getattr(args, "batch_ids", None) not in [None, ""]) else None
+    if(piece in [None, ""]):
+        missing_files = [bf for bf in batch_files if((not os.path.isfile(bf)) or (os.path.getsize(bf) <= 0))]
+    else:
+        missing_files = [bf for bf in batch_files if(not batch_root_is_valid(bf, piece))]
+    if(missing_files):
+        print("hadd was not run. The merge still requires all %d batch files. Missing or invalid:" % num_batches)
+        for path in missing_files:
+            print(path)
+        Crash_Report(args, crash_message=f"{color.Error}Cannot hadd: missing {len(missing_files)} expected batch ROOT files. First missing: {missing_files[0]}{color.END}", continue_run=False)
+    Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
+    hadd_cmd = ["hadd", "-f", merged_file] + batch_files
+    subprocess.run(hadd_cmd, check=True)
+    Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
+    merge_ch4_count_files(args, batch_output_dir, merged_file)
+
+
 def required_batch_piece(args):
     # if(getattr(args, "unfold_5D_only", False)):
     #     return "MultiDim"
@@ -1148,6 +1243,9 @@ def outside_batch_problems(args, output_dir, num_batches):
 
 
 def stop_if_outside_batches_missing(args, output_dir, num_batches):
+    # Listed recovery tasks are an execution set. Do not ROOT-check unlisted files before submit.
+    if(getattr(args, "replace_listed_batches", False)):
+        return parse_batch_id_spec(getattr(args, "batch_ids", None), num_batches)
     selected, problems = outside_batch_problems(args, output_dir, num_batches)
     if(selected is None):
         return None
@@ -1288,26 +1386,28 @@ def run_local_batches(args):
 
     if(not failed):
         wait_for_remaining_slurm_tasks(args)
-        name_for_merge = f"{args.name}_{name_in_label(args.name_in)}_All" if(args.name) else f"{name_in_label(args.name_in)}_All"
-        name_for_merge = name_for_merge.replace("*",     "")
-        name_for_merge = name_for_merge.replace(".root", "")
-        merged_file    = os.path.join(args.work_dir, f"SIDIS_epip_Response_Matrices_from_RDataFrames_{name_for_merge}.root")
-        batch_files    = [expected_batch_root_path(args, batch_output_dir, i) for i in range(1, num_batches + 1)]
-        piece = required_batch_piece(args) if(getattr(args, "batch_ids", None) not in [None, ""]) else None
-        if(piece in [None, ""]):
-            missing_files = [bf for bf in batch_files if((not os.path.isfile(bf)) or (os.path.getsize(bf) <= 0))]
-        else:
-            missing_files = [bf for bf in batch_files if(not batch_root_is_valid(bf, piece))]
-        if(missing_files):
-            print("hadd was not run. The merge still requires all %d batch files. Missing or invalid:" % num_batches)
-            for path in missing_files:
-                print(path)
-            Crash_Report(args, crash_message=f"{color.Error}Cannot hadd: missing {len(missing_files)} expected batch ROOT files. First missing: {missing_files[0]}{color.END}", continue_run=False)
-        Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
-        hadd_cmd = ["hadd", "-f", merged_file] + batch_files
-        subprocess.run(hadd_cmd, check=True)
-        Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
-        merge_ch4_count_files(args, batch_output_dir, merged_file)
+        hadd_response_batches(args, batch_output_dir, num_batches)
+        # Previous inline merge, now hadd_response_batches. Kept here so the old Update_Email and Crash_Report sequence stays visible.
+        # name_for_merge = f"{args.name}_{name_in_label(args.name_in)}_All" if(args.name) else f"{name_in_label(args.name_in)}_All"
+        # name_for_merge = name_for_merge.replace("*",     "")
+        # name_for_merge = name_for_merge.replace(".root", "")
+        # merged_file    = os.path.join(args.work_dir, f"SIDIS_epip_Response_Matrices_from_RDataFrames_{name_for_merge}.root")
+        # batch_files    = [expected_batch_root_path(args, batch_output_dir, i) for i in range(1, num_batches + 1)]
+        # piece = required_batch_piece(args) if(getattr(args, "batch_ids", None) not in [None, ""]) else None
+        # if(piece in [None, ""]):
+        #     missing_files = [bf for bf in batch_files if((not os.path.isfile(bf)) or (os.path.getsize(bf) <= 0))]
+        # else:
+        #     missing_files = [bf for bf in batch_files if(not batch_root_is_valid(bf, piece))]
+        # if(missing_files):
+        #     print("hadd was not run. The merge still requires all %d batch files. Missing or invalid:" % num_batches)
+        #     for path in missing_files:
+        #         print(path)
+        #     Crash_Report(args, crash_message=f"{color.Error}Cannot hadd: missing {len(missing_files)} expected batch ROOT files. First missing: {missing_files[0]}{color.END}", continue_run=False)
+        # Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
+        # hadd_cmd = ["hadd", "-f", merged_file] + batch_files
+        # subprocess.run(hadd_cmd, check=True)
+        # Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
+        # merge_ch4_count_files(args, batch_output_dir, merged_file)
     # === NEW: Track peak memory used by all child jobs ===
     peak_mem_str = estimate_peak_memory_children()
     Update_Email(args, update_message=f"{color.BBLUE}max child RSS (not the sum of the pool): {peak_mem_str}{color.END}", verbose_override=True, no_time=True)
@@ -1328,6 +1428,9 @@ def run_slurm_mode(args):
     args.num_batches = num_batches
 
     batch_output_dir = resolved_batch_output_dir(args, slurm=True)
+    replace_listed = getattr(args, "replace_listed_batches", False)
+    if(replace_listed and (getattr(args, "batch_ids", None) in [None, ""])):
+        Crash_Report(args, crash_message="--replace_listed_batches requires --batch_ids", continue_run=False)
     selected = stop_if_outside_batches_missing(args, batch_output_dir, num_batches)
 
     name_base = args.run_subdir_name
@@ -1335,51 +1438,59 @@ def run_slurm_mode(args):
     array_script = f"slurm_array_{script_stem}.sh"
     hadd_script = f"slurm_hadd_{script_stem}.sh"
 
-    # Build array script
+    # Previous inline array script. slurm_array_script_text keeps these headers.
+    # --replace_listed_batches adds one rm of that task's own batch file after the cd line.
+    # with open(array_script, "w") as f:
+    #     f.write("#!/bin/bash\n")
+    #     f.write("#SBATCH --ntasks=1\n")
+    #     f.write(f"#SBATCH --job-name=RMatrix_{name_base}\n")
+    #     f.write("#SBATCH --mail-type=ALL\n")
+    #     f.write("#SBATCH --mail-user=richard.capobianco@uconn.edu\n")
+    #     f.write("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out\n")
+    #     f.write("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err\n")
+    #     f.write("#SBATCH --partition=production\n")
+    #     f.write("#SBATCH --account=clas12\n")
+    #     f.write("#SBATCH --cpus-per-task=%s\n" % (getattr(args, "slurm_cpus", None) or "1"))
+    #     f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
+    #     f.write(f"#SBATCH --time={args.slurm_time}\n")
+    #     f.write("#SBATCH --array=%s\n\n" % slurm_array_spec(selected, num_batches))
+    #     f.write('BATCH_ID=${SLURM_ARRAY_TASK_ID}\n')
+    #     f.write('BATCH_PAD=$(printf "%03d" "${BATCH_ID}")\n')
+    #     f.write(f'cd {batch_output_dir}\n')
+    #     cmd_parts = build_main_command(args, 1, batch_output_dir, slurm_placeholders=True)
+    #     f.write(" ".join(cmd_parts) + "\n")
     with open(array_script, "w") as f:
-        f.write("#!/bin/bash\n")
-        f.write("#SBATCH --ntasks=1\n")
-        f.write(f"#SBATCH --job-name=RMatrix_{name_base}\n")
-        f.write("#SBATCH --mail-type=ALL\n")
-        f.write("#SBATCH --mail-user=richard.capobianco@uconn.edu\n")
-        f.write("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out\n")
-        f.write("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err\n")
-        f.write("#SBATCH --partition=production\n")
-        f.write("#SBATCH --account=clas12\n")
-        f.write("#SBATCH --cpus-per-task=%s\n" % (getattr(args, "slurm_cpus", None) or "1"))
-        f.write(f"#SBATCH --mem-per-cpu={args.slurm_mem}\n")
-        f.write(f"#SBATCH --time={args.slurm_time}\n")
-        f.write("#SBATCH --array=%s\n\n" % slurm_array_spec(selected, num_batches))
-        f.write('BATCH_ID=${SLURM_ARRAY_TASK_ID}\n')
-        f.write('BATCH_PAD=$(printf "%03d" "${BATCH_ID}")\n')
-        f.write(f'cd {batch_output_dir}\n')
-        cmd_parts = build_main_command(args, 1, batch_output_dir, slurm_placeholders=True)
-        f.write(" ".join(cmd_parts) + "\n")
+        f.write(slurm_array_script_text(args, batch_output_dir, num_batches, selected))
 
-    # Build hadd script
-    merged_file = os.path.join(args.work_dir, f"SIDIS_epip_Response_Matrices_from_RDataFrames_{name_base}.root")
-    with open(hadd_script, "w") as f:
-        f.write("#!/bin/bash\n")
-        f.write("#SBATCH --ntasks=1\n")
-        f.write(f"#SBATCH --job-name=RMatrix_hadd_{name_base}\n")
-        f.write("#SBATCH --mail-type=ALL\n")
-        f.write("#SBATCH --mail-user=richard.capobianco@uconn.edu\n")
-        f.write("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out\n")
-        f.write("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err\n")
-        f.write("#SBATCH --partition=production\n")
-        f.write("#SBATCH --account=clas12\n")
-        f.write("#SBATCH --mem-per-cpu=2GB\n")
-        f.write("#SBATCH --time=04:00:00\n\n")
-        f.write(f'hadd -f {merged_file} {batch_output_dir}/*Batch*.root\n')
+    # Build hadd script. Listed-batch recovery does not use this loose dated hadd name.
+    # It waits for the array and then calls hadd_response_batches, which keeps the _All.root merge.
+    if(not replace_listed):
+        merged_file = os.path.join(args.work_dir, f"SIDIS_epip_Response_Matrices_from_RDataFrames_{name_base}.root")
+        with open(hadd_script, "w") as f:
+            f.write("#!/bin/bash\n")
+            f.write("#SBATCH --ntasks=1\n")
+            f.write(f"#SBATCH --job-name=RMatrix_hadd_{name_base}\n")
+            f.write("#SBATCH --mail-type=ALL\n")
+            f.write("#SBATCH --mail-user=richard.capobianco@uconn.edu\n")
+            f.write("#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out\n")
+            f.write("#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err\n")
+            f.write("#SBATCH --partition=production\n")
+            f.write("#SBATCH --account=clas12\n")
+            f.write("#SBATCH --mem-per-cpu=2GB\n")
+            f.write("#SBATCH --time=04:00:00\n\n")
+            f.write(f'hadd -f {merged_file} {batch_output_dir}/*Batch*.root\n')
 
     os.chmod(array_script, 0o755)
-    os.chmod(hadd_script, 0o755)
+    if(not replace_listed):
+        os.chmod(hadd_script, 0o755)
 
     # Print scripts for review
     print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM array script:\n")
     with open(array_script) as f:
         print(f.read())
-    if(not getattr(args, "skip_slurm_hadd", False)):
+    if(replace_listed):
+        print(f"\n{color.BBLUE}[INFO]{color.END} Listed batches only. After the array finishes, the existing pipeline hadd merges every batch file.\n")
+    elif(not getattr(args, "skip_slurm_hadd", False)):
         print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM hadd script:\n")
         with open(hadd_script) as f:
             print(f.read())
@@ -1402,7 +1513,22 @@ def run_slurm_mode(args):
 
     proc = subprocess.run(["sbatch", "--parsable", array_script], capture_output=True, text=True)
     array_id = proc.stdout.strip()
+    if(replace_listed and (proc.returncode != 0)):
+        message = (proc.stderr or proc.stdout or "sbatch failed").strip()
+        Crash_Report(args, crash_message="sbatch failed for the listed-batch array: %s" % message, continue_run=False)
+    if(replace_listed and (array_id.split(";")[0].strip() == "")):
+        Crash_Report(args, crash_message="sbatch did not return an array id for the listed-batch array", continue_run=False)
     Update_Email(args, update_message=f"{color.BGREEN}Submitted SLURM array job {array_id}{color.END}", verbose_override=True, no_time=True)
+    if(array_id.split(";")[0].strip() not in [""]):
+        record_histogram_submission(args, array_id)
+
+    if(replace_listed):
+        # Do not submit the loose dated hadd script. hadd_response_batches keeps Update_Email, Crash_Report, and the _All.root merge.
+        args.slurm_array_jobid = array_id.split(";")[0].strip()
+        wait_for_remaining_slurm_tasks(args)
+        hadd_response_batches(args, batch_output_dir, num_batches)
+        Construct_Email(args)
+        return
 
     if(not getattr(args, "skip_slurm_hadd", False)):
         hadd_proc = subprocess.run(["sbatch", "--parsable", f"--dependency=afterok:{array_id}", hadd_script], capture_output=True, text=True)

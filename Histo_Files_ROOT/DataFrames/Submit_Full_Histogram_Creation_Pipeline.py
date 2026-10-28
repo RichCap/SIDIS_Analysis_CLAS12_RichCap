@@ -22,7 +22,7 @@ if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 from jlab_work_paths import (
     REL_HPP_OUT, VOLATILE_BASE as SHARED_VOLATILE_BASE, add_data_root_argument, apply_input_if_default,
-    bootstrap_from_file, data_root_path, pipeline_output_path, resolve_pipeline_input, root_label,
+    bootstrap_from_file, data_root_path, flag_was_passed, pipeline_output_path, resolve_pipeline_input, root_label,
 )
 EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import color, color_bg, RuntimeTimer
@@ -229,6 +229,13 @@ def parse_args():
                    type=str,
                    default=None,
                    help="Batch indices allowed to run, forwarded as --batch_ids. The merge still requires every batch. Omitted runs the full set.\n")
+    p.add_argument("-o3m", "--only3d_slurm_mem",
+                   type=str,
+                   default=None,
+                   help="Only_3D SLURM mem-per-cpu. Unset keeps the 4GB mode-table value. Other products ignore this flag.\n")
+    p.add_argument("-rlb", "--replace_listed_batches",
+                   action="store_true",
+                   help="Forward --replace_listed_batches. The array script removes only that task's batch file, and the outside-batch ROOT gate is skipped.\n")
     p.add_argument("-hdate", "--hybrid_date",
                    type=str,
                    default=None,
@@ -658,8 +665,11 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     reserved = slurm_for_product(product.get("key"))
     if(reserved is not None):
         mode_name, mode_mem, _ceiling = reserved
+        only3d_mem = getattr(args, "only3d_slurm_mem", None)
+        if((product.get("key") == "Only_3D") and (only3d_mem not in [None, ""])):
+            mode_mem = str(only3d_mem)
         # Per-mode memory stays in force for these products. A shared -sm must not under-request 5D or over-request 2D.
-        if(getattr(args, "slurm_mem", None) not in [None, ""]):
+        elif(getattr(args, "slurm_mem", None) not in [None, ""]):
             print("ignoring shared --slurm_mem %s for %s; using %s" % (args.slurm_mem, mode_name, mode_mem))
         cmd.extend(["--slurm_mem", mode_mem, "--slurm_cpus", "1", "-crm", mode_name])
     elif(getattr(args, "slurm_mem", None) not in [None, ""]):
@@ -674,6 +684,10 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["--slurm_time", str(args.slurm_time)])
     if(getattr(args, "batch_ids", None) not in [None, ""]):
         cmd.extend(["--batch_ids", str(args.batch_ids)])
+    if(getattr(args, "replace_listed_batches", False)):
+        cmd.append("--replace_listed_batches")
+    if(str(getattr(args, "name", "")).startswith("Sys3D_")):
+        cmd.extend(["-scf", str(args.name)[len("Sys3D_"):]])
     # Hybrid SLURM leg always passes --yes so sbatch is noninteractive. Pure slurm stays interactive.
     if((auto_yes) and (run_mode == "slurm")):
         cmd.append("--yes")
@@ -987,8 +1001,14 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
 
     if(mode == "slurm"):
         # Interactive per-product approval (stdio inherited; no --yes).
+        # An explicit -hdate keeps the original volatile batch directory. Pure slurm without -hdate still uses work_dir.
+        use_hybrid_dir = flag_was_passed(["-hdate", "--hybrid_date"])
         for product, jobs in selected:
-            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=args.yes, jobs=jobs)
+            batch_dir = None
+            run_subdir = None
+            if(use_hybrid_dir):
+                batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
+            cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=args.yes, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir)
             rc = run_cmd_interactive(args, cmd, f"{product['key']}-slurm", cut_name, "slurm")
             results.append((product["key"], rc))
         return results

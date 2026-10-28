@@ -12,10 +12,10 @@ if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 
 from Campaign.systematics_campaign import (
-    EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, append_log, bin_root, branch_settings, build_manifest,
-    campaign_directory, command_text, file_nonempty, job_stem, manifest_path, output_counts,
-    phase1_command, read_manifest, regen_command, root_key_names, sbatch_script, unfold_bin_ok,
-    unfold_command, unfold_final_ok, worker_cap, write_manifest,
+    EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, append_log, append_submission_history, bin_root, branch_settings, build_manifest,
+    campaign_directory, command_text, file_nonempty, job_stem, load_recovery_batches, manifest_path, output_counts,
+    phase1_command, phase2_history_record, read_manifest, recovery_failure_text, recovery_phase1_command, regen_command,
+    root_key_names, sbatch_script, submission_ids_for_config, unfold_bin_ok, unfold_command, unfold_final_ok, worker_cap, write_manifest,
 )
 from Campaign.systematics_worker_ledger import bind_worker, pid_alive, release, try_acquire
 
@@ -53,17 +53,32 @@ def slurm_helpers():
 def fill_commands(manifest, python):
     for row in manifest["phase1"]:
         config = {"id": row["id"], "cut": row["cut"], "unsmeared": row["unsmeared"], "nominal": row["nominal"]}
-        row["command"] = phase1_command(
-            python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"],
-            manifest["max_local_workers"], config, row["hpp_nospline"], row["hpp_spline"],
-        )
+        if(manifest.get("recovery")):
+            row["command"] = recovery_phase1_command(
+                python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], config,
+                row["hpp_nospline"], row["hpp_spline"], row["batch_ids"], manifest["hybrid_date"],
+                manifest["slurm_time"], manifest["only3d_slurm_mem"],
+            )
+        else:
+            row["command"] = phase1_command(
+                python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"],
+                manifest["max_local_workers"], config, row["hpp_nospline"], row["hpp_spline"],
+            )
 
 
 def print_plan(manifest, regen_cmd):
-    arrays, tasks, files = output_counts(manifest["weight_mode"])
+    if(manifest.get("recovery")):
+        arrays = len(manifest["phase2"])
+        tasks = arrays * len(Q2Y_BINS)
+        files = arrays
+    else:
+        arrays, tasks, files = output_counts(manifest["weight_mode"])
     print("dry-run only: no sbatch, no histogram process, no unfold process")
     print("campaign %s  weight_mode %s  local_workers %s" % (manifest["campaign"], manifest["weight_mode"], manifest["max_local_workers"]))
     print("phase1 configurations %s" % len(manifest["phase1"]))
+    if(manifest.get("recovery")):
+        print("recovery tasks %s" % manifest.get("recovery_task_count"))
+        print("after listed batches: existing hadd of all batch files, then Phase 2 %s" % manifest["weight_mode"])
     print("phase2 arrays %s  tasks %s  final files %s" % (arrays, tasks, files))
     if(regen_cmd is not None):
         print("HPP regen (nominal waits; others do not):")
@@ -270,7 +285,11 @@ def run_live(args, manifest):
                 row["status"] = "failed"
                 row["reason"] = "histogram pipeline exited %s" % rc
                 append_log(camp, "phase1", row["id"], "", "", "", "local", "", "failed", row["reason"], row["response"])
-                send_mail(args.email, "SIDIS systematics Phase 1 failed %s" % row["id"], row["reason"] + "\n")
+                if(manifest.get("recovery")):
+                    body = recovery_failure_text(manifest["campaign"], row["id"], row.get("batch_ids") or "", submission_ids_for_config(camp, row["id"]), row["reason"])
+                else:
+                    body = row["reason"] + "\n"
+                send_mail(args.email, "SIDIS systematics Phase 1 failed %s" % row["id"], body)
         for config_id in finished:
             del procs[config_id]
         if((not compiled) and any(row["status"] == "success" for row in manifest["phase1"])):
@@ -304,6 +323,7 @@ def run_live(args, manifest):
             row["array_id"] = array_id
             row["submit_time"] = time.time()
             row["status"] = "submitted"
+            append_submission_history(camp, phase2_history_record(manifest, row, array_id))
             append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "slurm", array_id, "submitted", "", row["final"])
             send_mail(args.email, "SIDIS systematics Phase 2 started %s" % row["key"], "array %s\n%s\n" % (array_id, row["final"]))
         done_local = []
@@ -387,7 +407,13 @@ def run_live(args, manifest):
                 pending = True
             if(failed_bin):
                 row["status"] = "failed"
-                send_mail(args.email, "SIDIS systematics Phase 2 failed %s" % row["key"], row.get("reason") or "bin failed")
+                reason = row.get("reason") or "bin failed"
+                if(manifest.get("recovery")):
+                    parent = [item for item in manifest["phase1"] if(item["id"] == row["config_id"])][0]
+                    body = recovery_failure_text(manifest["campaign"], row["config_id"], parent.get("batch_ids") or "", submission_ids_for_config(camp, row["config_id"]), reason)
+                else:
+                    body = reason
+                send_mail(args.email, "SIDIS systematics Phase 2 failed %s" % row["key"], body)
             elif((not pending) and (row["lineage"] not in running_local)):
                 if(merge_bins(row)):
                     if(unfold_final_ok(row["final"])):
@@ -475,26 +501,53 @@ def parse_args(argv):
     parser.add_argument("-e", "--email", action="store_true")
     parser.add_argument("-ht", "--hpp_tag", default="Final_Thesis")
     parser.add_argument("-em", "--email_message", default="")
+    parser.add_argument("-rb", "--recovery_batches", default=None)
     return parser.parse_args(argv)
+
+
+def resolve_recovery_path(path):
+    if(path in [None, ""]):
+        return None
+    if(os.path.isfile(path)):
+        return path
+    rooted = os.path.join(_BOOT, path)
+    if(os.path.isfile(rooted)):
+        return rooted
+    raise ValueError("recovery batch file was not found: %s" % path)
 
 
 def main(argv=None):
     args = parse_args(sys.argv[1:] if(argv is None) else argv)
+    if((args.recovery_batches not in [None, ""]) and args.regenerate_nominal_spline_hpp):
+        print("recovery does not regenerate the nominal spline HPP", file=sys.stderr)
+        return 1
     try:
         args.max_local_workers = worker_cap(args.max_local_workers)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
+    recovery = None
+    if(args.recovery_batches not in [None, ""]):
+        try:
+            recovery = load_recovery_batches(resolve_recovery_path(args.recovery_batches))
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
     camp = campaign_directory(args.data_root, args.campaign)
     previous = read_manifest(camp) if(args.resume or os.path.isfile(manifest_path(camp))) else None
     if(args.resume and (previous is None)):
         print("no manifest to resume at %s" % manifest_path(camp), file=sys.stderr)
         return 1
     stamp = time.strftime("%Y%m%d_%H%M%S")
-    manifest = build_manifest(
-        args.data_root, args.campaign, args.weight_mode, args.max_local_workers,
-        args.hpp_tag, args.regenerate_nominal_spline_hpp, stamp, previous=previous if(args.resume) else None,
-    )
+    try:
+        manifest = build_manifest(
+            args.data_root, args.campaign, args.weight_mode, args.max_local_workers,
+            args.hpp_tag, args.regenerate_nominal_spline_hpp, stamp, previous=previous if(args.resume) else None,
+            recovery=recovery,
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
     fill_commands(manifest, sys.executable)
     regen_cmd = None
     if(args.regenerate_nominal_spline_hpp):

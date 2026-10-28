@@ -141,6 +141,111 @@ def phase1_command(python, submit_script, data_root, campaign, cap, config, hpp_
     return cmd
 
 
+def expand_batch_spec(text, num_batches=171):
+    # Same inclusive ranges as the pipeline parser. The recovery list is not rediscovered.
+    if(text in [None, ""]):
+        raise ValueError("batch list is empty")
+    chosen = []
+    for part in str(text).split(","):
+        part = part.strip()
+        if(part == ""):
+            continue
+        if("-" in part):
+            left, right = part.split("-", 1)
+            start = int(left)
+            stop = int(right)
+            for index in range(start, stop + 1):
+                chosen.append(index)
+        else:
+            chosen.append(int(part))
+    unique = []
+    for index in chosen:
+        if((index < 1) or (index > int(num_batches))):
+            raise ValueError("batch id %s is outside 1-%s" % (index, num_batches))
+        if(index not in unique):
+            unique.append(index)
+    if(len(unique) == 0):
+        raise ValueError("batch list is empty")
+    return unique
+
+
+def load_recovery_batches(path):
+    handle = open(path)
+    try:
+        payload = json.load(handle)
+    finally:
+        handle.close()
+    if(not isinstance(payload, dict)):
+        raise ValueError("recovery file must be an object")
+    configs = payload.get("configs")
+    if((not isinstance(configs, list)) or (len(configs) == 0)):
+        raise ValueError("recovery file has no configs")
+    payload["path"] = path
+    return payload
+
+
+def recovery_phase1_command(python, submit_script, data_root, campaign, config, hpp_pure, hpp_spline, batch_ids, hybrid_date, slurm_time, only3d_mem):
+    # Slurm only. Hybrid's local walker can cancel and rewrite batches that are not listed.
+    cmd = [
+        python, submit_script,
+        "-droot", data_root,
+        "-m", "slurm",
+        "-y",
+        "-mac", "Bank",
+        "-cn", config["cut"],
+        "-n", "Sys3D_%s" % config["id"],
+        "-sa",
+        "-hpf", hpp_pure,
+        "-hps", hpp_spline,
+        "-j", "1",
+        "-j3D", "1",
+        "-j2D", "0",
+        "-j5D", "0",
+        "-jBin", "0",
+        "-jch4", "0",
+        "-jdph", "0",
+        "-j1D", "0",
+        "-jdiag", "0",
+        "-e", "none",
+        "-cwn", campaign,
+        "-bids", str(batch_ids),
+        "-hdate", str(hybrid_date),
+        "-st", str(slurm_time),
+        "-o3m", str(only3d_mem),
+        "-rlb",
+    ]
+    if(config["unsmeared"]):
+        cmd.append("-us")
+    return cmd
+
+
+def recovery_configs(payload):
+    catalog = {}
+    for row in phase1_configs():
+        catalog[row["id"]] = row
+    chosen = []
+    seen = []
+    for item in payload["configs"]:
+        if(not isinstance(item, dict)):
+            raise ValueError("recovery config entry must be an object")
+        config_id = str(item.get("id", ""))
+        if(config_id in seen):
+            raise ValueError("duplicate recovery config %s" % config_id)
+        seen.append(config_id)
+        if(config_id == "nominal"):
+            raise ValueError("recovery cannot include nominal")
+        if(config_id not in catalog):
+            raise ValueError("unknown recovery config %s" % config_id)
+        spec = str(item.get("batches", ""))
+        expand_batch_spec(spec)
+        chosen.append({
+            "config": catalog[config_id],
+            "batches": spec,
+            "original_job": str(item.get("original_job", "")),
+        })
+    return chosen
+
+
 def regen_command(python, submit_script, data_root, spline_out):
     return [
         python, submit_script,
@@ -361,8 +466,23 @@ def keep_recorded_hpp(previous, assigned):
     return merged
 
 
-def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None):
-    configs = phase1_configs()
+def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None):
+    batch_by_id = None
+    job_by_id = None
+    if(recovery is None):
+        configs = phase1_configs()
+    else:
+        # The JSON is the execution set. Nominal and unlisted configs are not added.
+        regenerate = False
+        picked = recovery_configs(recovery)
+        configs = []
+        batch_by_id = {}
+        job_by_id = {}
+        for item in picked:
+            config = item["config"]
+            configs.append(config)
+            batch_by_id[config["id"]] = item["batches"]
+            job_by_id[config["id"]] = item["original_job"]
     assigned = assign_hpp(configs, data_root, tag, campaign, stamp, regenerate)
     if(previous is not None):
         old_phase1 = {}
@@ -384,7 +504,14 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
     for config in configs:
         paths = assigned[config["id"]]
         response = response_path(data_root, config["id"], config["cut"])
-        cmd = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, paths["hpp_nospline"], paths["hpp_spline"])
+        if(batch_by_id is None):
+            cmd = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, paths["hpp_nospline"], paths["hpp_spline"])
+        else:
+            cmd = recovery_phase1_command(
+                "PYTHON", "SUBMIT", data_root, campaign, config, paths["hpp_nospline"], paths["hpp_spline"],
+                batch_by_id[config["id"]], recovery.get("hybrid_date") or "10_27_2026",
+                recovery.get("slurm_time") or "24:00:00", recovery.get("only3d_slurm_mem") or "4500M",
+            )
         row = {
             "id": config["id"],
             "cut": config["cut"],
@@ -398,6 +525,9 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             "pid": None,
             "reason": "",
         }
+        if(batch_by_id is not None):
+            row["batch_ids"] = batch_by_id[config["id"]]
+            row["original_job"] = job_by_id[config["id"]]
         old = old_phase1.get(config["id"])
         if(isinstance(old, dict) and (old.get("status") in ["success", "failed", "running"])):
             row["status"] = old.get("status")
@@ -405,7 +535,14 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             row["reason"] = old.get("reason") or ""
             row["hpp_nospline"] = old.get("hpp_nospline") or row["hpp_nospline"]
             row["hpp_spline"] = old.get("hpp_spline") or row["hpp_spline"]
-            row["command"] = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, row["hpp_nospline"], row["hpp_spline"])
+            if(batch_by_id is None):
+                row["command"] = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, row["hpp_nospline"], row["hpp_spline"])
+            else:
+                row["command"] = recovery_phase1_command(
+                    "PYTHON", "SUBMIT", data_root, campaign, config, row["hpp_nospline"], row["hpp_spline"],
+                    row["batch_ids"], recovery.get("hybrid_date") or "10_27_2026",
+                    recovery.get("slurm_time") or "24:00:00", recovery.get("only3d_slurm_mem") or "4500M",
+                )
         phase1.append(row)
         for job in phase2_jobs(config, weight_mode):
             key = job_key(job)
@@ -446,7 +583,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
                         prow["bins"][str(q2y)]["where"] = old_bins[str(q2y)].get("where") or ""
                         prow["bins"][str(q2y)]["slurm_state"] = old_bins[str(q2y)].get("slurm_state") or ""
             phase2.append(prow)
-    return {
+    payload = {
         "campaign": campaign,
         "data_root": data_root,
         "weight_mode": weight_mode,
@@ -456,6 +593,17 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         "phase1": phase1,
         "phase2": phase2,
     }
+    if(recovery is not None):
+        task_count = 0
+        for row in phase1:
+            task_count += len(expand_batch_spec(row["batch_ids"]))
+        payload["recovery"] = True
+        payload["recovery_file"] = recovery.get("path") or ""
+        payload["hybrid_date"] = recovery.get("hybrid_date") or "10_27_2026"
+        payload["slurm_time"] = recovery.get("slurm_time") or "24:00:00"
+        payload["only3d_slurm_mem"] = recovery.get("only3d_slurm_mem") or "4500M"
+        payload["recovery_task_count"] = task_count
+    return payload
 
 
 def manifest_path(camp_dir):
@@ -596,6 +744,96 @@ def unfold_final_ok(path, bins=None):
 
 def command_text(cmd):
     return " ".join(str(token) for token in cmd)
+
+
+def submission_history_path(camp_dir):
+    return os.path.join(camp_dir, "submission_history.jsonl")
+
+
+def append_submission_history(camp_dir, record):
+    # Append one JSON line. Earlier lines stay as they were written.
+    path = submission_history_path(camp_dir)
+    os.makedirs(camp_dir, exist_ok=True)
+    handle = open(path, "a+")
+    try:
+        if(fcntl is not None):
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        handle.seek(0)
+        existing = handle.read().splitlines()
+        attempt = 1
+        for line in existing:
+            if(line.strip() == ""):
+                continue
+            try:
+                old = json.loads(line)
+            except Exception:
+                continue
+            same = (old.get("campaign") == record.get("campaign")) and (old.get("configuration") == record.get("configuration")) and (old.get("phase") == record.get("phase")) and (old.get("job_name") == record.get("job_name")) and (old.get("index_spec") == record.get("index_spec"))
+            if(same):
+                attempt += 1
+        payload = dict(record)
+        if(payload.get("attempt") in [None, ""]):
+            payload["attempt"] = attempt
+        if(payload.get("time") in [None, ""]):
+            payload["time"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        handle.seek(0, os.SEEK_END)
+        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+        handle.flush()
+    finally:
+        if(fcntl is not None):
+            try:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            except Exception:
+                pass
+        handle.close()
+    return path
+
+
+def submission_ids_for_config(camp_dir, configuration):
+    path = submission_history_path(camp_dir)
+    found = []
+    if(not os.path.isfile(path)):
+        return found
+    handle = open(path)
+    try:
+        for line in handle:
+            if(line.strip() == ""):
+                continue
+            try:
+                row = json.loads(line)
+            except Exception:
+                continue
+            if(str(row.get("configuration")) != str(configuration)):
+                continue
+            slurm_id = str(row.get("slurm_id") or "")
+            if((slurm_id not in ["", "None"]) and (slurm_id not in found)):
+                found.append(slurm_id)
+    finally:
+        handle.close()
+    return found
+
+
+def recovery_failure_text(campaign, configuration, batch_ids, slurm_ids, reason):
+    if(len(slurm_ids) > 0):
+        id_text = ", ".join(str(item) for item in slurm_ids)
+    else:
+        id_text = "none"
+    return "campaign %s\nconfiguration %s\nslurm_ids %s\nrecovery_batches %s\n%s\n" % (
+        campaign, configuration, id_text, batch_ids, reason)
+
+
+def phase2_history_record(manifest, row, array_id):
+    return {
+        "campaign": manifest["campaign"],
+        "configuration": row["config_id"],
+        "phase": "phase2",
+        "job_name": job_stem(row),
+        "slurm_id": str(array_id),
+        "index_spec": "1-17",
+        "memory": SLURM_MEM,
+        "wall": SLURM_TIME,
+        "cpus": "1",
+    }
 
 
 def self_test():

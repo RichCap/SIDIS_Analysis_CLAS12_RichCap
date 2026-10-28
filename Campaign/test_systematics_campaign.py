@@ -68,12 +68,306 @@ def dry_run_writes_manifest():
         raise SystemExit("cap 42 was accepted")
 
 
+def bag(**overrides):
+    class Bag(object):
+        pass
+    args = Bag()
+    args.mode = "slurm"
+    args.data_root = "work_b"
+    args.cut_name = "cut_Complete_SIDIS_pipS6o"
+    args.unsmeared = False
+    args.z_axis_2D = "4D_Bin"
+    args.no_make_root = False
+    args.no_make_2D = True
+    args.no_make_2D_rho = True
+    args.no_unfold_5D = True
+    args.make_2D_only = False
+    args.unfold_5D_only = False
+    args.old_3D_unfold = False
+    args.no_fast = False
+    args.valerii_bins = False
+    args.use_hpp = True
+    args.spline_weights = True
+    args.spline_weight_file = "spline.txt"
+    args.spline_file = "spline.txt"
+    args.json_weights = False
+    args.json_file = None
+    args.hpp_weight_file = "/hpp/noSpline.hpp"
+    args.hpp_weight_file_spline = "/hpp/withSpline.hpp"
+    args.run_rho_weight = True
+    args.no_run_rho_weight = False
+    args.matching_criteria = "Bank"
+    args.name = "Sys3D_pipS6o"
+    args.name_in = ["*Final_Thesis_Files*.root"]
+    args.root = "SIDIS_epip_Response_Matrices_from_RDataFrames.root"
+    args.email_message_job = ""
+    args.user_email_message = ""
+    args.email = "none"
+    args.extra = None
+    args.slurm_array_jobid = None
+    args.histogram_local_cap = None
+    args.campaign_worker_cap = None
+    args.campaign_worker_name = "systematics_3d_both_recovery_20261028"
+    args.run_subdir_name = "Only_3D_Sys3D_pipS6o_Bank_cut_Complete_SIDIS_pipS6o_Response_Matrices_Final_Thesis_Files_10_27_2026"
+    args.slurm_cpus = "1"
+    args.slurm_mem = "4500M"
+    args.slurm_time = "24:00:00"
+    args.batch_ids = "5,9-10,105,108-109,111,113,127-128,167-168"
+    args.replace_listed_batches = True
+    args.only3d_slurm_mem = None
+    args.submission_config = "pipS6o"
+    args.num_batches = 171
+    args.work_dir = "/tmp/hadd_work"
+    for key, value in overrides.items():
+        setattr(args, key, value)
+    return args
+
+
+def recovery_static_checks():
+    import json
+    from Campaign.systematics_campaign import (
+        append_submission_history, expand_batch_spec, load_recovery_batches, recovery_configs,
+        recovery_failure_text, submission_history_path, submission_ids_for_config,
+    )
+    df = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import run_sidis_DataFrame_pipeline as pipeline
+    import Submit_Full_Histogram_Creation_Pipeline as submit_full
+    json_path = os.path.join(_BOOT, "Campaign", "recovery_batches_systematics_3d_both_rnh_20261027.json")
+    payload = load_recovery_batches(json_path)
+    chosen = recovery_configs(payload)
+    if(len(chosen) != 33):
+        raise SystemExit("recovery config count %s" % len(chosen))
+    by_id = {}
+    total = 0
+    for item in chosen:
+        spec = expand_batch_spec(item["batches"])
+        other = pipeline.parse_batch_id_spec(item["batches"], 171)
+        if(spec != other):
+            raise SystemExit("batch parser diverged for %s" % item["config"]["id"])
+        by_id[item["config"]["id"]] = spec
+        total += len(spec)
+        if(item["config"]["nominal"]):
+            raise SystemExit("nominal was included")
+    if(total != 1581):
+        raise SystemExit("recovery task count %s" % total)
+    if((156 in by_id["pipS3o"]) or (157 in by_id["pipS3o"]) or (158 in by_id["pipS3o"])):
+        raise SystemExit("pipS3o 156-158 were not dropped")
+    if(108 in by_id["no_valerii_knockout"]):
+        raise SystemExit("13660242_108 is still listed")
+    if(112 in by_id["pipS6o"]):
+        raise SystemExit("13660241_112 is still listed")
+    if(111 not in by_id["pipS6o"]):
+        raise SystemExit("13660241_111 was dropped")
+    if(105 not in by_id["pipS5o"]):
+        raise SystemExit("pipS5o batch 105 was dropped")
+    for item in payload["configs"]:
+        indices = expand_batch_spec(item["batches"])
+        if((item["original_job"] == "13660240") and (any(index in [156, 157, 158] for index in indices))):
+            raise SystemExit("original job 13660240 still has 156-158")
+        if((item["original_job"] == "13660242") and (108 in indices)):
+            raise SystemExit("original job 13660242 still has 108")
+        if((item["original_job"] == "13660241") and ((112 in indices) or (111 not in indices))):
+            raise SystemExit("original job 13660241 list is wrong")
+
+    script_args = bag()
+    selected = pipeline.parse_batch_id_spec(script_args.batch_ids, 171)
+    script = pipeline.slurm_array_script_text(script_args, "/volatile/example", 171, selected)
+    if(("--time=24:00:00" not in script) or ("--mem-per-cpu=4500M" not in script)):
+        raise SystemExit("recovery sbatch resources")
+    if(script.count("rm -f ") != 1):
+        raise SystemExit("array script rm count")
+    if("Batch${BATCH_PAD}" not in script):
+        raise SystemExit("rm is not limited to the array task")
+    if("_Batch112.root" in script):
+        raise SystemExit("array script names batch 112")
+    array_line = [line for line in script.splitlines() if(line.startswith("#SBATCH --array="))][0]
+    array_indices = pipeline.parse_batch_id_spec(array_line.split("=", 1)[1], 171)
+    if((112 in array_indices) or (111 not in array_indices)):
+        raise SystemExit("array index spec")
+    plain = pipeline.slurm_array_script_text(bag(replace_listed_batches=False), "/volatile/example", 171, selected)
+    if("rm -f" in plain):
+        raise SystemExit("ordinary array script removes a batch file")
+    kept = pipeline.stop_if_outside_batches_missing(bag(batch_ids="111,113"), "/definitely/missing", 171)
+    if(kept != [111, 113]):
+        raise SystemExit("replace_listed_batches still ran the outside-batch gate")
+
+    product = [item for item in submit_full.PRODUCTS if(item["key"] == "Only_3D")][0]
+    normal = bag(only3d_slurm_mem=None, slurm_mem="9GB", replace_listed_batches=False, batch_ids=None)
+    normal_cmd = submit_full.build_pipeline_cmd(normal, "cut_Complete_SIDIS_pipS6o", product, "/hpp/a.hpp", "/hpp/b.hpp", mode="slurm", jobs=1)
+    if(normal_cmd[normal_cmd.index("--slurm_mem") + 1] != "4GB"):
+        raise SystemExit("Only_3D without -o3m is not 4GB")
+    raised = bag(only3d_slurm_mem="4500M", replace_listed_batches=True)
+    raised_cmd = submit_full.build_pipeline_cmd(raised, "cut_Complete_SIDIS_pipS6o", product, "/hpp/a.hpp", "/hpp/b.hpp", mode="slurm", jobs=1)
+    if(raised_cmd[raised_cmd.index("--slurm_mem") + 1] != "4500M"):
+        raise SystemExit("Only_3D -o3m was not forwarded")
+    if("--replace_listed_batches" not in raised_cmd):
+        raise SystemExit("replace flag was not forwarded")
+
+    history_dir = "/tmp/SIDIS_systematics_campaign/work_b/submission_history_self_test"
+    os.makedirs(history_dir, exist_ok=True)
+    history_path = submission_history_path(history_dir)
+    if(os.path.isfile(history_path)):
+        os.remove(history_path)
+    append_submission_history(history_dir, {
+        "campaign": "systematics_3d_both_recovery_20261028",
+        "configuration": "pipS6o",
+        "phase": "phase1",
+        "job_name": "RMatrix_pipS6o",
+        "slurm_id": "200",
+        "index_spec": script_args.batch_ids,
+        "memory": "4500M",
+        "wall": "24:00:00",
+        "cpus": "1",
+    })
+    append_submission_history(history_dir, {
+        "campaign": "systematics_3d_both_recovery_20261028",
+        "configuration": "pipS6o",
+        "phase": "phase2",
+        "job_name": "Sys3D_pipS6o_inherited_Spline",
+        "slurm_id": "201",
+        "index_spec": "1-17",
+        "memory": "15000",
+        "wall": "1:40:00",
+        "cpus": "1",
+    })
+    lines = open(history_path).read().splitlines()
+    if(len(lines) != 2):
+        raise SystemExit("jsonl line count %s" % len(lines))
+    first = json.loads(lines[0])
+    second = json.loads(lines[1])
+    if((first["phase"] != "phase1") or (second["phase"] != "phase2")):
+        raise SystemExit("jsonl phases")
+    append_submission_history(history_dir, {
+        "campaign": "systematics_3d_both_recovery_20261028",
+        "configuration": "pipS6o",
+        "phase": "phase1",
+        "job_name": "RMatrix_pipS6o",
+        "slurm_id": "202",
+        "index_spec": script_args.batch_ids,
+        "memory": "4500M",
+        "wall": "24:00:00",
+        "cpus": "1",
+    })
+    again = open(history_path).read().splitlines()
+    if((len(again) != 3) or (json.loads(again[0]) != first) or (json.loads(again[1]) != second)):
+        raise SystemExit("jsonl rewrote an earlier line")
+    ids = submission_ids_for_config(history_dir, "pipS6o")
+    body = recovery_failure_text("systematics_3d_both_recovery_20261028", "pipS6o", script_args.batch_ids, ids, "histogram pipeline exited 1")
+    for token in ["systematics_3d_both_recovery_20261028", "pipS6o", "200", "201", "202", script_args.batch_ids]:
+        if(token not in body):
+            raise SystemExit("failure mail missing %s" % token)
+
+    from jlab_work_paths import data_root_path
+    root = data_root_path("work_b")
+    if(os.path.isdir(root)):
+        original = os.path.join(root, "SIDIS_Campaign", "systematics", "systematics_3d_both_rnh_20261027")
+    else:
+        original = "/tmp/SIDIS_systematics_campaign/work_b/systematics_3d_both_rnh_20261027"
+    original_manifest = os.path.join(original, "manifest.json")
+    if(original.startswith("/tmp/")):
+        os.makedirs(original, exist_ok=True)
+        marker = os.path.join(original, "marker.txt")
+        if(not os.path.isfile(marker)):
+            handle = open(marker, "w")
+            handle.write("keep\n")
+            handle.close()
+        marker_text = open(marker).read()
+        marker_time = os.path.getmtime(marker)
+    else:
+        marker = None
+        marker_text = None
+        marker_time = None
+    if(os.path.isfile(original_manifest)):
+        original_text = open(original_manifest).read()
+    else:
+        original_text = None
+    import io
+    from contextlib import redirect_stdout
+    stdout = io.StringIO()
+    with redirect_stdout(stdout):
+        code = runner.main([
+            "-n", "-c", "systematics_3d_both_recovery_20261028", "-droot", "work_b", "-wm", "both",
+            "-rb", json_path,
+        ])
+    if(code != 0):
+        raise SystemExit("recovery dry-run exit %s" % code)
+    printed = stdout.getvalue()
+    if("existing hadd" not in printed):
+        raise SystemExit("dry-run does not continue to the existing hadd")
+    if("PHASE2" not in printed):
+        raise SystemExit("dry-run does not continue to Phase 2")
+    if(marker is not None):
+        if((open(marker).read() != marker_text) or (os.path.getmtime(marker) != marker_time)):
+            raise SystemExit("dry-run changed the original campaign marker")
+    if(original_text is None):
+        if(os.path.isfile(original_manifest)):
+            raise SystemExit("dry-run wrote the original campaign manifest")
+    elif(open(original_manifest).read() != original_text):
+        raise SystemExit("dry-run changed the original campaign manifest")
+    camp = runner.campaign_directory("work_b", "systematics_3d_both_recovery_20261028")
+    if(os.path.abspath(camp) == os.path.abspath(original)):
+        raise SystemExit("recovery dry-run used the original campaign directory")
+    for walk_root, _dirs, files in os.walk(camp):
+        for name in files:
+            if(name.endswith(".sh")):
+                raise SystemExit("dry-run wrote sbatch %s" % os.path.join(walk_root, name))
+    if(os.path.isfile(os.path.join(camp, "submission_history.jsonl"))):
+        raise SystemExit("dry-run wrote submission history")
+    manifest = runner.read_manifest(camp)
+    if((len(manifest["phase1"]) != 33) or (manifest.get("recovery_task_count") != 1581)):
+        raise SystemExit("dry-run manifest counts")
+    if(any(row["nominal"] for row in manifest["phase1"])):
+        raise SystemExit("dry-run included nominal")
+    if(len(manifest["phase2"]) != 66):
+        raise SystemExit("dry-run phase2 count %s" % len(manifest["phase2"]))
+    for row in manifest["phase1"]:
+        command = row["command"]
+        text = " ".join(command)
+        if(("-m" not in command) or (command[command.index("-m") + 1] != "slurm")):
+            raise SystemExit("recovery command is not slurm")
+        if("-rlb" not in command):
+            raise SystemExit("recovery command missing -rlb")
+        if("--skip_slurm_hadd" in command):
+            raise SystemExit("recovery command skips hadd")
+        if(("-hso" in command) or ("sysregen" in text) or ("-rnh" in command)):
+            raise SystemExit("recovery command regenerates HPP")
+        cut = command[command.index("-cn") + 1]
+        if(cut == "cut_Complete_SIDIS"):
+            raise SystemExit("nominal cut was scheduled")
+        listed = expand_batch_spec(command[command.index("-bids") + 1])
+        if(listed != by_id[row["id"]]):
+            raise SystemExit("batch_ids were not taken from the JSON for %s" % row["id"])
+        if((command[command.index("-st") + 1] != "24:00:00") or (command[command.index("-o3m") + 1] != "4500M")):
+            raise SystemExit("recovery resources")
+        if(command[command.index("-hdate") + 1] != "10_27_2026"):
+            raise SystemExit("hybrid date")
+        if((not row["hpp_nospline"].endswith("generated_acceptance_weights_Final_Thesis_noSpline.hpp")) or (not row["hpp_spline"].endswith("generated_acceptance_weights_Final_Thesis_withSpline.hpp"))):
+            raise SystemExit("HPP path was not the recorded Final_Thesis pair")
+    weights = {}
+    for row in manifest["phase2"]:
+        if(row["branch"] != "inherited"):
+            raise SystemExit("recovery scheduled a nominal-only branch")
+        weights.setdefault(row["config_id"], []).append(row["weight_tag"])
+    for config_id, tags in weights.items():
+        if(tags != ["Spline", ""]):
+            raise SystemExit("both-mode order for %s" % config_id)
+    refused = runner.main([
+        "-n", "-c", "systematics_recovery_reject_rnh", "-droot", "work_b", "-wm", "both",
+        "-rb", json_path, "-rnh",
+    ])
+    if(refused == 0):
+        raise SystemExit("recovery accepted nominal HPP regeneration")
+
+
 def main():
     self_test()
     ledger_self_test()
     squeue_compact_is_pending()
     hpp_matches_submit_full()
     dry_run_writes_manifest()
+    recovery_static_checks()
     print("systematics campaign self-test ok")
     return 0
 
