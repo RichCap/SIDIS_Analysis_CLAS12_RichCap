@@ -1322,9 +1322,9 @@
         "-e",
         "none"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 2834124,
-      "reason": ""
+      "reason": "histogram pipeline exited 1"
     },
     {
       "id": "eS4o",
@@ -8079,7 +8079,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_rnh_20261027/unfolded/Sys3D_pipS3o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -8184,7 +8184,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "pipS3o__inherited__Unweighted",
@@ -8198,7 +8198,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_rnh_20261027/unfolded/Sys3D_pipS3o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -8303,7 +8303,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "eS4o__inherited__Spline",
