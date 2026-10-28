@@ -90,7 +90,7 @@ The cap counts one local histogram batch or one local unfold process. Controller
 
 ## Fixed-list histogram recovery
 
-`Campaign/recovery_batches_systematics_3d_both_rnh_20261027.json` is the execution list: 33 non-nominal configurations and 1,581 batch tasks. The log review did not add or remove tasks. `13660240_156`, `_157`, and `_158` are absent. `13660242_108` and `13660241_112` are absent because those tasks finished. `13660241_111` stays. Nominal is not in this list.
+`Campaign/recovery_batches_systematics_3d_both_rnh_20261027.json` is the execution list: 33 non-nominal configurations and 1,580 batch tasks. `13660240_156`, `_157`, and `_158` are absent. `13660242_108`, `13660241_112`, and `13660241_111` are absent because those tasks finished. Nominal is not in this list.
 
 `-rb` / `--recovery_batches` reads that file and does not discover more indices. It rejects `-rnh`. Phase 1 is one Only_3D `slurm` submission per listed configuration, with `--batch_ids`, `--hybrid_date 10_27_2026`, `--slurm_time 24:00:00`, and `--only3d_slurm_mem 4500M`. `-rlb` removes only that array task’s own batch file and skips the outside-batch ROOT gate. Unlisted batches are not submitted. After the listed array finishes, the existing pipeline hadd still requires all 171 batch files. A failed merge does not unfold that configuration. A successful merge continues into Phase 2 with `--weight_mode both`.
 
@@ -100,16 +100,12 @@ Submissions are appended to `<campaign>/submission_history.jsonl`. Earlier lines
 
 The second campaign name is `systematics_3d_both_recovery_20261028`. Its manifest, log, and JSONL are separate. Histogram batches and the merged response file stay on the original `Sys3D_<id>` paths.
 
-Stop every original writer that can still update those batch files before launching recovery. This launcher does not look for those processes and does not cancel them. The only recovery task that was still active is separate from the launcher:
+Every original non-nominal job has finished. Only the nominal spline HPP generation is still active. Do not interrupt that run, and do not resume the original campaign onto these batch files. This launcher does not look for processes and does not cancel them.
+
+On iFarm, `sinfo -p production -o "%P %l"` must show a maximum of at least 24 hours. If it does not, stop and report that. Do not shorten the request in the command.
+
+Prepared command, not launched by this repository change. Run it from the iFarm checkout:
 
 ```bash
-scancel 13660241_111
-```
-
-Do not cancel `13660242_108` or `13660241_112`. On iFarm, `sinfo -p production -o "%P %l"` must show a maximum of at least 24 hours. If it does not, stop and report that. Do not shorten the request in the command.
-
-Prepared command, not launched by this repository change:
-
-```bash
-cd /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap && python3 Campaign/run_sidis_systematics_campaign.py -c systematics_3d_both_recovery_20261028 -droot work_b -wm both -rb Campaign/recovery_batches_systematics_3d_both_rnh_20261027.json -e
+python3 Campaign/run_sidis_systematics_campaign.py -c systematics_3d_both_recovery_20261028 -droot work_b -wm both -rb Campaign/recovery_batches_systematics_3d_both_rnh_20261027.json -e
 ```

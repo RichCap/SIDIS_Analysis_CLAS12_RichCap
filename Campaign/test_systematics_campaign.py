@@ -112,7 +112,7 @@ def bag(**overrides):
     args.slurm_cpus = "1"
     args.slurm_mem = "4500M"
     args.slurm_time = "24:00:00"
-    args.batch_ids = "5,9-10,105,108-109,111,113,127-128,167-168"
+    args.batch_ids = "5,9-10,105,108-109,113,127-128,167-168"
     args.replace_listed_batches = True
     args.only3d_slurm_mem = None
     args.submission_config = "pipS6o"
@@ -150,7 +150,7 @@ def recovery_static_checks():
         total += len(spec)
         if(item["config"]["nominal"]):
             raise SystemExit("nominal was included")
-    if(total != 1581):
+    if(total != 1580):
         raise SystemExit("recovery task count %s" % total)
     if((156 in by_id["pipS3o"]) or (157 in by_id["pipS3o"]) or (158 in by_id["pipS3o"])):
         raise SystemExit("pipS3o 156-158 were not dropped")
@@ -158,8 +158,8 @@ def recovery_static_checks():
         raise SystemExit("13660242_108 is still listed")
     if(112 in by_id["pipS6o"]):
         raise SystemExit("13660241_112 is still listed")
-    if(111 not in by_id["pipS6o"]):
-        raise SystemExit("13660241_111 was dropped")
+    if(111 in by_id["pipS6o"]):
+        raise SystemExit("13660241_111 is still listed")
     if(105 not in by_id["pipS5o"]):
         raise SystemExit("pipS5o batch 105 was dropped")
     for item in payload["configs"]:
@@ -168,8 +168,8 @@ def recovery_static_checks():
             raise SystemExit("original job 13660240 still has 156-158")
         if((item["original_job"] == "13660242") and (108 in indices)):
             raise SystemExit("original job 13660242 still has 108")
-        if((item["original_job"] == "13660241") and ((112 in indices) or (111 not in indices))):
-            raise SystemExit("original job 13660241 list is wrong")
+        if((item["original_job"] == "13660241") and ((112 in indices) or (111 in indices))):
+            raise SystemExit("original job 13660241 still has 111 or 112")
 
     script_args = bag()
     selected = pipeline.parse_batch_id_spec(script_args.batch_ids, 171)
@@ -184,13 +184,13 @@ def recovery_static_checks():
         raise SystemExit("array script names batch 112")
     array_line = [line for line in script.splitlines() if(line.startswith("#SBATCH --array="))][0]
     array_indices = pipeline.parse_batch_id_spec(array_line.split("=", 1)[1], 171)
-    if((112 in array_indices) or (111 not in array_indices)):
+    if((112 in array_indices) or (111 in array_indices) or (113 not in array_indices)):
         raise SystemExit("array index spec")
     plain = pipeline.slurm_array_script_text(bag(replace_listed_batches=False), "/volatile/example", 171, selected)
     if("rm -f" in plain):
         raise SystemExit("ordinary array script removes a batch file")
-    kept = pipeline.stop_if_outside_batches_missing(bag(batch_ids="111,113"), "/definitely/missing", 171)
-    if(kept != [111, 113]):
+    kept = pipeline.stop_if_outside_batches_missing(bag(batch_ids="113,127"), "/definitely/missing", 171)
+    if(kept != [113, 127]):
         raise SystemExit("replace_listed_batches still ran the outside-batch gate")
 
     product = [item for item in submit_full.PRODUCTS if(item["key"] == "Only_3D")][0]
@@ -316,7 +316,7 @@ def recovery_static_checks():
     if(os.path.isfile(os.path.join(camp, "submission_history.jsonl"))):
         raise SystemExit("dry-run wrote submission history")
     manifest = runner.read_manifest(camp)
-    if((len(manifest["phase1"]) != 33) or (manifest.get("recovery_task_count") != 1581)):
+    if((len(manifest["phase1"]) != 33) or (manifest.get("recovery_task_count") != 1580)):
         raise SystemExit("dry-run manifest counts")
     if(any(row["nominal"] for row in manifest["phase1"])):
         raise SystemExit("dry-run included nominal")
