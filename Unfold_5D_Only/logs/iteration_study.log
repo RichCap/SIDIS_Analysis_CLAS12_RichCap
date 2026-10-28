@@ -97896,3 +97896,141 @@
 [2026-10-26 23:14:37] Iteration : 3
 [2026-10-27 01:00:35] Chi^2 of change 1622.36
 [2026-10-27 01:00:35] Iteration : 4
+... (Lost logs during run? Manually copying end of the run for below)
+[2026-10-27 12:01:14] Now unfolding...                                                                                                                                                                                                                                         
+[2026-10-27 12:01:14] Iteration : 0                                                                                                                                                                                                                                            
+[2026-10-27 12:01:14] Chi^2 of change 3.67864e+06                                                                                                                                                                                                                              
+[2026-10-27 12:01:14] Iteration : 1                                                                                                                                                                                                                                            
+[2026-10-27 13:36:45] Chi^2 of change 88066.7                                                                                                                                                                                                                                  
+[2026-10-27 13:36:45] Iteration : 2                                                                                                                                                                                                                                            
+[2026-10-27 15:12:13] Chi^2 of change 7253.55                                                                                                                                                                                                                                  
+[2026-10-27 15:12:13] Iteration : 3                                                                                                                                                                                                                                            
+[2026-10-27 16:48:36] Chi^2 of change 1622.36                                                                                                                                                                                                                                  
+[2026-10-27 16:48:36] Iteration : 4                                                                                                                                                                                                                                            
+[2026-10-27 18:26:15] Chi^2 of change 586.386                                                                                                                                                                                                                                  
+[2026-10-27 18:26:15] Iteration : 5                                                                                                                                                                                                                                            
+[2026-10-27 20:00:31] Chi^2 of change 259.25                                                                                                                                                                                                                                   
+[2026-10-27 20:00:31] Iteration : 6                                                                                                                                                                                                                                            
+[2026-10-27 21:30:39] Chi^2 of change 128.434                                                                                                                                                                                                                                  
+[2026-10-27 21:30:39] Iteration : 7                                                                                                                                                                                                                                            
+[2026-10-27 23:01:35] Chi^2 of change 68.98                                                                                                                                                                                                                                    
+[2026-10-27 23:01:35] Iteration : 8                                                                                                                                                                                                                                            
+[2026-10-28 00:37:11] Chi^2 of change 39.4691                                                                                                                                                                                                                                  
+[2026-10-28 00:37:11] Iteration : 9                                                                                                                                                                                                                                            
+[2026-10-28 02:09:25] Chi^2 of change 23.7805                                                                                                                                                                                                                                  
+[2026-10-28 02:09:25] Calculating covariances due to number of measured events                                                                                                                                                                                                 
+[2026-10-28 02:44:55] Iteration-study k=10 finished                                                                                                                                                                                                                            
+[2026-10-28 02:44:55] 5D iteration study profiles are ready                                                                                                                                                                                                                    
+[2026-10-28 02:44:55] study_only: scan finished. Nominal Hunfold was not run.                                                                                                                                                                                                  
+[2026-10-28 02:44:55]                                                                                                                                                                                                                                                          
+[2026-10-28 02:44:55] Finished Unfolding                                                                                                                                                                                                                                       
+[2026-10-28 02:44:55]                                                                                                                                                                                                                                                          
+[2026-10-28 02:44:55]                                                                                                                                                                                                                                                          
+[2026-10-28 02:44:55] Current Time: 02:44 a.m.
+[2026-10-28 02:44:55] Time Elapsed Up To Now:
+[2026-10-28 02:44:55] 3 Day(s), 8 Hour(s), 34 Minute(s), and 41 Second(s).
+[2026-10-28 02:44:55] 
+[2026-10-28 02:44:55] Saving to: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Unfold_5D_Only/iteration_study_errors.root
+[2026-10-28 08:55:26] 
+[2026-10-28 08:55:26] Done Saving...
+[2026-10-28 08:55:26] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] EMAIL MESSAGE TO SEND:
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] The 'Dedicated_5D_Unfold.py' script has finished running.
+[2026-10-28 08:55:27] Started running on 10-24-2026 at 06:10 p.m.
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] Input File:
+[2026-10-28 08:55:27]   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_SIDIS_Workflow_Bank_Response_Matrices_Final_Thesis_Files_Al
+l.root
+[2026-10-28 08:55:27] Output File:
+[2026-10-28 08:55:27]   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Unfold_5D_Only/iteration_study_errors.root
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27]   Began Unfolding Histogram:
+[2026-10-28 08:55:27]   ((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_Q2_y_z_pT_phi_h'))
+[2026-10-28 08:55:27] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 5 Second(s). 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] Detected 5D Configuration:
+[2026-10-28 08:55:27]   increment  = 434
+[2026-10-28 08:55:27]   num_bins   = 10850
+[2026-10-28 08:55:27]   num_slices = 25
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] Arguments:
+[2026-10-28 08:55:27] --test                                              --> False
+[2026-10-28 08:55:27] --no_smear                                          --> False
+[2026-10-28 08:55:27] --sim                                               --> False
+[2026-10-28 08:55:27] --mod                                               --> False
+[2026-10-28 08:55:27] --bayes_iterations                                  --> 6
+[2026-10-28 08:55:27] --Num_Toys                                          --> 10
+[2026-10-28 08:55:27] --bins                                              --> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
+[2026-10-28 08:55:27] --verbose                                           --> False
+[2026-10-28 08:55:27] --Min_Allowed_Acceptance_Cut                        --> 0.020000
+[2026-10-28 08:55:27] --background_source                                 --> 'lundvpk'
+[2026-10-28 08:55:27] --require_weighed                                   --> False
+[2026-10-28 08:55:27] --weight_tag                                        --> ''
+[2026-10-28 08:55:27] --closure_weight                                    --> ''
+[2026-10-28 08:55:27] --pseudo_data                                       --> ''
+[2026-10-28 08:55:27] --increment                                         --> 434
+[2026-10-28 08:55:27] --num_bins                                          --> 10850
+[2026-10-28 08:55:27] --matrix_pdf                                        --> False
+[2026-10-28 08:55:27] --logz                                              --> False
+[2026-10-28 08:55:27] --recover_slices                                    --> False
+[2026-10-28 08:55:27] --data_root                                         --> 'work_b'
+[2026-10-28 08:55:27] --error_mode                                        --> 'errors'
+[2026-10-28 08:55:27] --iteration_study                                   --> True
+[2026-10-28 08:55:27] --old_binning                                       --> False
+[2026-10-28 08:55:27] --no_post_unfold_acc_cut                            --> False
+[2026-10-28 08:55:27] --pass_version                                      --> 'Pass 2'
+[2026-10-28 08:55:27] --closure                                           --> False
+[2026-10-28 08:55:27] --smearing_options                                  --> 'smear'
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] The time that this code finished is 08:55 a.m.
+[2026-10-28 08:55:27] The total time the code took to run is:
+[2026-10-28 08:55:27] 3 Day(s), 14 Hour(s), 45 Minute(s), and 13 Second(s).
+[2026-10-28 08:55:27] Saved 1881 Histograms...
+[2026-10-28 08:55:27] Rate = 0.01 Histograms/Seconds
+[2026-10-28 08:55:27]     
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27]                                                                                                                                                                                                                                                          
+[2026-10-28 08:55:27]           This code has now finished running.                                                                                                                                                                                                            
+[2026-10-28 08:55:27]                                                                                                                                                                                                                                                          
+[2026-10-28 08:55:27] 
+[2026-10-28 08:55:27]
+[2026-10-28 08:55:27] stage iteration_study exit 0 elapsed 312323.6
+[2026-10-28 08:55:27] stage iteration_study exit 0 elapsed 312323.6
+[2026-10-28 08:55:27] summary /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Unfold_5D_Only/summary.txt
+Traceback (most recent call last):
+  File "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/./Campaign/run_sidis_campaign.py", line 401, in <module>
+    return bins
+  File "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/./Campaign/run_sidis_campaign.py", line 279, in main
+    if(args.orchestration == "direct"):
+  File "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Campaign/local_orchestrator.py", line 2299, in run_direct
+    code = run_early(args)
+  File "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Campaign/local_orchestrator.py", line 2214, in run_unfold_5d_only
+    if(args.dry_run):
+  File "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Campaign/local_orchestrator.py", line 2071, in five_d_study_is_valid
+    except ValueError:
+  File "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Campaign/local_orchestrator.py", line 2014, in five_d_list_lines
+    if(echo):
+  File "/cvmfs/jlab.opensciencegrid.org/hallb/clas12/sw/almalinux9-gcc11/local/root/6.38.04/lib/ROOT/__init__.py", line 14, in <module>
+    import platform
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+  File "<frozen importlib._bootstrap_external>", line 1559, in find_spec
+  File "<frozen importlib._bootstrap_external>", line 1533, in _get_spec
+  File "<frozen importlib._bootstrap_external>", line 1636, in find_spec
+  File "<frozen importlib._bootstrap_external>", line 1679, in _fill_cache
+OSError: [Errno 116] Stale file handle: '/home/richcap/Analysis_SIDIS/New_RooUnfold/RooUnfold/build'
+Started at:
+Sat Oct 24 06:10:-- PM EDT 2026
+Done at:
+Wed Oct 28 08:55:27 AM EDT 2026
