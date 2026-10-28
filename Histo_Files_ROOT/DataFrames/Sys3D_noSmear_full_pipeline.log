@@ -150,3 +150,444 @@ The total time the code took to run is:
 Captured SLURM array job id 13660239 for Only_3D-slurm
 Waiting 1s for SLURM to register array job before local squeue checks.
 CMD [Only_3D-parallel]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS_noSmear -n Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --use_hpp --spline_weights --spline_weight_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt --hpp_weight_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_noSpline.hpp --hpp_weight_file_spline /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.hpp --unsmeared --matching_criteria Bank --run_rho_weight --no_make_2D_rho --no_make_2D --no_unfold_5D --slurm_array_jobid 13660239 --jobs 1 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026 --run_subdir_name Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026 --slurm_mem 4GB --slurm_cpus 1 -crm Only_3D --campaign_worker_cap 41 --campaign_worker_name systematics_3d_both_rnh_20261027 --extra --run_rho_weight
+[Only_3D-parallel] 
+[Only_3D-parallel] Started running on 10-27-2026 at 02:29 a.m.
+[Only_3D-parallel] 
+[Only_3D-parallel] Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[Only_3D-parallel] Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[Only_3D-parallel] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[Only_3D-parallel] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026
+[Only_3D-parallel] 
+[Only_3D-parallel] [INFO] Cancelling pending SLURM task 13660239_1
+[Only_3D-parallel] [INFO] Cancelled SLURM array task 13660239_1
+[Only_3D-parallel] START: Batch   1 of 171
+[Only_3D-parallel] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 29 Second(s). 
+[Only_3D-parallel] DONE : Batch   1 of 171
+[Only_3D-parallel] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 59 Minute(s), and 47 Second(s). 
+[Only_3D-parallel] [INFO] Cancelling pending SLURM task 13660239_2
+[Only_3D-parallel] [INFO] Cancelled SLURM array task 13660239_2
+[Only_3D-parallel] START: Batch   2 of 171
+[Only_3D-parallel] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 3 Minute(s), and 21 Second(s). 
+[Only_3D-parallel] DONE : Batch   2 of 171
+[Only_3D-parallel] Time Elapsed Up To Now: 0 Day(s), 17 Hour(s), 8 Minute(s), and 0 Second(s). 
+[Only_3D-parallel] [INFO] Batch 3 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 4 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 5 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 6 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 7 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 8 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 9 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 10 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 11 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 12 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 13 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 14 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 15 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 16 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 17 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 18 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 19 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 20 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 21 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 22 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 23 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 24 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 25 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 26 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 27 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 28 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 29 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 30 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 31 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 32 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 33 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 34 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 35 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 36 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 37 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 38 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 39 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 40 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 41 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 42 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 43 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 44 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 45 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 46 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 47 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 48 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 49 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 50 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 51 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 52 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 53 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 54 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 55 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 56 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 57 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 58 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 59 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 60 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 61 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 62 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 63 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 64 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 65 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 66 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 67 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 68 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 69 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 70 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 71 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 72 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 73 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 74 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 75 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 76 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 77 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 78 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 79 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 80 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 81 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 82 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 83 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 84 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 85 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 86 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 87 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 88 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 89 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 90 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 91 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 92 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 93 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 94 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 95 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 96 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 97 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 98 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 99 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 100 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 101 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 102 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 103 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 104 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 105 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 106 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 107 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 108 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 109 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 110 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 111 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 112 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 113 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 114 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 115 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 116 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 117 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 118 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 119 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 120 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 121 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 122 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 123 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 124 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 125 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 126 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 127 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 128 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 129 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 130 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 131 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 132 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 133 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 134 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 135 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 136 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 137 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 138 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 139 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 140 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 141 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 142 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 143 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 144 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 145 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 146 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 147 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 148 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 149 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 150 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 151 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 152 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 153 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 154 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 155 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 156 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 157 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 158 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 159 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 160 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 161 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 162 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 163 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 164 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 165 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 166 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 167 is R in SLURM - leaving it to SLURM
+[Only_3D-parallel] [INFO] Batch 168 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 169 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 170 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Batch 171 output is already present - skipping local start
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] [INFO] Waiting for remaining SLURM array tasks of 13660239...
+[Only_3D-parallel] hadd was not run. The merge still requires all 171 batch files. Missing or invalid:
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch003.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch004.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch005.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch006.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch009.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch010.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch011.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch012.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch105.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch108.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch109.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch111.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch112.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch113.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch127.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch128.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch129.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch130.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch131.root
+[Only_3D-parallel] CRASH WARNING!
+[Only_3D-parallel] Cannot hadd: missing 33 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch003.root
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch132.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch133.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch134.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch135.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch136.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch137.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch138.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch160.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch161.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch162.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch164.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch165.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch166.root
+[Only_3D-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch167.root
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] EMAIL MESSAGE TO SEND:
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] The 'run_sidis_DataFrame_pipeline.py' script has CRASHED!
+[Only_3D-parallel] Started running on 10-27-2026 at 02:29 a.m.
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[Only_3D-parallel] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026
+[Only_3D-parallel] 
+[Only_3D-parallel] START: Batch   1 of 171
+[Only_3D-parallel] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 29 Second(s). 
+[Only_3D-parallel] DONE : Batch   1 of 171
+[Only_3D-parallel] Time Elapsed Up To Now: 0 Day(s), 4 Hour(s), 59 Minute(s), and 47 Second(s). 
+[Only_3D-parallel] START: Batch   2 of 171
+[Only_3D-parallel] Time Elapsed Up To Now: 0 Day(s), 5 Hour(s), 3 Minute(s), and 21 Second(s). 
+[Only_3D-parallel] DONE : Batch   2 of 171
+[Only_3D-parallel] Time Elapsed Up To Now: 0 Day(s), 17 Hour(s), 8 Minute(s), and 0 Second(s). 
+[Only_3D-parallel] 
+[Only_3D-parallel] CRASH WARNING!
+[Only_3D-parallel] Cannot hadd: missing 33 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch003.root
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] Arguments:
+[Only_3D-parallel] 
+[Only_3D-parallel] --mode                                              --> 'parallel'
+[Only_3D-parallel] --cut_name                                          --> 'cut_Complete_SIDIS_noSmear'
+[Only_3D-parallel] --no_make_2D                                        --> True
+[Only_3D-parallel] --no_make_2D_rho                                    --> True
+[Only_3D-parallel] --no_unfold_5D                                      --> True
+[Only_3D-parallel] --z_axis_2D                                         --> '4D_Bin'
+[Only_3D-parallel] --valerii_bins                                      --> False
+[Only_3D-parallel] --use_hpp                                           --> True
+[Only_3D-parallel] --spline_weights                                    --> True
+[Only_3D-parallel] --spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Only_3D-parallel] --json_weights                                      --> False
+[Only_3D-parallel] --json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Only_3D-parallel] --hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_noSpline.hpp'
+[Only_3D-parallel] --hpp_weight_file_spline                            --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.hpp'
+[Only_3D-parallel] --run_rho_weight                                    --> True
+[Only_3D-parallel] --unsmeared                                         --> True
+[Only_3D-parallel] --matching_criteria                                 --> 'Bank'
+[Only_3D-parallel] --make_2D_only                                      --> False
+[Only_3D-parallel] --unfold_5D_only                                    --> False
+[Only_3D-parallel] --old_3D_unfold                                     --> False
+[Only_3D-parallel] --name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+[Only_3D-parallel] --name                                              --> 'Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices'
+[Only_3D-parallel] --num_batches                                       --> 171
+[Only_3D-parallel] --rho_source_token                                  --> None
+[Only_3D-parallel] --data_root                                         --> 'work_b'
+[Only_3D-parallel] --work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Only_3D-parallel] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D-parallel] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D-parallel] --jobs                                              --> 1
+[Only_3D-parallel] --continue_on_failure                               --> False
+[Only_3D-parallel] --batch_ids                                         --> None
+[Only_3D-parallel] --campaign_resource_mode                            --> 'Only_3D'
+[Only_3D-parallel] --histogram_local_cap                               --> None
+[Only_3D-parallel] --campaign_worker_cap                               --> 41
+[Only_3D-parallel] --campaign_worker_name                              --> 'systematics_3d_both_rnh_20261027'
+[Only_3D-parallel] --batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026'
+[Only_3D-parallel] --run_subdir_name                                   --> 'Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026'
+[Only_3D-parallel] --rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Only_3D-parallel] --mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Only_3D-parallel] --gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Only_3D-parallel] --batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Only_3D-parallel] --verbose                                           --> False
+[Only_3D-parallel] --yes                                               --> False
+[Only_3D-parallel] --extra                                             --> ['--run_rho_weight']
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] The time that this code finished is 09:00 p.m.
+[Only_3D-parallel] The total time the code took to run is:
+[Only_3D-parallel] 0 Day(s), 18 Hour(s), 31 Minute(s), and 2 Second(s).
+[Only_3D-parallel] 
+[Only_3D-parallel]     
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel]     	                                   	
+[Only_3D-parallel]     	       This code has CRASHED!      	
+[Only_3D-parallel]     	                                   	   
+[Only_3D-parallel] 
+[Only_3D-parallel]     
+FAIL [Only_3D-parallel] cut=cut_Complete_SIDIS_noSmear rc=1 wall=66663.4s
+--- child output snippet (Only_3D-parallel) ---
+[Only_3D-parallel] CRASH WARNING!
+[Only_3D-parallel] Cannot hadd: missing 33 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_Batch003.root
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] Arguments:
+[Only_3D-parallel] 
+[Only_3D-parallel] --mode                                              --> 'parallel'
+[Only_3D-parallel] --cut_name                                          --> 'cut_Complete_SIDIS_noSmear'
+[Only_3D-parallel] --no_make_2D                                        --> True
+[Only_3D-parallel] --no_make_2D_rho                                    --> True
+[Only_3D-parallel] --no_unfold_5D                                      --> True
+[Only_3D-parallel] --z_axis_2D                                         --> '4D_Bin'
+[Only_3D-parallel] --valerii_bins                                      --> False
+[Only_3D-parallel] --use_hpp                                           --> True
+[Only_3D-parallel] --spline_weights                                    --> True
+[Only_3D-parallel] --spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Only_3D-parallel] --json_weights                                      --> False
+[Only_3D-parallel] --json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Only_3D-parallel] --hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_noSpline.hpp'
+[Only_3D-parallel] --hpp_weight_file_spline                            --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.hpp'
+[Only_3D-parallel] --run_rho_weight                                    --> True
+[Only_3D-parallel] --unsmeared                                         --> True
+[Only_3D-parallel] --matching_criteria                                 --> 'Bank'
+[Only_3D-parallel] --make_2D_only                                      --> False
+[Only_3D-parallel] --unfold_5D_only                                    --> False
+[Only_3D-parallel] --old_3D_unfold                                     --> False
+[Only_3D-parallel] --name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+[Only_3D-parallel] --name                                              --> 'Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices'
+[Only_3D-parallel] --num_batches                                       --> 171
+[Only_3D-parallel] --rho_source_token                                  --> None
+[Only_3D-parallel] --data_root                                         --> 'work_b'
+[Only_3D-parallel] --work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Only_3D-parallel] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D-parallel] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Only_3D-parallel] --jobs                                              --> 1
+[Only_3D-parallel] --continue_on_failure                               --> False
+[Only_3D-parallel] --batch_ids                                         --> None
+[Only_3D-parallel] --campaign_resource_mode                            --> 'Only_3D'
+[Only_3D-parallel] --histogram_local_cap                               --> None
+[Only_3D-parallel] --campaign_worker_cap                               --> 41
+[Only_3D-parallel] --campaign_worker_name                              --> 'systematics_3d_both_rnh_20261027'
+[Only_3D-parallel] --batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026'
+[Only_3D-parallel] --run_subdir_name                                   --> 'Only_3D_Sys3D_noSmear_Bank_cut_Complete_SIDIS_noSmear_Response_Matrices_Final_Thesis_Files_10_27_2026'
+[Only_3D-parallel] --rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Only_3D-parallel] --mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Only_3D-parallel] --gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Only_3D-parallel] --batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Only_3D-parallel] --verbose                                           --> False
+[Only_3D-parallel] --yes                                               --> False
+[Only_3D-parallel] --extra                                             --> ['--run_rho_weight']
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel] The time that this code finished is 09:00 p.m.
+[Only_3D-parallel] The total time the code took to run is:
+[Only_3D-parallel] 0 Day(s), 18 Hour(s), 31 Minute(s), and 2 Second(s).
+[Only_3D-parallel] 
+[Only_3D-parallel]     
+[Only_3D-parallel] 
+[Only_3D-parallel] 
+[Only_3D-parallel]     	                                   	
+[Only_3D-parallel]     	       This code has CRASHED!      	
+[Only_3D-parallel]     	                                   	   
+[Only_3D-parallel] 
+[Only_3D-parallel]     
+--- end child output snippet ---

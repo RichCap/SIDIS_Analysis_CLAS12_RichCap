@@ -4,3 +4,7 @@
 wall_time: 1.17 s
 peak_memory: 482.00 MB
 
+=== TASK: Only_3D-parallel | cut=cut_Complete_SIDIS_pipS4o | mode=hybrid-parallel | rc=1 ===
+wall_time: 64444.74 s
+peak_memory: 1.84 GB
+

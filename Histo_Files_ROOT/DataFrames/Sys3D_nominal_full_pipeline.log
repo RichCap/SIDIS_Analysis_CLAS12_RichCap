@@ -4367,3 +4367,122 @@ CMD [HPP-withSpline-cut_Complete_SIDIS]: ./Acceptance_Weights_Creations_using_RD
 [HPP-withSpline-cut_Complete_SIDIS] 
 [HPP-withSpline-cut_Complete_SIDIS] Info in <TCling::LoadPCM>: In-memory ROOT PCM candidate /cvmfs/jlab.opensciencegrid.org/hallb/clas12/sw/almalinux9-gcc11/local/root/6.38.04/lib/libXMLParser_rdict.pcm
 [HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0163.root probably not closed, trying to recover
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TFile::Recover>: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0163.root, recovered key TTree:h22 at address 9184378027
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: successfully recovered 1 keys
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0207.root probably not closed, trying to recover
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TFile::Recover>: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0207.root, recovered key TTree:h22 at address 9228831121
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: successfully recovered 1 keys
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0209.root probably not closed, trying to recover
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TFile::Recover>: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0209.root, recovered key TTree:h22 at address 9184351248
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: successfully recovered 1 keys
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_1.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_2.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_3.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_4.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_5.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_6.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_7.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_8.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11962_9.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_0.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_1.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_2.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_3.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_4.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_5.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_6.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_7.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_8.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11968_9.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_0.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_1.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_2.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_3.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_4.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_5.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_6.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_7.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_8.root
+[HPP-withSpline-cut_Complete_SIDIS] 		/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_rho0_new_11975_9.root
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 	Total Number of files = 1820
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] LOADING DATAFRAMES
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] rdf:
+[HPP-withSpline-cut_Complete_SIDIS] 	Total entries in rdf files: 
+[HPP-withSpline-cut_Complete_SIDIS]            283725048
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 02:29 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 0 Day(s), 0 Hour(s), 0 Minute(s), and 15 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] mdf_clasdis:
+[HPP-withSpline-cut_Complete_SIDIS] 	Total entries in mdf_clasdis files: 
+[HPP-withSpline-cut_Complete_SIDIS]           3436645010
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 02:34 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 0 Day(s), 0 Hour(s), 4 Minute(s), and 56 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Matching: matching_criteria=Bank: redefined canonical _gen from *_Bank sources and rebuilt generated kinematics
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] DATAFRAMES LOADED
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 02:34 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 0 Day(s), 0 Hour(s), 4 Minute(s), and 59 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] APPLYING (BASE) CUTS
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 	(New) Total entries in rdf         files: 
+[HPP-withSpline-cut_Complete_SIDIS]             30204509
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 02:36 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 0 Day(s), 0 Hour(s), 7 Minute(s), and 43 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 	(New) Total entries in mdf_clasdis files: 
+[HPP-withSpline-cut_Complete_SIDIS]            275871312
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 06:16 p.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] RDataFrame Collection is done running...
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] run_rho_weight ON: rho0_source=lundvpk; MC file counts={'clasdis': 1760, 'lundrho': 10, 'lundvpk': 10, 'rho0_new': 40}; norms lundrho=4.526912, lundvpk=4.624974
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] Defined exclusive_rho_weight via DefinePerSample (source tag + exclusive_rho + rho0_source)
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Using new spline-based event-by-event weights from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Not applying any physics weights...
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Physics seed (spline, same A*(1+B cos + C cos2) form as JSON): ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)
+[HPP-withSpline-cut_Complete_SIDIS]   (4D_xB RBF uses xB_gen, y_gen, z_gen, pT_gen; phi_t_gen for modulation angle)
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Starting 2D Histogram Loops
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 06:16 p.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Starting 'elPhi_vs_pipPhi' HistogramsTFile::Init:0: RuntimeWarning: file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0163.root probably not closed, trying to recover
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TFile::Recover>: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0163.root, recovered key TTree:h22 at address 9184378027
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: successfully recovered 1 keys

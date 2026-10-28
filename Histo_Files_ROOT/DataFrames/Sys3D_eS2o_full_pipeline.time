@@ -4,3 +4,7 @@
 wall_time: 0.98 s
 peak_memory: 480.00 MB
 
+=== TASK: Only_3D-parallel | cut=cut_Complete_SIDIS_eS2o | mode=hybrid-parallel | rc=1 ===
+wall_time: 60175.99 s
+peak_memory: 1.85 GB
+
