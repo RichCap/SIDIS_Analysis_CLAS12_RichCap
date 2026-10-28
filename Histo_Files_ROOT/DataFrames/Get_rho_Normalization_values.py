@@ -2355,7 +2355,8 @@ def phi_h_1D_Compare_in_z_pT_Images_Together(Hist_List_In, args, Q2_Y_Bin_Range=
         Min_Content_Integrated, Max_Content_Integrated = 0, 0
         if(not hasattr(All_z_pT_Canvas[Save_Name], "legend_proxies")):
             All_z_pT_Canvas[Save_Name].legend_proxies = []
-        for legend_name, histnames in [["Harut's Exclusive MC" if((Draw_Type not in ["data_scale"]) or (Comparison_Type == "Raw_Harut")) else "#splitline{Harut's Exclusive MC}{Scaled to Data}", Integrated_Bin_Name_harut], ["#splitline{Experimental Data}{Before #rho^{0} Subtraction}", Integrated_Bin_Name_data_wBG], ["#splitline{Experimental Data}{After #rho^{0} Subtraction}", Integrated_Bin_Name_data_woBG], ["clasdis (pure SIDIS) MC" if(Draw_Type not in ["data_scale"]) else "#splitline{clasdis (pure SIDIS) MC}{Scaled to Data}", Integrated_Bin_Name_clasdis]]:
+        # "Harut's Exclusive MC" if((Draw_Type not in ["data_scale"]) or (Comparison_Type == "Raw_Harut")) else "#splitline{Harut's Exclusive MC}{Scaled to Data}"
+        for legend_name, histnames in [["Exclusive #rho^{0} MC" if((Draw_Type not in ["data_scale"]) or (Comparison_Type == "Raw_Harut")) else "#splitline{Exclusive #rho^{0} MC}{Scaled to Data}", Integrated_Bin_Name_harut], ["#splitline{Experimental Data}{Before #rho^{0} Subtraction}", Integrated_Bin_Name_data_wBG], ["#splitline{Experimental Data}{After #rho^{0} Subtraction}", Integrated_Bin_Name_data_woBG], ["clasdis (pure SIDIS) MC" if(Draw_Type not in ["data_scale"]) else "#splitline{clasdis (pure SIDIS) MC}{Scaled to Data}", Integrated_Bin_Name_clasdis]]:
             if((histnames is None) or (histnames not in All_Histos)):
                 continue
             proxy = All_Histos[histnames].Clone(f"leg_proxy_{histnames}")
@@ -2609,7 +2610,8 @@ def Other_1D_Kinematic_Comparison_Images(args, Hist_List_In, Vars_Input="(Q2)_(x
         Canvas_List[f"legend_{var}"].SetTextFont(42)
         Canvas_List[f"legend_{var}"].SetTextSize(0.10)
         Hists_Projected[var][f"{Save_Name}_Harut"],         Min_Content, Max_Content = Projection_Function(hist_harut,     Min_Content, Max_Content, var, num, ROOT.kSpring+9)
-        Canvas_List[f"legend_{var}"].AddEntry(Hists_Projected[var][f"{Save_Name}_Harut"], "#scale[0.75]{Harut's Exclusive MC}" if((Draw_Type not in ["data_scale"]) or (Comparison_Type in ["Raw_Harut"])) else "#scale[0.75]{#splitline{Harut's Exclusive MC}{Scaled to Data}}", "l")
+        # "#scale[0.75]{Harut's Exclusive MC}" if((Draw_Type not in ["data_scale"]) or (Comparison_Type in ["Raw_Harut"])) else "#scale[0.75]{#splitline{Harut's Exclusive MC}{Scaled to Data}}"
+        Canvas_List[f"legend_{var}"].AddEntry(Hists_Projected[var][f"{Save_Name}_Harut"], "#scale[0.75]{Exclusive #rho^{0} MC}" if((Draw_Type not in ["data_scale"]) or (Comparison_Type in ["Raw_Harut"])) else "#scale[0.75]{#splitline{Exclusive #rho^{0} MC}{Scaled to Data}}", "l")
         if(Comparison_Type in ["In_Data", "All_Data_Types"]):
             Hists_Projected[var][f"{Save_Name}_data_wBG"],  Min_Content, Max_Content = Projection_Function(hist_data_wBG,  Min_Content, Max_Content, var, num, ROOT.kBlue)
             Hists_Projected[var][f"{Save_Name}_data_woBG"], Min_Content, Max_Content = Projection_Function(hist_data_woBG, Min_Content, Max_Content, var, num, ROOT.kCyan)
