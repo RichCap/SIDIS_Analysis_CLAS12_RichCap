@@ -1,0 +1,10 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-27T02:29:12 name=Sys3D_eS3o mode=hybrid email=none =====
+=== TASK: Only_3D-slurm-slurm-submit | cut=cut_Complete_SIDIS_eS3o | mode=slurm | rc=0 ===
+wall_time: 1.07 s
+peak_memory: 486.33 MB
+
+=== TASK: Only_3D-parallel | cut=cut_Complete_SIDIS_eS3o | mode=hybrid-parallel | rc=1 ===
+wall_time: 61393.70 s
+peak_memory: 1.85 GB
+
