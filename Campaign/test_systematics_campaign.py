@@ -373,14 +373,17 @@ def followup_recovery_20261029():
         "dvz_tight_pip": ("13,98,105,108-109,111-115,117-163", False),
         "pipS2o": ("3-5,9-10", False),
         "eS6o": ("165,167-168", False),
+        "no_sector_pcal": ("126,128", False),
+        "pipS6o": ("5,9-10,105,108-109,113,127-128,167-168", False),
         "ecband_tight_el": ("127-149", True),
-        "pcalvol_loose": ("141-168", True),
+        "pcalvol_loose": ("141-168", False),
         "ecthr_tight_el": ("4", True),
-        "no_sector_pcal": ("126,128", True),
     }
     empty_ids = [
         "pcalvol_tight", "dcfidref_loose_el", "ecthr_loose_el", "eS2o", "dcfidref_tight_el",
         "eS3o", "pipS5o", "eS4o", "pipS4o", "eS5o", "no_pip_testdc", "noSmear", "pipS3o",
+        "eS1o", "dcfid_tight_el", "chi2_strict_pip", "dcfid_loose_pip", "dcfid_tight_pip",
+        "dcfid_loose_el", "pipS1o", "no_valerii_knockout",
     ]
     by_id = {}
     total = 0
@@ -388,7 +391,7 @@ def followup_recovery_20261029():
         by_id[item["id"]] = item
         if(str(item.get("batches", "")).strip() != ""):
             total += len(expand_batch_spec(item["batches"]))
-    if((len(payload["configs"]) != 22) or (total != 159)):
+    if((len(payload["configs"]) != 31) or (total != 170)):
         raise SystemExit("20261029 inventory is %s configs and %s tasks" % (len(payload["configs"]), total))
     for config_id, (spec, deferred) in expected.items():
         item = by_id[config_id]
@@ -397,7 +400,7 @@ def followup_recovery_20261029():
     for config_id in empty_ids:
         if(str(by_id[config_id].get("batches", "x")).strip() != ""):
             raise SystemExit("%s was given histogram batches" % config_id)
-    for banned in ["nominal", "eS1o", "pipS6o", "dcfid_tight_el", "chi2_strict_pip", "no_valerii_knockout"]:
+    for banned in ["nominal", "ecband_loose_el", "dcv_loose_el"]:
         if(banned in by_id):
             raise SystemExit("%s is in the 20261029 inventory" % banned)
     if(113 in expand_batch_spec(by_id["eS6o"]["batches"])):
@@ -421,13 +424,13 @@ def followup_recovery_20261029():
     if(code != 0):
         raise SystemExit("20261029 dry-run exit %s" % code)
     printed = stdout.getvalue()
-    if("recovery tasks 159" not in printed):
+    if("recovery tasks 170" not in printed):
         raise SystemExit("dry-run task count")
     if("nominal" in printed.split("PHASE1")[0]):
         pass
     camp = runner.campaign_directory("work_b", "systematics_3d_both_recovery_20261029")
     manifest = runner.read_manifest(camp)
-    if((len(manifest["phase1"]) != 22) or (manifest.get("recovery_task_count") != 159)):
+    if((len(manifest["phase1"]) != 31) or (manifest.get("recovery_task_count") != 170)):
         raise SystemExit("20261029 manifest counts")
     deferred_ids = []
     empty_seen = 0
@@ -442,19 +445,26 @@ def followup_recovery_20261029():
             deferred_ids.append(row["id"])
             if("-dfm" not in row["command"]):
                 raise SystemExit("deferred merge was not forwarded")
+            if(113 in expand_batch_spec(row["batch_ids"])):
+                raise SystemExit("active task 113 was resubmitted for %s" % row["id"])
         else:
             if("-dfm" in row["command"]):
                 raise SystemExit("immediate merge was deferred")
-    if((empty_seen != 13) or (sorted(deferred_ids) != ["ecband_tight_el", "ecthr_tight_el", "no_sector_pcal", "pcalvol_loose"])):
+    if((empty_seen != 21) or (sorted(deferred_ids) != ["ecband_tight_el", "ecthr_tight_el"])):
         raise SystemExit("empty or deferred set changed")
-    if(printed.count("hadd deferred") != 4):
+    pip = [row for row in manifest["phase1"] if(row["id"] == "pipS6o")][0]
+    if(("-rlb" not in pip["command"]) or ("-dfm" in pip["command"]) or (len(expand_batch_spec(pip["batch_ids"])) != 11)):
+        raise SystemExit("pipS6o was not routed through selective replace")
+    if(printed.count("hadd deferred") != 2):
         raise SystemExit("deferred hadd lines %s" % printed.count("hadd deferred"))
-    if(printed.count("skip histograms; verify merged response; then Phase 2") != 13):
+    if(printed.count("skip histograms; verify merged response; then Phase 2") != 21):
         raise SystemExit("phase2-only lines")
     if("PHASE2 ecband_tight_el__inherited__Spline deferred" not in printed):
         raise SystemExit("deferred Phase 2 was printed as an unfold command")
     if("PHASE2 pipS3o__inherited__Spline lineage" not in printed):
         raise SystemExit("finished Phase 1 did not continue to Phase 2")
+    if("PHASE2 pcalvol_loose__inherited__Spline lineage" not in printed):
+        raise SystemExit("pcalvol_loose did not continue to Phase 2")
     for path, stamp, text in kept:
         if((os.path.getmtime(path) != stamp) or (open(path).read() != text)):
             raise SystemExit("dry-run changed %s" % path)

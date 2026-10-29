@@ -9,10 +9,11 @@
     {"id": "dvz_tight_pip", "original_job": "13743301", "batches": "13,98,105,108-109,111-115,117-163", "defer_merge": false},
     {"id": "pipS2o", "original_job": "13743305", "batches": "3-5,9-10", "defer_merge": false},
     {"id": "eS6o", "original_job": "13743304", "batches": "165,167-168", "defer_merge": false},
+    {"id": "no_sector_pcal", "original_job": "13744695", "batches": "126,128", "defer_merge": false},
+    {"id": "pipS6o", "original_job": "13744696", "batches": "5,9-10,105,108-109,113,127-128,167-168", "defer_merge": false},
     {"id": "ecband_tight_el", "original_job": "13743298", "batches": "127-149", "defer_merge": true},
-    {"id": "pcalvol_loose", "original_job": "13743299", "batches": "141-168", "defer_merge": true},
+    {"id": "pcalvol_loose", "original_job": "13743299", "batches": "141-168", "defer_merge": false},
     {"id": "ecthr_tight_el", "original_job": "13744458", "batches": "4", "defer_merge": true},
-    {"id": "no_sector_pcal", "original_job": "13744695", "batches": "126,128", "defer_merge": true},
     {"id": "pcalvol_tight", "batches": ""},
     {"id": "dcfidref_loose_el", "batches": ""},
     {"id": "ecthr_loose_el", "batches": ""},
@@ -25,6 +26,14 @@
     {"id": "eS5o", "batches": ""},
     {"id": "no_pip_testdc", "batches": ""},
     {"id": "noSmear", "batches": ""},
-    {"id": "pipS3o", "batches": ""}
+    {"id": "pipS3o", "batches": ""},
+    {"id": "eS1o", "original_job": "13744522", "batches": ""},
+    {"id": "dcfid_tight_el", "original_job": "13743292", "batches": ""},
+    {"id": "chi2_strict_pip", "original_job": "13743294", "batches": ""},
+    {"id": "dcfid_loose_pip", "original_job": "13743295", "batches": ""},
+    {"id": "dcfid_tight_pip", "original_job": "13743296", "batches": ""},
+    {"id": "dcfid_loose_el", "original_job": "13743293", "batches": ""},
+    {"id": "pipS1o", "original_job": "13744765", "batches": ""},
+    {"id": "no_valerii_knockout", "original_job": "13744939", "batches": ""}
   ]
 }
