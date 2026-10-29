@@ -455,9 +455,9 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 248479,
-      "reason": "",
+      "reason": "histogram pipeline exited 1",
       "batch_ids": "2-14,100,104-105,108-109,111-113,123-162,164-168",
       "original_job": "13660216"
     },
@@ -520,9 +520,9 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 248492,
-      "reason": "",
+      "reason": "histogram pipeline exited 1",
       "batch_ids": "2-6,8-13,98,105,108-109,111-115,117-168",
       "original_job": "13660217"
     },
@@ -715,9 +715,9 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 248521,
-      "reason": "",
+      "reason": "histogram pipeline exited 1",
       "batch_ids": "2-5,7-13,94-96,99-101,104-116,123-168",
       "original_job": "13660220"
     },
@@ -845,7 +845,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248556,
       "reason": "",
       "batch_ids": "2-6,9-13,105,108-109,111-113,115,123-168",
@@ -910,7 +910,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248574,
       "reason": "",
       "batch_ids": "2-6,9-13,94-102,105,108-109,111-113,119-120,123-168",
@@ -975,7 +975,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248583,
       "reason": "",
       "batch_ids": "2-6,9-13,105,108-109,111-113,126-168",
@@ -1170,7 +1170,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248707,
       "reason": "",
       "batch_ids": "2-5,9-13,94,105,108-109,111-113,123-168",
@@ -1300,7 +1300,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248745,
       "reason": "",
       "batch_ids": "2-13,100,105,107-109,111-113,129-157,167",
@@ -1365,7 +1365,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248764,
       "reason": "",
       "batch_ids": "2-6,9-13,105,108-109,111-113,116,141-162,164-166",
@@ -1430,9 +1430,9 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 248776,
-      "reason": "",
+      "reason": "histogram pipeline exited 1",
       "batch_ids": "3-5,9-13,105,108-109,111-115,129-139,153-162,164-168",
       "original_job": "13660231"
     },
@@ -1495,7 +1495,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248791,
       "reason": "",
       "batch_ids": "3-6,9-13,105,108-109,111-113,123-162,164-168",
@@ -1625,7 +1625,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248836,
       "reason": "",
       "batch_ids": "3-6,9-13,105,108-109,111-113,126-128,132-133,141-147,160-162,164-165,167-168",
@@ -1690,7 +1690,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248865,
       "reason": "",
       "batch_ids": "3-6,9-13,105,108-109,111-113,123-136",
@@ -1755,7 +1755,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248892,
       "reason": "",
       "batch_ids": "4-5,9-13,105,108-109,111-113,123-143,145-151,153-156",
@@ -1885,7 +1885,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248930,
       "reason": "",
       "batch_ids": "3-5,9-13,105,108-109,111-113,124-138,140-141,150-156,164-168",
@@ -1951,7 +1951,7 @@
         "-rlb",
         "-us"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 248954,
       "reason": "",
       "batch_ids": "3-6,9-12,105,108-109,111-113,127-138,160-162,164-167",
@@ -2016,7 +2016,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 249001,
       "reason": "",
       "batch_ids": "105,108-109,111-113,123,125,137-138",
@@ -2081,9 +2081,9 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 249022,
-      "reason": "",
+      "reason": "histogram pipeline exited 1",
       "batch_ids": "5,9-10,105,108-109,113,127-128,167-168",
       "original_job": "13660241"
     },
@@ -3594,7 +3594,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dcv_tight_el_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -3699,7 +3699,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "dcv_tight_el__inherited__Unweighted",
@@ -3713,7 +3713,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dcv_tight_el_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -3818,7 +3818,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "dvz_tight_pip__inherited__Spline",
@@ -3832,7 +3832,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dvz_tight_pip_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -3937,7 +3937,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "dvz_tight_pip__inherited__Unweighted",
@@ -3951,7 +3951,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dvz_tight_pip_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -4056,7 +4056,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "pcalvol_loose__inherited__Spline",
@@ -4546,7 +4546,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dvz_loose_pip_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -4651,7 +4651,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "dvz_loose_pip__inherited__Unweighted",
@@ -4665,7 +4665,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dvz_loose_pip_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -4770,7 +4770,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "ecband_tight_el__inherited__Spline",
@@ -5022,7 +5022,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pcalvol_tight_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -5127,7 +5127,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pcalvol_tight__inherited__Unweighted",
@@ -5141,7 +5141,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pcalvol_tight_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -5246,7 +5246,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "dcfidref_loose_el__inherited__Spline",
@@ -5260,7 +5260,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dcfidref_loose_el_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -5365,7 +5365,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "dcfidref_loose_el__inherited__Unweighted",
@@ -5379,7 +5379,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dcfidref_loose_el_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -5484,7 +5484,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "ecthr_loose_el__inherited__Spline",
@@ -5498,7 +5498,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_ecthr_loose_el_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -5603,7 +5603,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "ecthr_loose_el__inherited__Unweighted",
@@ -5617,7 +5617,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_ecthr_loose_el_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -5722,7 +5722,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "eS1o__inherited__Spline",
@@ -6212,7 +6212,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_eS2o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -6317,7 +6317,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "eS2o__inherited__Unweighted",
@@ -6331,7 +6331,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_eS2o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -6436,7 +6436,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pipS1o__inherited__Spline",
@@ -6688,7 +6688,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dcfidref_tight_el_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -6793,7 +6793,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "dcfidref_tight_el__inherited__Unweighted",
@@ -6807,7 +6807,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_dcfidref_tight_el_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -6912,7 +6912,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "eS3o__inherited__Spline",
@@ -6926,7 +6926,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_eS3o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -7031,7 +7031,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "eS3o__inherited__Unweighted",
@@ -7045,7 +7045,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_eS3o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -7150,7 +7150,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pipS2o__inherited__Spline",
@@ -7164,7 +7164,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS2o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -7269,7 +7269,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "pipS2o__inherited__Unweighted",
@@ -7283,7 +7283,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS2o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -7388,7 +7388,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "pipS5o__inherited__Spline",
@@ -7402,7 +7402,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS5o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -7507,7 +7507,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pipS5o__inherited__Unweighted",
@@ -7521,7 +7521,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS5o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -7626,7 +7626,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "eS6o__inherited__Spline",
@@ -7878,7 +7878,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_eS4o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -7983,7 +7983,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "eS4o__inherited__Unweighted",
@@ -7997,7 +7997,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_eS4o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -8102,7 +8102,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pipS4o__inherited__Spline",
@@ -8116,7 +8116,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS4o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -8221,7 +8221,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pipS4o__inherited__Unweighted",
@@ -8235,7 +8235,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS4o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -8340,7 +8340,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "eS5o__inherited__Spline",
@@ -8354,7 +8354,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_eS5o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -8459,7 +8459,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "eS5o__inherited__Unweighted",
@@ -8473,7 +8473,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_eS5o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -8578,7 +8578,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "no_sector_pcal__inherited__Spline",
@@ -8830,7 +8830,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_no_pip_testdc_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -8935,7 +8935,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "no_pip_testdc__inherited__Unweighted",
@@ -8949,7 +8949,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_no_pip_testdc_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -9054,7 +9054,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "noSmear__inherited__Spline",
@@ -9068,7 +9068,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_noSmear_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -9173,7 +9173,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "noSmear__inherited__Unweighted",
@@ -9187,7 +9187,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_noSmear_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -9292,7 +9292,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pipS3o__inherited__Spline",
@@ -9306,7 +9306,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS3o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -9411,7 +9411,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pipS3o__inherited__Unweighted",
@@ -9425,7 +9425,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS3o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -9530,7 +9530,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "sbatch: error: lua: --output and --error, if specified, must begin with /farm_out/ or be /dev/null.\nsbatch: error: cli_filter plugin terminated with error"
     },
     {
       "key": "pipS6o__inherited__Spline",
@@ -9544,7 +9544,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS6o_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -9649,7 +9649,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "pipS6o__inherited__Unweighted",
@@ -9663,7 +9663,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pipS6o_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -9768,7 +9768,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "no_valerii_knockout__inherited__Spline",
