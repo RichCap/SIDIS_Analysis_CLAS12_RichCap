@@ -585,9 +585,9 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "failed",
       "pid": 248503,
-      "reason": "",
+      "reason": "histogram pipeline exited 1",
       "batch_ids": "2-14,105,108-109,111-113,123-168",
       "original_job": "13660218"
     },
@@ -4070,7 +4070,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pcalvol_loose_inherited_Spline.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -4175,7 +4175,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "pcalvol_loose__inherited__Unweighted",
@@ -4189,7 +4189,7 @@
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261028/unfolded/Sys3D_pcalvol_loose_inherited_Unweighted.root",
       "array_id": "",
       "submit_time": null,
-      "status": "waiting_phase1",
+      "status": "failed",
       "bins": {
         "1": {
           "status": "pending",
@@ -4294,7 +4294,7 @@
           "where": ""
         }
       },
-      "reason": ""
+      "reason": "phase1 failed"
     },
     {
       "key": "ecband_loose_el__inherited__Spline",
