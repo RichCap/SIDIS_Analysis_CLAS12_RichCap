@@ -836,7 +836,8 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
 
     int bayes_iterations = 10;
     if(contains(Name_Main, "MultiDim_Q2_y_z_pT_phi_h")){
-        bayes_iterations = 4;
+        // bayes_iterations = 4; // Changed to 5 on 10/28/2026
+        bayes_iterations = 5;
         std::cout << Color::BOLD << "Performing 5D Unfolding with " << Color::UNDERLINE << bayes_iterations
                   << Color::END_B << " iteration(s)..." << Color::END << std::endl;
     }

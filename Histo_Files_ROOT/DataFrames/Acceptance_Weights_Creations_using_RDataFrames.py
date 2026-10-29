@@ -150,9 +150,10 @@ def parse_args():
                         help='Runs the rho0 normalization weights (clasdis exclusive-rho zeroed; selected exclusive MC scaled; non-selected exclusive MC zeroed).\n')
     parser.add_argument('-rho0', '--rho0_source',
                         type=str,
-                        default="lundvpk",
+                        # default="lundvpk",  # Changed to rho0_new on 10/28/2026
+                        default="rho0_new",
                         choices=["lundvpk", "lundrho", "rho0_new"],
-                        help="Exclusive-rho MC source used when --run_rho_weight is set (default lundvpk). Other exclusive sample is zeroed.\n")
+                        help="Exclusive-rho MC source used when --run_rho_weight is set (default rho0_new). Other exclusive sample is zeroed.\n")
     parser.add_argument('-us', '--unsmeared',
                         action='store_true',
                         help='Use unsmeared reconstructed-MC columns (no *_smeared). Required for cut_Complete_SIDIS_noSmear.\n')
@@ -456,7 +457,7 @@ int AccRhoSourceCode(unsigned int /*slot*/, const ROOT::RDF::RSampleInfo &id) {
 ''')
     _ACC_RHO_SOURCE_CPP_DECLARED = True
 
-def define_exclusive_rho_weight_by_file(df, rho0_source="lundvpk"):
+def define_exclusive_rho_weight_by_file(df, rho0_source="rho0_new"):
     # Single multi-file RDF: tag source per file, then weight from exclusive_rho + selection.
     # Production path only — no partition / Snapshot / histo-Add.
     ensure_acc_rho_source_cpp()
@@ -1048,7 +1049,7 @@ if(__name__ == "__main__"):
         except Exception:
             mdf_paths = []
         src_counts = count_mc_sources(mdf_paths) if(mdf_paths) else {}
-        selected = getattr(args, "rho0_source", "lundvpk")
+        selected = getattr(args, "rho0_source", "rho0_new")
         Update_Email(args, update_message=f"{color.BBLUE}run_rho_weight ON: rho0_source={selected}; MC file counts={src_counts}; norms lundrho={RHO_NORM_LUNDRHO}, lundvpk={RHO_NORM_LUNDVPK}{color.END}", verbose_override=True)
         mdf_clasdis = define_exclusive_rho_weight_by_file(mdf_clasdis, rho0_source=selected)
         Update_Email(args, update_message=f"{color.BBLUE}Defined exclusive_rho_weight via DefinePerSample (source tag + exclusive_rho + rho0_source){color.END}", verbose_override=True)

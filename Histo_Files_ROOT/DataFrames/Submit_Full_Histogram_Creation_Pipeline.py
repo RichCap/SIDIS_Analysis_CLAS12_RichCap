@@ -198,9 +198,10 @@ def parse_args():
                    help="Do not pass --run_rho_weight to Acceptance or Response-pipeline children (default: rho weights ON for production).\n")
     p.add_argument("-rho0", "--rho0_source",
                    type=str,
-                   default="lundvpk",
+                   # default="lundvpk",  # Changed to rho0_new on 10/28/2026
+                   default="rho0_new",
                    choices=["lundvpk", "lundrho", "rho0_new"],
-                   help="Exclusive-rho MC source for Acceptance when rho weights are ON (default lundvpk). Forwarded as --rho0_source.\n")
+                   help="Exclusive-rho MC source for Acceptance when rho weights are ON (default rho0_new). Forwarded as --rho0_source.\n")
     p.add_argument("-cn", "--cut_name",
                    type=str,
                    default=DEFAULT_CUT,

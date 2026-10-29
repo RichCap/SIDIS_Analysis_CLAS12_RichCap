@@ -53,7 +53,8 @@ def parse_args():
                    help="Use modulated MC files to create response matrices.\n")
     p.add_argument('-bi', '-bayes-it', '--bayes_iterations',
                    type=int,
-                   default=6,
+                   # default=6,  # Changed to 5 on 10/28/2026
+                   default=5,
                    help="Number of Bayesian Iterations performed while Unfolding.\n")
     p.add_argument('-nt', '-ntoys', '--Num_Toys',
                    type=int,
@@ -518,7 +519,8 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                         bayes_iterations += 3
                     if("MultiDim_Q2_y_z_pT_phi_h" in str(Name_Main)):
                         # 5D Unfolding
-                        bayes_iterations = 4
+                        # bayes_iterations = 4  # Changed to 5 on 10/28/2026
+                        bayes_iterations = 5
                         print(f"{color.BOLD}Performing 5D Unfolding with {color.UNDERLINE}{bayes_iterations}{color.END_B} iteration(s)...{color.END}")
                     if(args.bayes_iterations):
                         if(args.bayes_iterations != bayes_iterations):

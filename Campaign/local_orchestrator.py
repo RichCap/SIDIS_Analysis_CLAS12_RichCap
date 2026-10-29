@@ -1599,7 +1599,8 @@ def acceptance_commands(data_root, matching=None):
     # spline_file = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt"  # 2026-10-26 previous nominal 5D MC weight; raw-A 3D is the event-weight default
     spline_file = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt"
     # shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", "_gen"]
-    shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", campaign_matching_value(matching)]
+    # shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "lundvpk", "--matching_criteria", campaign_matching_value(matching)]  # Changed rho0_source to rho0_new on 10/28/2026
+    shared = [script, "--data_root", data_root, "--make_2D_weight", "--name", "SIDIS_Workflow", "-cnR", "cut_Complete_SIDIS", "-cnM", "cut_Complete_SIDIS", "--run_rho_weight", "--rho0_source", "rho0_new", "--matching_criteria", campaign_matching_value(matching)]
     pure_cmd = shared + ["--hpp_output_file", pure]
     spline_cmd = shared + ["--hpp_output_file", spline, "--spline_weights", "--spline_file", spline_file]
     return pure_cmd, spline_cmd, pure, spline
@@ -1807,7 +1808,8 @@ def run_iteration(args, dimension):
     argv = [script, "-droot", args.data_root, "--iteration_study", "--parm_min", "1", "--parm_max", "10", "--parm_step", "1", "--Min_Allowed_Acceptance_Cut", str(args.acceptance_cut), "-r", out_path, "-sfin", response]
     if(dimension == "5D"):
         # argv.extend(["--background_source", "lundvpk"])  # 10/25/2026
-        argv.extend(["--background_source", "rho0_new"])
+        # argv.extend(["--background_source", "rho0_new"])  # 10/28/2026: follow campaign -bg
+        argv.extend(["--background_source", args.background_source])
     code = run_reserved("iteration_%s" % dimension.lower(), argv, _BOOT, args.dry_run, "iteration_%s" % dimension.lower(), args.data_root)
     if(code != 0):
         return code
@@ -1843,7 +1845,7 @@ def run_unfold(args, dimension):
         from Campaign.run_sidis_campaign import k_for
         k_value, _provenance = k_for("5D", args.acceptance_cut, None, args.k_provenance)
         script = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
-        argv = [script, "-droot", args.data_root, "--bayes_iterations", str(k_value), "--Min_Allowed_Acceptance_Cut", str(args.acceptance_cut), "-r", out_path, "-sfin", response]
+        argv = [script, "-droot", args.data_root, "--bayes_iterations", str(k_value), "--Min_Allowed_Acceptance_Cut", str(args.acceptance_cut), "--background_source", args.background_source, "-r", out_path, "-sfin", response]
         code = run_reserved("unfold_5d", argv, _BOOT, args.dry_run, "unfold_5d", args.data_root)
         n_need = 1
     else:
@@ -1994,16 +1996,16 @@ def five_d_only_root(data_root):
     return os.path.join(data_root_path(data_root), "Unfold_5D_Only")
 
 
-def five_d_study_argv(data_root, response, root_out):
+def five_d_study_argv(data_root, response, root_out, background="rho0_new"):
     # Previous argv used "--background_source", "lundvpk".  # 10/25/2026
     script = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
-    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--iteration_study", "--study_only", "--error_mode", "errors", "--parm_min", "1", "--parm_max", "10", "--parm_step", "1", "--background_source", "rho0_new", "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24", "--email"]
+    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--iteration_study", "--study_only", "--error_mode", "errors", "--parm_min", "1", "--parm_max", "10", "--parm_step", "1", "--background_source", background, "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24", "--email"]
 
 
-def five_d_nominal_argv(data_root, response, root_out, k_value):
+def five_d_nominal_argv(data_root, response, root_out, k_value, background="rho0_new"):
     # Previous argv used "--background_source", "lundvpk".  # 10/25/2026
     script = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
-    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--error_mode", "covariance", "--bayes_iterations", str(int(k_value)), "--background_source", "rho0_new", "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24"]
+    return [sys.executable, script, "-droot", str(data_root), "-sfin", response, "-r", root_out, "--error_mode", "covariance", "--bayes_iterations", str(int(k_value)), "--background_source", background, "--Min_Allowed_Acceptance_Cut", "0.020", "--phi_bins", "24"]
 
 
 def five_d_log_line(handle, text, echo=True):
@@ -2206,11 +2208,11 @@ def run_unfold_5d_only(args):
     print("5D-only input %s" % response)
     for name in ["orchestrator", "study", "selection", "nominal"]:
         print("5D-only log %s %s" % (name, log_paths[name]))
-    study_cmd = five_d_study_argv(args.data_root, response, study_root)
+    study_cmd = five_d_study_argv(args.data_root, response, study_root, args.background_source)
     print("5D-only study")
     print(" ".join(study_cmd))
     print("5D-only nominal uses --error_mode covariance and the selected --bayes_iterations")
-    print(" ".join(five_d_nominal_argv(args.data_root, response, nominal_root, 0)).replace("--bayes_iterations 0", "--bayes_iterations <selected>"))
+    print(" ".join(five_d_nominal_argv(args.data_root, response, nominal_root, 5, args.background_source)))
     if(args.dry_run):
         return 0
     if(not os.path.isfile(response)):
@@ -2228,7 +2230,7 @@ def run_unfold_5d_only(args):
         else:
             if(os.path.isfile(study_root)):
                 study_root = five_d_sibling(study_root)
-                study_cmd = five_d_study_argv(args.data_root, response, study_root)
+                study_cmd = five_d_study_argv(args.data_root, response, study_root, args.background_source)
                 five_d_log_line(orchestrator, "existing study was not reused. New study file %s" % study_root)
             code = five_d_tee("iteration_study", study_cmd, log_paths["study"], orchestrator)
             if(code != 0):
@@ -2240,24 +2242,15 @@ def run_unfold_5d_only(args):
                 summary_lines.append("study invalid %s" % study_root)
                 return 1
             summary_lines.append("study wrote %s" % study_root)
-        from plot_iteration_study import select_5d_iteration
-        chi2 = five_d_series_from(study_root, "Iteration_Study_Chi2")
-        mean = five_d_series_from(study_root, "Iteration_Study_MeanResiduals")
-        rms = five_d_series_from(study_root, "Iteration_Study_RMSError")
-        result = select_5d_iteration(chi2 or {}, mean or {}, rms or {}, five_d_selector_args())
-        text_path, selection_lines = five_d_write_selection(out_dir, result)
+        # select_5d_iteration was the older median rule. Nominal 5D k is 5. 10/28/2026
+        k_value = 5
+        selection_lines = ["nominal 5D k %d" % k_value]
         selection_log = open(log_paths["selection"], "a", buffering=1)
         for line in selection_lines:
             five_d_log_line(selection_log, line)
             five_d_log_line(orchestrator, line)
         selection_log.close()
         summary_lines.extend(selection_lines)
-        summary_lines.append("selection text %s" % text_path)
-        if(result["status"] != "selected"):
-            mail_stop("unfold_5d_only", "iteration selection status %s. Nominal unfolding was not started.\n%s" % (result["status"], "\n".join(selection_lines)))
-            summary_lines.append("nominal not started")
-            return 1
-        k_value = int(result["median"])
         if(five_d_nominal_is_valid(nominal_root, response, k_value)):
             five_d_log_line(orchestrator, "reusing nominal %s" % nominal_root)
             summary_lines.append("nominal reused %s" % nominal_root)
@@ -2265,7 +2258,7 @@ def run_unfold_5d_only(args):
             if(os.path.isfile(nominal_root)):
                 nominal_root = five_d_sibling(nominal_root)
                 five_d_log_line(orchestrator, "existing nominal was not reused. New nominal file %s" % nominal_root)
-            code = five_d_tee("nominal_unfold", five_d_nominal_argv(args.data_root, response, nominal_root, k_value), log_paths["nominal"], orchestrator)
+            code = five_d_tee("nominal_unfold", five_d_nominal_argv(args.data_root, response, nominal_root, k_value, args.background_source), log_paths["nominal"], orchestrator)
             if(code != 0):
                 mail_stop("unfold_5d_only", "nominal unfold exited %s" % code)
                 summary_lines.append("nominal failed exit %s" % code)

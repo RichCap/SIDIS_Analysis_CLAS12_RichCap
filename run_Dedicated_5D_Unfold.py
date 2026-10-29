@@ -57,7 +57,8 @@ def parse_args():
                    help="Use modulated MC files to create response matrices.\n")
     p.add_argument('-bi', '-bayes-it', '--bayes_iterations',
                    type=int,
-                   default=6,
+                   # default=6,  # Changed to 5 on 10/28/2026
+                   default=5,
                    help="Number of Bayesian Iterations performed while Unfolding.\n")
     p.add_argument('-ph', '--phi_bins',
                    type=int,

@@ -136,6 +136,9 @@ def iteration_record(dimension, cut, q2y):
 
 
 def k_for(dimension, cut, q2y, provenance):
+    if(dimension == "5D"):
+        # One nominal 5D iteration. There is no per-bin 5D lookup. 10/28/2026
+        return 5, provenance
     record = iteration_record(dimension, cut, q2y)
     if(record.get("k_selected") in [None, ""]):
         raise SystemExit("no k_selected for %s %s q2y=%s" % (dimension, cut, q2y))
@@ -166,7 +169,7 @@ def unfold_3d_commands(cut, phi_bins, background, bins, provenance, data_root):
     return commands
 
 
-def iteration_study_command(dimension, cut, bins, k_max, data_root):
+def iteration_study_command(dimension, cut, bins, k_max, data_root, background="rho0_new"):
     cut_text = canonical_cut(cut)
     if(dimension == "5D"):
         script = checkout_script(os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py"))
@@ -178,7 +181,8 @@ def iteration_study_command(dimension, cut, bins, k_max, data_root):
             "--parm_step", "1",
             "--Min_Allowed_Acceptance_Cut", cut_text,
             # "--background_source", "lundvpk",  # 10/25/2026
-            "--background_source", "rho0_new",
+            # "--background_source", "rho0_new",  # 10/28/2026: use the campaign -bg value
+            "--background_source", background,
         ]
     else:
         script = checkout_script(os.path.join(_BOOT, "run_Simple_Unfold.py"))
@@ -305,7 +309,7 @@ def main():
     cut_text = canonical_cut(args.acceptance_cut)
     if((args.stage in ["iteration_refresh_3d", "iteration_5d"]) or (args.iteration_action == "refresh")):
         k_max = 10 if(args.dimension == "5D") else 25
-        lines.append(iteration_study_command(args.dimension, cut_text, bins, k_max, args.data_root))
+        lines.append(iteration_study_command(args.dimension, cut_text, bins, k_max, args.data_root, args.background_source))
     elif(args.stage == "unfold_3d"):
         if(args.iteration_action != "use_lookup"):
             raise SystemExit("unfold does not start an iteration study")
