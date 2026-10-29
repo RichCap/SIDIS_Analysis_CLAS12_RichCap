@@ -14,3 +14,9 @@ peak_memory: 1.85 GB
 wall_time: 33993.14 s
 peak_memory: 456.77 MB
 
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-29T03:38:14 name=Sys3D_pipS6o mode=slurm email=none =====
+=== TASK: Only_3D-slurm | cut=cut_Complete_SIDIS_pipS6o | mode=slurm | rc=1 ===
+wall_time: 39588.92 s
+peak_memory: 476.00 MB
+

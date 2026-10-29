@@ -10,3 +10,13 @@ peak_memory: 1.84 GB
 
 
 ===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-28T11:15:13 name=Sys3D_ecband_tight_el mode=slurm email=none =====
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-29T03:38:14 name=Sys3D_ecband_tight_el mode=slurm email=none =====
+=== TASK: Only_3D-slurm | cut=cut_Complete_SIDIS_ecband_tight_el | mode=slurm | rc=1 ===
+wall_time: 59948.58 s
+peak_memory: 457.03 MB
+
+=== TASK: Only_3D-slurm | cut=cut_Complete_SIDIS_ecband_tight_el | mode=slurm | rc=0 ===
+wall_time: 15087.85 s
+peak_memory: 470.11 MB
+
