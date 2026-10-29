@@ -1,0 +1,30 @@
+{
+  "source_campaign": "systematics_3d_both_recovery_20261028",
+  "hybrid_date": "10_27_2026",
+  "slurm_time": "24:00:00",
+  "only3d_slurm_mem": "4500M",
+  "configs": [
+    {"id": "dcv_tight_el", "original_job": "13743302", "batches": "3-5,10-11,105,108-109,111-113", "defer_merge": false},
+    {"id": "dvz_loose_pip", "original_job": "13743300", "batches": "2-5,7-13,94-96,99-101,104-115", "defer_merge": false},
+    {"id": "dvz_tight_pip", "original_job": "13743301", "batches": "13,98,105,108-109,111-115,117-163", "defer_merge": false},
+    {"id": "pipS2o", "original_job": "13743305", "batches": "3-5,9-10", "defer_merge": false},
+    {"id": "eS6o", "original_job": "13743304", "batches": "165,167-168", "defer_merge": false},
+    {"id": "ecband_tight_el", "original_job": "13743298", "batches": "127-149", "defer_merge": true},
+    {"id": "pcalvol_loose", "original_job": "13743299", "batches": "141-168", "defer_merge": true},
+    {"id": "ecthr_tight_el", "original_job": "13744458", "batches": "4", "defer_merge": true},
+    {"id": "no_sector_pcal", "original_job": "13744695", "batches": "126,128", "defer_merge": true},
+    {"id": "pcalvol_tight", "batches": ""},
+    {"id": "dcfidref_loose_el", "batches": ""},
+    {"id": "ecthr_loose_el", "batches": ""},
+    {"id": "eS2o", "batches": ""},
+    {"id": "dcfidref_tight_el", "batches": ""},
+    {"id": "eS3o", "batches": ""},
+    {"id": "pipS5o", "batches": ""},
+    {"id": "eS4o", "batches": ""},
+    {"id": "pipS4o", "batches": ""},
+    {"id": "eS5o", "batches": ""},
+    {"id": "no_pip_testdc", "batches": ""},
+    {"id": "noSmear", "batches": ""},
+    {"id": "pipS3o", "batches": ""}
+  ]
+}

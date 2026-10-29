@@ -294,7 +294,7 @@ def recovery_static_checks():
     if(code != 0):
         raise SystemExit("recovery dry-run exit %s" % code)
     printed = stdout.getvalue()
-    if("existing hadd" not in printed):
+    if("hadd after listed batches" not in printed):
         raise SystemExit("dry-run does not continue to the existing hadd")
     if("PHASE2" not in printed):
         raise SystemExit("dry-run does not continue to Phase 2")
@@ -361,6 +361,109 @@ def recovery_static_checks():
         raise SystemExit("recovery accepted nominal HPP regeneration")
 
 
+def followup_recovery_20261029():
+    import io
+    from contextlib import redirect_stdout
+    from Campaign.systematics_campaign import expand_batch_spec, load_recovery_batches, sbatch_script
+    json_path = os.path.join(_BOOT, "Campaign", "recovery_batches_20261029.json")
+    payload = load_recovery_batches(json_path)
+    expected = {
+        "dcv_tight_el": ("3-5,10-11,105,108-109,111-113", False),
+        "dvz_loose_pip": ("2-5,7-13,94-96,99-101,104-115", False),
+        "dvz_tight_pip": ("13,98,105,108-109,111-115,117-163", False),
+        "pipS2o": ("3-5,9-10", False),
+        "eS6o": ("165,167-168", False),
+        "ecband_tight_el": ("127-149", True),
+        "pcalvol_loose": ("141-168", True),
+        "ecthr_tight_el": ("4", True),
+        "no_sector_pcal": ("126,128", True),
+    }
+    empty_ids = [
+        "pcalvol_tight", "dcfidref_loose_el", "ecthr_loose_el", "eS2o", "dcfidref_tight_el",
+        "eS3o", "pipS5o", "eS4o", "pipS4o", "eS5o", "no_pip_testdc", "noSmear", "pipS3o",
+    ]
+    by_id = {}
+    total = 0
+    for item in payload["configs"]:
+        by_id[item["id"]] = item
+        if(str(item.get("batches", "")).strip() != ""):
+            total += len(expand_batch_spec(item["batches"]))
+    if((len(payload["configs"]) != 22) or (total != 159)):
+        raise SystemExit("20261029 inventory is %s configs and %s tasks" % (len(payload["configs"]), total))
+    for config_id, (spec, deferred) in expected.items():
+        item = by_id[config_id]
+        if((item["batches"] != spec) or (bool(item.get("defer_merge", False)) != deferred)):
+            raise SystemExit("20261029 entry changed for %s" % config_id)
+    for config_id in empty_ids:
+        if(str(by_id[config_id].get("batches", "x")).strip() != ""):
+            raise SystemExit("%s was given histogram batches" % config_id)
+    for banned in ["nominal", "eS1o", "pipS6o", "dcfid_tight_el", "chi2_strict_pip", "no_valerii_knockout"]:
+        if(banned in by_id):
+            raise SystemExit("%s is in the 20261029 inventory" % banned)
+    if(113 in expand_batch_spec(by_id["eS6o"]["batches"])):
+        raise SystemExit("eS6o task 113 was listed")
+    script = sbatch_script("SysUnfold", "/logs", "python3", "run_Simple_Unfold.py", "work_b", "/in.root", "/parts", "stem", "inherited", "AccSpline")
+    if("/farm_out/richcap/%x-%A_%a-%j-%N.out" not in script):
+        raise SystemExit("Phase 2 stdout is not /farm_out/richcap")
+    if(("/w/ceph24/" in script) or ("slurm_logs" in script)):
+        raise SystemExit("Phase 2 logs still use the work filesystem")
+    kept = []
+    for name in ["systematics_3d_both_rnh_20261027", "systematics_3d_both_recovery_20261028"]:
+        path = os.path.join(_BOOT, "SIDIS_Campaign", "systematics", name, "manifest.json")
+        if(os.path.isfile(path)):
+            kept.append((path, os.path.getmtime(path), open(path).read()))
+    stdout = io.StringIO()
+    with redirect_stdout(stdout):
+        code = runner.main([
+            "-n", "-c", "systematics_3d_both_recovery_20261029", "-droot", "work_b", "-wm", "both",
+            "-rb", json_path,
+        ])
+    if(code != 0):
+        raise SystemExit("20261029 dry-run exit %s" % code)
+    printed = stdout.getvalue()
+    if("recovery tasks 159" not in printed):
+        raise SystemExit("dry-run task count")
+    if("nominal" in printed.split("PHASE1")[0]):
+        pass
+    camp = runner.campaign_directory("work_b", "systematics_3d_both_recovery_20261029")
+    manifest = runner.read_manifest(camp)
+    if((len(manifest["phase1"]) != 22) or (manifest.get("recovery_task_count") != 159)):
+        raise SystemExit("20261029 manifest counts")
+    deferred_ids = []
+    empty_seen = 0
+    for row in manifest["phase1"]:
+        if(row["id"] == "nominal"):
+            raise SystemExit("nominal was scheduled")
+        if(row.get("batch_ids") in [None, ""]):
+            empty_seen += 1
+            if(("-bids" in row["command"]) or ("-rlb" in row["command"])):
+                raise SystemExit("empty batch list still submits histograms")
+        elif(row.get("defer_merge")):
+            deferred_ids.append(row["id"])
+            if("-dfm" not in row["command"]):
+                raise SystemExit("deferred merge was not forwarded")
+        else:
+            if("-dfm" in row["command"]):
+                raise SystemExit("immediate merge was deferred")
+    if((empty_seen != 13) or (sorted(deferred_ids) != ["ecband_tight_el", "ecthr_tight_el", "no_sector_pcal", "pcalvol_loose"])):
+        raise SystemExit("empty or deferred set changed")
+    if(printed.count("hadd deferred") != 4):
+        raise SystemExit("deferred hadd lines %s" % printed.count("hadd deferred"))
+    if(printed.count("skip histograms; verify merged response; then Phase 2") != 13):
+        raise SystemExit("phase2-only lines")
+    if("PHASE2 ecband_tight_el__inherited__Spline deferred" not in printed):
+        raise SystemExit("deferred Phase 2 was printed as an unfold command")
+    if("PHASE2 pipS3o__inherited__Spline lineage" not in printed):
+        raise SystemExit("finished Phase 1 did not continue to Phase 2")
+    for path, stamp, text in kept:
+        if((os.path.getmtime(path) != stamp) or (open(path).read() != text)):
+            raise SystemExit("dry-run changed %s" % path)
+    for walk_root, _dirs, files in os.walk(camp):
+        for name in files:
+            if(name.endswith(".sh")):
+                raise SystemExit("dry-run wrote sbatch %s" % name)
+
+
 def main():
     self_test()
     ledger_self_test()
@@ -368,6 +471,7 @@ def main():
     hpp_matches_submit_full()
     dry_run_writes_manifest()
     recovery_static_checks()
+    followup_recovery_20261029()
     print("systematics campaign self-test ok")
     return 0
 

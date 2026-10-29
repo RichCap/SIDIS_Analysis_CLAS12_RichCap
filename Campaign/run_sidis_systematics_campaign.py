@@ -54,11 +54,14 @@ def fill_commands(manifest, python):
     for row in manifest["phase1"]:
         config = {"id": row["id"], "cut": row["cut"], "unsmeared": row["unsmeared"], "nominal": row["nominal"]}
         if(manifest.get("recovery")):
-            row["command"] = recovery_phase1_command(
-                python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], config,
-                row["hpp_nospline"], row["hpp_spline"], row["batch_ids"], manifest["hybrid_date"],
-                manifest["slurm_time"], manifest["only3d_slurm_mem"],
-            )
+            if(row.get("batch_ids") in [None, ""]):
+                row["command"] = []
+            else:
+                row["command"] = recovery_phase1_command(
+                    python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], config,
+                    row["hpp_nospline"], row["hpp_spline"], row["batch_ids"], manifest["hybrid_date"],
+                    manifest["slurm_time"], manifest["only3d_slurm_mem"], row.get("defer_merge", False),
+                )
         else:
             row["command"] = phase1_command(
                 python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"],
@@ -78,7 +81,6 @@ def print_plan(manifest, regen_cmd):
     print("phase1 configurations %s" % len(manifest["phase1"]))
     if(manifest.get("recovery")):
         print("recovery tasks %s" % manifest.get("recovery_task_count"))
-        print("after listed batches: existing hadd of all batch files, then Phase 2 %s" % manifest["weight_mode"])
     print("phase2 arrays %s  tasks %s  final files %s" % (arrays, tasks, files))
     if(regen_cmd is not None):
         print("HPP regen (nominal waits; others do not):")
@@ -88,11 +90,21 @@ def print_plan(manifest, regen_cmd):
         print("  hpp_nospline %s" % row["hpp_nospline"])
         print("  hpp_spline %s" % row["hpp_spline"])
         print("  response %s" % row["response"])
-        print("  %s" % command_text(row["command"]))
+        if(row.get("batch_ids") in [None, ""]):
+            print("  skip histograms; verify merged response; then Phase 2")
+        elif(row.get("defer_merge")):
+            print("  hadd deferred")
+            print("  %s" % command_text(row["command"]))
+        else:
+            print("  hadd after listed batches")
+            print("  %s" % command_text(row["command"]))
     camp = campaign_directory(manifest["data_root"], manifest["campaign"])
     parts = os.path.join(camp, "unfold_parts")
     logs = os.path.join(camp, "slurm_logs")
     for row in manifest["phase2"]:
+        if(row.get("status") == "deferred"):
+            print("PHASE2 %s deferred" % row["key"])
+            continue
         settings = branch_settings(row["branch"], 1, row["weight_tag"])
         sample = unfold_command(sys.executable, UNFOLD_SCRIPT, manifest["data_root"], row["response"], bin_root(parts, row, 1), 1, settings)
         print("PHASE2 %s lineage %s" % (row["key"], row["lineage"]))
@@ -120,6 +132,22 @@ def reconcile_existing(manifest):
         if((row["status"] == "success") and (not unfold_final_ok(row["final"]))):
             row["status"] = "failed"
             row["reason"] = "recorded success has no complete unfolded file"
+
+
+def settle_saved_phase1(manifest, row, enabled_mail, camp):
+    # Empty batch list: Phase 1 already finished. Do not submit or merge histograms.
+    if(response_ok(row["response"])):
+        row["status"] = "success"
+        row["reason"] = ""
+        append_log(camp, "phase1", row["id"], "", "", "", "saved", "", "success", "", row["response"])
+        return
+    row["status"] = "failed"
+    row["reason"] = "merged response is missing"
+    append_log(camp, "phase1", row["id"], "", "", "", "saved", "", "failed", row["reason"], row["response"])
+    body = row["reason"] + "\n"
+    if(manifest.get("recovery")):
+        body = recovery_failure_text(manifest["campaign"], row["id"], row.get("batch_ids") or "", submission_ids_for_config(camp, row["id"]), row["reason"])
+    send_mail(enabled_mail, "SIDIS systematics Phase 1 failed %s" % row["id"], body)
 
 
 def phase1_needs_start(row):
@@ -200,7 +228,7 @@ def first_pending_bin(row, query_state, now):
 def choose_local(rows, running, query_state, now):
     by_lineage = {}
     for row in rows:
-        if(row["status"] in ["success", "failed", "waiting_phase1"]):
+        if(row["status"] in ["success", "failed", "waiting_phase1", "deferred"]):
             continue
         by_lineage.setdefault(row["lineage"], []).append(row)
     for lineage, group in by_lineage.items():
@@ -249,6 +277,9 @@ def run_live(args, manifest):
             continue
         if(not phase1_needs_start(row)):
             continue
+        if(manifest.get("recovery") and (row.get("batch_ids") in [None, ""])):
+            settle_saved_phase1(manifest, row, args.email, camp)
+            continue
         procs[row["id"]] = start_phase1(manifest, row, args.email, camp)
     write_manifest(camp, manifest)
     compiled = False
@@ -276,7 +307,11 @@ def run_live(args, manifest):
                 continue
             finished.append(config_id)
             row = [item for item in manifest["phase1"] if(item["id"] == config_id)][0]
-            if((rc == 0) and response_ok(row["response"])):
+            if(row.get("defer_merge") and (rc == 0)):
+                row["status"] = "deferred"
+                row["reason"] = "histogram array submitted; merge deferred"
+                append_log(camp, "phase1", row["id"], "", "", "", "slurm", "", "deferred", row["reason"], row["response"])
+            elif((rc == 0) and response_ok(row["response"])):
                 row["status"] = "success"
                 row["reason"] = ""
                 append_log(camp, "phase1", row["id"], "", "", "", "local", "", "success", "", row["response"])
@@ -302,7 +337,7 @@ def run_live(args, manifest):
             parent = [item for item in manifest["phase1"] if(item["id"] == row["config_id"])][0]
             if(parent["status"] != "success"):
                 continue
-            if(row["status"] in ["success", "failed"]):
+            if(row["status"] in ["success", "failed", "deferred"]):
                 continue
             if(compile_failed):
                 row["status"] = "failed"
@@ -369,7 +404,7 @@ def run_live(args, manifest):
                         running_local[row["lineage"]] = {"proc": proc, "token": token, "row": row, "q2y": q2y}
                         append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], q2y, "local", row["array_id"], "started", "", row["bins"][str(q2y)]["root"])
         for row in manifest["phase2"]:
-            if(row["status"] in ["success", "failed", "waiting_phase1"]):
+            if(row["status"] in ["success", "failed", "waiting_phase1", "deferred"]):
                 continue
             if(row.get("array_id") in [None, ""]):
                 continue
@@ -431,8 +466,10 @@ def run_live(args, manifest):
         still = False
         for row in manifest["phase2"]:
             parent = [item for item in manifest["phase1"] if(item["id"] == row["config_id"])][0]
-            if(parent["status"] == "failed"):
-                if(row["status"] == "waiting_phase1"):
+            if(row["status"] == "deferred"):
+                continue
+            if(parent["status"] in ["failed", "deferred"]):
+                if((parent["status"] == "failed") and (row["status"] == "waiting_phase1")):
                     row["status"] = "failed"
                     row["reason"] = "phase1 failed"
                 continue

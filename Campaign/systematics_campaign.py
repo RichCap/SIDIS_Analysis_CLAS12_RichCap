@@ -184,7 +184,7 @@ def load_recovery_batches(path):
     return payload
 
 
-def recovery_phase1_command(python, submit_script, data_root, campaign, config, hpp_pure, hpp_spline, batch_ids, hybrid_date, slurm_time, only3d_mem):
+def recovery_phase1_command(python, submit_script, data_root, campaign, config, hpp_pure, hpp_spline, batch_ids, hybrid_date, slurm_time, only3d_mem, defer_merge=False):
     # Slurm only. Hybrid's local walker can cancel and rewrite batches that are not listed.
     cmd = [
         python, submit_script,
@@ -214,6 +214,8 @@ def recovery_phase1_command(python, submit_script, data_root, campaign, config, 
         "-o3m", str(only3d_mem),
         "-rlb",
     ]
+    if(defer_merge):
+        cmd.append("-dfm")
     if(config["unsmeared"]):
         cmd.append("-us")
     return cmd
@@ -236,12 +238,18 @@ def recovery_configs(payload):
             raise ValueError("recovery cannot include nominal")
         if(config_id not in catalog):
             raise ValueError("unknown recovery config %s" % config_id)
-        spec = str(item.get("batches", ""))
-        expand_batch_spec(spec)
+        spec = str(item.get("batches", "")).strip()
+        defer_merge = bool(item.get("defer_merge", False))
+        if(spec == ""):
+            if(defer_merge):
+                raise ValueError("defer_merge needs a batch list for %s" % config_id)
+        else:
+            expand_batch_spec(spec)
         chosen.append({
             "config": catalog[config_id],
             "batches": spec,
             "original_job": str(item.get("original_job", "")),
+            "defer_merge": defer_merge,
         })
     return chosen
 
@@ -395,8 +403,8 @@ def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_
         "#SBATCH --ntasks=1",
         "#SBATCH --cpus-per-task=1",
         "#SBATCH --job-name=%s" % job_name,
-        "#SBATCH --output=%s" % os.path.join(log_dir, job_name + "-%A_%a.out"),
-        "#SBATCH --error=%s" % os.path.join(log_dir, job_name + "-%A_%a.err"),
+        "#SBATCH --output=/farm_out/richcap/%x-%A_%a-%j-%N.out",
+        "#SBATCH --error=/farm_out/richcap/%x-%A_%a-%j-%N.err",
         "#SBATCH --partition=production",
         "#SBATCH --account=clas12",
         "#SBATCH --mem-per-cpu=%s" % SLURM_MEM,
@@ -469,6 +477,7 @@ def keep_recorded_hpp(previous, assigned):
 def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None):
     batch_by_id = None
     job_by_id = None
+    defer_by_id = None
     if(recovery is None):
         configs = phase1_configs()
     else:
@@ -478,11 +487,13 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         configs = []
         batch_by_id = {}
         job_by_id = {}
+        defer_by_id = {}
         for item in picked:
             config = item["config"]
             configs.append(config)
             batch_by_id[config["id"]] = item["batches"]
             job_by_id[config["id"]] = item["original_job"]
+            defer_by_id[config["id"]] = item["defer_merge"]
     assigned = assign_hpp(configs, data_root, tag, campaign, stamp, regenerate)
     if(previous is not None):
         old_phase1 = {}
@@ -506,11 +517,14 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         response = response_path(data_root, config["id"], config["cut"])
         if(batch_by_id is None):
             cmd = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, paths["hpp_nospline"], paths["hpp_spline"])
+        elif(batch_by_id[config["id"]] in ["", None]):
+            cmd = []
         else:
             cmd = recovery_phase1_command(
                 "PYTHON", "SUBMIT", data_root, campaign, config, paths["hpp_nospline"], paths["hpp_spline"],
                 batch_by_id[config["id"]], recovery.get("hybrid_date") or "10_27_2026",
                 recovery.get("slurm_time") or "24:00:00", recovery.get("only3d_slurm_mem") or "4500M",
+                defer_by_id[config["id"]],
             )
         row = {
             "id": config["id"],
@@ -528,6 +542,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         if(batch_by_id is not None):
             row["batch_ids"] = batch_by_id[config["id"]]
             row["original_job"] = job_by_id[config["id"]]
+            row["defer_merge"] = bool(defer_by_id[config["id"]])
         old = old_phase1.get(config["id"])
         if(isinstance(old, dict) and (old.get("status") in ["success", "failed", "running"])):
             row["status"] = old.get("status")
@@ -538,11 +553,15 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             if(batch_by_id is None):
                 row["command"] = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, row["hpp_nospline"], row["hpp_spline"])
             else:
-                row["command"] = recovery_phase1_command(
-                    "PYTHON", "SUBMIT", data_root, campaign, config, row["hpp_nospline"], row["hpp_spline"],
-                    row["batch_ids"], recovery.get("hybrid_date") or "10_27_2026",
-                    recovery.get("slurm_time") or "24:00:00", recovery.get("only3d_slurm_mem") or "4500M",
-                )
+                if(row.get("batch_ids") in ["", None]):
+                    row["command"] = []
+                else:
+                    row["command"] = recovery_phase1_command(
+                        "PYTHON", "SUBMIT", data_root, campaign, config, row["hpp_nospline"], row["hpp_spline"],
+                        row["batch_ids"], recovery.get("hybrid_date") or "10_27_2026",
+                        recovery.get("slurm_time") or "24:00:00", recovery.get("only3d_slurm_mem") or "4500M",
+                        row.get("defer_merge", False),
+                    )
         phase1.append(row)
         for job in phase2_jobs(config, weight_mode):
             key = job_key(job)
@@ -570,6 +589,9 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
                 "bins": bins,
                 "reason": "",
             }
+            if(row.get("defer_merge")):
+                prow["status"] = "deferred"
+                prow["reason"] = "merge deferred"
             old = old_phase2.get(key)
             if(isinstance(old, dict)):
                 prow["status"] = old.get("status") or prow["status"]
@@ -596,7 +618,8 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
     if(recovery is not None):
         task_count = 0
         for row in phase1:
-            task_count += len(expand_batch_spec(row["batch_ids"]))
+            if(row.get("batch_ids") not in [None, ""]):
+                task_count += len(expand_batch_spec(row["batch_ids"]))
         payload["recovery"] = True
         payload["recovery_file"] = recovery.get("path") or ""
         payload["hybrid_date"] = recovery.get("hybrid_date") or "10_27_2026"

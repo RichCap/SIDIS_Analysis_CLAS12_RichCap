@@ -181,6 +181,9 @@ def parse_args():
     parser.add_argument('-rlb', '--replace_listed_batches',
                         action='store_true',
                         help="With --batch_ids, remove only that array task's batch file inside the array script and skip the outside-batch ROOT gate. Unlisted batches are not submitted. Ordinary runs keep the skip-if-valid path and the outside-batch gate.\n")
+    parser.add_argument('-dfm', '--defer_merge',
+                        action='store_true',
+                        help="With --replace_listed_batches, submit the listed array and do not hadd. Used when another campaign can still write the same batch directory.\n")
     parser.add_argument('-scf', '--submission_config',
                         default=None,
                         help="Configuration id recorded in submission_history.jsonl. Omitted records --name.\n")
@@ -1159,6 +1162,20 @@ def record_histogram_submission(args, array_id):
     })
 
 
+def record_missing_batch_files(args, missing_files):
+    # Keep the missing paths in the campaign log. Hadd itself is unchanged.
+    campaign = getattr(args, "campaign_worker_name", None)
+    if(campaign in [None, ""]):
+        return
+    from Campaign.systematics_campaign import append_log, campaign_directory
+    camp = campaign_directory(args.data_root, campaign)
+    config_id = getattr(args, "submission_config", None)
+    if(config_id in [None, ""]):
+        config_id = args.name
+    for path in missing_files:
+        append_log(camp, "phase1", config_id, "", "", "", "hadd", "", "missing_batch", "hadd requires every batch file", path)
+
+
 def hadd_response_batches(args, batch_output_dir, num_batches):
     # Moved out of run_local_batches so listed-batch recovery can use the same merge.
     # Update_Email, Crash_Report, the hadd command, and the Chapter 4 count merge are unchanged.
@@ -1177,6 +1194,7 @@ def hadd_response_batches(args, batch_output_dir, num_batches):
         print("hadd was not run. The merge still requires all %d batch files. Missing or invalid:" % num_batches)
         for path in missing_files:
             print(path)
+        record_missing_batch_files(args, missing_files)
         Crash_Report(args, crash_message=f"{color.Error}Cannot hadd: missing {len(missing_files)} expected batch ROOT files. First missing: {missing_files[0]}{color.END}", continue_run=False)
     Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
     hadd_cmd = ["hadd", "-f", merged_file] + batch_files
@@ -1488,7 +1506,9 @@ def run_slurm_mode(args):
     print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM array script:\n")
     with open(array_script) as f:
         print(f.read())
-    if(replace_listed):
+    if(replace_listed and getattr(args, "defer_merge", False)):
+        print(f"\n{color.BBLUE}[INFO]{color.END} Listed batches only. Merge is deferred.\n")
+    elif(replace_listed):
         print(f"\n{color.BBLUE}[INFO]{color.END} Listed batches only. After the array finishes, the existing pipeline hadd merges every batch file.\n")
     elif(not getattr(args, "skip_slurm_hadd", False)):
         print(f"\n{color.BBLUE}[INFO]{color.END} Proposed SLURM hadd script:\n")
@@ -1526,6 +1546,10 @@ def run_slurm_mode(args):
         # Do not submit the loose dated hadd script. hadd_response_batches keeps Update_Email, Crash_Report, and the _All.root merge.
         args.slurm_array_jobid = array_id.split(";")[0].strip()
         wait_for_remaining_slurm_tasks(args)
+        if(getattr(args, "defer_merge", False)):
+            Update_Email(args, update_message=f"{color.BBLUE}Merge deferred for array {args.slurm_array_jobid}{color.END}", verbose_override=True, no_time=True)
+            Construct_Email(args)
+            return
         hadd_response_batches(args, batch_output_dir, num_batches)
         Construct_Email(args)
         return

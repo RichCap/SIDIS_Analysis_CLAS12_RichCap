@@ -237,6 +237,9 @@ def parse_args():
     p.add_argument("-rlb", "--replace_listed_batches",
                    action="store_true",
                    help="Forward --replace_listed_batches. The array script removes only that task's batch file, and the outside-batch ROOT gate is skipped.\n")
+    p.add_argument("-dfm", "--defer_merge",
+                   action="store_true",
+                   help="Forward --defer_merge. The listed array is submitted and the merge waits.\n")
     p.add_argument("-hdate", "--hybrid_date",
                    type=str,
                    default=None,
@@ -687,6 +690,8 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["--batch_ids", str(args.batch_ids)])
     if(getattr(args, "replace_listed_batches", False)):
         cmd.append("--replace_listed_batches")
+    if(getattr(args, "defer_merge", False)):
+        cmd.append("--defer_merge")
     if(str(getattr(args, "name", "")).startswith("Sys3D_")):
         cmd.extend(["-scf", str(args.name)[len("Sys3D_"):]])
     # Hybrid SLURM leg always passes --yes so sbatch is noninteractive. Pure slurm stays interactive.

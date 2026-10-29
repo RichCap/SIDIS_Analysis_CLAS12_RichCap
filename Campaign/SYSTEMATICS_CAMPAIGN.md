@@ -104,7 +104,9 @@ Every original non-nominal job has finished. Only the nominal spline HPP generat
 
 On iFarm, `sinfo -p production -o "%P %l"` must show a maximum of at least 24 hours. If it does not, stop and report that. Do not shorten the request in the command.
 
-Prepared command, not launched by this repository change. Run it from the iFarm checkout:
+A later file, `Campaign/recovery_batches_20261029.json`, is a separate campaign. Empty `batches` skips histogram submission and the merge, then checks the merged response and unfolds. `defer_merge` submits only the listed batches and does not hadd. Phase 2 stdout and stderr go to `/farm_out/richcap/`. Nominal stays out.
+
+Prepared command for the 28 October list, not launched by this repository change. Run it from the iFarm checkout:
 
 ```bash
 python3 Campaign/run_sidis_systematics_campaign.py -c systematics_3d_both_recovery_20261028 -droot work_b -wm both -rb Campaign/recovery_batches_systematics_3d_both_rnh_20261027.json -e
