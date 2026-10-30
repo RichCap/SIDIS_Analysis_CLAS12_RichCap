@@ -131,7 +131,7 @@
         "4500M",
         "-rlb"
       ],
-      "status": "running",
+      "status": "success",
       "pid": 3655163,
       "reason": "",
       "batch_ids": "2-5,7-13,94-96,99-101,104-115",
@@ -1288,111 +1288,128 @@
       "local_order": 0,
       "response": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_dvz_loose_pip_Bank_cut_Complete_SIDIS_dvz_loose_pip_Response_Matrices_Final_Thesis_Files_All.root",
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfolded/Sys3D_dvz_loose_pip_inherited_Spline.root",
-      "array_id": "",
-      "submit_time": null,
-      "status": "waiting_phase1",
+      "array_id": "13863447",
+      "submit_time": 1793323482.1233206,
+      "status": "submitted",
       "bins": {
         "1": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y01.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "2": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y02.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "3": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y03.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "4": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y04.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "5": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y05.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "6": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y06.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "7": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y07.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "8": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y08.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "9": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y09.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "10": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y10.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "11": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y11.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "12": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y12.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "13": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y13.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "14": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y14.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "15": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y15.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "16": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y16.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "17": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Spline_q2y17.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         }
       },
       "reason": ""
@@ -1407,111 +1424,128 @@
       "local_order": 1,
       "response": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_dvz_loose_pip_Bank_cut_Complete_SIDIS_dvz_loose_pip_Response_Matrices_Final_Thesis_Files_All.root",
       "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfolded/Sys3D_dvz_loose_pip_inherited_Unweighted.root",
-      "array_id": "",
-      "submit_time": null,
-      "status": "waiting_phase1",
+      "array_id": "13863448",
+      "submit_time": 1793323482.38191,
+      "status": "submitted",
       "bins": {
         "1": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y01.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "2": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y02.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "3": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y03.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "4": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y04.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "5": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y05.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "6": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y06.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "7": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y07.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "8": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y08.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "9": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y09.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "10": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y10.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "11": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y11.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "12": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y12.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "13": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y13.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "14": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y14.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "15": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y15.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "16": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y16.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         },
         "17": {
           "status": "pending",
           "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_both_recovery_20261029/unfold_parts/Sys3D_dvz_loose_pip_inherited_Unweighted_q2y17.root",
-          "slurm_state": "",
-          "where": ""
+          "slurm_state": "IGNORE",
+          "where": "",
+          "missing_polls": 0
         }
       },
       "reason": ""
