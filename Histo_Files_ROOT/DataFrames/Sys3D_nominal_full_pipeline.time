@@ -1,2 +1,6 @@
 
 ===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-27T02:29:11 name=Sys3D_nominal mode=sequential email=none =====
+=== TASK: HPP-withSpline-cut_Complete_SIDIS | cut=cut_Complete_SIDIS | mode=acceptance | rc=0 ===
+wall_time: 261051.60 s
+peak_memory: 3.24 GB
+

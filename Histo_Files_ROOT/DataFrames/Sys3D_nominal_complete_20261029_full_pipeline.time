@@ -1,0 +1,6 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-29T22:16:16 name=Sys3D_nominal_complete_20261029 mode=slurm email=none =====
+=== TASK: Only_3D-slurm | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.04 s
+peak_memory: 475.04 MB
+

@@ -1,0 +1,6 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-29T22:16:35 name=Only_5D_nominal_spline_V2_20261029 mode=slurm email=none =====
+=== TASK: Only_5D-slurm | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.20 s
+peak_memory: 480.50 MB
+

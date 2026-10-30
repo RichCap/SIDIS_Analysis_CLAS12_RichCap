@@ -4528,3 +4528,141 @@ CMD [HPP-withSpline-cut_Complete_SIDIS]: ./Acceptance_Weights_Creations_using_RD
 [HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0209.root probably not closed, trying to recover
 [HPP-withSpline-cut_Complete_SIDIS] Info in <TFile::Recover>: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0209.root, recovered key TTree:h22 at address 9184351248
 [HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: successfully recovered 1 keys
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0163.root probably not closed, trying to recover
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TFile::Recover>: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0163.root, recovered key TTree:h22 at address 9184378027
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: successfully recovered 1 keys
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0207.root probably not closed, trying to recover
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TFile::Recover>: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0207.root, recovered key TTree:h22 at address 9228831121
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: successfully recovered 1 keys
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0209.root probably not closed, trying to recover
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TFile::Recover>: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC/DataFrame_SIDIS_epip_MC_Matched_Pass_2_Final_Thesis_Files_45nA_0209.root, recovered key TTree:h22 at address 9184351248
+[HPP-withSpline-cut_Complete_SIDIS] TFile::Init:0: RuntimeWarning: successfully recovered 1 keys
+[HPP-withSpline-cut_Complete_SIDIS] Info in <TCanvas::Print>: png file Data_to_MC_Acceptance_Weights_Sys3D_nominal_withSpline.png has been created
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS]   Integrals [withSpline] elPhi_vs_pipPhi: data=3.02045e+07  MC_weighted=4.86487e+12  MC_unweighted=2.75871e+08
+[HPP-withSpline-cut_Complete_SIDIS]   HPP extract [withSpline] elPhi_vs_pipPhi: ones=0/20736 nonfinite_coerced=0 ratio_int=24877
+[HPP-withSpline-cut_Complete_SIDIS] Finished 'elPhi_vs_pipPhi' Histograms
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 08:55 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 1 Day(s), 6 Hour(s), 26 Minute(s), and 13 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Starting 'elth_vs_pipth' Histograms
+[HPP-withSpline-cut_Complete_SIDIS]   Integrals [withSpline] elth_vs_pipth: data=3.02045e+07  MC_weighted=1.95556e+08  MC_unweighted=2.75871e+08
+[HPP-withSpline-cut_Complete_SIDIS]   HPP extract [withSpline] elth_vs_pipth: ones=0/3472 nonfinite_coerced=0 ratio_int=5801
+[HPP-withSpline-cut_Complete_SIDIS] Finished 'elth_vs_pipth' Histograms
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 06:29 p.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 1 Day(s), 16 Hour(s), 0 Minute(s), and 11 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Starting 'el_vs_pip' Histograms
+[HPP-withSpline-cut_Complete_SIDIS]   Integrals [withSpline] el_vs_pip: data=3.02045e+07  MC_weighted=33710.8  MC_unweighted=2.75871e+08
+[HPP-withSpline-cut_Complete_SIDIS]   HPP extract [withSpline] el_vs_pip: ones=0/1408 nonfinite_coerced=0 ratio_int=962.442
+[HPP-withSpline-cut_Complete_SIDIS] Finished 'el_vs_pip' Histograms
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 02:28 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 1 Day(s), 23 Hour(s), 59 Minute(s), and 7 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Done Creating the Histograms for getting the new event weights
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 02:28 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 1 Day(s), 23 Hour(s), 59 Minute(s), and 7 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS]   Final MC integral [withSpline] elPhi_vs_pipPhi_mdf_Final: 35.0263
+[HPP-withSpline-cut_Complete_SIDIS]   Final MC integral [withSpline] elth_vs_pipth_mdf_Final: 35.0263
+[HPP-withSpline-cut_Complete_SIDIS]   Final MC integral [withSpline] el_vs_pip_mdf_Final: 35.0263
+[HPP-withSpline-cut_Complete_SIDIS] Saved: Data_to_MC_Acceptance_Weights_Sys3D_nominal_withSpline.png
+[HPP-withSpline-cut_Complete_SIDIS] Wrote weight functions to: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline_sysregen_systematics_3d_both_rnh_20261027_20261027_022909_Sys3D_nominal.hpp
+[HPP-withSpline-cut_Complete_SIDIS] (Skipping full HPP dump to stdout; pass --verbose to print generated code)
+[HPP-withSpline-cut_Complete_SIDIS] Saved full-stage histograms to ROOT file: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline_sysregen_systematics_3d_both_rnh_20261027_20261027_022909_Sys3D_nominal.root
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Current Time: 03:00 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now:
+[HPP-withSpline-cut_Complete_SIDIS] 3 Day(s), 0 Hour(s), 30 Minute(s), and 49 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] DONE CREATING ACCEPTANCE WEIGHTS HISTOGRAMS/CODE [withSpline]
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Skipping Checks of Acceptance Weights on the Kinematic Variable Histograms
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] EMAIL MESSAGE TO SEND:
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] The 'Acceptance_Weights_Creations_using_RDataFrames.py' script has finished running.
+[HPP-withSpline-cut_Complete_SIDIS] Started running on 10-27-2026 at 02:29 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] RDataFrame Collection is done running...
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] run_rho_weight ON: rho0_source=lundvpk; MC file counts={'clasdis': 1760, 'lundrho': 10, 'lundvpk': 10, 'rho0_new': 40}; norms lundrho=4.526912, lundvpk=4.624974
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] Defined exclusive_rho_weight via DefinePerSample (source tag + exclusive_rho + rho0_source)
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Using new spline-based event-by-event weights from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Time Elapsed Up To Now: 0 Day(s), 15 Hour(s), 47 Minute(s), and 17 Second(s). 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] Arguments:
+[HPP-withSpline-cut_Complete_SIDIS] --verbose                                           --> False
+[HPP-withSpline-cut_Complete_SIDIS] --cut_name_rdf                                      --> 'cut_Complete_SIDIS'
+[HPP-withSpline-cut_Complete_SIDIS] --cut_name_mdf                                      --> 'cut_Complete_SIDIS'
+[HPP-withSpline-cut_Complete_SIDIS] --cut                                               --> None
+[HPP-withSpline-cut_Complete_SIDIS] --Require_Kinematic_Binning                         --> False
+[HPP-withSpline-cut_Complete_SIDIS] --name                                              --> 'Sys3D_nominal'
+[HPP-withSpline-cut_Complete_SIDIS] --title                                             --> None
+[HPP-withSpline-cut_Complete_SIDIS] --batch_id                                          --> 0
+[HPP-withSpline-cut_Complete_SIDIS] --number_of_files                                   --> -1
+[HPP-withSpline-cut_Complete_SIDIS] --event_limit                                       --> None
+[HPP-withSpline-cut_Complete_SIDIS] --angles_only_hpp                                   --> False
+[HPP-withSpline-cut_Complete_SIDIS] --json_weights                                      --> False
+[HPP-withSpline-cut_Complete_SIDIS] --spline_weights                                    --> True
+[HPP-withSpline-cut_Complete_SIDIS] --spline_file                                       --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[HPP-withSpline-cut_Complete_SIDIS] --hpp_output_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline_sysregen_systematics_3d_both_rnh_20261027_20261027_022909_Sys3D_nominal.hpp'
+[HPP-withSpline-cut_Complete_SIDIS] --fast                                              --> False
+[HPP-withSpline-cut_Complete_SIDIS] --File_Save_Format                                  --> '.png'
+[HPP-withSpline-cut_Complete_SIDIS] --make_2D_weight                                    --> True
+[HPP-withSpline-cut_Complete_SIDIS] --make_2D_weight_check                              --> False
+[HPP-withSpline-cut_Complete_SIDIS] --no_save_root                                      --> False
+[HPP-withSpline-cut_Complete_SIDIS] --dry_run                                           --> False
+[HPP-withSpline-cut_Complete_SIDIS] --stage                                             --> 'all'
+[HPP-withSpline-cut_Complete_SIDIS] --run_rho_weight                                    --> True
+[HPP-withSpline-cut_Complete_SIDIS] --rho0_source                                       --> 'lundvpk'
+[HPP-withSpline-cut_Complete_SIDIS] --unsmeared                                         --> False
+[HPP-withSpline-cut_Complete_SIDIS] --matching_criteria                                 --> 'Bank'
+[HPP-withSpline-cut_Complete_SIDIS] --data_root                                         --> 'work_b'
+[HPP-withSpline-cut_Complete_SIDIS] --save_root                                         --> True
+[HPP-withSpline-cut_Complete_SIDIS] --save_name                                         --> 'Data_to_MC_Acceptance_Weights_Sys3D_nominal_withSpline.png'
+[HPP-withSpline-cut_Complete_SIDIS] --num_rdf_files                                     --> 171
+[HPP-withSpline-cut_Complete_SIDIS] --num_MC_files                                      --> 1820
+[HPP-withSpline-cut_Complete_SIDIS] --_accw_helpers_declared                            --> True
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] The time that this code finished is 03:00 a.m.
+[HPP-withSpline-cut_Complete_SIDIS] The total time the code took to run is:
+[HPP-withSpline-cut_Complete_SIDIS] 3 Day(s), 0 Hour(s), 30 Minute(s), and 49 Second(s).
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS] 
+[HPP-withSpline-cut_Complete_SIDIS]     	                                   	   
+[HPP-withSpline-cut_Complete_SIDIS]     	This code has now finished running.	   
+[HPP-withSpline-cut_Complete_SIDIS]     	                                   	   
+[HPP-withSpline-cut_Complete_SIDIS]     
+[HPP-withSpline-cut_Complete_SIDIS]     
+DONE [HPP-withSpline-cut_Complete_SIDIS] cut=cut_Complete_SIDIS rc=0 wall=261051.6s
