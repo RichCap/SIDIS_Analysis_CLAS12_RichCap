@@ -759,8 +759,9 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     Bin_Acceptance.Sumw2()
                     Bin_Acceptance.Divide(MC_GEN_1D)
                     for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1):
-                        if((all(cut not in str(Name_Main_Print) for cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"]) and (Bin_Acceptance.GetBinContent(bin_acceptance) < (args.Min_Allowed_Acceptance_Cut))) or (Bin_Acceptance.GetBinContent(bin_acceptance) < 0.5*(args.Min_Allowed_Acceptance_Cut))):
-                            # Condition above applied normal Acceptance Cuts only when the Sector Cuts are NOT present but will always apply the cuts if the acceptance is less than 50% of the normal set value
+                        # if((all(cut not in str(Name_Main_Print) for cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"]) and (Bin_Acceptance.GetBinContent(bin_acceptance) < (args.Min_Allowed_Acceptance_Cut))) or (Bin_Acceptance.GetBinContent(bin_acceptance) < 0.5*(args.Min_Allowed_Acceptance_Cut))):
+                        # A later reactivation should cover both electron _eS*o and pion _pipS*o tags.
+                        if(Bin_Acceptance.GetBinContent(bin_acceptance) < args.Min_Allowed_Acceptance_Cut):
                             # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
                             Unfolded_Histo.SetBinError(bin_acceptance,   0)
                             Unfolded_Histo.SetBinContent(bin_acceptance, 0)

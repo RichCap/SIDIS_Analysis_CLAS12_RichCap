@@ -180,6 +180,38 @@ std::string Strip_Smear_Tags(std::string name){
     return name;
 }
 
+std::string Generated_Cut_From_Reconstructed(const std::string& reconstructed_cut){
+    // cut_name_gdf is no_cut. A reconstructed systematic suffix is not part of that generated cut.
+    // _Extra is appended after the baseline for both sides when a user MC cut is on.
+    std::string extra = "";
+    std::string body = reconstructed_cut;
+    if((body.size() >= 6) && (body.substr(body.size() - 6) == "_Extra")){
+        extra = "_Extra";
+        body = body.substr(0, body.size() - 6);
+    }
+    if((body == "no_cut") || ((body.size() > 7) && (body.substr(0, 7) == "no_cut_"))){
+        return reconstructed_cut;
+    }
+    bool reconstructed = (body == "cut_Complete_SIDIS") || ((body.size() > 19) && (body.substr(0, 19) == "cut_Complete_SIDIS"));
+    reconstructed = reconstructed || (body == "cut_Complete") || ((body.size() > 12) && (body.substr(0, 12) == "cut_Complete"));
+    reconstructed = reconstructed || (body == "cut_Complete_EDIS");
+    if(!reconstructed){ return reconstructed_cut; }
+    return std::string("no_cut") + extra;
+}
+
+std::string Rewrite_Generated_Data_Cut(std::string name){
+    const std::string marker = "(Data-Cut='";
+    size_t start = name.find(marker);
+    if(start == std::string::npos){ return name; }
+    size_t value_begin = start + marker.size();
+    size_t value_end = name.find("')", value_begin);
+    if(value_end == std::string::npos){ return name; }
+    std::string cut = name.substr(value_begin, value_end - value_begin);
+    std::string generated = Generated_Cut_From_Reconstructed(cut);
+    if(generated == cut){ return name; }
+    return name.substr(0, value_begin) + generated + name.substr(value_end);
+}
+
 std::string Prepare_Gdf_Name(std::string name, const UnfoldArgs& args){
     name = replace_all(name, "(Data-Type='mdf')", "(Data-Type='gdf')");
     const std::string& weight_tag = args.weight_tag;
@@ -188,13 +220,9 @@ std::string Prepare_Gdf_Name(std::string name, const UnfoldArgs& args){
         if(weight_tag == "AccJSON"){ name += "_(JSON)"; }
         else if(weight_tag == "AccSpline"){ name += "_(Spline)"; }
     }
-    name = replace_all(name, "cut_Complete_EDIS", "no_cut");
-    for(int sector_cut_remove = 1; sector_cut_remove <= 6; ++sector_cut_remove){
-        name = replace_all(name, "cut_Complete_SIDIS_eS" + std::to_string(sector_cut_remove) + "o", "no_cut");
-    }
-    name = replace_all(name, "cut_Complete_SIDIS_Proton", "no_cut");
-    name = replace_all(name, "cut_Complete_SIDIS", "no_cut");
-    name = replace_all(name, "cut_Complete", "no_cut");
+    // Replace only the Data-Cut value. A whole-string prefix replace turned
+    // cut_Complete_SIDIS_pcalvol_tight into no_cut_pcalvol_tight.
+    name = Rewrite_Generated_Data_Cut(name);
     name = Strip_Smear_Tags(name);
     return Apply_Matrix_1D_Replacements(name);
 }
@@ -215,8 +243,7 @@ bool Is_Simple_Matrix_Candidate(const std::string& name, const UnfoldArgs& args)
     if(contains(name, "no_cut")){ return false; }
     if(contains(name, "cut_Complete_EDIS")){ return false; }
     if(!contains(name, "cut_Complete_SIDIS")){ return false; }
-    if(contains(name, "cut_Complete_SIDIS_eS")){ return false; }
-    if(contains(name, "no_cut_eS")){ return false; }
+    // Electron-sector and pion-sector cuts stay eligible. Generated no_cut objects are already rejected above.
     if(contains(name, "_Proton")){ return false; }
     if(contains(name, "Multi_Dim_")){ return false; }
     if(!contains(name, "phi_t")){ return false; }
@@ -460,11 +487,14 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
             Bin_Acceptance->Sumw2();
             Bin_Acceptance->Divide(MC_GEN_1D);
             for(int bin_acceptance = 0; bin_acceptance <= Bin_Acceptance->GetNbinsX(); ++bin_acceptance){
-                bool no_sector = (!contains(Name_Main_Print, "_eS1o")) && (!contains(Name_Main_Print, "_eS2o")) &&
-                                 (!contains(Name_Main_Print, "_eS3o")) && (!contains(Name_Main_Print, "_eS4o")) &&
-                                 (!contains(Name_Main_Print, "_eS5o")) && (!contains(Name_Main_Print, "_eS6o"));
+                // Electron-sector half-threshold left inactive so those cuts use the same 0.020 cut as the other variations.
+                // A later reactivation should apply that reduced threshold to both electron (_eS*o) and pion (_pipS*o) tags.
+                // bool no_sector = (!contains(Name_Main_Print, "_eS1o")) && (!contains(Name_Main_Print, "_eS2o")) &&
+                //                  (!contains(Name_Main_Print, "_eS3o")) && (!contains(Name_Main_Print, "_eS4o")) &&
+                //                  (!contains(Name_Main_Print, "_eS5o")) && (!contains(Name_Main_Print, "_eS6o"));
+                // if((no_sector && (acc < args.Min_Allowed_Acceptance_Cut)) || (acc < 0.5 * args.Min_Allowed_Acceptance_Cut)){
                 double acc = Bin_Acceptance->GetBinContent(bin_acceptance);
-                if((no_sector && (acc < args.Min_Allowed_Acceptance_Cut)) || (acc < 0.5 * args.Min_Allowed_Acceptance_Cut)){
+                if(acc < args.Min_Allowed_Acceptance_Cut){
                     Unfolded_Histo->SetBinError(bin_acceptance, 0);
                     Unfolded_Histo->SetBinContent(bin_acceptance, 0);
                 }

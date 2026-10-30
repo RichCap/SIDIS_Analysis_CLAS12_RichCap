@@ -967,11 +967,13 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
             Bin_Acceptance->Sumw2();
             Bin_Acceptance->Divide(MC_GEN_1D);
             for(int bin_acceptance = 0; bin_acceptance <= Bin_Acceptance->GetNbinsX(); ++bin_acceptance){
-                bool no_sector = (!contains(Name_Main_Print, "_eS1o")) && (!contains(Name_Main_Print, "_eS2o")) &&
-                                 (!contains(Name_Main_Print, "_eS3o")) && (!contains(Name_Main_Print, "_eS4o")) &&
-                                 (!contains(Name_Main_Print, "_eS5o")) && (!contains(Name_Main_Print, "_eS6o"));
+                // Electron-sector half-threshold left inactive. A later reactivation should cover both _eS*o and _pipS*o.
+                // bool no_sector = (!contains(Name_Main_Print, "_eS1o")) && (!contains(Name_Main_Print, "_eS2o")) &&
+                //                  (!contains(Name_Main_Print, "_eS3o")) && (!contains(Name_Main_Print, "_eS4o")) &&
+                //                  (!contains(Name_Main_Print, "_eS5o")) && (!contains(Name_Main_Print, "_eS6o"));
+                // if((no_sector && (acc < args.Min_Allowed_Acceptance_Cut)) || (acc < 0.5 * args.Min_Allowed_Acceptance_Cut)){
                 double acc = Bin_Acceptance->GetBinContent(bin_acceptance);
-                if((no_sector && (acc < args.Min_Allowed_Acceptance_Cut)) || (acc < 0.5 * args.Min_Allowed_Acceptance_Cut)){
+                if(acc < args.Min_Allowed_Acceptance_Cut){
                     Unfolded_Histo->SetBinError(bin_acceptance, 0);
                     Unfolded_Histo->SetBinContent(bin_acceptance, 0);
                 }

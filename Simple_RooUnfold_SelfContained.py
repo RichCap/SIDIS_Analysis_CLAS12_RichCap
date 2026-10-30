@@ -132,6 +132,9 @@ def parse_args():
                    action='store_true',
                    help=f"Run 5D unfolding only.\n{color.Error}Does NOT actually do the full unfolding — just used for fitting.{color.END}\n")
     
+    p.add_argument('-bbo', '--bin_by_bin_only',
+                   action='store_true',
+                   help="Write only the Method=Bin acceptance correction. Bayesian histograms are not produced in this output file.\n")
     p.add_argument('-um', '--Unfold_Methods',
                    nargs="+",
                    type=str,
@@ -574,9 +577,10 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             
             cut_criteria = args.Min_Allowed_Acceptance_Cut
 
-            if(any(Sector_Cut in str(Name_Print) for Sector_Cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"])):
-                print(f"{color.RED}NOTE: Reducing Acceptance Cut criteria by 50% for Sector Cut plots{color.END}")
-                cut_criteria = 0.5*args.Min_Allowed_Acceptance_Cut
+            # Electron-sector half-threshold left inactive. A later reactivation should cover both _eS*o and _pipS*o.
+            # if(any(Sector_Cut in str(Name_Print) for Sector_Cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"])):
+            #     print(f"{color.RED}NOTE: Reducing Acceptance Cut criteria by 50% for Sector Cut plots{color.END}")
+            #     cut_criteria = 0.5*args.Min_Allowed_Acceptance_Cut
             if(not getattr(args, "no_post_unfold_acc_cut", False)):
                 for ii in range(0, Bin_Acceptance.GetNbinsX() + 1):
                     if(Bin_Acceptance.GetBinContent(ii) < cut_criteria):# or Bin_Acceptance.GetBinContent(ii) < 0.015):
@@ -757,8 +761,9 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                             Bin_Acceptance.Sumw2()
                             Bin_Acceptance.Divide(MC_GEN_1D)
                         for bin_acceptance in range(0, Bin_Acceptance.GetNbinsX() + 1):
-                            if((all(cut not in str(Name_Main_Print) for cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"]) and (Bin_Acceptance.GetBinContent(bin_acceptance) < args.Min_Allowed_Acceptance_Cut)) or (Bin_Acceptance.GetBinContent(bin_acceptance) < 0.5*args.Min_Allowed_Acceptance_Cut)):
-                                # Condition above applied normal Acceptance Cuts only when the Sector Cuts are NOT present but will always apply the cuts if the acceptance is less than 50% of the normal set value
+                            # if((all(cut not in str(Name_Main_Print) for cut in ["_eS1o", "_eS2o", "_eS3o", "_eS4o", "_eS5o", "_eS6o"]) and (Bin_Acceptance.GetBinContent(bin_acceptance) < args.Min_Allowed_Acceptance_Cut)) or (Bin_Acceptance.GetBinContent(bin_acceptance) < 0.5*args.Min_Allowed_Acceptance_Cut)):
+                            # A later reactivation should cover both electron _eS*o and pion _pipS*o tags.
+                            if(Bin_Acceptance.GetBinContent(bin_acceptance) < args.Min_Allowed_Acceptance_Cut):
                                 # Unfolded_Histo.SetBinError(bin_acceptance,   Unfolded_Histo.GetBinContent(bin_acceptance) + Unfolded_Histo.GetBinError(bin_acceptance))
                                 Unfolded_Histo.SetBinError(bin_acceptance,   0)
                                 Unfolded_Histo.SetBinContent(bin_acceptance, 0)
@@ -1793,7 +1798,10 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         except:
             print(f"{color.Error}ERROR IN BIN UNFOLDING ('Bin_Method_Histograms'):\n{color.END_R}{traceback.format_exc()}{color.END}")
 
-        if(("sec" not in Variable_Input) or (Response_2D not in ["N/A", "None", "Error"])):
+        bin_only = bool(getattr(args, "bin_by_bin_only", False))
+        if(bin_only):
+            RooUnfolded_Bayes_Histos = None
+        elif(("sec" not in Variable_Input) or (Response_2D not in ["N/A", "None", "Error"])):
             try:
                 if("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input)):
                     # Temporary restriction on 5D unfolding as method is being tested for computational requirements (copy this line to see other restriction)
@@ -1836,10 +1844,12 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                 Multi_Dim_Bin_Acceptance                                                                                             = Multi3D_Slice(Histo=Bin_Acceptance,                        Title="norm", Name=Out_Print_Main, Method="Acceptance", Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin, args=args)[0]
                 if(args.fit and Allow_Fitting):
                     Multi_Dim_Bin_Histo,     Unfolded_Bin_Fit_Function, Chi_Squared_Bin, Bin_Fit_Par_A, Bin_Fit_Par_B, Bin_Fit_Par_C = Multi3D_Slice(Histo=[Bin_Unfolded,             MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bin",        Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin, args=args)
-                    Multi_Dim_Bay_Histo,     Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C = Multi3D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin, args=args)
+                    if(not bin_only):
+                        Multi_Dim_Bay_Histo, Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C = Multi3D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Complete", Fitting_Input="Default", Q2_y_Bin_Select=Q2_Y_Bin, args=args)
                 else:
                     Multi_Dim_Bin_Histo                                                                                              = Multi3D_Slice(Histo=[Bin_Unfolded,             MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bin",        Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin, args=args)[0]
-                    Multi_Dim_Bay_Histo                                                                                              = Multi3D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin, args=args)[0]
+                    if(not bin_only):
+                        Multi_Dim_Bay_Histo                                                                                          = Multi3D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                         Out_Option="Histos",   Fitting_Input="Off",     Q2_y_Bin_Select=Q2_Y_Bin, args=args)[0]
                 ###=============================================###
                 ###========###   After Unfolding     ###========###
                 ###=============================================###
@@ -1869,10 +1879,12 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
             Multi_Dim_Bin_Acceptance                                                                                             = Multi5D_Slice(Histo=Bin_Acceptance,                        Title="norm", Name=Out_Print_Main, Method="Acceptance", Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off", args=args)[0]
             if(args.fit and Allow_Fitting):
                 Multi_Dim_Bin_Histo,     Unfolded_Bin_Fit_Function, Chi_Squared_Bin, Bin_Fit_Par_A, Bin_Fit_Par_B, Bin_Fit_Par_C = Multi5D_Slice(Histo=[Bin_Unfolded,             MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bin",        Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Complete", Fitting_Input="Default", args=args)
-                Multi_Dim_Bay_Histo,     Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C = Multi5D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Complete", Fitting_Input="Default", args=args)
+                if(not bin_only):
+                    Multi_Dim_Bay_Histo, Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C = Multi5D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Complete", Fitting_Input="Default", args=args)
             else:
                 Multi_Dim_Bin_Histo                                                                                              = Multi5D_Slice(Histo=[Bin_Unfolded,             MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bin",        Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off", args=args)[0]
-                Multi_Dim_Bay_Histo                                                                                              = Multi5D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off", args=args)[0]
+                if(not bin_only):
+                    Multi_Dim_Bay_Histo                                                                                          = Multi5D_Slice(Histo=[RooUnfolded_Bayes_Histos, MC_REC_1D], Title="norm", Name=Out_Print_Main, Method="Bayesian",   Variable=Variable_Input, Smear=Smear_Input,                      Out_Option="Histos",   Fitting_Input="Off", args=args)[0]
             ###=============================================###
             ###========###   After Unfolding     ###========###
             ###=============================================###
@@ -1882,7 +1894,8 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
             if(args.fit and Allow_Fitting):
                 MC_GEN_1D,                   Unfolded_GEN_Fit_Function, Chi_Squared_GEN, GEN_Fit_Par_A, GEN_Fit_Par_B, GEN_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=MC_GEN_1D,                Method="gdf",   Special=[Q2_Y_Bin, Z_PT_Bin], args=args)
                 Bin_Unfolded,                Unfolded_Bin_Fit_Function, Chi_Squared_Bin, Bin_Fit_Par_A, Bin_Fit_Par_B, Bin_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=Bin_Unfolded,             Method="bbb",   Special=[Q2_Y_Bin, Z_PT_Bin], args=args)
-                RooUnfolded_Bayes_Histos,    Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RooUnfolded_Bayes_Histos, Method="bayes", Special=[Q2_Y_Bin, Z_PT_Bin], args=args)
+                if(not bin_only):
+                    RooUnfolded_Bayes_Histos, Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=RooUnfolded_Bayes_Histos, Method="bayes", Special=[Q2_Y_Bin, Z_PT_Bin], args=args)
                 if(ExTRUE_1D not in ["N/A"]):
                     ExTRUE_1D,               Unfolded_TDF_Fit_Function, Chi_Squared_TDF, TDF_Fit_Par_A, TDF_Fit_Par_B, TDF_Fit_Par_C = Fitting_Phi_Function(Histo_To_Fit=ExTRUE_1D,                Method="tdf",   Special=[Q2_Y_Bin, Z_PT_Bin], args=args)
         #####==========#####      Fitting 1D Histo       #####==========#####
@@ -1922,7 +1935,8 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
 
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bin"))]                                      = Bin_Unfolded.Clone(str(Histo_Name_General.replace("METHOD",             "Bin")))
         Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Acceptance"))]                               = Bin_Acceptance.Clone(str(Histo_Name_General.replace("METHOD",           "Acceptance")))
-        Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bayesian"))]                                 = RooUnfolded_Bayes_Histos.Clone(str(Histo_Name_General.replace("METHOD", "Bayesian")))
+        if(not bin_only):
+            Histogram_List_All[str(Histo_Name_General.replace("METHOD",     "Bayesian"))]                             = RooUnfolded_Bayes_Histos.Clone(str(Histo_Name_General.replace("METHOD", "Bayesian")))
         if(ExTRUE_1D not in ["N/A"]):
             Histogram_List_All[str(Histo_Name_General.replace("METHOD", "tdf"))]                                   = ExTRUE_1D.Clone(str(Histo_Name_General.replace("METHOD", "tdf")))
             if((args.fit and Allow_Fitting) and (not (("Multi" in str(Variable_Input)) and (Z_PT_Bin in ["All", 0])))):
