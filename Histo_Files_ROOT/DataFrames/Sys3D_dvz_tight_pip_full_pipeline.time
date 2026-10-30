@@ -22,3 +22,7 @@ peak_memory: 478.45 MB
 
 
 ===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-29T22:16:15 name=Sys3D_dvz_tight_pip mode=slurm email=none =====
+=== TASK: Only_3D-slurm | cut=cut_Complete_SIDIS_dvz_tight_pip | mode=slurm | rc=0 ===
+wall_time: 70635.24 s
+peak_memory: 475.42 MB
+
