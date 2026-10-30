@@ -15,8 +15,9 @@ from Campaign.systematics_campaign import (
     COMPLETE_LINEAGE_COUNT, EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, USED_CAMPAIGN_IDS, append_log, append_submission_history,
     bin_root, branch_settings, build_manifest, campaign_directory, command_text, file_nonempty, job_stem, load_recovery_batches,
     manifest_path, nominal_complete_command, output_counts, phase1_command, phase2_history_record, read_manifest,
-    recovery_failure_text, recovery_phase1_command, regen_command, response_matrix_ready, root_key_names, sbatch_script,
-    submission_ids_for_config, systematic_batch_paths, unfold_bin_ok, unfold_command, unfold_final_ok, worker_cap, write_manifest,
+    final_is_ready, part_is_ready, recovery_failure_text, recovery_phase1_command, regen_command, response_matrix_ready,
+    root_key_names, sbatch_script, submission_ids_for_config, systematic_batch_paths, unfold_bin_ok, unfold_command,
+    unfold_final_ok, worker_cap, write_manifest, written_output_path,
 )
 from Campaign.systematics_worker_ledger import bind_worker, pid_alive, release, try_acquire
 
@@ -128,18 +129,18 @@ def print_plan(manifest, regen_cmd):
             print("  hadd after listed batches")
             print("  %s" % command_text(row["command"]))
     camp = campaign_directory(manifest["data_root"], manifest["campaign"])
-    parts = os.path.join(camp, "unfold_parts")
     logs = os.path.join(camp, "slurm_logs")
     for row in manifest["phase2"]:
         if(row.get("status") == "deferred"):
             print("PHASE2 %s deferred" % row["key"])
             continue
         settings = branch_settings(row["branch"], 1, row["weight_tag"])
-        sample = unfold_command(sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], bin_root(parts, row, 1), 1, settings)
+        settings["unsmeared"] = bool(row.get("unsmeared"))
+        sample = unfold_command(sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], row["bins"]["1"]["root"], 1, settings)
         print("PHASE2 %s lineage %s" % (row["key"], row["lineage"]))
         print("  final %s" % row["final"])
         print("  bin1 %s" % command_text(sample))
-        script = sbatch_script(job_stem(row), logs, sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], parts, job_stem(row), row["branch"], row["weight_tag"])
+        script = sbatch_script(job_stem(row), logs, sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], os.path.dirname(row["bins"]["1"]["root"]), job_stem(row), row["branch"], row["weight_tag"], row.get("unsmeared"))
         print("  sbatch %s" % script.splitlines()[3])
     print("manifest %s" % manifest_path(camp))
     sys.stdout.flush()
@@ -219,16 +220,41 @@ def submit_sbatch(script_path):
     return text, ""
 
 
-def write_sbatch(camp, manifest, row):
+def bin_written_path(row, q2y):
+    return written_output_path(row["bins"][str(q2y)]["root"], row["weight_tag"])
+
+
+def bin_output_ready(row, q2y):
+    written = bin_written_path(row, q2y)
+    if(row["branch"] == "BinByBin"):
+        return unfold_bin_ok(row["bins"][str(q2y)]["root"], q2y, "Bin"), row["bins"][str(q2y)]["root"]
+    ready = part_is_ready(written, q2y, row["weight_tag"], row["response"], row.get("unsmeared"))
+    return ready, written
+
+
+def missing_part_bins(row):
+    missing = []
+    for q2y in Q2Y_BINS:
+        ready, written = bin_output_ready(row, q2y)
+        row["bins"][str(q2y)]["written"] = written
+        if(ready):
+            row["bins"][str(q2y)]["status"] = "success"
+            row["bins"][str(q2y)]["where"] = "reused"
+        else:
+            missing.append(int(q2y))
+    return missing
+
+
+def write_sbatch(camp, manifest, row, array_spec="1-17"):
     logs = os.path.join(camp, "slurm_logs")
-    parts = os.path.join(camp, "unfold_parts")
+    parts = os.path.dirname(row["bins"]["1"]["root"])
     os.makedirs(logs, exist_ok=True)
     os.makedirs(parts, exist_ok=True)
     path = os.path.join(camp, "sbatch", job_stem(row) + ".sh")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     text = sbatch_script(
         job_stem(row), logs, sys.executable, unfold_program(row["branch"]), manifest["data_root"],
-        row["response"], parts, job_stem(row), row["branch"], row["weight_tag"],
+        row["response"], parts, job_stem(row), row["branch"], row["weight_tag"], row.get("unsmeared"), array_spec,
     )
     handle = open(path, "w")
     handle.write(text)
@@ -256,9 +282,13 @@ def first_pending_bin(row, query_state, now):
         slot = row["bins"][str(q2y)]
         if(not bin_needs_work(slot)):
             continue
-        if(file_nonempty(slot["root"]) and unfold_bin_ok(slot["root"], q2y, bin_method(row["branch"]))):
+        ready, written = bin_output_ready(row, q2y)
+        if(ready):
+            slot["written"] = written
             slot["status"] = "success"
             slot["where"] = slot.get("where") or "slurm"
+            continue
+        if(row.get("array_id") == "reused"):
             continue
         state = query_state(row["array_id"], q2y)
         slot["slurm_state"] = "" if(state in [None]) else str(state)
@@ -523,7 +553,19 @@ def run_live(args, manifest):
             if(row.get("array_id") not in [None, ""]):
                 row["status"] = "submitted"
                 continue
-            script_path = write_sbatch(camp, manifest, row)
+            if(final_is_ready(row["final"], row["response"], row.get("unsmeared"))):
+                row["status"] = "success"
+                row["reason"] = "existing final kept"
+                append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "saved", "", "success", row["reason"], row["final"])
+                continue
+            missing = missing_part_bins(row)
+            if(len(missing) == 0):
+                row["array_id"] = "reused"
+                row["submit_time"] = time.time()
+                row["status"] = "submitted"
+                append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "saved", "reused", "submitted", "all part files already valid", row["final"])
+                continue
+            script_path = write_sbatch(camp, manifest, row, ",".join([str(index) for index in missing]))
             array_id, message = submit_sbatch(script_path)
             if(array_id in [None, ""]):
                 row["status"] = "failed"
@@ -592,10 +634,15 @@ def run_live(args, manifest):
                     continue
                 if(slot["status"] == "success"):
                     continue
-                if(file_nonempty(slot["root"]) and unfold_bin_ok(slot["root"], q2y, bin_method(row["branch"]))):
+                ready, written = bin_output_ready(row, q2y)
+                if(ready):
+                    slot["written"] = written
                     slot["status"] = "success"
                     slot["where"] = slot.get("where") or "slurm"
                     slot["missing_polls"] = 0
+                    continue
+                if(row.get("array_id") == "reused"):
+                    pending = True
                     continue
                 state = "" if(row.get("array_id") in [None, ""]) else query_state(row["array_id"], q2y)
                 slot["slurm_state"] = "" if(state in [None]) else str(state)
@@ -625,6 +672,12 @@ def run_live(args, manifest):
                     body = reason
                 send_mail(args.email, "SIDIS systematics Phase 2 failed %s" % row["key"], body)
             elif((not pending) and (row["lineage"] not in running_local)):
+                if(final_is_ready(row["final"], row["response"], row.get("unsmeared"))):
+                    row["status"] = "success"
+                    row["reason"] = "existing final kept"
+                    append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "saved", row.get("array_id"), "success", row["reason"], row["final"])
+                    send_mail(args.email, "SIDIS systematics Phase 2 success %s" % row["key"], row["final"] + "\n")
+                    continue
                 if(merge_bins(row)):
                     if(unfold_final_ok(row["final"])):
                         row["status"] = "success"
@@ -666,7 +719,10 @@ def phase1_parent_success(manifest, row):
 
 
 def merge_bins(row):
-    paths = [row["bins"][str(q2y)]["root"] for q2y in Q2Y_BINS]
+    paths = []
+    for q2y in Q2Y_BINS:
+        slot = row["bins"][str(q2y)]
+        paths.append(slot.get("written") or bin_written_path(row, q2y))
     final = row["final"]
     os.makedirs(os.path.dirname(final), exist_ok=True)
     tmp = final + ".hadd_tmp.root"
@@ -716,6 +772,7 @@ def parse_args(argv):
     parser.add_argument("-em", "--email_message", default="")
     parser.add_argument("-rb", "--recovery_batches", default=None)
     parser.add_argument("-incn", "--include_nominal", action="store_true")
+    parser.add_argument("-suo", "--shared_unfold_output", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -742,7 +799,7 @@ def main(argv=None):
         print("recovery does not regenerate the nominal spline HPP", file=sys.stderr)
         return 1
     try:
-        ceiling = COMPLETE_LINEAGE_COUNT if(args.include_nominal) else None
+        ceiling = COMPLETE_LINEAGE_COUNT if(args.include_nominal or args.shared_unfold_output) else None
         args.max_local_workers = worker_cap(args.max_local_workers, ceiling)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
@@ -764,7 +821,7 @@ def main(argv=None):
         manifest = build_manifest(
             args.data_root, args.campaign, args.weight_mode, args.max_local_workers,
             args.hpp_tag, args.regenerate_nominal_spline_hpp, stamp, previous=previous if(args.resume) else None,
-            recovery=recovery, include_nominal=args.include_nominal,
+            recovery=recovery, include_nominal=args.include_nominal, shared_unfold=args.shared_unfold_output,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)

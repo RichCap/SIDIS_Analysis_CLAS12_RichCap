@@ -116,6 +116,16 @@ Nominal histograms use `Sys3D_nominal_complete_20261029`, the existing Final_The
 
 5D unfolding and the spline Only_5D histogram job are not part of this command.
 
+## Spline and noSmear Phase 2 recovery
+
+`-suo` / `--shared_unfold_output` writes part files and finals into `systematics_3d_complete_20261029`, even when `-c` is a new id. A recovery entry may set `phase2_weights` to `spline`, `unweighted`, or `both`. That choice overrides `-wm`.
+
+Before a Spline array is submitted, each `q2yNN_WSpline.root` part is opened. It is reused only when it has a `_(Bayesian)_` histogram for that Q²–y bin, `error_mode=covariance`, and the configuration's merged response in `Latest_List_of_File_Names`. Nonempty size is not enough. Only bins that fail those checks are submitted. If every bin passes, the existing parts are hadded and a final that already passes is left as it is.
+
+`noSmear` Phase 2 passes `--no_smear`. A kept `noSmear` histogram must not contain `SMEAR=Smear`.
+
+`Campaign/recovery_batches_phase2_spline_nosmear.json` is Spline-only for the 30 finished Unweighted configurations and both weights for `noSmear`. `dvz_tight_pip` and `pipS6o` are not in it.
+
 Prepared command for the 28 October list, not launched by this repository change. Run it from the iFarm checkout:
 
 ```bash

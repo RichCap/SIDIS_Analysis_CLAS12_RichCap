@@ -297,8 +297,15 @@ def recovery_configs(payload):
             raise ValueError("external_merge needs an empty batch list for %s" % config_id)
         if(auto_merge and (not defer_merge)):
             raise ValueError("auto_merge keeps defer_merge for %s" % config_id)
+        config = dict(catalog[config_id])
+        weights = str(item.get("phase2_weights", "")).strip()
+        if(weights == "spline"):
+            weights = "weighted"
+        if(weights not in ["", "unweighted", "weighted", "both"]):
+            raise ValueError("unknown phase2_weights %s for %s" % (weights, config_id))
+        config["phase2_weights"] = weights
         chosen.append({
-            "config": catalog[config_id],
+            "config": config,
             "batches": spec,
             "original_job": str(item.get("original_job", "")),
             "defer_merge": defer_merge,
@@ -360,6 +367,7 @@ def branch_settings(branch, q2y, weight_tag):
 
 def phase2_jobs(config, weight_mode):
     jobs = []
+    requested = config.get("phase2_weights") or weight_mode
     if(config["nominal"]):
         jobs.append({"config_id": config["id"], "branch": "inherited", "weight_tag": "AccSpline", "local_order": 0, "lineage": config["id"]})
         for branch in phase2_branches():
@@ -395,14 +403,14 @@ def phase2_jobs(config, weight_mode):
                 "lineage": "%s__BinByBin" % config["id"],
             })
         return jobs
-    if(weight_mode == "unweighted"):
+    if(requested == "unweighted"):
         modes = [("Unweighted", "", 0)]
-    elif(weight_mode == "weighted"):
+    elif(requested == "weighted"):
         modes = [("Spline", "Spline", 0)]
-    elif(weight_mode == "both"):
+    elif(requested == "both"):
         modes = [("Spline", "Spline", 0), ("Unweighted", "", 1)]
     else:
-        raise ValueError("unknown weight mode %s" % weight_mode)
+        raise ValueError("unknown weight mode %s" % requested)
     for label, tag, order in modes:
         jobs.append({
             "config_id": config["id"],
@@ -411,6 +419,7 @@ def phase2_jobs(config, weight_mode):
             "weight_label": label,
             "local_order": order,
             "lineage": config["id"],
+            "unsmeared": bool(config.get("unsmeared")),
         })
     return jobs
 
@@ -445,6 +454,8 @@ def unfold_command(python, script, data_root, response, root_out, q2y, settings)
         ]
         if(settings["weight_tag"] not in [None, ""]):
             cmd.extend(["-wt", settings["weight_tag"]])
+        if(settings.get("unsmeared")):
+            cmd.append("--no_smear")
         cmd.append(str(int(q2y)))
         return cmd
     cmd = [
@@ -464,6 +475,8 @@ def unfold_command(python, script, data_root, response, root_out, q2y, settings)
         cmd.extend(["-bi", str(settings["iterations"])])
     if(settings["weight_tag"] not in [None, ""]):
         cmd.extend(["-wt", settings["weight_tag"]])
+    if(settings.get("unsmeared")):
+        cmd.append("--no_smear")
     return cmd
 
 
@@ -480,9 +493,128 @@ def iteration_shell(branch):
     return [], ""
 
 
-def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_dir, stem, branch, weight_tag):
+def written_output_path(path, weight_tag):
+    # The unfolder appends _W<tag> when a weight is requested and the given name does not already contain it.
+    tag = "" if(weight_tag in [None, ""]) else str(weight_tag)
+    if(tag == ""):
+        return path
+    suffix = "_W%s.root" % tag
+    text = str(path)
+    if(text.endswith(suffix)):
+        return text
+    if(text.endswith(".root")):
+        return text[:-5] + suffix
+    return text
+
+
+def object_strings(obj):
+    found = []
+    if(obj is None):
+        return found
+    try:
+        for item in obj:
+            if(hasattr(item, "GetString")):
+                found.append(str(item.GetString()))
+            else:
+                found.append(str(item))
+    except Exception:
+        return found
+    return found
+
+
+def bayesian_names_ready(names, q2y, unsmeared=False):
+    matched = False
+    for name in names:
+        text = str(name)
+        if(("_(Bayesian)_" not in text) or (not key_has_q2y(text, q2y))):
+            continue
+        if(unsmeared and ("SMEAR=Smear" in text)):
+            return False
+        matched = True
+    return matched
+
+
+def part_notes_ready(names, config_lines, input_lines, q2y, weight_tag, response, path, unsmeared=False):
+    tag = "" if(weight_tag in [None, ""]) else str(weight_tag)
+    text = str(path)
+    if(tag == ""):
+        if("_W" in os.path.basename(text)):
+            return False
+    elif(not text.endswith("_W%s.root" % tag)):
+        return False
+    if(not any(("error_mode=covariance" in line) for line in config_lines)):
+        return False
+    base = os.path.basename(str(response))
+    if(not any((base in line) for line in input_lines)):
+        return False
+    return bayesian_names_ready(names, q2y, unsmeared)
+
+
+def read_part_notes(path):
+    import ROOT
+    handle = ROOT.TFile.Open(str(path), "READ")
+    if((handle is None) or handle.IsZombie()):
+        return None
+    try:
+        if(handle.TestBit(ROOT.TFile.kRecovered)):
+            handle.Close()
+            return None
+    except Exception:
+        pass
+    names = []
+    keys = handle.GetListOfKeys()
+    if(keys is not None):
+        for key in keys:
+            names.append(key.GetName())
+    config_lines = object_strings(handle.Get("Simple_Unfold_Config"))
+    input_lines = object_strings(handle.Get("Latest_List_of_File_Names"))
+    handle.Close()
+    # This binary writes each TObjString as its own key. Accept that form and a TList.
+    if(len(config_lines) == 0):
+        config_lines = [name for name in names if(str(name).startswith("error_mode=") or str(name).startswith("bayes_iterations=") or str(name).startswith("unfolding_"))]
+    if(len(input_lines) == 0):
+        input_lines = [name for name in names if(("Response_Matrices" in str(name)) or str(name).endswith(".root"))]
+    return names, config_lines, input_lines
+
+
+def part_is_ready(path, q2y, weight_tag, response, unsmeared=False):
+    if(not file_nonempty(path)):
+        return False
+    try:
+        notes = read_part_notes(path)
+    except Exception:
+        return False
+    if(notes is None):
+        return False
+    names, config_lines, input_lines = notes
+    return part_notes_ready(names, config_lines, input_lines, q2y, weight_tag, response, path, unsmeared)
+
+
+def final_is_ready(path, response, unsmeared=False):
+    if(not file_nonempty(path)):
+        return False
+    try:
+        notes = read_part_notes(path)
+    except Exception:
+        return False
+    if(notes is None):
+        return False
+    names, config_lines, input_lines = notes
+    if(not any(("error_mode=covariance" in line) for line in config_lines)):
+        return False
+    base = os.path.basename(str(response))
+    if(not any((base in line) for line in input_lines)):
+        return False
+    for q2y in Q2Y_BINS:
+        if(not bayesian_names_ready(names, q2y, unsmeared)):
+            return False
+    return True
+
+
+def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_dir, stem, branch, weight_tag, unsmeared=False, array_spec="1-17"):
     settings = branch_settings(branch, 1, weight_tag)
     settings["iterations"] = None
+    settings["unsmeared"] = bool(unsmeared)
     sample = unfold_command(python, script, data_root, response, "ROOT_OUT", 1, settings)
     quoted = []
     for token in sample:
@@ -519,7 +651,7 @@ def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_
         "#SBATCH --account=clas12",
         "#SBATCH --mem-per-cpu=%s" % SLURM_MEM,
         "#SBATCH --time=%s" % SLURM_TIME,
-        "#SBATCH --array=1-17",
+        "#SBATCH --array=%s" % array_spec,
         "set -euo pipefail",
         'BIN="${SLURM_ARRAY_TASK_ID}"',
         'PAD=$(printf "%02d" "$BIN")',
@@ -585,7 +717,10 @@ def keep_recorded_hpp(previous, assigned):
     return merged
 
 
-def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False):
+SHARED_RESULT_CAMPAIGN = "systematics_3d_complete_20261029"
+
+
+def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False):
     batch_by_id = None
     job_by_id = None
     defer_by_id = None
@@ -630,8 +765,13 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             old_phase1[row["id"]] = row
         assigned = keep_recorded_hpp(old_phase1, assigned)
     camp = campaign_directory(data_root, campaign)
-    parts = os.path.join(camp, "unfold_parts")
-    unfold = os.path.join(camp, "unfolded")
+    if(shared_unfold):
+        shared = campaign_directory(data_root, SHARED_RESULT_CAMPAIGN)
+        parts = os.path.join(shared, "unfold_parts")
+        unfold = os.path.join(shared, "unfolded")
+    else:
+        parts = os.path.join(camp, "unfold_parts")
+        unfold = os.path.join(camp, "unfolded")
     phase1 = []
     phase2 = []
     old_phase1 = {}
@@ -726,6 +866,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
                 "status": "waiting_phase1",
                 "bins": bins,
                 "reason": "",
+                "unsmeared": bool(job.get("unsmeared")),
             }
             if(row.get("defer_merge") and (not row.get("auto_merge"))):
                 prow["status"] = "deferred"
@@ -747,6 +888,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         "campaign": campaign,
         "data_root": data_root,
         "weight_mode": weight_mode,
+        "shared_unfold": bool(shared_unfold),
         "max_local_workers": cap,
         "hpp_tag": tag,
         "regenerate_nominal_spline_hpp": bool(regenerate),

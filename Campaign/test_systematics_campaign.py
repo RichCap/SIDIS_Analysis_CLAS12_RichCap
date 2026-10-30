@@ -606,6 +606,76 @@ def complete_campaign_20261029():
                 raise SystemExit("dry-run wrote sbatch %s" % name)
 
 
+def phase2_spline_nosmear_dry_run():
+    import io
+    from contextlib import redirect_stdout
+    from Campaign.systematics_campaign import part_is_ready, part_notes_ready, written_output_path
+    json_path = os.path.join(_BOOT, "Campaign", "recovery_batches_phase2_spline_nosmear.json")
+    finished = [
+        "chi2_strict_pip", "dcfid_loose_el", "dcfid_loose_pip", "dcfid_tight_el", "dcfid_tight_pip",
+        "dcfidref_loose_el", "dcfidref_tight_el", "dcv_loose_el", "dcv_tight_el", "dvz_loose_pip",
+        "ecband_loose_el", "ecband_tight_el", "ecthr_loose_el", "ecthr_tight_el",
+        "eS1o", "eS2o", "eS3o", "eS4o", "eS5o", "eS6o",
+        "no_pip_testdc", "no_sector_pcal", "no_valerii_knockout", "pcalvol_loose", "pcalvol_tight",
+        "pipS1o", "pipS2o", "pipS3o", "pipS4o", "pipS5o",
+    ]
+    logical = "/parts/Sys3D_pcalvol_tight_inherited_Spline_q2y01.root"
+    if(written_output_path(logical, "Spline") != "/parts/Sys3D_pcalvol_tight_inherited_Spline_q2y01_WSpline.root"):
+        raise SystemExit("spline part path was not renamed")
+    if(written_output_path(logical, "") != logical):
+        raise SystemExit("unweighted part path changed")
+    names = ["(1D)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_All)"]
+    config_lines = ["error_mode=covariance"]
+    inputs = ["SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_pcalvol_tight_Bank_cut_Complete_SIDIS_pcalvol_tight_Response_Matrices_Final_Thesis_Files_All.root"]
+    part = written_output_path(logical, "Spline")
+    if(not part_notes_ready(names, config_lines, inputs, 1, "Spline", inputs[0], part, False)):
+        raise SystemExit("a valid spline note set was rejected")
+    if(part_notes_ready(names, config_lines, inputs, 1, "Spline", inputs[0], logical, False)):
+        raise SystemExit("a spline file without the _WSpline suffix was accepted")
+    if(part_notes_ready(names, ["error_mode=toys"], inputs, 1, "Spline", inputs[0], part, False)):
+        raise SystemExit("a non-covariance part was accepted")
+    smear_names = ["(1D)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_All)"]
+    if(part_notes_ready(smear_names, config_lines, inputs, 1, "", inputs[0], logical, True)):
+        raise SystemExit("a smeared histogram was accepted for noSmear")
+    diag = "/tmp/sidis_phase2_diag/Sys3D_pcalvol_tight_inherited_Spline_q2y01_WSpline.root"
+    if(os.path.isfile(diag)):
+        if(not part_is_ready(diag, 1, "Spline", inputs[0], False)):
+            raise SystemExit("the local spline bin did not pass the open check")
+        if(part_is_ready(diag, 2, "Spline", inputs[0], False)):
+            raise SystemExit("bin 2 was accepted from a bin 1 file")
+    stdout = io.StringIO()
+    with redirect_stdout(stdout):
+        code = runner.main([
+            "-n", "-c", "systematics_3d_phase2_recover_20261030", "-droot", "work_b", "-wm", "both",
+            "-rb", json_path, "-suo", "-mlw", "43",
+        ])
+    if(code != 0):
+        raise SystemExit("phase2 recovery dry-run exit %s" % code)
+    printed = stdout.getvalue()
+    camp = runner.campaign_directory("work_b", "systematics_3d_phase2_recover_20261030")
+    manifest = runner.read_manifest(camp)
+    ids = [row["id"] for row in manifest["phase1"]]
+    if((len(ids) != 31) or ("dvz_tight_pip" in ids) or ("pipS6o" in ids) or ("noSmear" not in ids)):
+        raise SystemExit("recovery inventory is not the 30 spline configs plus noSmear")
+    for config_id in finished:
+        rows = [row for row in manifest["phase2"] if(row["config_id"] == config_id)]
+        if([row["weight_label"] for row in rows] != ["Spline"]):
+            raise SystemExit("%s was not spline-only under -wm both" % config_id)
+        if("systematics_3d_complete_20261029/unfolded" not in rows[0]["final"]):
+            raise SystemExit("%s final is not in the shared unfolded directory" % config_id)
+    nosmear = [row for row in manifest["phase2"] if(row["config_id"] == "noSmear")]
+    if(sorted(row["weight_label"] for row in nosmear) != ["Spline", "Unweighted"]):
+        raise SystemExit("noSmear was not scheduled for both weights")
+    if(printed.count("--no_smear") < 2):
+        raise SystemExit("noSmear commands did not pass --no_smear")
+    if("PHASE2 pcalvol_tight__inherited__Unweighted" in printed):
+        raise SystemExit("a finished Unweighted configuration was scheduled again")
+    for walk_root, _dirs, files in os.walk(camp):
+        for name in files:
+            if(name.endswith(".sh")):
+                raise SystemExit("dry-run wrote sbatch %s" % name)
+
+
 def main():
     self_test()
     ledger_self_test()
@@ -615,6 +685,7 @@ def main():
     recovery_static_checks()
     followup_recovery_20261029()
     complete_campaign_20261029()
+    phase2_spline_nosmear_dry_run()
     print("systematics campaign self-test ok")
     return 0
 

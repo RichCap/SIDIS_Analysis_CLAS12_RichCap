@@ -1,0 +1,163 @@
+{
+  "source_campaign": "systematics_3d_complete_20261029",
+  "hybrid_date": "10_27_2026",
+  "slurm_time": "24:00:00",
+  "only3d_slurm_mem": "4500M",
+  "configs": [
+    {
+      "id": "chi2_strict_pip",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dcfid_loose_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dcfid_loose_pip",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dcfid_tight_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dcfid_tight_pip",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dcfidref_loose_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dcfidref_tight_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dcv_loose_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dcv_tight_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "dvz_loose_pip",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "ecband_loose_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "ecband_tight_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "ecthr_loose_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "ecthr_tight_el",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "eS1o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "eS2o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "eS3o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "eS4o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "eS5o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "eS6o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "no_pip_testdc",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "no_sector_pcal",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "no_valerii_knockout",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "pcalvol_loose",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "pcalvol_tight",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "pipS1o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "pipS2o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "pipS3o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "pipS4o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "pipS5o",
+      "batches": "",
+      "phase2_weights": "spline"
+    },
+    {
+      "id": "noSmear",
+      "batches": "",
+      "phase2_weights": "both"
+    }
+  ]
+}
