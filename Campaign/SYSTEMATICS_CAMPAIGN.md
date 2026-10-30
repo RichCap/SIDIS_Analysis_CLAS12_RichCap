@@ -106,6 +106,16 @@ On iFarm, `sinfo -p production -o "%P %l"` must show a maximum of at least 24 ho
 
 A later file, `Campaign/recovery_batches_20261029.json`, is a separate campaign. Empty `batches` skips histogram submission and the merge, then checks the merged response and unfolds. `defer_merge` submits only the listed batches and does not hadd. Phase 2 stdout and stderr go to `/farm_out/richcap/`. Nominal stays out.
 
+## Complete 3D campaign
+
+`Campaign/recovery_batches_complete_20261029.json` with `-incn` / `--include_nominal` is one submission. The campaign id is `systematics_3d_complete_20261029`. The three ids already used are refused for a live run. `-rnh` stays rejected. The October 29 recovery file is unchanged.
+
+Nominal histograms use `Sys3D_nominal_complete_20261029`, the existing Final_Thesis HPP pair, and the acc020 spline-weight file. They do not regenerate HPP files. After that merge passes the 17-bin plain and `_(Spline)` object check, Phase 2 submits the original AccSpline Bayesian branch, the seven variation branches, Bayesian Unweighted, and bin-by-bin Spline and Unweighted. Spline Bayesian is `AcceptanceWeightVariation` only. Bin-by-bin calls `Simple_RooUnfold_SelfContained.py -u3D -bbo` and returns the measured/acceptance correction before RooUnfold. The local-worker ceiling for `-incn` is 43. Without `-incn` the ceiling stays 41.
+
+`dvz_loose_pip` has an empty batch list and `external_merge`. The coordinator does not hadd it. A pause in file growth stays pending. Phase 2 starts after two object-check passes at the same size. `ecband_tight_el` and `ecthr_tight_el` still submit only their listed batches with `-dfm`. The same coordinator hadds them after all 171 batch files are valid on two successive reads, then starts Phase 2. No resume command is required. `pipS6o` stays on its selective non-deferred route.
+
+5D unfolding and the spline Only_5D histogram job are not part of this command.
+
 Prepared command for the 28 October list, not launched by this repository change. Run it from the iFarm checkout:
 
 ```bash

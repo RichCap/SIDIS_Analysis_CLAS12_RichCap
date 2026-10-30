@@ -474,6 +474,138 @@ def followup_recovery_20261029():
                 raise SystemExit("dry-run wrote sbatch %s" % name)
 
 
+def complete_campaign_20261029():
+    import io
+    from contextlib import redirect_stdout
+    from Campaign.systematics_campaign import (
+        expand_batch_spec, load_recovery_batches, response_names_ready, systematic_batch_paths, worker_cap,
+    )
+    json_path = os.path.join(_BOOT, "Campaign", "recovery_batches_complete_20261029.json")
+    old_path = os.path.join(_BOOT, "Campaign", "recovery_batches_20261029.json")
+    payload = load_recovery_batches(json_path)
+    old = load_recovery_batches(old_path)
+    if(len(payload["configs"]) != 33):
+        raise SystemExit("complete inventory config count")
+    total = 0
+    by_id = {}
+    for item in payload["configs"]:
+        by_id[item["id"]] = item
+        if(str(item.get("batches", "")).strip() != ""):
+            total += len(expand_batch_spec(item["batches"]))
+    if(total != 130):
+        raise SystemExit("complete histogram tasks %s" % total)
+    if(str(by_id["dvz_loose_pip"].get("batches", "x")).strip() != ""):
+        raise SystemExit("dvz_loose_pip still lists batches")
+    if(not by_id["dvz_loose_pip"].get("external_merge")):
+        raise SystemExit("dvz_loose_pip is not an external merge")
+    for config_id in ["ecband_tight_el", "ecthr_tight_el"]:
+        if((not by_id[config_id].get("defer_merge")) or (not by_id[config_id].get("auto_merge"))):
+            raise SystemExit("%s is not an automatic merge" % config_id)
+    if(by_id["pipS6o"].get("auto_merge")):
+        raise SystemExit("pipS6o was switched to automatic merge")
+    old_dvz = [item for item in old["configs"] if(item["id"] == "dvz_loose_pip")][0]
+    if(str(old_dvz.get("batches", "")).strip() == ""):
+        raise SystemExit("the October 29 recovery file lost dvz batches")
+    names = []
+    for q2y in range(1, 18):
+        for tag in ["", "_(Spline)"]:
+            names.append("(Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS_dcv_tight_el'), [Q2-y-Bin=%d, z]%s" % (q2y, tag))
+            names.append("Response_Matrix_Normal_1D (Data-Type='gdf'), (Data-Cut='no_cut') [Q2-y-Bin=%d, z]%s" % (q2y, tag))
+    if(not response_names_ready(names, "cut_Complete_SIDIS_dcv_tight_el")):
+        raise SystemExit("object check rejected a complete name set")
+    names_missing = list(names)
+    names_missing.pop()
+    if(response_names_ready(names_missing, "cut_Complete_SIDIS_dcv_tight_el")):
+        raise SystemExit("object check accepted a missing spline generated histogram")
+    paths = systematic_batch_paths("ecband_tight_el", "cut_Complete_SIDIS_ecband_tight_el", "10_27_2026")
+    if((len(paths) != 171) or ("Batch001.root" not in paths[0]) or ("10_27_2026" not in paths[0]) or ("Sys3D_ecband_tight_el" not in paths[0])):
+        raise SystemExit("EC batch path was not the existing volatile file")
+    if(worker_cap(43, 43) != 43):
+        raise SystemExit("complete cap 43 was rejected")
+    try:
+        worker_cap(44, 43)
+        raise SystemExit("cap 44 was accepted")
+    except ValueError:
+        pass
+    refused = runner.main(["-n", "-c", "systematics_3d_complete_cap", "-droot", "work_b", "-wm", "both", "-rb", json_path, "-incn", "-mlw", "44"])
+    if(refused == 0):
+        raise SystemExit("include_nominal accepted cap 44")
+    stdout = io.StringIO()
+    with redirect_stdout(stdout):
+        code = runner.main([
+            "-n", "-c", "systematics_3d_complete_20261029", "-droot", "work_b", "-wm", "both",
+            "-rb", json_path, "-incn", "-mlw", "43",
+        ])
+    if(code != 0):
+        raise SystemExit("complete dry-run exit %s" % code)
+    printed = stdout.getvalue()
+    if("recovery tasks 130" not in printed):
+        raise SystemExit("complete dry-run task count")
+    camp = runner.campaign_directory("work_b", "systematics_3d_complete_20261029")
+    manifest = runner.read_manifest(camp)
+    if((len(manifest["phase1"]) != 34) or (manifest.get("recovery_task_count") != 130)):
+        raise SystemExit("complete manifest counts")
+    nominal = [row for row in manifest["phase1"] if(row.get("nominal_complete"))]
+    if(len(nominal) != 1):
+        raise SystemExit("nominal complete row")
+    command = " ".join(nominal[0]["command"])
+    for token in ["-m slurm", "-sa", "-spf", "acc020_3D_BC_RC_rawA", "-hdate 10_29_2026", "-o3m 4500M", "Sys3D_nominal_complete_20261029"]:
+        if(token not in command):
+            raise SystemExit("nominal command missing %s" % token)
+    for banned in ["-rnh", "-rlb", "-bids", "-dfm", "-cwc"]:
+        if(banned in nominal[0]["command"]):
+            raise SystemExit("nominal command contains %s" % banned)
+    dvz = [row for row in manifest["phase1"] if(row["id"] == "dvz_loose_pip")][0]
+    if((dvz["command"] != []) or (not dvz.get("external_merge"))):
+        raise SystemExit("dvz_loose_pip was not left to the external merge")
+    auto = []
+    for row in manifest["phase1"]:
+        if(row.get("auto_merge")):
+            auto.append(row["id"])
+            if("-dfm" not in row["command"]):
+                raise SystemExit("%s submit does not defer the pipeline hadd" % row["id"])
+            if("-rlb" not in row["command"]):
+                raise SystemExit("%s does not replace only listed batches" % row["id"])
+    if(sorted(auto) != ["ecband_tight_el", "ecthr_tight_el"]):
+        raise SystemExit("automatic merge set %s" % auto)
+    if(printed.count("hadd after all 171 batch files validate") != 2):
+        raise SystemExit("automatic hadd lines")
+    if("wait for external merge; then Phase 2" not in printed):
+        raise SystemExit("dvz wait line missing")
+    nominal_rows = [row for row in manifest["phase2"] if(row["config_id"] == "nominal_complete_20261029")]
+    if(len(nominal_rows) != 11):
+        raise SystemExit("nominal Phase 2 count %s" % len(nominal_rows))
+    keys = [row["key"] for row in nominal_rows]
+    for required in [
+        "nominal_complete_20261029__inherited__AccSpline",
+        "nominal_complete_20261029__BayesMinus1__AccSpline",
+        "nominal_complete_20261029__BayesPlus1__AccSpline",
+        "nominal_complete_20261029__Acc015__AccSpline",
+        "nominal_complete_20261029__Acc025__AccSpline",
+        "nominal_complete_20261029__Phi12__AccSpline",
+        "nominal_complete_20261029__NoRho0__AccSpline",
+        "nominal_complete_20261029__AcceptanceWeightVariation__Spline",
+        "nominal_complete_20261029__inherited__Unweighted",
+        "nominal_complete_20261029__BinByBin__Spline",
+        "nominal_complete_20261029__BinByBin__Unweighted",
+    ]:
+        if(required not in keys):
+            raise SystemExit("missing nominal Phase 2 %s" % required)
+    if("nominal_complete_20261029__inherited__Spline" in keys):
+        raise SystemExit("spline Bayesian was scheduled twice")
+    bin_row = [row for row in nominal_rows if(row["key"].endswith("BinByBin__Unweighted"))][0]
+    if(bin_row["lineage"] != [row["lineage"] for row in nominal_rows if(row["key"].endswith("BinByBin__Spline"))][0]):
+        raise SystemExit("bin-by-bin weights do not share a lineage")
+    if("-bbo" not in printed):
+        raise SystemExit("bin-by-bin command was not printed")
+    if(printed.count("PHASE2 ecband_tight_el__inherited__Spline deferred") != 0):
+        raise SystemExit("EC Phase 2 stayed deferred")
+    for walk_root, _dirs, files in os.walk(camp):
+        for name in files:
+            if(name.endswith(".sh")):
+                raise SystemExit("dry-run wrote sbatch %s" % name)
+
+
 def main():
     self_test()
     ledger_self_test()
@@ -482,6 +614,7 @@ def main():
     dry_run_writes_manifest()
     recovery_static_checks()
     followup_recovery_20261029()
+    complete_campaign_20261029()
     print("systematics campaign self-test ok")
     return 0
 

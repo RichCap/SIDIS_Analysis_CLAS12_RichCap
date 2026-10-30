@@ -1156,6 +1156,9 @@ def main_start():
     weight_tag = getattr(args, "weight_tag", "")
     if((weight_tag not in ["", None]) and (f"_W{weight_tag}" not in str(args.root))):
         args.root = str(args.root).replace(".root", f"_W{weight_tag}.root")
+    output_parent = os.path.dirname(os.path.abspath(str(args.root)))
+    if(output_parent not in ["", None]):
+        os.makedirs(output_parent, exist_ok=True)
     args.pass_version = "Pass 2"
     args.closure = False
     args.sim = args.sim or False

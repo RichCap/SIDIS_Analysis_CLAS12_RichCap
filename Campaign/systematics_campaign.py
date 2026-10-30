@@ -2,6 +2,7 @@
 # This module builds commands and the manifest. It does not submit jobs.
 import json
 import os
+import sys
 import time
 
 try:
@@ -14,7 +15,16 @@ from jlab_work_paths import REL_HADD, REL_HPP_OUT, pipeline_output_path
 DEFAULT_CUT = "cut_Complete_SIDIS"
 NAME_IN_LABEL = "Final_Thesis_Files"
 LINEAGE_COUNT = 41
+COMPLETE_LINEAGE_COUNT = 43
+NOMINAL_COMPLETE_ID = "nominal_complete_20261029"
+SPLINE_WEIGHT_FILE = "Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt"
+USED_CAMPAIGN_IDS = [
+    "systematics_3d_both_rnh_20261027",
+    "systematics_3d_both_recovery_20261028",
+    "systematics_3d_both_recovery_20261029",
+]
 Q2Y_BINS = list(range(1, 18))
+WEIGHT_SUFFIXES = ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)"]
 EMAIL_TO = "richard.capobianco@uconn.edu"
 SLURM_MEM = "15000"
 SLURM_TIME = "1:40:00"
@@ -76,14 +86,17 @@ def nominal_iterations(q2y):
     return 5
 
 
-def worker_cap(requested):
+def worker_cap(requested, ceiling=None):
+    if(ceiling is None):
+        ceiling = LINEAGE_COUNT
+    ceiling = int(ceiling)
     if(requested in [None, ""]):
-        return LINEAGE_COUNT
+        return LINEAGE_COUNT if(ceiling >= LINEAGE_COUNT) else ceiling
     value = int(requested)
     if(value < 1):
         raise ValueError("local worker cap must be at least 1")
-    if(value > LINEAGE_COUNT):
-        raise ValueError("local worker cap %s is above the %s lineage ceiling" % (value, LINEAGE_COUNT))
+    if(value > ceiling):
+        raise ValueError("local worker cap %s is above the %s lineage ceiling" % (value, ceiling))
     return value
 
 
@@ -221,6 +234,37 @@ def recovery_phase1_command(python, submit_script, data_root, campaign, config, 
     return cmd
 
 
+def nominal_complete_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline):
+    # New output name. This does not write Sys3D_nominal and does not regenerate HPP files.
+    return [
+        python, submit_script,
+        "-droot", data_root,
+        "-m", "slurm",
+        "-y",
+        "-mac", "Bank",
+        "-cn", DEFAULT_CUT,
+        "-n", "Sys3D_%s" % NOMINAL_COMPLETE_ID,
+        "-sa",
+        "-hpf", hpp_pure,
+        "-hps", hpp_spline,
+        "-spf", SPLINE_WEIGHT_FILE,
+        "-j", "1",
+        "-j3D", "1",
+        "-j2D", "0",
+        "-j5D", "0",
+        "-jBin", "0",
+        "-jch4", "0",
+        "-jdph", "0",
+        "-j1D", "0",
+        "-jdiag", "0",
+        "-e", "none",
+        "-cwn", campaign,
+        "-hdate", "10_29_2026",
+        "-st", "24:00:00",
+        "-o3m", "4500M",
+    ]
+
+
 def recovery_configs(payload):
     catalog = {}
     for row in phase1_configs():
@@ -240,16 +284,26 @@ def recovery_configs(payload):
             raise ValueError("unknown recovery config %s" % config_id)
         spec = str(item.get("batches", "")).strip()
         defer_merge = bool(item.get("defer_merge", False))
+        external_merge = bool(item.get("external_merge", False))
+        auto_merge = bool(item.get("auto_merge", False))
         if(spec == ""):
             if(defer_merge):
                 raise ValueError("defer_merge needs a batch list for %s" % config_id)
+            if(auto_merge):
+                raise ValueError("auto_merge needs a batch list for %s" % config_id)
         else:
             expand_batch_spec(spec)
+        if(external_merge and (spec != "")):
+            raise ValueError("external_merge needs an empty batch list for %s" % config_id)
+        if(auto_merge and (not defer_merge)):
+            raise ValueError("auto_merge keeps defer_merge for %s" % config_id)
         chosen.append({
             "config": catalog[config_id],
             "batches": spec,
             "original_job": str(item.get("original_job", "")),
             "defer_merge": defer_merge,
+            "external_merge": external_merge,
+            "auto_merge": auto_merge,
         })
     return chosen
 
@@ -281,6 +335,7 @@ def branch_settings(branch, q2y, weight_tag):
         "phi_bins": 24,
         "iterations": None,
         "weight_tag": weight_tag,
+        "method": "Bayes",
     }
     if(branch == "BayesMinus1"):
         settings["iterations"] = nominal_iterations(q2y) - 1
@@ -296,6 +351,8 @@ def branch_settings(branch, q2y, weight_tag):
         settings["background"] = "None"
     elif(branch == "AcceptanceWeightVariation"):
         settings["weight_tag"] = "Spline"
+    elif(branch == "BinByBin"):
+        settings["method"] = "Bin"
     elif(branch != "inherited"):
         raise ValueError("unknown Phase 2 branch %s" % branch)
     return settings
@@ -313,6 +370,29 @@ def phase2_jobs(config, weight_mode):
                 "weight_tag": tag,
                 "local_order": 0,
                 "lineage": "nominal__%s" % branch,
+            })
+        if(config.get("nominal_complete")):
+            # Spline Bayesian is AcceptanceWeightVariation. Do not add a second inherited Spline job.
+            jobs.append({
+                "config_id": config["id"],
+                "branch": "inherited",
+                "weight_tag": "",
+                "local_order": 0,
+                "lineage": "%s__Unweighted" % config["id"],
+            })
+            jobs.append({
+                "config_id": config["id"],
+                "branch": "BinByBin",
+                "weight_tag": "Spline",
+                "local_order": 0,
+                "lineage": "%s__BinByBin" % config["id"],
+            })
+            jobs.append({
+                "config_id": config["id"],
+                "branch": "BinByBin",
+                "weight_tag": "",
+                "local_order": 1,
+                "lineage": "%s__BinByBin" % config["id"],
             })
         return jobs
     if(weight_mode == "unweighted"):
@@ -352,6 +432,21 @@ def final_root(unfold_dir, job):
 
 
 def unfold_command(python, script, data_root, response, root_out, q2y, settings):
+    if(settings.get("method") == "Bin"):
+        cmd = [
+            python, script,
+            "-droot", data_root,
+            "-u3D",
+            "-bbo",
+            "-ac", ("%s" % settings["acceptance"]),
+            "-bgs", settings["background"],
+            "-sfin", response,
+            "-r", root_out,
+        ]
+        if(settings["weight_tag"] not in [None, ""]):
+            cmd.extend(["-wt", settings["weight_tag"]])
+        cmd.append(str(int(q2y)))
+        return cmd
     cmd = [
         python, script,
         "-droot", data_root,
@@ -398,6 +493,21 @@ def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_
         else:
             quoted.append(shell_quote(token))
     case_lines, bi_suffix = iteration_shell(branch)
+    env_lines = []
+    if(settings.get("method") == "Bin"):
+        if((len(quoted) > 0) and (quoted[-1] == shell_quote("1"))):
+            quoted[-1] = '"$BIN"'
+        env_lines = [
+            'ROO=""',
+            'for cand in "$PWD/New_RooUnfold/RooUnfold/build-arm64" "$PWD/New_RooUnfold/RooUnfold/build" "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/New_RooUnfold/RooUnfold/build" "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/New_RooUnfold/RooUnfold/build"; do',
+            '  if [ -d "$cand" ]; then ROO="$cand"; break; fi',
+            'done',
+            'if [ -n "$ROO" ]; then',
+            '  export PYTHONPATH="$ROO${PYTHONPATH:+:$PYTHONPATH}"',
+            '  export LD_LIBRARY_PATH="$ROO${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"',
+            '  export DYLD_LIBRARY_PATH="$ROO${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"',
+            'fi',
+        ]
     lines = [
         "#!/bin/bash",
         "#SBATCH --ntasks=1",
@@ -416,6 +526,7 @@ def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_
         'ROOT="%s"' % os.path.join(parts_dir, stem + "_q2y${PAD}.root"),
     ]
     lines.extend(case_lines)
+    lines.extend(env_lines)
     lines.append(" ".join(quoted) + bi_suffix)
     lines.append("")
     return "\n".join(lines)
@@ -474,26 +585,44 @@ def keep_recorded_hpp(previous, assigned):
     return merged
 
 
-def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None):
+def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False):
     batch_by_id = None
     job_by_id = None
     defer_by_id = None
+    external_by_id = None
+    auto_by_id = None
     if(recovery is None):
+        if(include_nominal):
+            raise ValueError("include_nominal requires a recovery batch file")
         configs = phase1_configs()
     else:
-        # The JSON is the execution set. Nominal and unlisted configs are not added.
+        # The JSON is the execution set. Nominal is added only by include_nominal, under a new output name.
         regenerate = False
         picked = recovery_configs(recovery)
         configs = []
         batch_by_id = {}
         job_by_id = {}
         defer_by_id = {}
+        external_by_id = {}
+        auto_by_id = {}
         for item in picked:
             config = item["config"]
             configs.append(config)
             batch_by_id[config["id"]] = item["batches"]
             job_by_id[config["id"]] = item["original_job"]
             defer_by_id[config["id"]] = item["defer_merge"]
+            external_by_id[config["id"]] = item["external_merge"]
+            auto_by_id[config["id"]] = item["auto_merge"]
+        if(include_nominal):
+            nominal = phase1_row(NOMINAL_COMPLETE_ID, "")
+            nominal["nominal"] = True
+            nominal["nominal_complete"] = True
+            configs.append(nominal)
+            batch_by_id[nominal["id"]] = ""
+            job_by_id[nominal["id"]] = ""
+            defer_by_id[nominal["id"]] = False
+            external_by_id[nominal["id"]] = False
+            auto_by_id[nominal["id"]] = False
     assigned = assign_hpp(configs, data_root, tag, campaign, stamp, regenerate)
     if(previous is not None):
         old_phase1 = {}
@@ -515,7 +644,9 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
     for config in configs:
         paths = assigned[config["id"]]
         response = response_path(data_root, config["id"], config["cut"])
-        if(batch_by_id is None):
+        if(config.get("nominal_complete")):
+            cmd = nominal_complete_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"])
+        elif(batch_by_id is None):
             cmd = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, paths["hpp_nospline"], paths["hpp_spline"])
         elif(batch_by_id[config["id"]] in ["", None]):
             cmd = []
@@ -530,6 +661,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             "id": config["id"],
             "cut": config["cut"],
             "nominal": config["nominal"],
+            "nominal_complete": bool(config.get("nominal_complete")),
             "unsmeared": config["unsmeared"],
             "hpp_nospline": paths["hpp_nospline"],
             "hpp_spline": paths["hpp_spline"],
@@ -538,11 +670,15 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             "status": "planned",
             "pid": None,
             "reason": "",
+            "external_merge": False,
+            "auto_merge": False,
         }
         if(batch_by_id is not None):
             row["batch_ids"] = batch_by_id[config["id"]]
             row["original_job"] = job_by_id[config["id"]]
             row["defer_merge"] = bool(defer_by_id[config["id"]])
+            row["external_merge"] = bool(external_by_id[config["id"]])
+            row["auto_merge"] = bool(auto_by_id[config["id"]])
         old = old_phase1.get(config["id"])
         if(isinstance(old, dict) and (old.get("status") in ["success", "failed", "running"])):
             row["status"] = old.get("status")
@@ -550,7 +686,9 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             row["reason"] = old.get("reason") or ""
             row["hpp_nospline"] = old.get("hpp_nospline") or row["hpp_nospline"]
             row["hpp_spline"] = old.get("hpp_spline") or row["hpp_spline"]
-            if(batch_by_id is None):
+            if(row.get("nominal_complete")):
+                row["command"] = nominal_complete_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"])
+            elif(batch_by_id is None):
                 row["command"] = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, row["hpp_nospline"], row["hpp_spline"])
             else:
                 if(row.get("batch_ids") in ["", None]):
@@ -589,7 +727,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
                 "bins": bins,
                 "reason": "",
             }
-            if(row.get("defer_merge")):
+            if(row.get("defer_merge") and (not row.get("auto_merge"))):
                 prow["status"] = "deferred"
                 prow["reason"] = "merge deferred"
             old = old_phase2.get(key)
@@ -732,7 +870,7 @@ def root_key_names(path):
     return names
 
 
-def unfold_bin_ok(path, q2y):
+def unfold_bin_ok(path, q2y, require_method=None):
     if(not file_nonempty(path)):
         return False
     try:
@@ -741,7 +879,83 @@ def unfold_bin_ok(path, q2y):
         return False
     if(names is None):
         return False
+    if(require_method == "Bin"):
+        for name in names:
+            text = str(name)
+            if(key_has_q2y(text, q2y) and (("_(Bin)_" in text) or ("(Data-Type='Bin')" in text))):
+                return True
+        return False
     return key_has_q2y_any(names, q2y)
+
+
+def weight_name_ok(name, tag):
+    text = str(name)
+    if(tag == "_(Spline)"):
+        return text.endswith("_(Spline)")
+    for suffix in WEIGHT_SUFFIXES:
+        if(text.endswith(suffix)):
+            return False
+    return True
+
+
+def response_names_ready(names, cut):
+    # Plain and _(Spline), every Q2-y bin. Acc, JSON, and AccSpline do not satisfy the plain check.
+    if(not isinstance(names, (list, tuple))):
+        return False
+    cut_token = "(Data-Cut='%s')" % cut
+    generated = "(Data-Type='gdf'), (Data-Cut='no_cut')"
+    for q2y in Q2Y_BINS:
+        bin_token = "Q2-y-Bin=%d," % int(q2y)
+        for tag in ["", "_(Spline)"]:
+            matrix = False
+            generated_ok = False
+            for name in names:
+                text = str(name)
+                if((not weight_name_ok(text, tag)) or (bin_token not in text)):
+                    continue
+                if(("Response_Matrix_Normal_1D" in text) and (generated in text)):
+                    generated_ok = True
+                if(("(Histo-Group='Response_Matrix_Normal')" in text) and ("(Data-Type='mdf')" in text) and (cut_token in text) and ("Response_Matrix_Normal_1D" not in text)):
+                    matrix = True
+            if((not matrix) or (not generated_ok)):
+                return False
+    return True
+
+
+def response_matrix_ready(path, cut):
+    if(not file_nonempty(path)):
+        return False
+    try:
+        names = root_key_names(path)
+    except Exception:
+        return False
+    if(names is None):
+        return False
+    return response_names_ready(names, cut)
+
+
+def systematic_batch_paths(config_id, cut, hybrid_date, num_batches=171):
+    # Same directory and file names as Submit_Full hybrid_batch_paths plus the pipeline batch writer.
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    df = os.path.join(root, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import Submit_Full_Histogram_Creation_Pipeline as submit_full
+    import run_sidis_DataFrame_pipeline as pipeline
+    stub = type("Stub", (), {})()
+    stub.name = "Sys3D_%s" % config_id
+    stub.matching_criteria = "Bank"
+    stub.hybrid_date = str(hybrid_date)
+    product = {"name_fmt": "Only_3D_{shared}_Response_Matrices"}
+    batch_dir, _subdir = submit_full.hybrid_batch_paths(stub, cut, product)
+    pipe = type("Pipe", (), {})()
+    pipe.name = submit_full.product_output_name(product, submit_full.product_shared_name(stub, cut))
+    pipe.name_in = ["*Final_Thesis_Files*.root"]
+    pipe.root = "SIDIS_epip_Response_Matrices_from_RDataFrames.root"
+    paths = []
+    for index in range(1, int(num_batches) + 1):
+        paths.append(pipeline.expected_batch_root_path(pipe, batch_dir, index))
+    return paths
 
 
 def key_has_q2y_any(names, q2y):

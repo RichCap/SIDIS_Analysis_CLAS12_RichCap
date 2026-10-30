@@ -4,6 +4,24 @@ import sys
 import ROOT
 import traceback
 import os
+import re
+
+def generated_histogram_name(name):
+    # Generated Data-Cut is no_cut. A reconstructed suffix is not copied onto that name. _Extra is kept.
+    match = re.search(r"\(Data-Cut='([^']*)'\)", str(name))
+    if(match is None):
+        return name
+    body = match.group(1)
+    extra = ""
+    if(body.endswith("_Extra")):
+        extra = "_Extra"
+        body = body[:-6]
+    if((body == "no_cut") or body.startswith("no_cut_")):
+        return name
+    reconstructed = (body == "cut_Complete_EDIS") or body.startswith("cut_Complete")
+    if(not reconstructed):
+        return name
+    return str(name)[:match.start(1)] + "no_cut" + extra + str(name)[match.end(1):]
 
 _BOOT = os.path.abspath(os.path.dirname(__file__))
 if(_BOOT not in sys.path):
@@ -592,6 +610,9 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
             print(f"{color.BCYAN}Finished {color.PURPLE}Bin-by-Bin{color.END_B}{color.CYAN} Unfolding Procedure.{color.END}")
             args.timer.time_elapsed()
             if(Response_2D in ["N/A", "None", "Error"]):
+                return [Bin_Unfolded, Bin_Acceptance]
+            # -bbo writes the measured/acceptance correction and does not continue into RooUnfold.
+            if(getattr(args, "bin_by_bin_only", False)):
                 return [Bin_Unfolded, Bin_Acceptance]
         except:
             print(f"\n{color.Error}FAILED TO CORRECT A HISTOGRAM (Bin-by-Bin)...\nERROR:\n{color.END}{traceback.format_exc()}")
@@ -1801,6 +1822,12 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
         bin_only = bool(getattr(args, "bin_by_bin_only", False))
         if(bin_only):
             RooUnfolded_Bayes_Histos = None
+            Multi_Dim_Bay_Histo = None
+            Unfolded_Bay_Fit_Function = None
+            Chi_Squared_Bay = None
+            Bay_Fit_Par_A = None
+            Bay_Fit_Par_B = None
+            Bay_Fit_Par_C = None
         elif(("sec" not in Variable_Input) or (Response_2D not in ["N/A", "None", "Error"])):
             try:
                 if("MultiDim_Q2_y_z_pT_phi_h" in str(Variable_Input)):
@@ -1962,6 +1989,7 @@ def New_Version_of_File_Creation(Histogram_List_All, Out_Print_Main, Response_2D
                         histos_list_loop = [Multi_Dim_ExREAL_1D, Multi_Dim_MC_REC_1D, Multi_Dim_MC_GEN_1D, Unfolded_GEN_Fit_Function, Chi_Squared_GEN, GEN_Fit_Par_A, GEN_Fit_Par_B, GEN_Fit_Par_C, Multi_Dim_Bin_Histo, Unfolded_Bin_Fit_Function, Chi_Squared_Bin, Bin_Fit_Par_A, Bin_Fit_Par_B, Bin_Fit_Par_C, Multi_Dim_Bin_Acceptance, Multi_Dim_Bay_Histo, Unfolded_Bay_Fit_Function, Chi_Squared_Bay, Bay_Fit_Par_A, Bay_Fit_Par_B, Bay_Fit_Par_C]
                     else:
                         histos_list_loop = [Multi_Dim_ExREAL_1D, Multi_Dim_MC_REC_1D, Multi_Dim_MC_GEN_1D,                                                                                          Multi_Dim_Bin_Histo,                                                                                          Multi_Dim_Bin_Acceptance, Multi_Dim_Bay_Histo]
+                histos_list_loop = [item for item in histos_list_loop if(item is not None)]
                 if(MC_BGS_1D not in ["None"]):
                     histos_list_loop.append(Multi_Dim_MC_BGS_1D)
                 try:
@@ -2050,6 +2078,9 @@ def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding, only_names=None)
             print(f"{color.BOLD}No fitted objects to write for this correction-family selection.{color.END}")
             return List_of_All_Histos_For_Unfolding
     if(not args.test):
+        output_parent = os.path.dirname(os.path.abspath(str(args.root)))
+        if(output_parent not in ["", None]):
+            os.makedirs(output_parent, exist_ok=True)
         print(f"{color.BBLUE}Saving to: {color.BGREEN}{args.root}{color.END}")
         if(only_names is not None):
             print(f"{color.BBLUE}Writing only this pass's fitted objects ({color.END_B}{len(only_names)}{color.BBLUE}).{color.END}")
@@ -2540,12 +2571,13 @@ def main_unfold(args):
                 ##======##     Removing Sliced Increments from non-TH2D Plot Names    ##======##
                 ################################################################################
                 ##=============##    Removing Cuts from the Generated files    ##=============##
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
-                for sector_cut_remove in range(1, 7):
-                    out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
-                del sector_cut_remove
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
+                # for sector_cut_remove in range(1, 7):
+                #     out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
+                # del sector_cut_remove
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                out_print_main_gdf     = generated_histogram_name(out_print_main_gdf)
                 ##=============##    Removing Cuts from the Generated files    ##=============##
                 ################################################################################
                 ##=============##    Removing Smearing from Non-MC_REC files   ##=============##
@@ -2710,12 +2742,13 @@ def main_unfold(args):
                 ##=============##          Finding MC Backgound Plots          ##=============##
                 ################################################################################
                 ##=============##    Removing Cuts from the Generated files    ##=============##
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
-                for sector_cut_remove in range(1, 7):
-                    out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
-                del sector_cut_remove
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
+                # for sector_cut_remove in range(1, 7):
+                #     out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
+                # del sector_cut_remove
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                out_print_main_gdf     = generated_histogram_name(out_print_main_gdf)
                 out_print_main_gdf     = out_print_main_gdf.replace("_Proton",                                    "")
                 ##=============##    Removing Cuts from the Generated files    ##=============##
                 ################################################################################
@@ -2967,14 +3000,15 @@ def main_unfold(args):
                     out_print_main_gdf = f"{strip_weight_tag_suffixes(out_print_main_gdf)}_(Spline)"
                 ################################################################################
                 ##=============##    Removing Cuts from the Generated files    ##=============##
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
-                for sector_cut_remove in range(1, 7):
-                    out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
-                    out_print_main_gdf = out_print_main_gdf.replace(f"Integrate_eS{sector_cut_remove}o",       "Integrate")
-                del sector_cut_remove
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS_Proton",                  "no_cut")
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
-                out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_EDIS",                          "no_cut")
+                # for sector_cut_remove in range(1, 7):
+                #     out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
+                #     out_print_main_gdf = out_print_main_gdf.replace(f"Integrate_eS{sector_cut_remove}o",       "Integrate")
+                # del sector_cut_remove
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS_Proton",                  "no_cut")
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete_SIDIS",                         "no_cut")
+                # out_print_main_gdf     = out_print_main_gdf.replace("cut_Complete",                               "no_cut")
+                out_print_main_gdf     = generated_histogram_name(out_print_main_gdf)
                 ##=============##    Removing Cuts from the Generated files    ##=============##
                 ################################################################################
 

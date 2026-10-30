@@ -12,16 +12,31 @@ if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 
 from Campaign.systematics_campaign import (
-    EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, append_log, append_submission_history, bin_root, branch_settings, build_manifest,
-    campaign_directory, command_text, file_nonempty, job_stem, load_recovery_batches, manifest_path, output_counts,
-    phase1_command, phase2_history_record, read_manifest, recovery_failure_text, recovery_phase1_command, regen_command,
-    root_key_names, sbatch_script, submission_ids_for_config, unfold_bin_ok, unfold_command, unfold_final_ok, worker_cap, write_manifest,
+    COMPLETE_LINEAGE_COUNT, EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, USED_CAMPAIGN_IDS, append_log, append_submission_history,
+    bin_root, branch_settings, build_manifest, campaign_directory, command_text, file_nonempty, job_stem, load_recovery_batches,
+    manifest_path, nominal_complete_command, output_counts, phase1_command, phase2_history_record, read_manifest,
+    recovery_failure_text, recovery_phase1_command, regen_command, response_matrix_ready, root_key_names, sbatch_script,
+    submission_ids_for_config, systematic_batch_paths, unfold_bin_ok, unfold_command, unfold_final_ok, worker_cap, write_manifest,
 )
 from Campaign.systematics_worker_ledger import bind_worker, pid_alive, release, try_acquire
 
 SUBMIT_SCRIPT = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py")
 UNFOLD_SCRIPT = os.path.join(_BOOT, "run_Simple_Unfold.py")
+BIN_SCRIPT = os.path.join(_BOOT, "Simple_RooUnfold_SelfContained.py")
 DATAFRAMES_DIR = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
+WAIT_POLL_S = 60
+
+
+def unfold_program(branch):
+    if(branch == "BinByBin"):
+        return BIN_SCRIPT
+    return UNFOLD_SCRIPT
+
+
+def bin_method(branch):
+    if(branch == "BinByBin"):
+        return "Bin"
+    return None
 
 
 def response_ok(path):
@@ -52,7 +67,12 @@ def slurm_helpers():
 
 def fill_commands(manifest, python):
     for row in manifest["phase1"]:
-        config = {"id": row["id"], "cut": row["cut"], "unsmeared": row["unsmeared"], "nominal": row["nominal"]}
+        config = {"id": row["id"], "cut": row["cut"], "unsmeared": row["unsmeared"], "nominal": row["nominal"], "nominal_complete": row.get("nominal_complete")}
+        if(row.get("nominal_complete")):
+            row["command"] = nominal_complete_command(
+                python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], row["hpp_nospline"], row["hpp_spline"],
+            )
+            continue
         if(manifest.get("recovery")):
             if(row.get("batch_ids") in [None, ""]):
                 row["command"] = []
@@ -90,8 +110,17 @@ def print_plan(manifest, regen_cmd):
         print("  hpp_nospline %s" % row["hpp_nospline"])
         print("  hpp_spline %s" % row["hpp_spline"])
         print("  response %s" % row["response"])
-        if(row.get("batch_ids") in [None, ""]):
-            print("  skip histograms; verify merged response; then Phase 2")
+        if(row.get("nominal_complete")):
+            print("  full nominal histograms; then Phase 2")
+            print("  %s" % command_text(row["command"]))
+        elif(row.get("batch_ids") in [None, ""]):
+            if(row.get("external_merge")):
+                print("  wait for external merge; then Phase 2")
+            else:
+                print("  skip histograms; verify merged response; then Phase 2")
+        elif(row.get("auto_merge")):
+            print("  hadd after all 171 batch files validate")
+            print("  %s" % command_text(row["command"]))
         elif(row.get("defer_merge")):
             print("  hadd deferred")
             print("  %s" % command_text(row["command"]))
@@ -106,11 +135,11 @@ def print_plan(manifest, regen_cmd):
             print("PHASE2 %s deferred" % row["key"])
             continue
         settings = branch_settings(row["branch"], 1, row["weight_tag"])
-        sample = unfold_command(sys.executable, UNFOLD_SCRIPT, manifest["data_root"], row["response"], bin_root(parts, row, 1), 1, settings)
+        sample = unfold_command(sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], bin_root(parts, row, 1), 1, settings)
         print("PHASE2 %s lineage %s" % (row["key"], row["lineage"]))
         print("  final %s" % row["final"])
         print("  bin1 %s" % command_text(sample))
-        script = sbatch_script(job_stem(row), logs, sys.executable, UNFOLD_SCRIPT, manifest["data_root"], row["response"], parts, job_stem(row), row["branch"], row["weight_tag"])
+        script = sbatch_script(job_stem(row), logs, sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], parts, job_stem(row), row["branch"], row["weight_tag"])
         print("  sbatch %s" % script.splitlines()[3])
     print("manifest %s" % manifest_path(camp))
     sys.stdout.flush()
@@ -119,13 +148,13 @@ def print_plan(manifest, regen_cmd):
 def reconcile_existing(manifest):
     for row in manifest["phase1"]:
         if((row["status"] == "running") and (not pid_alive(row.get("pid")))):
-            if(response_ok(row["response"])):
+            if(response_matrix_ready(row["response"], row["cut"])):
                 row["status"] = "success"
                 row["reason"] = ""
             else:
                 row["status"] = "failed"
                 row["reason"] = row.get("reason") or "phase1 process ended without a response file"
-        elif((row["status"] == "success") and (not response_ok(row["response"]))):
+        elif((row["status"] == "success") and (not response_matrix_ready(row["response"], row["cut"]))):
             row["status"] = "failed"
             row["reason"] = "recorded success has no valid response file"
     for row in manifest["phase2"]:
@@ -135,14 +164,27 @@ def reconcile_existing(manifest):
 
 
 def settle_saved_phase1(manifest, row, enabled_mail, camp):
-    # Empty batch list: Phase 1 already finished. Do not submit or merge histograms.
-    if(response_ok(row["response"])):
+    # Empty batch list: do not submit or merge histograms.
+    ready = response_matrix_ready(row["response"], row["cut"])
+    if(row.get("external_merge")):
+        size = os.path.getsize(row["response"]) if(file_nonempty(row["response"])) else 0
+        row["status"] = "waiting_merge"
+        row["reason"] = "waiting for the external merge"
+        row["confirm_ready"] = ready
+        row["confirm_size"] = size
+        row["next_check_at"] = time.time() + WAIT_POLL_S
+        append_log(camp, "phase1", row["id"], "", "", "", "saved", "", "waiting", row["reason"], row["response"])
+        return
+    if(ready):
         row["status"] = "success"
         row["reason"] = ""
         append_log(camp, "phase1", row["id"], "", "", "", "saved", "", "success", "", row["response"])
         return
     row["status"] = "failed"
-    row["reason"] = "merged response is missing"
+    if(file_nonempty(row["response"])):
+        row["reason"] = "merged response failed the object check"
+    else:
+        row["reason"] = "merged response is missing"
     append_log(camp, "phase1", row["id"], "", "", "", "saved", "", "failed", row["reason"], row["response"])
     body = row["reason"] + "\n"
     if(manifest.get("recovery")):
@@ -151,7 +193,7 @@ def settle_saved_phase1(manifest, row, enabled_mail, camp):
 
 
 def phase1_needs_start(row):
-    if((row["status"] == "success") and response_ok(row["response"])):
+    if(row["status"] in ["success", "waiting_merge", "waiting_batches", "merging", "deferred"]):
         return False
     if((row["status"] == "running") and pid_alive(row.get("pid"))):
         return False
@@ -185,7 +227,7 @@ def write_sbatch(camp, manifest, row):
     path = os.path.join(camp, "sbatch", job_stem(row) + ".sh")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     text = sbatch_script(
-        job_stem(row), logs, sys.executable, UNFOLD_SCRIPT, manifest["data_root"],
+        job_stem(row), logs, sys.executable, unfold_program(row["branch"]), manifest["data_root"],
         row["response"], parts, job_stem(row), row["branch"], row["weight_tag"],
     )
     handle = open(path, "w")
@@ -214,7 +256,7 @@ def first_pending_bin(row, query_state, now):
         slot = row["bins"][str(q2y)]
         if(not bin_needs_work(slot)):
             continue
-        if(file_nonempty(slot["root"]) and unfold_bin_ok(slot["root"], q2y)):
+        if(file_nonempty(slot["root"]) and unfold_bin_ok(slot["root"], q2y, bin_method(row["branch"]))):
             slot["status"] = "success"
             slot["where"] = slot.get("where") or "slurm"
             continue
@@ -253,10 +295,134 @@ def launch_local(manifest, camp, row, q2y, cap):
     return token
 
 
+def confirm_external_merge(row, camp):
+    path = row["response"]
+    size = os.path.getsize(path) if(file_nonempty(path)) else 0
+    ready = response_matrix_ready(path, row["cut"]) if(size > 0) else False
+    previous_size = row.get("confirm_size")
+    previous_ready = bool(row.get("confirm_ready"))
+    row["confirm_size"] = size
+    row["confirm_ready"] = ready
+    # A size plateau while the object check fails stays pending. Two passing reads at the same size are required.
+    if(ready and previous_ready and (previous_size == size) and (size > 0)):
+        row["status"] = "success"
+        row["reason"] = ""
+        append_log(camp, "phase1", row["id"], "", "", "", "saved", "", "success", "", path)
+        return True
+    row["status"] = "waiting_merge"
+    row["reason"] = "waiting for the external merge"
+    return False
+
+
+def batch_files_signature(row, hybrid_date):
+    if(DATAFRAMES_DIR not in sys.path):
+        sys.path.insert(0, DATAFRAMES_DIR)
+    import run_sidis_DataFrame_pipeline as pipeline
+    paths = systematic_batch_paths(row["id"], row["cut"], hybrid_date)
+    sizes = []
+    for path in paths:
+        if(not pipeline.batch_root_is_valid(path, "MultiDim")):
+            return None, paths
+        sizes.append(os.path.getsize(path))
+    return sizes, paths
+
+
+def confirm_batch_merge(row, camp, merge_procs, hybrid_date):
+    path = row["response"]
+    size = os.path.getsize(path) if(file_nonempty(path)) else 0
+    if((size > 0) and response_matrix_ready(path, row["cut"])):
+        if(bool(row.get("confirm_ready")) and (row.get("confirm_size") == size)):
+            row["status"] = "success"
+            row["reason"] = ""
+            append_log(camp, "phase1", row["id"], "", "", "", "saved", "", "success", "", path)
+            return True
+        row["confirm_ready"] = True
+        row["confirm_size"] = size
+        row["reason"] = "confirming the merged response"
+        return False
+    row["confirm_ready"] = False
+    sizes, paths = batch_files_signature(row, hybrid_date)
+    previous = row.get("confirm_batch_sizes")
+    row["confirm_batch_sizes"] = sizes
+    if((sizes is None) or (previous != sizes)):
+        row["reason"] = "waiting until all 171 batch files are valid"
+        return False
+    tmp = path + ".campaign_hadd_tmp.root"
+    if(os.path.exists(tmp)):
+        os.remove(tmp)
+    parent = os.path.dirname(path)
+    if(parent not in ["", None]):
+        os.makedirs(parent, exist_ok=True)
+    proc = subprocess.Popen(["hadd", "-f", tmp] + paths)
+    merge_procs[row["id"]] = proc
+    row["status"] = "merging"
+    row["hadd_tmp"] = tmp
+    row["reason"] = "merging 171 batch files"
+    append_log(camp, "phase1", row["id"], "", "", "", "local", "", "merging", row["reason"], path)
+    return False
+
+
+def finish_merge_process(row, proc, camp):
+    rc = proc.poll()
+    if(rc is None):
+        return False
+    tmp = row.get("hadd_tmp") or (row["response"] + ".campaign_hadd_tmp.root")
+    if(rc == 0):
+        os.replace(tmp, row["response"])
+        if(response_matrix_ready(row["response"], row["cut"])):
+            row["status"] = "success"
+            row["reason"] = ""
+            append_log(camp, "phase1", row["id"], "", "", "", "local", "", "success", "", row["response"])
+            return True
+        row["status"] = "failed"
+        row["reason"] = "merged response failed the object check"
+    else:
+        row["status"] = "failed"
+        row["reason"] = "hadd failed"
+        if(os.path.exists(tmp)):
+            os.remove(tmp)
+    append_log(camp, "phase1", row["id"], "", "", "", "local", "", "failed", row["reason"], row["response"])
+    return True
+
+
+def advance_waits(manifest, camp, merge_procs, now):
+    finished = []
+    for row in manifest["phase1"]:
+        if(row["status"] == "merging"):
+            proc = merge_procs.get(row["id"])
+            if(proc is None):
+                row["status"] = "failed"
+                row["reason"] = "hadd process was lost"
+                append_log(camp, "phase1", row["id"], "", "", "", "local", "", "failed", row["reason"], row["response"])
+                continue
+            if(finish_merge_process(row, proc, camp)):
+                finished.append(row["id"])
+            continue
+        if(row["status"] not in ["waiting_merge", "waiting_batches"]):
+            continue
+        if(now < float(row.get("next_check_at") or 0)):
+            continue
+        row["next_check_at"] = now + WAIT_POLL_S
+        if(row["status"] == "waiting_merge"):
+            if(confirm_external_merge(row, camp)):
+                send_mail(manifest.get("email"), "SIDIS systematics Phase 1 success %s" % row["id"], row["response"] + "\n")
+        else:
+            confirm_batch_merge(row, camp, merge_procs, manifest.get("hybrid_date") or "10_27_2026")
+    for config_id in finished:
+        if(config_id in merge_procs):
+            del merge_procs[config_id]
+        row = [item for item in manifest["phase1"] if(item["id"] == config_id)][0]
+        if(row["status"] == "success"):
+            send_mail(manifest.get("email"), "SIDIS systematics Phase 1 success %s" % row["id"], row["response"] + "\n")
+        elif(row["status"] == "failed"):
+            send_mail(manifest.get("email"), "SIDIS systematics Phase 1 failed %s" % row["id"], row["reason"] + "\n")
+
+
 def run_live(args, manifest):
     camp = campaign_directory(args.data_root, args.campaign)
     os.makedirs(os.path.join(camp, "unfolded"), exist_ok=True)
     os.makedirs(os.path.join(camp, "final"), exist_ok=True)
+    manifest["email"] = bool(args.email)
     reconcile_existing(manifest)
     fill_commands(manifest, sys.executable)
     write_manifest(camp, manifest)
@@ -277,7 +443,7 @@ def run_live(args, manifest):
             continue
         if(not phase1_needs_start(row)):
             continue
-        if(manifest.get("recovery") and (row.get("batch_ids") in [None, ""])):
+        if(manifest.get("recovery") and (row.get("batch_ids") in [None, ""]) and (not row.get("nominal_complete"))):
             settle_saved_phase1(manifest, row, args.email, camp)
             continue
         procs[row["id"]] = start_phase1(manifest, row, args.email, camp)
@@ -285,6 +451,7 @@ def run_live(args, manifest):
     compiled = False
     compile_failed = False
     running_local = {}
+    merge_procs = {}
     while(True):
         if(regen_proc is not None):
             regen_rc = regen_proc.poll()
@@ -307,18 +474,26 @@ def run_live(args, manifest):
                 continue
             finished.append(config_id)
             row = [item for item in manifest["phase1"] if(item["id"] == config_id)][0]
-            if(row.get("defer_merge") and (rc == 0)):
+            if(row.get("auto_merge") and (rc == 0)):
+                row["status"] = "waiting_batches"
+                row["reason"] = "waiting until all 171 batch files are valid"
+                row["next_check_at"] = 0
+                append_log(camp, "phase1", row["id"], "", "", "", "slurm", "", "waiting", row["reason"], row["response"])
+            elif(row.get("defer_merge") and (rc == 0)):
                 row["status"] = "deferred"
                 row["reason"] = "histogram array submitted; merge deferred"
                 append_log(camp, "phase1", row["id"], "", "", "", "slurm", "", "deferred", row["reason"], row["response"])
-            elif((rc == 0) and response_ok(row["response"])):
+            elif((rc == 0) and response_matrix_ready(row["response"], row["cut"])):
                 row["status"] = "success"
                 row["reason"] = ""
                 append_log(camp, "phase1", row["id"], "", "", "", "local", "", "success", "", row["response"])
                 send_mail(args.email, "SIDIS systematics Phase 1 success %s" % row["id"], row["response"] + "\n")
             else:
                 row["status"] = "failed"
-                row["reason"] = "histogram pipeline exited %s" % rc
+                if(rc == 0):
+                    row["reason"] = "merged response failed the object check"
+                else:
+                    row["reason"] = "histogram pipeline exited %s" % rc
                 append_log(camp, "phase1", row["id"], "", "", "", "local", "", "failed", row["reason"], row["response"])
                 if(manifest.get("recovery")):
                     body = recovery_failure_text(manifest["campaign"], row["id"], row.get("batch_ids") or "", submission_ids_for_config(camp, row["id"]), row["reason"])
@@ -370,7 +545,7 @@ def run_live(args, manifest):
             release(manifest["data_root"], manifest["campaign"], slot["token"])
             q2y = slot["q2y"]
             bin_slot = slot["row"]["bins"][str(q2y)]
-            if((rc == 0) and unfold_bin_ok(bin_slot["root"], q2y)):
+            if((rc == 0) and unfold_bin_ok(bin_slot["root"], q2y, bin_method(slot["row"]["branch"]))):
                 bin_slot["status"] = "success"
                 bin_slot["where"] = "local"
                 append_log(camp, "phase2", slot["row"]["config_id"], slot["row"]["branch"], slot["row"]["weight_label"], q2y, "local", slot["row"].get("array_id"), "success", "", bin_slot["root"])
@@ -397,7 +572,7 @@ def run_live(args, manifest):
                         append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], q2y, "slurm", row["array_id"], "cancel_failed", "left on SLURM", "")
                     else:
                         settings = branch_settings(row["branch"], q2y, row["weight_tag"])
-                        cmd = unfold_command(sys.executable, UNFOLD_SCRIPT, args.data_root, row["response"], row["bins"][str(q2y)]["root"], q2y, settings)
+                        cmd = unfold_command(sys.executable, unfold_program(row["branch"]), args.data_root, row["response"], row["bins"][str(q2y)]["root"], q2y, settings)
                         log_handle = open(os.path.join(camp, "slurm_logs", "%s_q2y%02d.local.log" % (job_stem(row), q2y)), "w")
                         proc = subprocess.Popen(cmd, stdout=log_handle, stderr=subprocess.STDOUT)
                         bind_worker(manifest["data_root"], manifest["campaign"], token, proc.pid)
@@ -417,7 +592,7 @@ def run_live(args, manifest):
                     continue
                 if(slot["status"] == "success"):
                     continue
-                if(file_nonempty(slot["root"]) and unfold_bin_ok(slot["root"], q2y)):
+                if(file_nonempty(slot["root"]) and unfold_bin_ok(slot["root"], q2y, bin_method(row["branch"]))):
                     slot["status"] = "success"
                     slot["where"] = slot.get("where") or "slurm"
                     slot["missing_polls"] = 0
@@ -461,8 +636,9 @@ def run_live(args, manifest):
                 else:
                     row["status"] = "failed"
                     row["reason"] = "hadd failed"
+        advance_waits(manifest, camp, merge_procs, time.time())
         write_manifest(camp, manifest)
-        phase1_open = any(row["status"] in ["planned", "running"] for row in manifest["phase1"]) or (len(procs) > 0) or (regen_proc is not None)
+        phase1_open = any(row["status"] in ["planned", "running", "waiting_merge", "waiting_batches", "merging"] for row in manifest["phase1"]) or (len(procs) > 0) or (regen_proc is not None) or (len(merge_procs) > 0)
         still = False
         for row in manifest["phase2"]:
             parent = [item for item in manifest["phase1"] if(item["id"] == row["config_id"])][0]
@@ -539,6 +715,7 @@ def parse_args(argv):
     parser.add_argument("-ht", "--hpp_tag", default="Final_Thesis")
     parser.add_argument("-em", "--email_message", default="")
     parser.add_argument("-rb", "--recovery_batches", default=None)
+    parser.add_argument("-incn", "--include_nominal", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -555,11 +732,18 @@ def resolve_recovery_path(path):
 
 def main(argv=None):
     args = parse_args(sys.argv[1:] if(argv is None) else argv)
+    if((args.campaign in USED_CAMPAIGN_IDS) and (not args.dry_run)):
+        print("campaign id %s has already been used; choose a new id" % args.campaign, file=sys.stderr)
+        return 1
+    if(args.include_nominal and (args.recovery_batches in [None, ""])):
+        print("include_nominal requires a recovery batch file", file=sys.stderr)
+        return 1
     if((args.recovery_batches not in [None, ""]) and args.regenerate_nominal_spline_hpp):
         print("recovery does not regenerate the nominal spline HPP", file=sys.stderr)
         return 1
     try:
-        args.max_local_workers = worker_cap(args.max_local_workers)
+        ceiling = COMPLETE_LINEAGE_COUNT if(args.include_nominal) else None
+        args.max_local_workers = worker_cap(args.max_local_workers, ceiling)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -580,7 +764,7 @@ def main(argv=None):
         manifest = build_manifest(
             args.data_root, args.campaign, args.weight_mode, args.max_local_workers,
             args.hpp_tag, args.regenerate_nominal_spline_hpp, stamp, previous=previous if(args.resume) else None,
-            recovery=recovery,
+            recovery=recovery, include_nominal=args.include_nominal,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
