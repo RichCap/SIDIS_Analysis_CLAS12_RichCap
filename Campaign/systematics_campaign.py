@@ -246,13 +246,12 @@ def recovery_phase1_command(python, submit_script, data_root, campaign, config, 
     return cmd
 
 
-def nominal_only_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline):
-    # One nominal Only_3D array. -dfm returns after sbatch so the campaign hadds _All.root.
+def nominal_only_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline, cap):
+    # Hybrid: SLURM array plus the existing local walker. The hybrid process hadds _All.root.
     return [
         python, submit_script,
         "-droot", data_root,
-        "-m", "slurm",
-        "-y",
+        "-m", "hybrid",
         "-mac", "Bank",
         "-cn", DEFAULT_CUT,
         "-n", "Sys3D_%s" % NOMINAL_ONLY_ID,
@@ -271,12 +270,10 @@ def nominal_only_command(python, submit_script, data_root, campaign, hpp_pure, h
         "-jdiag", "0",
         "-e", "none",
         "-cwn", campaign,
+        "-cwc", str(cap),
         "-hdate", "10_30_2026",
         "-st", "24:00:00",
         "-o3m", "4500M",
-        "-bids", "1-171",
-        "-rlb",
-        "-dfm",
     ]
 
 
@@ -310,6 +307,49 @@ def only_5d_spline_command(python, submit_script, data_root, campaign, hpp_pure,
         "-rlb",
         "-dfm",
     ]
+
+
+def pips6o_batch111_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline):
+    # Local sequential batch 111 only. No SLURM wall and no -rlb.
+    return [
+        python, submit_script,
+        "-droot", data_root,
+        "-m", "sequential",
+        "-mac", "Bank",
+        "-cn", "cut_Complete_SIDIS_pipS6o",
+        "-n", "Sys3D_pipS6o",
+        "-sa",
+        "-hpf", hpp_pure,
+        "-hps", hpp_spline,
+        "-j", "1",
+        "-j3D", "1",
+        "-j2D", "0",
+        "-j5D", "0",
+        "-jBin", "0",
+        "-jch4", "0",
+        "-jdph", "0",
+        "-j1D", "0",
+        "-jdiag", "0",
+        "-e", "none",
+        "-cwn", campaign,
+        "-bids", "111",
+        "-hdate", "10_27_2026",
+    ]
+
+
+def remove_named_batch_file(path):
+    # Deletes one path. The pipS6o campaign is the only caller, and it passes batch 111.
+    if(path in [None, ""]):
+        return False
+    if(not os.path.isfile(path)):
+        return False
+    os.remove(path)
+    return True
+
+
+def pips6o_batch111_path():
+    paths = systematic_batch_paths("pipS6o", "cut_Complete_SIDIS_pipS6o", "10_27_2026", batch_name="Sys3D_pipS6o", product_key="Only_3D")
+    return paths[110]
 
 
 def dedicated_5d_command(python, script, data_root, response, root_out):
@@ -809,35 +849,41 @@ def keep_recorded_hpp(previous, assigned):
 SHARED_RESULT_CAMPAIGN = "systematics_3d_complete_20261029"
 
 
-def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False, nominal_only=False, only_5d=False):
+def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False, nominal_only=False, only_5d=False, pips6o_batch111=False):
     batch_by_id = None
     job_by_id = None
     defer_by_id = None
     external_by_id = None
     auto_by_id = None
-    if(nominal_only and only_5d):
-        raise ValueError("nominal_only and only_5d are separate campaigns")
-    if(nominal_only or only_5d):
+    chosen = [nominal_only, only_5d, pips6o_batch111]
+    if(len([item for item in chosen if(item)]) > 1):
+        raise ValueError("nominal_only, only_5d, and pips6o_batch111 are separate campaigns")
+    if(nominal_only or only_5d or pips6o_batch111):
         if(recovery is not None):
             raise ValueError("this campaign does not use a recovery batch file")
         if(include_nominal):
             raise ValueError("this campaign does not use include_nominal")
         regenerate = False
-        if(nominal_only):
-            config = phase1_row(NOMINAL_ONLY_ID, "")
-            config["nominal"] = True
-            config["nominal_complete"] = True
-            config["nominal_only"] = True
-        else:
-            config = phase1_row(FIVE_D_ID, "")
-            config["nominal"] = False
-            config["only_5d"] = True
+    if(nominal_only):
+        config = phase1_row(NOMINAL_ONLY_ID, "")
+        config["nominal"] = True
+        config["nominal_complete"] = True
+        config["nominal_only"] = True
+        configs = [config]
+    elif(only_5d):
+        config = phase1_row(FIVE_D_ID, "")
+        config["nominal"] = False
+        config["only_5d"] = True
         configs = [config]
         batch_by_id = {config["id"]: "1-171"}
         job_by_id = {config["id"]: ""}
         defer_by_id = {config["id"]: True}
         external_by_id = {config["id"]: False}
         auto_by_id = {config["id"]: True}
+    elif(pips6o_batch111):
+        config = phase1_row("pipS6o", "pipS6o")
+        config["pips6o_batch111"] = True
+        configs = [config]
     elif(recovery is None):
         if(include_nominal):
             raise ValueError("include_nominal requires a recovery batch file")
@@ -902,7 +948,9 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         else:
             response = response_path(data_root, config["id"], config["cut"])
         if(config.get("nominal_only")):
-            cmd = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"])
+            cmd = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"], cap)
+        elif(config.get("pips6o_batch111")):
+            cmd = pips6o_batch111_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"])
         elif(config.get("only_5d")):
             cmd = only_5d_spline_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"])
         elif(config.get("nominal_complete")):
@@ -925,6 +973,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             "nominal_complete": bool(config.get("nominal_complete")),
             "nominal_only": bool(config.get("nominal_only")),
             "only_5d": bool(config.get("only_5d")),
+            "pips6o_batch111": bool(config.get("pips6o_batch111")),
             "unsmeared": config["unsmeared"],
             "hpp_nospline": paths["hpp_nospline"],
             "hpp_spline": paths["hpp_spline"],
@@ -948,6 +997,10 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         elif(config.get("nominal_only")):
             row["batch_name"] = "Sys3D_%s" % config["id"]
             row["product_key"] = "Only_3D"
+        elif(config.get("pips6o_batch111")):
+            row["batch_name"] = "Sys3D_pipS6o"
+            row["product_key"] = "Only_3D"
+            row["replace_one_batch"] = pips6o_batch111_path()
         old = old_phase1.get(config["id"])
         if(isinstance(old, dict) and (old.get("status") in ["success", "failed", "running"])):
             row["status"] = old.get("status")
@@ -956,7 +1009,9 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             row["hpp_nospline"] = old.get("hpp_nospline") or row["hpp_nospline"]
             row["hpp_spline"] = old.get("hpp_spline") or row["hpp_spline"]
             if(row.get("nominal_only")):
-                row["command"] = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"])
+                row["command"] = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"], cap)
+            elif(row.get("pips6o_batch111")):
+                row["command"] = pips6o_batch111_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"])
             elif(row.get("only_5d")):
                 row["command"] = only_5d_spline_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"])
             elif(row.get("nominal_complete")):
@@ -1070,6 +1125,13 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         payload["recovery_task_count"] = task_count
     if(nominal_only or only_5d):
         payload["hybrid_date"] = "10_30_2026"
+    if(nominal_only):
+        payload["nominal_only"] = True
+    if(only_5d):
+        payload["only_5d"] = True
+    if(pips6o_batch111):
+        payload["pips6o_batch111"] = True
+        payload["hybrid_date"] = "10_27_2026"
     return payload
 
 
@@ -1559,8 +1621,12 @@ def self_test():
         raise SystemExit("nominal-only HPP command is wrong")
     if(not spline_event_weight_path("work_b").startswith("/")) or (spline_event_weight_path("work_b") not in only_cmd):
         raise SystemExit("nominal-only spline path is not absolute")
-    if(only["phase1"][0]["auto_merge"] is not True) or (only["hybrid_date"] != "10_30_2026"):
-        raise SystemExit("nominal-only merge was not deferred to the campaign")
+    if("-m hybrid" not in only_cmd) or (" -rlb " in " %s " % only_cmd) or (" -dfm " in " %s " % only_cmd) or (" -bids " in " %s " % only_cmd) or (" -y " in " %s " % only_cmd):
+        raise SystemExit("nominal-only command is not hybrid")
+    if("-cwc 11" not in only_cmd):
+        raise SystemExit("nominal-only hybrid cap was not forwarded")
+    if(only["phase1"][0].get("auto_merge")) or (only["phase1"][0].get("batch_ids") not in [None, ""]):
+        raise SystemExit("nominal-only added a second merge")
     five_manifest = build_manifest("work_b", "nominal_5d_spline_20261030", "unweighted", 1, "Final_Thesis", False, "stamp", only_5d=True)
     if(len(five_manifest["phase1"]) != 1) or (len(five_manifest["phase2"]) != 1):
         raise SystemExit("5D schedule is not one phase1 and one phase2")
@@ -1575,3 +1641,20 @@ def self_test():
     unfold = command_text(dedicated_5d_command("python", "run_Dedicated_5D_Unfold.py", "work_b", five_job["response"], five_job["launch_root"]))
     if("-wt Spline" not in unfold) or ("-bi" in unfold) or ("-ac" in unfold) or ("-ph" in unfold) or ("-err" in unfold) or ("AccSpline" in unfold):
         raise SystemExit("5D unfold command does not keep the launcher defaults")
+    pip_manifest = build_manifest("work_b", "systematics_3d_pips6o_batch111_20261030", "both", 2, "Final_Thesis", False, "stamp", pips6o_batch111=True, shared_unfold=True)
+    if([row["id"] for row in pip_manifest["phase1"]] != ["pipS6o"]) or (len(pip_manifest["phase2"]) != 2):
+        raise SystemExit("pipS6o recovery is not one configuration and two Phase 2 rows")
+    pip_cmd = command_text(pip_manifest["phase1"][0]["command"])
+    if("-m sequential" not in pip_cmd) or ("-bids 111" not in pip_cmd) or ("-hdate 10_27_2026" not in pip_cmd) or ("Sys3D_pipS6o" not in pip_cmd):
+        raise SystemExit("pipS6o command is not the original local batch 111")
+    if(" -rlb " in " %s " % pip_cmd) or (" -st " in " %s " % pip_cmd) or (" -m slurm " in " %s " % pip_cmd) or ("dvz_tight_pip" in pip_cmd):
+        raise SystemExit("pipS6o command is not local-only batch 111")
+    replaced = pip_manifest["phase1"][0].get("replace_one_batch")
+    if(replaced != pips6o_batch111_path()) or (not str(replaced).endswith("_Batch111.root")) or ("10_27_2026" not in str(replaced)) or ("Sys3D_pipS6o" not in str(replaced)):
+        raise SystemExit("pipS6o replace path is not the original batch 111")
+    labels = sorted(row["weight_label"] for row in pip_manifest["phase2"])
+    if(labels != ["Spline", "Unweighted"]):
+        raise SystemExit("pipS6o Phase 2 is not the existing pair")
+    for row in pip_manifest["phase2"]:
+        if("systematics_3d_complete_20261029/unfolded" not in row["final"]) or ("Sys3D_pipS6o_" not in row["final"]):
+            raise SystemExit("pipS6o final left the shared directory")

@@ -15,6 +15,7 @@ from Campaign.systematics_campaign import (
     COMPLETE_LINEAGE_COUNT, EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, USED_CAMPAIGN_IDS, append_log, append_submission_history,
     bin_root, branch_settings, build_manifest, campaign_directory, command_text, file_nonempty, job_stem, load_recovery_batches,
     dedicated_5d_command, manifest_path, nominal_complete_command, nominal_only_command, only_5d_spline_command,
+    pips6o_batch111_command, remove_named_batch_file,
     output_counts, phase1_command, phase2_history_record, read_manifest,
     final_is_ready, part_is_ready, recovery_failure_text, recovery_phase1_command, regen_command, response_matrix_ready,
     root_key_names, sbatch_script, submission_ids_for_config, systematic_batch_paths, unfold_bin_ok, unfold_command,
@@ -74,6 +75,12 @@ def fill_commands(manifest, python):
         if(row.get("nominal_only")):
             row["command"] = nominal_only_command(
                 python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], row["hpp_nospline"], row["hpp_spline"],
+                manifest["max_local_workers"],
+            )
+            continue
+        if(row.get("pips6o_batch111")):
+            row["command"] = pips6o_batch111_command(
+                python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], row["hpp_nospline"], row["hpp_spline"],
             )
             continue
         if(row.get("only_5d")):
@@ -103,9 +110,12 @@ def fill_commands(manifest, python):
 
 
 def print_plan(manifest, regen_cmd):
-    if(manifest.get("recovery")):
+    single = manifest.get("recovery") or manifest.get("nominal_only") or manifest.get("only_5d") or manifest.get("pips6o_batch111")
+    if(single):
         arrays = len(manifest["phase2"])
-        tasks = arrays * len(Q2Y_BINS)
+        tasks = 0
+        for row in manifest["phase2"]:
+            tasks += 1 if(row.get("local_5d")) else len(Q2Y_BINS)
         files = arrays
     else:
         arrays, tasks, files = output_counts(manifest["weight_mode"])
@@ -123,7 +133,14 @@ def print_plan(manifest, regen_cmd):
         print("  hpp_nospline %s" % row["hpp_nospline"])
         print("  hpp_spline %s" % row["hpp_spline"])
         print("  response %s" % row["response"])
-        if(row.get("nominal_only") or row.get("only_5d")):
+        if(row.get("nominal_only")):
+            print("  hybrid SLURM plus local pending batches; then Phase 2")
+            print("  %s" % command_text(row["command"]))
+        elif(row.get("pips6o_batch111")):
+            print("  local batch 111 only; then the existing merge and Phase 2")
+            print("  replace %s" % row.get("replace_one_batch"))
+            print("  %s" % command_text(row["command"]))
+        elif(row.get("only_5d")):
             print("  hadd after all 171 batch files validate; then Phase 2")
             print("  %s" % command_text(row["command"]))
         elif(row.get("nominal_complete")):
@@ -224,6 +241,7 @@ def phase1_needs_start(row):
 
 
 def start_phase1(manifest, row, enabled_mail, camp):
+    remove_named_batch_file(row.get("replace_one_batch"))
     proc = subprocess.Popen(row["command"])
     row["pid"] = proc.pid
     row["status"] = "running"
@@ -839,6 +857,7 @@ def parse_args(argv):
     parser.add_argument("-suo", "--shared_unfold_output", action="store_true")
     parser.add_argument("-nmo", "--nominal_only", action="store_true")
     parser.add_argument("-5ds", "--only_5d_spline", action="store_true")
+    parser.add_argument("-p6b", "--pips6o_batch111", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -861,8 +880,9 @@ def main(argv=None):
     if(args.include_nominal and (args.recovery_batches in [None, ""])):
         print("include_nominal requires a recovery batch file", file=sys.stderr)
         return 1
-    if(args.nominal_only and args.only_5d_spline):
-        print("nominal_only and only_5d_spline are separate campaigns", file=sys.stderr)
+    separate = [args.nominal_only, args.only_5d_spline, args.pips6o_batch111]
+    if(len([item for item in separate if(item)]) > 1):
+        print("nominal_only, only_5d_spline, and pips6o_batch111 are separate campaigns", file=sys.stderr)
         return 1
     if(args.nominal_only and ((args.recovery_batches not in [None, ""]) or args.include_nominal or args.regenerate_nominal_spline_hpp)):
         print("nominal_only does not take recovery batches, include_nominal, or HPP regeneration", file=sys.stderr)
@@ -872,6 +892,9 @@ def main(argv=None):
         return 1
     if(args.only_5d_spline and ((args.recovery_batches not in [None, ""]) or args.include_nominal or args.regenerate_nominal_spline_hpp or args.shared_unfold_output)):
         print("only_5d_spline does not take recovery batches, include_nominal, HPP regeneration, or shared_unfold_output", file=sys.stderr)
+        return 1
+    if(args.pips6o_batch111 and ((args.recovery_batches not in [None, ""]) or args.include_nominal or args.regenerate_nominal_spline_hpp or (not args.shared_unfold_output) or (args.weight_mode != "both"))):
+        print("pips6o_batch111 requires -wm both and -suo, and does not take recovery batches, include_nominal, or HPP regeneration", file=sys.stderr)
         return 1
     if((args.recovery_batches not in [None, ""]) and args.regenerate_nominal_spline_hpp):
         print("recovery does not regenerate the nominal spline HPP", file=sys.stderr)
@@ -900,7 +923,7 @@ def main(argv=None):
             args.data_root, args.campaign, args.weight_mode, args.max_local_workers,
             args.hpp_tag, args.regenerate_nominal_spline_hpp, stamp, previous=previous if(args.resume) else None,
             recovery=recovery, include_nominal=args.include_nominal, shared_unfold=args.shared_unfold_output,
-            nominal_only=args.nominal_only, only_5d=args.only_5d_spline,
+            nominal_only=args.nominal_only, only_5d=args.only_5d_spline, pips6o_batch111=args.pips6o_batch111,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)

@@ -759,12 +759,14 @@ def nominal_and_5d_dry_run():
     if(printed.count("PHASE2 ") != 11):
         raise SystemExit("nominal-only printed %s phase2 rows" % printed.count("PHASE2 "))
     command = runner.command_text(manifest["phase1"][0]["command"])
-    for token in ["-sa", "-m slurm", "-j3D 1", "-j5D 0", "-dfm", "-rlb", "-bids 1-171", NOMINAL_SYSREGEN_HPP]:
+    for token in ["-sa", "-m hybrid", "-j3D 1", "-j5D 0", "-cwc 11", NOMINAL_SYSREGEN_HPP]:
         if(token not in command):
             raise SystemExit("nominal-only command missing %s" % token)
-    for banned in ["-rnh", "-hso", "-hsp ", " -spf Prepare_Next_Iteration/"]:
-        if(banned in command):
+    for banned in ["-rnh", "-hso", "-hsp ", " -spf Prepare_Next_Iteration/", " -m slurm ", " -rlb ", " -dfm ", " -bids ", " -y "]:
+        if(banned in " %s " % command):
             raise SystemExit("nominal-only command contains %s" % banned)
+    if(manifest["phase1"][0].get("auto_merge")) or (manifest["phase1"][0].get("batch_ids") not in [None, ""]):
+        raise SystemExit("nominal hybrid added a second merge")
     if("/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt" not in command):
         raise SystemExit("nominal-only command spline path is not absolute")
     for row in manifest["phase2"]:
@@ -801,6 +803,75 @@ def nominal_and_5d_dry_run():
         raise SystemExit("5D phase2 was not waiting on phase1")
     if("systematics_3d_complete_20261029" in five_manifest["phase2"][0]["final"]):
         raise SystemExit("5D final was written into the 3D shared directory")
+    df = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import Submit_Full_Histogram_Creation_Pipeline as submit_full
+    from jlab_work_paths import data_root_path, REL_SPLINE_DEFAULT
+    product = [item for item in submit_full.PRODUCTS if(item["key"] == "Only_5D")][0]
+    spline = os.path.join(data_root_path("work_b"), REL_SPLINE_DEFAULT)
+    pure = os.path.join(data_root_path("work_b"), "Histo_Files_ROOT", "DataFrames", "HPP_Files_Output", "generated_acceptance_weights_Final_Thesis_noSpline.hpp")
+    comb = os.path.join(data_root_path("work_b"), "Histo_Files_ROOT", "DataFrames", "HPP_Files_Output", "generated_acceptance_weights_Final_Thesis_withSpline.hpp")
+    child = submit_full.build_pipeline_cmd(bag(
+        name="Only_5D_nominal_spline_20261030",
+        cut_name="cut_Complete_SIDIS",
+        spline_file=spline,
+        spline_weight_file=spline,
+        hpp_weight_file=pure,
+        hpp_weight_file_spline=comb,
+        batch_ids="1",
+        replace_listed_batches=True,
+        defer_merge=True,
+        slurm_time=None,
+        slurm_mem=None,
+        campaign_worker_name="nominal_5d_spline_20261030",
+    ), "cut_Complete_SIDIS", product, pure, comb, mode="slurm", jobs=1)
+    for token in ["--unfold_5D_only", "--no_make_2D", "--no_make_2D_rho", "--defer_merge", spline, comb]:
+        if(token not in child):
+            raise SystemExit("5D one-batch pipeline command missing %s" % token)
+    if(child[child.index("--batch_ids") + 1] != "1"):
+        raise SystemExit("5D one-batch proof did not select batch 1")
+
+
+def pips6o_batch111_dry_run():
+    import io
+    import tempfile
+    from contextlib import redirect_stdout
+    from Campaign.systematics_campaign import pips6o_batch111_path, remove_named_batch_file
+    stdout = io.StringIO()
+    with redirect_stdout(stdout):
+        code = runner.main([
+            "-n", "-c", "systematics_3d_pips6o_batch111_20261030", "-droot", "work_b", "-wm", "both",
+            "-p6b", "-suo", "-mlw", "2",
+        ])
+    if(code != 0):
+        raise SystemExit("pipS6o dry-run exit %s\n%s" % (code, stdout.getvalue()))
+    camp = runner.campaign_directory("work_b", "systematics_3d_pips6o_batch111_20261030")
+    manifest = runner.read_manifest(camp)
+    if([row["id"] for row in manifest["phase1"]] != ["pipS6o"]):
+        raise SystemExit("pipS6o dry-run selected another configuration")
+    if("dvz_tight_pip" in stdout.getvalue()):
+        raise SystemExit("pipS6o dry-run mentioned dvz_tight_pip")
+    command = runner.command_text(manifest["phase1"][0]["command"])
+    for token in ["-m sequential", "-bids 111", "-hdate 10_27_2026", "-n Sys3D_pipS6o", "-cn cut_Complete_SIDIS_pipS6o", "-sa"]:
+        if(token not in command):
+            raise SystemExit("pipS6o command missing %s" % token)
+    for banned in [" -rlb ", " -st ", " -m slurm ", " -dfm ", " -y "]:
+        if(banned in " %s " % command):
+            raise SystemExit("pipS6o command contains %s" % banned)
+    replaced = manifest["phase1"][0].get("replace_one_batch")
+    if(replaced != pips6o_batch111_path()):
+        raise SystemExit("pipS6o replace path drifted from the batch helper")
+    labels = sorted(row["weight_label"] for row in manifest["phase2"])
+    if(labels != ["Spline", "Unweighted"]):
+        raise SystemExit("pipS6o Phase 2 pair changed")
+    folder = tempfile.mkdtemp()
+    keep = os.path.join(folder, "Batch110.root")
+    gone = os.path.join(folder, "Batch111.root")
+    open(keep, "w").close()
+    open(gone, "w").close()
+    if(not remove_named_batch_file(gone)) or os.path.isfile(gone) or (not os.path.isfile(keep)):
+        raise SystemExit("the one-file removal touched another batch")
 
 
 def main():
@@ -815,6 +886,7 @@ def main():
     phase2_spline_nosmear_dry_run()
     array_script_paths()
     nominal_and_5d_dry_run()
+    pips6o_batch111_dry_run()
     print("systematics campaign self-test ok")
     return 0
 
