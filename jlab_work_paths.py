@@ -234,9 +234,11 @@ def flag_was_passed(option_strings, argv=None):
 
 
 def apply_input_if_default(args, dest, option_strings, data_root_key, argv=None):
-    if(flag_was_passed(option_strings, argv=argv)):
-        return getattr(args, dest)
+    # An explicit absolute path stays as written. An explicit relative path is repo-relative,
+    # same as an omitted flag, so SLURM can open it after cd to the lustre batch directory.
     value = getattr(args, dest)
+    if(flag_was_passed(option_strings, argv=argv) and os.path.isabs(os.path.expanduser(str(value)))):
+        return value
     resolved = resolve_pipeline_input(value, data_root_key, explicit=False)
     setattr(args, dest, resolved)
     return resolved
@@ -327,6 +329,22 @@ if(__name__ == "__main__"):
         check(resolve_output_name("out.root", "work_b") == os.path.join(work_b, "out.root"), "bare output under data root")
         check(not flag_was_passed(["--data_root"], argv=["-n", "x"]), "flag not passed")
         check(flag_was_passed(["--data_root", "-droot"], argv=["--data_root", "work_b"]), "flag passed")
+        import argparse
+        relative_spline = argparse.Namespace(spline_file=REL_SPLINE_DEFAULT)
+        resolved_relative = apply_input_if_default(relative_spline, "spline_file", ["-spf", "--spline_file"], "work_b", argv=["-spf", REL_SPLINE_DEFAULT])
+        check(os.path.isabs(resolved_relative), "explicit relative spline becomes absolute")
+        check(resolved_relative.endswith(REL_SPLINE_DEFAULT), "explicit relative spline keeps the acc020 name")
+        check(not str(resolved_relative).startswith("Prepare_Next_Iteration"), "explicit relative spline is not left relative")
+        absolute_spline = argparse.Namespace(spline_file="/tmp/keep_spline.txt")
+        resolved_absolute = apply_input_if_default(absolute_spline, "spline_file", ["-spf", "--spline_file"], "work_b", argv=["-spf", "/tmp/keep_spline.txt"])
+        check(resolved_absolute == "/tmp/keep_spline.txt", "explicit absolute spline is unchanged")
+        shelf_spline = os.path.join(work, REL_SPLINE_DEFAULT)
+        omitted_spline = argparse.Namespace(spline_file=shelf_spline)
+        resolved_omitted = apply_input_if_default(omitted_spline, "spline_file", ["-spf", "--spline_file"], "work_b", argv=["-n", "demo"])
+        omitted_expected = os.path.join(work_b, REL_SPLINE_DEFAULT)
+        if(os.path.isfile(shelf_spline) and (not os.path.isfile(omitted_expected))):
+            omitted_expected = shelf_spline
+        check(resolved_omitted == omitted_expected, "omitted spline flag still resolves under the data root")
         check(VOLATILE_BASE.startswith("/lustre24/"), "volatile unchanged")
         local_root = execution_root(__file__)
         check(os.path.isfile(os.path.join(local_root, "MyCommonAnalysisFunction_richcap.py")), "execution_root from __file__")

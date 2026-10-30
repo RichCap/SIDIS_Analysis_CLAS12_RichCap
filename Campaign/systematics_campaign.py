@@ -10,13 +10,17 @@ try:
 except ImportError:
     fcntl = None
 
-from jlab_work_paths import REL_HADD, REL_HPP_OUT, pipeline_output_path
+from jlab_work_paths import REL_HADD, REL_HPP_OUT, REL_SPLINE_DEFAULT, data_root_path, pipeline_output_path
 
 DEFAULT_CUT = "cut_Complete_SIDIS"
 NAME_IN_LABEL = "Final_Thesis_Files"
 LINEAGE_COUNT = 41
 COMPLETE_LINEAGE_COUNT = 43
 NOMINAL_COMPLETE_ID = "nominal_complete_20261029"
+NOMINAL_ONLY_ID = "nominal_only_20261030"
+FIVE_D_ID = "nominal_spline_20261030"
+FIVE_D_NAME = "Only_5D_nominal_spline_20261030"
+NOMINAL_SYSREGEN_HPP = "generated_acceptance_weights_Final_Thesis_withSpline_sysregen_systematics_3d_both_rnh_20261027_20261027_022909_Sys3D_nominal.hpp"
 SPLINE_WEIGHT_FILE = "Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt"
 USED_CAMPAIGN_IDS = [
     "systematics_3d_both_rnh_20261027",
@@ -113,16 +117,24 @@ def regen_spline_path(data_root, tag, campaign, stamp):
     return os.path.join(folder, name)
 
 
-def response_basename(config_id, cut):
-    shared = "Sys3D_%s_Bank" % config_id
+def response_basename(config_id, cut, product="Only_3D", shared_prefix="Sys3D"):
+    shared = "%s_%s_Bank" % (shared_prefix, config_id)
     if(cut != DEFAULT_CUT):
         shared = "%s_%s" % (shared, cut)
-    product = "Only_3D_%s_Response_Matrices" % shared
-    return "SIDIS_epip_Response_Matrices_from_RDataFrames_%s_%s_All.root" % (product, NAME_IN_LABEL)
+    product_name = "%s_%s_Response_Matrices" % (product, shared)
+    return "SIDIS_epip_Response_Matrices_from_RDataFrames_%s_%s_All.root" % (product_name, NAME_IN_LABEL)
 
 
-def response_path(data_root, config_id, cut):
-    return os.path.join(pipeline_output_path(REL_HADD, data_root), response_basename(config_id, cut))
+def response_path(data_root, config_id, cut, product="Only_3D", shared_prefix="Sys3D"):
+    return os.path.join(pipeline_output_path(REL_HADD, data_root), response_basename(config_id, cut, product, shared_prefix))
+
+
+def spline_event_weight_path(data_root):
+    return os.path.join(data_root_path(data_root), REL_SPLINE_DEFAULT)
+
+
+def nominal_sysregen_hpp(data_root):
+    return os.path.join(pipeline_output_path(REL_HPP_OUT, data_root), NOMINAL_SYSREGEN_HPP)
 
 
 def phase1_command(python, submit_script, data_root, campaign, cap, config, hpp_pure, hpp_spline):
@@ -232,6 +244,83 @@ def recovery_phase1_command(python, submit_script, data_root, campaign, config, 
     if(config["unsmeared"]):
         cmd.append("-us")
     return cmd
+
+
+def nominal_only_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline):
+    # One nominal Only_3D array. -dfm returns after sbatch so the campaign hadds _All.root.
+    return [
+        python, submit_script,
+        "-droot", data_root,
+        "-m", "slurm",
+        "-y",
+        "-mac", "Bank",
+        "-cn", DEFAULT_CUT,
+        "-n", "Sys3D_%s" % NOMINAL_ONLY_ID,
+        "-sa",
+        "-hpf", hpp_pure,
+        "-hps", hpp_spline,
+        "-spf", spline_event_weight_path(data_root),
+        "-j", "1",
+        "-j3D", "1",
+        "-j2D", "0",
+        "-j5D", "0",
+        "-jBin", "0",
+        "-jch4", "0",
+        "-jdph", "0",
+        "-j1D", "0",
+        "-jdiag", "0",
+        "-e", "none",
+        "-cwn", campaign,
+        "-hdate", "10_30_2026",
+        "-st", "24:00:00",
+        "-o3m", "4500M",
+        "-bids", "1-171",
+        "-rlb",
+        "-dfm",
+    ]
+
+
+def only_5d_spline_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline):
+    # SLURM Only_5D. Memory and wall stay on the pipeline Only_5D defaults.
+    return [
+        python, submit_script,
+        "-droot", data_root,
+        "-m", "slurm",
+        "-y",
+        "-mac", "Bank",
+        "-cn", DEFAULT_CUT,
+        "-n", FIVE_D_NAME,
+        "-sa",
+        "-hpf", hpp_pure,
+        "-hps", hpp_spline,
+        "-spf", spline_event_weight_path(data_root),
+        "-j", "1",
+        "-j3D", "0",
+        "-j2D", "0",
+        "-j5D", "1",
+        "-jBin", "0",
+        "-jch4", "0",
+        "-jdph", "0",
+        "-j1D", "0",
+        "-jdiag", "0",
+        "-e", "none",
+        "-cwn", campaign,
+        "-hdate", "10_30_2026",
+        "-bids", "1-171",
+        "-rlb",
+        "-dfm",
+    ]
+
+
+def dedicated_5d_command(python, script, data_root, response, root_out):
+    # Inherited Spline. Iteration, acceptance, phi, and error mode stay on the launcher defaults.
+    return [
+        python, script,
+        "-droot", data_root,
+        "-sfin", response,
+        "-r", root_out,
+        "-wt", "Spline",
+    ]
 
 
 def nominal_complete_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline):
@@ -720,13 +809,36 @@ def keep_recorded_hpp(previous, assigned):
 SHARED_RESULT_CAMPAIGN = "systematics_3d_complete_20261029"
 
 
-def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False):
+def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False, nominal_only=False, only_5d=False):
     batch_by_id = None
     job_by_id = None
     defer_by_id = None
     external_by_id = None
     auto_by_id = None
-    if(recovery is None):
+    if(nominal_only and only_5d):
+        raise ValueError("nominal_only and only_5d are separate campaigns")
+    if(nominal_only or only_5d):
+        if(recovery is not None):
+            raise ValueError("this campaign does not use a recovery batch file")
+        if(include_nominal):
+            raise ValueError("this campaign does not use include_nominal")
+        regenerate = False
+        if(nominal_only):
+            config = phase1_row(NOMINAL_ONLY_ID, "")
+            config["nominal"] = True
+            config["nominal_complete"] = True
+            config["nominal_only"] = True
+        else:
+            config = phase1_row(FIVE_D_ID, "")
+            config["nominal"] = False
+            config["only_5d"] = True
+        configs = [config]
+        batch_by_id = {config["id"]: "1-171"}
+        job_by_id = {config["id"]: ""}
+        defer_by_id = {config["id"]: True}
+        external_by_id = {config["id"]: False}
+        auto_by_id = {config["id"]: True}
+    elif(recovery is None):
         if(include_nominal):
             raise ValueError("include_nominal requires a recovery batch file")
         configs = phase1_configs()
@@ -759,6 +871,8 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             external_by_id[nominal["id"]] = False
             auto_by_id[nominal["id"]] = False
     assigned = assign_hpp(configs, data_root, tag, campaign, stamp, regenerate)
+    if(nominal_only):
+        assigned[NOMINAL_ONLY_ID]["hpp_spline"] = nominal_sysregen_hpp(data_root)
     if(previous is not None):
         old_phase1 = {}
         for row in previous.get("phase1", []):
@@ -783,8 +897,15 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             old_phase2[row["key"]] = row
     for config in configs:
         paths = assigned[config["id"]]
-        response = response_path(data_root, config["id"], config["cut"])
-        if(config.get("nominal_complete")):
+        if(config.get("only_5d")):
+            response = response_path(data_root, config["id"], config["cut"], "Only_5D", "Only_5D")
+        else:
+            response = response_path(data_root, config["id"], config["cut"])
+        if(config.get("nominal_only")):
+            cmd = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"])
+        elif(config.get("only_5d")):
+            cmd = only_5d_spline_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"])
+        elif(config.get("nominal_complete")):
             cmd = nominal_complete_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"])
         elif(batch_by_id is None):
             cmd = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, paths["hpp_nospline"], paths["hpp_spline"])
@@ -802,6 +923,8 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             "cut": config["cut"],
             "nominal": config["nominal"],
             "nominal_complete": bool(config.get("nominal_complete")),
+            "nominal_only": bool(config.get("nominal_only")),
+            "only_5d": bool(config.get("only_5d")),
             "unsmeared": config["unsmeared"],
             "hpp_nospline": paths["hpp_nospline"],
             "hpp_spline": paths["hpp_spline"],
@@ -819,6 +942,12 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             row["defer_merge"] = bool(defer_by_id[config["id"]])
             row["external_merge"] = bool(external_by_id[config["id"]])
             row["auto_merge"] = bool(auto_by_id[config["id"]])
+        if(config.get("only_5d")):
+            row["batch_name"] = FIVE_D_NAME
+            row["product_key"] = "Only_5D"
+        elif(config.get("nominal_only")):
+            row["batch_name"] = "Sys3D_%s" % config["id"]
+            row["product_key"] = "Only_3D"
         old = old_phase1.get(config["id"])
         if(isinstance(old, dict) and (old.get("status") in ["success", "failed", "running"])):
             row["status"] = old.get("status")
@@ -826,7 +955,11 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             row["reason"] = old.get("reason") or ""
             row["hpp_nospline"] = old.get("hpp_nospline") or row["hpp_nospline"]
             row["hpp_spline"] = old.get("hpp_spline") or row["hpp_spline"]
-            if(row.get("nominal_complete")):
+            if(row.get("nominal_only")):
+                row["command"] = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"])
+            elif(row.get("only_5d")):
+                row["command"] = only_5d_spline_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"])
+            elif(row.get("nominal_complete")):
                 row["command"] = nominal_complete_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"])
             elif(batch_by_id is None):
                 row["command"] = phase1_command("PYTHON", "SUBMIT", data_root, campaign, cap, config, row["hpp_nospline"], row["hpp_spline"])
@@ -841,6 +974,35 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
                         row.get("defer_merge", False),
                     )
         phase1.append(row)
+        if(config.get("only_5d")):
+            launch = os.path.join(unfold, "Unfolded_5D_inherited_Spline.root")
+            final = written_output_path(launch, "Spline")
+            five_key = "%s__inherited__Spline" % config["id"]
+            five_row = {
+                "key": five_key,
+                "config_id": config["id"],
+                "branch": "inherited",
+                "weight_tag": "Spline",
+                "weight_label": "Spline",
+                "lineage": config["id"],
+                "local_order": 0,
+                "response": response,
+                "final": final,
+                "launch_root": launch,
+                "array_id": "",
+                "submit_time": None,
+                "status": "waiting_phase1",
+                "bins": {},
+                "reason": "",
+                "unsmeared": False,
+                "local_5d": True,
+            }
+            old_five = old_phase2.get(five_key)
+            if(isinstance(old_five, dict)):
+                five_row["status"] = old_five.get("status") or five_row["status"]
+                five_row["reason"] = old_five.get("reason") or ""
+            phase2.append(five_row)
+            continue
         for job in phase2_jobs(config, weight_mode):
             key = job_key(job)
             bins = {}
@@ -906,6 +1068,8 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         payload["slurm_time"] = recovery.get("slurm_time") or "24:00:00"
         payload["only3d_slurm_mem"] = recovery.get("only3d_slurm_mem") or "4500M"
         payload["recovery_task_count"] = task_count
+    if(nominal_only or only_5d):
+        payload["hybrid_date"] = "10_30_2026"
     return payload
 
 
@@ -1041,13 +1205,13 @@ def weight_name_ok(name, tag):
 
 
 def response_names_ready(names, cut):
-    # Plain and _(Spline), every Q2-y bin. Acc, JSON, and AccSpline do not satisfy the plain check.
+    # Plain and _(Spline). 3D needs every Q2-y bin. 5D writes one Q2-y-Bin=All pair from make_rm5d_single.
     if(not isinstance(names, (list, tuple))):
         return False
     cut_token = "(Data-Cut='%s')" % cut
     generated = "(Data-Type='gdf'), (Data-Cut='no_cut')"
-    for q2y in Q2Y_BINS:
-        bin_token = "Q2-y-Bin=%d," % int(q2y)
+
+    def pair_ready(bin_token, require_5d):
         for tag in ["", "_(Spline)"]:
             matrix = False
             generated_ok = False
@@ -1055,12 +1219,20 @@ def response_names_ready(names, cut):
                 text = str(name)
                 if((not weight_name_ok(text, tag)) or (bin_token not in text)):
                     continue
+                if(require_5d and ("MultiDim_Q2_y_z_pT_phi_h" not in text)):
+                    continue
                 if(("Response_Matrix_Normal_1D" in text) and (generated in text)):
                     generated_ok = True
                 if(("(Histo-Group='Response_Matrix_Normal')" in text) and ("(Data-Type='mdf')" in text) and (cut_token in text) and ("Response_Matrix_Normal_1D" not in text)):
                     matrix = True
             if((not matrix) or (not generated_ok)):
                 return False
+        return True
+
+    for q2y in Q2Y_BINS:
+        if(not pair_ready("Q2-y-Bin=%d," % int(q2y), False)):
+            # A 3D All histogram does not carry the 5D variable, so a short 3D file still fails.
+            return pair_ready("Q2-y-Bin=All", True)
     return True
 
 
@@ -1076,7 +1248,7 @@ def response_matrix_ready(path, cut):
     return response_names_ready(names, cut)
 
 
-def systematic_batch_paths(config_id, cut, hybrid_date, num_batches=171):
+def systematic_batch_paths(config_id, cut, hybrid_date, num_batches=171, batch_name=None, product_key="Only_3D"):
     # Same directory and file names as Submit_Full hybrid_batch_paths plus the pipeline batch writer.
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     df = os.path.join(root, "Histo_Files_ROOT", "DataFrames")
@@ -1085,10 +1257,10 @@ def systematic_batch_paths(config_id, cut, hybrid_date, num_batches=171):
     import Submit_Full_Histogram_Creation_Pipeline as submit_full
     import run_sidis_DataFrame_pipeline as pipeline
     stub = type("Stub", (), {})()
-    stub.name = "Sys3D_%s" % config_id
+    stub.name = batch_name if(batch_name not in [None, ""]) else ("Sys3D_%s" % config_id)
     stub.matching_criteria = "Bank"
     stub.hybrid_date = str(hybrid_date)
-    product = {"name_fmt": "Only_3D_{shared}_Response_Matrices"}
+    product = {"name_fmt": "%s_{shared}_Response_Matrices" % product_key}
     batch_dir, _subdir = submit_full.hybrid_batch_paths(stub, cut, product)
     pipe = type("Pipe", (), {})()
     pipe.name = submit_full.product_output_name(product, submit_full.product_shared_name(stub, cut))
@@ -1348,3 +1520,58 @@ def self_test():
         raise SystemExit("sbatch requests per-task mail")
     if(not script.splitlines()[0].startswith("#!/bin/bash")):
         raise SystemExit("sbatch header")
+    def matrix_name(group, data, data_cut, variable, bin_token, weight, smear):
+        text = "((Histo-Group='%s'), (Data-Type='%s'), (Data-Cut='%s'), (Smear-Type='%s'), (Binning-Type='Y_bin'-[Q2-y-Bin=%s, z-PT-Bin=All]), (Var-D1='%s'-[NumBins=1, MinBin=0, MaxBin=1]))" % (
+            group, data, data_cut, smear, bin_token, variable)
+        if(weight not in ["", None]):
+            text = "%s_(%s)" % (text, weight)
+        return text
+    three = []
+    for q2y in Q2Y_BINS:
+        token = "%d" % q2y
+        for weight in ["", "Spline"]:
+            three.append(matrix_name("Response_Matrix_Normal", "mdf", DEFAULT_CUT, "MultiDim_z_pT_Bin_Y_bin_phi_t", token, weight, "smear"))
+            three.append(matrix_name("Response_Matrix_Normal_1D", "gdf", "no_cut", "MultiDim_z_pT_Bin_Y_bin_phi_t", token, weight, ""))
+    if(not response_names_ready(three, DEFAULT_CUT)):
+        raise SystemExit("complete 3D names were rejected")
+    short = [name for name in three if("Q2-y-Bin=17," not in name)]
+    short.append(matrix_name("Response_Matrix_Normal", "mdf", DEFAULT_CUT, "MultiDim_z_pT_Bin_Y_bin_phi_t", "All", "", "smear"))
+    short.append(matrix_name("Response_Matrix_Normal_1D", "gdf", "no_cut", "MultiDim_z_pT_Bin_Y_bin_phi_t", "All", "", ""))
+    if(response_names_ready(short, DEFAULT_CUT)):
+        raise SystemExit("a short 3D file with Q2-y-Bin=All was accepted")
+    five = []
+    for weight in ["", "Spline"]:
+        mdf_name = matrix_name("Response_Matrix_Normal", "mdf", DEFAULT_CUT, "MultiDim_Q2_y_z_pT_phi_h", "All", weight, "smear")
+        five.append("%s_Slice_1_(Increment='422')%s" % (mdf_name[:-len("_(Spline)")] if(weight == "Spline") else mdf_name, "_(Spline)" if(weight == "Spline") else ""))
+        five.append(matrix_name("Response_Matrix_Normal_1D", "gdf", "no_cut", "MultiDim_Q2_y_z_pT_phi_h", "All", weight, ""))
+    if(not response_names_ready(five, DEFAULT_CUT)):
+        raise SystemExit("make_rm5d_single names were rejected")
+    if(response_names_ready([name for name in five if(not name.endswith("_(Spline)"))], DEFAULT_CUT)):
+        raise SystemExit("a 5D file without _(Spline) was accepted")
+    no_gdf = [name for name in five if("Response_Matrix_Normal_1D" not in name)]
+    if(response_names_ready(no_gdf, DEFAULT_CUT)):
+        raise SystemExit("a 5D file without the gdf 1D was accepted")
+    only = build_manifest("work_b", "systematics_3d_nominal_only_20261030", "both", 11, "Final_Thesis", False, "stamp", nominal_only=True, shared_unfold=True)
+    if(len(only["phase1"]) != 1) or (len(only["phase2"]) != 11):
+        raise SystemExit("nominal-only schedule is %s phase1 and %s phase2" % (len(only["phase1"]), len(only["phase2"])))
+    only_cmd = command_text(only["phase1"][0]["command"])
+    if(NOMINAL_SYSREGEN_HPP not in only_cmd) or ("-sa" not in only["phase1"][0]["command"]) or ("-rnh" in only_cmd) or ("-hso" in only_cmd):
+        raise SystemExit("nominal-only HPP command is wrong")
+    if(not spline_event_weight_path("work_b").startswith("/")) or (spline_event_weight_path("work_b") not in only_cmd):
+        raise SystemExit("nominal-only spline path is not absolute")
+    if(only["phase1"][0]["auto_merge"] is not True) or (only["hybrid_date"] != "10_30_2026"):
+        raise SystemExit("nominal-only merge was not deferred to the campaign")
+    five_manifest = build_manifest("work_b", "nominal_5d_spline_20261030", "unweighted", 1, "Final_Thesis", False, "stamp", only_5d=True)
+    if(len(five_manifest["phase1"]) != 1) or (len(five_manifest["phase2"]) != 1):
+        raise SystemExit("5D schedule is not one phase1 and one phase2")
+    five_cmd = command_text(five_manifest["phase1"][0]["command"])
+    if("-j5D 1" not in five_cmd) or ("-j3D 0" not in five_cmd) or ("-m slurm" not in five_cmd):
+        raise SystemExit("5D phase1 command is not SLURM Only_5D")
+    if(NOMINAL_SYSREGEN_HPP in five_cmd):
+        raise SystemExit("5D selected the 3D sysregen HPP")
+    five_job = five_manifest["phase2"][0]
+    if(five_job.get("local_5d") is not True) or (five_job["weight_tag"] != "Spline") or (five_job["status"] != "waiting_phase1"):
+        raise SystemExit("5D phase2 is not one waiting inherited Spline job")
+    unfold = command_text(dedicated_5d_command("python", "run_Dedicated_5D_Unfold.py", "work_b", five_job["response"], five_job["launch_root"]))
+    if("-wt Spline" not in unfold) or ("-bi" in unfold) or ("-ac" in unfold) or ("-ph" in unfold) or ("-err" in unfold) or ("AccSpline" in unfold):
+        raise SystemExit("5D unfold command does not keep the launcher defaults")

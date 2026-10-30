@@ -676,6 +676,133 @@ def phase2_spline_nosmear_dry_run():
                 raise SystemExit("dry-run wrote sbatch %s" % name)
 
 
+def array_script_paths():
+    import argparse
+    df = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import run_sidis_DataFrame_pipeline as pipeline
+    from jlab_work_paths import REL_SPLINE_DEFAULT, apply_input_if_default
+    rel_hpp = "Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_noSpline.hpp"
+    rel_spline_hpp = "Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.hpp"
+    holder = argparse.Namespace(spline_weight_file=REL_SPLINE_DEFAULT, hpp_weight_file=rel_hpp, hpp_weight_file_spline=rel_spline_hpp)
+    apply_input_if_default(holder, "spline_weight_file", ["-swf", "--spline_weight_file"], "work_b", argv=["-swf", REL_SPLINE_DEFAULT])
+    apply_input_if_default(holder, "hpp_weight_file", ["-hppf", "--hpp_weight_file"], "work_b", argv=["-hppf", rel_hpp])
+    apply_input_if_default(holder, "hpp_weight_file_spline", ["-hpp_swf", "--hpp_weight_file_spline"], "work_b", argv=["-hpp_swf", rel_spline_hpp])
+    for product, only_3d in [["Only_3D", True], ["Only_5D", False]]:
+        args = argparse.Namespace(
+            run_subdir_name="%s_demo_10_30_2026" % product,
+            slurm_cpus="1",
+            slurm_mem="4500M" if(only_3d) else "14GB",
+            slurm_time="24:00:00" if(only_3d) else "12:00:00",
+            replace_listed_batches=False,
+            data_root="work_b",
+            cut_name="cut_Complete_SIDIS",
+            unsmeared=False,
+            z_axis_2D="4D_Bin",
+            no_make_root=False,
+            no_make_2D=True,
+            no_make_2D_rho=True,
+            no_unfold_5D=only_3d,
+            make_2D_only=False,
+            unfold_5D_only=(not only_3d),
+            old_3D_unfold=False,
+            no_fast=False,
+            valerii_bins=False,
+            use_hpp=True,
+            spline_weights=True,
+            spline_weight_file=holder.spline_weight_file,
+            json_weights=False,
+            hpp_weight_file=holder.hpp_weight_file,
+            hpp_weight_file_spline=holder.hpp_weight_file_spline,
+            run_rho_weight=True,
+            matching_criteria="Bank",
+            name="%s_demo" % product,
+            name_in=["*Final_Thesis_Files*.root"],
+            root="SIDIS_epip_Response_Matrices_from_RDataFrames.root",
+            email_message_job="",
+            extra=[],
+        )
+        text = pipeline.slurm_array_script_text(args, "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/demo", 171, None)
+        if("cd /lustre24/" not in text):
+            raise SystemExit("%s array script does not cd to lustre" % product)
+        parts = text.split()
+        for flag in ["--spline_file", "--hpp_input_file", "--hpp_input_file_spline"]:
+            value = parts[parts.index(flag) + 1]
+            if(not value.startswith("/")):
+                raise SystemExit("%s %s stayed relative: %s" % (product, flag, value))
+        if(not parts[parts.index("--spline_file") + 1].endswith("acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt")):
+            raise SystemExit("%s spline file name changed" % product)
+        if(" --spline_file Prepare_Next_Iteration/" in text):
+            raise SystemExit("%s script kept a bare spline path" % product)
+
+
+def nominal_and_5d_dry_run():
+    import io
+    from contextlib import redirect_stdout
+    from Campaign.systematics_campaign import NOMINAL_SYSREGEN_HPP
+    stdout = io.StringIO()
+    with redirect_stdout(stdout):
+        code = runner.main([
+            "-n", "-c", "systematics_3d_nominal_only_20261030", "-droot", "work_b", "-wm", "both",
+            "-nmo", "-suo", "-mlw", "11",
+        ])
+    if(code != 0):
+        raise SystemExit("nominal-only dry-run exit %s\n%s" % (code, stdout.getvalue()))
+    printed = stdout.getvalue()
+    camp = runner.campaign_directory("work_b", "systematics_3d_nominal_only_20261030")
+    manifest = runner.read_manifest(camp)
+    if(len(manifest["phase1"]) != 1) or (manifest["phase1"][0]["id"] != "nominal_only_20261030"):
+        raise SystemExit("nominal-only dry-run did not select one phase1 configuration")
+    if(len(manifest["phase2"]) != 11):
+        raise SystemExit("nominal-only phase2 count %s" % len(manifest["phase2"]))
+    if(printed.count("PHASE2 ") != 11):
+        raise SystemExit("nominal-only printed %s phase2 rows" % printed.count("PHASE2 "))
+    command = runner.command_text(manifest["phase1"][0]["command"])
+    for token in ["-sa", "-m slurm", "-j3D 1", "-j5D 0", "-dfm", "-rlb", "-bids 1-171", NOMINAL_SYSREGEN_HPP]:
+        if(token not in command):
+            raise SystemExit("nominal-only command missing %s" % token)
+    for banned in ["-rnh", "-hso", "-hsp ", " -spf Prepare_Next_Iteration/"]:
+        if(banned in command):
+            raise SystemExit("nominal-only command contains %s" % banned)
+    if("/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt" not in command):
+        raise SystemExit("nominal-only command spline path is not absolute")
+    for row in manifest["phase2"]:
+        if("systematics_3d_complete_20261029/unfolded" not in row["final"]):
+            raise SystemExit("nominal phase2 final left the shared directory: %s" % row["final"])
+        if(row["status"] != "waiting_phase1"):
+            raise SystemExit("nominal phase2 was not waiting on phase1: %s" % row["status"])
+    labels = [row["key"] for row in manifest["phase2"]]
+    for needed in ["AcceptanceWeightVariation", "BinByBin", "Unweighted", "inherited__AccSpline"]:
+        if(not any(needed in key for key in labels)):
+            raise SystemExit("nominal phase2 missing %s" % needed)
+    five_out = io.StringIO()
+    with redirect_stdout(five_out):
+        five_code = runner.main(["-n", "-c", "nominal_5d_spline_20261030", "-droot", "work_b", "-5ds"])
+    if(five_code != 0):
+        raise SystemExit("5D dry-run exit %s\n%s" % (five_code, five_out.getvalue()))
+    five_text = five_out.getvalue()
+    five_camp = runner.campaign_directory("work_b", "nominal_5d_spline_20261030")
+    five_manifest = runner.read_manifest(five_camp)
+    if(len(five_manifest["phase1"]) != 1) or (len(five_manifest["phase2"]) != 1):
+        raise SystemExit("5D dry-run schedule is not one and one")
+    five_command = runner.command_text(five_manifest["phase1"][0]["command"])
+    for token in ["-m slurm", "-j5D 1", "-j3D 0", "-sa", "-dfm", "-rlb", "generated_acceptance_weights_Final_Thesis_withSpline.hpp"]:
+        if(token not in five_command):
+            raise SystemExit("5D command missing %s" % token)
+    if(NOMINAL_SYSREGEN_HPP in five_command) or (" -spf Prepare_Next_Iteration/" in five_command):
+        raise SystemExit("5D command kept a relative spline path or the 3D sysregen HPP")
+    if(five_text.count("PHASE2 ") != 1) or ("-wt Spline" not in five_text) or ("starts after phase1 success" not in five_text):
+        raise SystemExit("5D dry-run did not show one gated Spline unfold")
+    for banned in ["-bi", "-ac ", "-ph ", "-err ", "AccSpline", "Unweighted"]:
+        if(banned in five_text.split("PHASE2 ", 1)[1]):
+            raise SystemExit("5D unfold overrides a launcher default or adds another weight: %s" % banned)
+    if(five_manifest["phase2"][0]["status"] != "waiting_phase1"):
+        raise SystemExit("5D phase2 was not waiting on phase1")
+    if("systematics_3d_complete_20261029" in five_manifest["phase2"][0]["final"]):
+        raise SystemExit("5D final was written into the 3D shared directory")
+
+
 def main():
     self_test()
     ledger_self_test()
@@ -686,6 +813,8 @@ def main():
     followup_recovery_20261029()
     complete_campaign_20261029()
     phase2_spline_nosmear_dry_run()
+    array_script_paths()
+    nominal_and_5d_dry_run()
     print("systematics campaign self-test ok")
     return 0
 

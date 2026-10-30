@@ -14,7 +14,8 @@ if(_BOOT not in sys.path):
 from Campaign.systematics_campaign import (
     COMPLETE_LINEAGE_COUNT, EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, USED_CAMPAIGN_IDS, append_log, append_submission_history,
     bin_root, branch_settings, build_manifest, campaign_directory, command_text, file_nonempty, job_stem, load_recovery_batches,
-    manifest_path, nominal_complete_command, output_counts, phase1_command, phase2_history_record, read_manifest,
+    dedicated_5d_command, manifest_path, nominal_complete_command, nominal_only_command, only_5d_spline_command,
+    output_counts, phase1_command, phase2_history_record, read_manifest,
     final_is_ready, part_is_ready, recovery_failure_text, recovery_phase1_command, regen_command, response_matrix_ready,
     root_key_names, sbatch_script, submission_ids_for_config, systematic_batch_paths, unfold_bin_ok, unfold_command,
     unfold_final_ok, worker_cap, write_manifest, written_output_path,
@@ -23,6 +24,7 @@ from Campaign.systematics_worker_ledger import bind_worker, pid_alive, release, 
 
 SUBMIT_SCRIPT = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames", "Submit_Full_Histogram_Creation_Pipeline.py")
 UNFOLD_SCRIPT = os.path.join(_BOOT, "run_Simple_Unfold.py")
+DEDICATED_5D_SCRIPT = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
 BIN_SCRIPT = os.path.join(_BOOT, "Simple_RooUnfold_SelfContained.py")
 DATAFRAMES_DIR = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
 WAIT_POLL_S = 60
@@ -69,6 +71,16 @@ def slurm_helpers():
 def fill_commands(manifest, python):
     for row in manifest["phase1"]:
         config = {"id": row["id"], "cut": row["cut"], "unsmeared": row["unsmeared"], "nominal": row["nominal"], "nominal_complete": row.get("nominal_complete")}
+        if(row.get("nominal_only")):
+            row["command"] = nominal_only_command(
+                python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], row["hpp_nospline"], row["hpp_spline"],
+            )
+            continue
+        if(row.get("only_5d")):
+            row["command"] = only_5d_spline_command(
+                python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], row["hpp_nospline"], row["hpp_spline"],
+            )
+            continue
         if(row.get("nominal_complete")):
             row["command"] = nominal_complete_command(
                 python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], row["hpp_nospline"], row["hpp_spline"],
@@ -111,7 +123,10 @@ def print_plan(manifest, regen_cmd):
         print("  hpp_nospline %s" % row["hpp_nospline"])
         print("  hpp_spline %s" % row["hpp_spline"])
         print("  response %s" % row["response"])
-        if(row.get("nominal_complete")):
+        if(row.get("nominal_only") or row.get("only_5d")):
+            print("  hadd after all 171 batch files validate; then Phase 2")
+            print("  %s" % command_text(row["command"]))
+        elif(row.get("nominal_complete")):
             print("  full nominal histograms; then Phase 2")
             print("  %s" % command_text(row["command"]))
         elif(row.get("batch_ids") in [None, ""]):
@@ -133,6 +148,13 @@ def print_plan(manifest, regen_cmd):
     for row in manifest["phase2"]:
         if(row.get("status") == "deferred"):
             print("PHASE2 %s deferred" % row["key"])
+            continue
+        if(row.get("local_5d")):
+            sample = dedicated_5d_command(sys.executable, DEDICATED_5D_SCRIPT, manifest["data_root"], row["response"], row["launch_root"])
+            print("PHASE2 %s lineage %s" % (row["key"], row["lineage"]))
+            print("  starts after phase1 success")
+            print("  final %s" % row["final"])
+            print("  %s" % command_text(sample))
             continue
         settings = branch_settings(row["branch"], 1, row["weight_tag"])
         settings["unsmeared"] = bool(row.get("unsmeared"))
@@ -300,6 +322,8 @@ def first_pending_bin(row, query_state, now):
 def choose_local(rows, running, query_state, now):
     by_lineage = {}
     for row in rows:
+        if(row.get("local_5d")):
+            continue
         if(row["status"] in ["success", "failed", "waiting_phase1", "deferred"]):
             continue
         by_lineage.setdefault(row["lineage"], []).append(row)
@@ -348,7 +372,7 @@ def batch_files_signature(row, hybrid_date):
     if(DATAFRAMES_DIR not in sys.path):
         sys.path.insert(0, DATAFRAMES_DIR)
     import run_sidis_DataFrame_pipeline as pipeline
-    paths = systematic_batch_paths(row["id"], row["cut"], hybrid_date)
+    paths = systematic_batch_paths(row["id"], row["cut"], hybrid_date, batch_name=row.get("batch_name"), product_key=row.get("product_key") or "Only_3D")
     sizes = []
     for path in paths:
         if(not pipeline.batch_root_is_valid(path, "MultiDim")):
@@ -481,6 +505,7 @@ def run_live(args, manifest):
     compiled = False
     compile_failed = False
     running_local = {}
+    five_d_running = {}
     merge_procs = {}
     while(True):
         if(regen_proc is not None):
@@ -532,7 +557,27 @@ def run_live(args, manifest):
                 send_mail(args.email, "SIDIS systematics Phase 1 failed %s" % row["id"], body)
         for config_id in finished:
             del procs[config_id]
-        if((not compiled) and any(row["status"] == "success" for row in manifest["phase1"])):
+        finished_5d = []
+        for five_key, five_proc in five_d_running.items():
+            five_rc = five_proc.poll()
+            if(five_rc is None):
+                continue
+            finished_5d.append(five_key)
+            five_row = [item for item in manifest["phase2"] if(item["key"] == five_key)][0]
+            if((five_rc == 0) and file_nonempty(five_row["final"])):
+                five_row["status"] = "success"
+                five_row["reason"] = ""
+                append_log(camp, "phase2", five_row["config_id"], five_row["branch"], five_row["weight_label"], "", "local", "", "success", "", five_row["final"])
+                send_mail(args.email, "SIDIS systematics Phase 2 success %s" % five_row["key"], five_row["final"] + "\n")
+            else:
+                five_row["status"] = "failed"
+                five_row["reason"] = "5D unfold exited %s" % five_rc
+                append_log(camp, "phase2", five_row["config_id"], five_row["branch"], five_row["weight_label"], "", "local", "", "failed", five_row["reason"], five_row["final"])
+                send_mail(args.email, "SIDIS systematics Phase 2 failed %s" % five_row["key"], five_row["reason"] + "\n")
+        for five_key in finished_5d:
+            del five_d_running[five_key]
+        needs_simple = any(not item.get("local_5d") for item in manifest["phase2"])
+        if((not compiled) and needs_simple and any(row["status"] == "success" for row in manifest["phase1"])):
             compile_rc = subprocess.run([sys.executable, UNFOLD_SCRIPT, "--compile_only"]).returncode
             compiled = compile_rc == 0
             compile_failed = not compiled
@@ -540,6 +585,25 @@ def run_live(args, manifest):
                 append_log(camp, "phase2", "", "", "", "", "local", "", "failed", "Simple_Unfold compile failed", "")
         for row in manifest["phase2"]:
             parent = [item for item in manifest["phase1"] if(item["id"] == row["config_id"])][0]
+            if(row.get("local_5d")):
+                if(parent["status"] != "success"):
+                    continue
+                if(row["status"] in ["success", "failed", "running"]):
+                    continue
+                if(row["key"] in five_d_running):
+                    continue
+                launch_dir = os.path.dirname(row["launch_root"])
+                if(launch_dir not in ["", None]):
+                    os.makedirs(launch_dir, exist_ok=True)
+                command = dedicated_5d_command(sys.executable, DEDICATED_5D_SCRIPT, manifest["data_root"], row["response"], row["launch_root"])
+                five_proc = subprocess.Popen(command)
+                row["pid"] = five_proc.pid
+                row["status"] = "running"
+                row["reason"] = ""
+                five_d_running[row["key"]] = five_proc
+                append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "local", "", "started", "", row["final"])
+                send_mail(args.email, "SIDIS systematics Phase 2 started %s" % row["key"], command_text(command) + "\n")
+                continue
             if(parent["status"] != "success"):
                 continue
             if(row["status"] in ["success", "failed", "deferred"]):
@@ -773,6 +837,8 @@ def parse_args(argv):
     parser.add_argument("-rb", "--recovery_batches", default=None)
     parser.add_argument("-incn", "--include_nominal", action="store_true")
     parser.add_argument("-suo", "--shared_unfold_output", action="store_true")
+    parser.add_argument("-nmo", "--nominal_only", action="store_true")
+    parser.add_argument("-5ds", "--only_5d_spline", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -794,6 +860,18 @@ def main(argv=None):
         return 1
     if(args.include_nominal and (args.recovery_batches in [None, ""])):
         print("include_nominal requires a recovery batch file", file=sys.stderr)
+        return 1
+    if(args.nominal_only and args.only_5d_spline):
+        print("nominal_only and only_5d_spline are separate campaigns", file=sys.stderr)
+        return 1
+    if(args.nominal_only and ((args.recovery_batches not in [None, ""]) or args.include_nominal or args.regenerate_nominal_spline_hpp)):
+        print("nominal_only does not take recovery batches, include_nominal, or HPP regeneration", file=sys.stderr)
+        return 1
+    if(args.nominal_only and (not args.shared_unfold_output)):
+        print("nominal_only requires shared_unfold_output", file=sys.stderr)
+        return 1
+    if(args.only_5d_spline and ((args.recovery_batches not in [None, ""]) or args.include_nominal or args.regenerate_nominal_spline_hpp or args.shared_unfold_output)):
+        print("only_5d_spline does not take recovery batches, include_nominal, HPP regeneration, or shared_unfold_output", file=sys.stderr)
         return 1
     if((args.recovery_batches not in [None, ""]) and args.regenerate_nominal_spline_hpp):
         print("recovery does not regenerate the nominal spline HPP", file=sys.stderr)
@@ -822,6 +900,7 @@ def main(argv=None):
             args.data_root, args.campaign, args.weight_mode, args.max_local_workers,
             args.hpp_tag, args.regenerate_nominal_spline_hpp, stamp, previous=previous if(args.resume) else None,
             recovery=recovery, include_nominal=args.include_nominal, shared_unfold=args.shared_unfold_output,
+            nominal_only=args.nominal_only, only_5d=args.only_5d_spline,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
