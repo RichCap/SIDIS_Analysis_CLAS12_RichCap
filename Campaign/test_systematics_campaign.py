@@ -368,7 +368,6 @@ def followup_recovery_20261029():
     json_path = os.path.join(_BOOT, "Campaign", "recovery_batches_20261029.json")
     payload = load_recovery_batches(json_path)
     expected = {
-        "dcv_tight_el": ("3-5,10-11,105,108-109,111-113", False),
         "dvz_loose_pip": ("2-5,7-13,94-96,99-101,104-115", False),
         "dvz_tight_pip": ("13,98,105,108-109,111-115,117-163", False),
         "pipS2o": ("3-5,9-10", False),
@@ -384,6 +383,7 @@ def followup_recovery_20261029():
         "eS3o", "pipS5o", "eS4o", "pipS4o", "eS5o", "no_pip_testdc", "noSmear", "pipS3o",
         "eS1o", "dcfid_tight_el", "chi2_strict_pip", "dcfid_loose_pip", "dcfid_tight_pip",
         "dcfid_loose_el", "pipS1o", "no_valerii_knockout",
+        "dcv_loose_el", "ecband_loose_el", "dcv_tight_el",
     ]
     by_id = {}
     total = 0
@@ -391,7 +391,7 @@ def followup_recovery_20261029():
         by_id[item["id"]] = item
         if(str(item.get("batches", "")).strip() != ""):
             total += len(expand_batch_spec(item["batches"]))
-    if((len(payload["configs"]) != 31) or (total != 170)):
+    if((len(payload["configs"]) != 33) or (total != 159)):
         raise SystemExit("20261029 inventory is %s configs and %s tasks" % (len(payload["configs"]), total))
     for config_id, (spec, deferred) in expected.items():
         item = by_id[config_id]
@@ -400,7 +400,7 @@ def followup_recovery_20261029():
     for config_id in empty_ids:
         if(str(by_id[config_id].get("batches", "x")).strip() != ""):
             raise SystemExit("%s was given histogram batches" % config_id)
-    for banned in ["nominal", "ecband_loose_el", "dcv_loose_el"]:
+    for banned in ["nominal"]:
         if(banned in by_id):
             raise SystemExit("%s is in the 20261029 inventory" % banned)
     if(113 in expand_batch_spec(by_id["eS6o"]["batches"])):
@@ -424,13 +424,13 @@ def followup_recovery_20261029():
     if(code != 0):
         raise SystemExit("20261029 dry-run exit %s" % code)
     printed = stdout.getvalue()
-    if("recovery tasks 170" not in printed):
+    if("recovery tasks 159" not in printed):
         raise SystemExit("dry-run task count")
     if("nominal" in printed.split("PHASE1")[0]):
         pass
     camp = runner.campaign_directory("work_b", "systematics_3d_both_recovery_20261029")
     manifest = runner.read_manifest(camp)
-    if((len(manifest["phase1"]) != 31) or (manifest.get("recovery_task_count") != 170)):
+    if((len(manifest["phase1"]) != 33) or (manifest.get("recovery_task_count") != 159)):
         raise SystemExit("20261029 manifest counts")
     deferred_ids = []
     empty_seen = 0
@@ -450,14 +450,14 @@ def followup_recovery_20261029():
         else:
             if("-dfm" in row["command"]):
                 raise SystemExit("immediate merge was deferred")
-    if((empty_seen != 21) or (sorted(deferred_ids) != ["ecband_tight_el", "ecthr_tight_el"])):
+    if((empty_seen != 24) or (sorted(deferred_ids) != ["ecband_tight_el", "ecthr_tight_el"])):
         raise SystemExit("empty or deferred set changed")
     pip = [row for row in manifest["phase1"] if(row["id"] == "pipS6o")][0]
     if(("-rlb" not in pip["command"]) or ("-dfm" in pip["command"]) or (len(expand_batch_spec(pip["batch_ids"])) != 11)):
         raise SystemExit("pipS6o was not routed through selective replace")
     if(printed.count("hadd deferred") != 2):
         raise SystemExit("deferred hadd lines %s" % printed.count("hadd deferred"))
-    if(printed.count("skip histograms; verify merged response; then Phase 2") != 21):
+    if(printed.count("skip histograms; verify merged response; then Phase 2") != 24):
         raise SystemExit("phase2-only lines")
     if("PHASE2 ecband_tight_el__inherited__Spline deferred" not in printed):
         raise SystemExit("deferred Phase 2 was printed as an unfold command")

@@ -4,7 +4,7 @@
   "slurm_time": "24:00:00",
   "only3d_slurm_mem": "4500M",
   "configs": [
-    {"id": "dcv_tight_el", "original_job": "13743302", "batches": "3-5,10-11,105,108-109,111-113", "defer_merge": false},
+    {"id": "dcv_tight_el", "original_job": "13827098", "batches": ""},
     {"id": "dvz_loose_pip", "original_job": "13743300", "batches": "2-5,7-13,94-96,99-101,104-115", "defer_merge": false},
     {"id": "dvz_tight_pip", "original_job": "13743301", "batches": "13,98,105,108-109,111-115,117-163", "defer_merge": false},
     {"id": "pipS2o", "original_job": "13743305", "batches": "3-5,9-10", "defer_merge": false},
@@ -34,6 +34,8 @@
     {"id": "dcfid_tight_pip", "original_job": "13743296", "batches": ""},
     {"id": "dcfid_loose_el", "original_job": "13743293", "batches": ""},
     {"id": "pipS1o", "original_job": "13744765", "batches": ""},
-    {"id": "no_valerii_knockout", "original_job": "13744939", "batches": ""}
+    {"id": "no_valerii_knockout", "original_job": "13744939", "batches": ""},
+    {"id": "dcv_loose_el", "original_job": "13743297", "batches": ""},
+    {"id": "ecband_loose_el", "original_job": "13743303", "batches": ""}
   ]
 }
