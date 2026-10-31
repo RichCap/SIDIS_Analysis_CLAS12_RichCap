@@ -1,0 +1,322 @@
+{
+  "campaign": "systematics_3d_pips6o_batch111_20261030",
+  "data_root": "work_b",
+  "weight_mode": "both",
+  "shared_unfold": true,
+  "max_local_workers": 2,
+  "hpp_tag": "Final_Thesis",
+  "regenerate_nominal_spline_hpp": false,
+  "phase1": [
+    {
+      "id": "pipS6o",
+      "cut": "cut_Complete_SIDIS_pipS6o",
+      "nominal": false,
+      "nominal_complete": false,
+      "nominal_only": false,
+      "only_5d": false,
+      "pips6o_batch111": true,
+      "unsmeared": false,
+      "hpp_nospline": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_noSpline.hpp",
+      "hpp_spline": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.hpp",
+      "response": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_pipS6o_Bank_cut_Complete_SIDIS_pipS6o_Response_Matrices_Final_Thesis_Files_All.root",
+      "command": [
+        "/cvmfs/jlab.opensciencegrid.org/hallb/clas12/sw/almalinux9-gcc11/local/python/3.13.7/bin/python3",
+        "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Submit_Full_Histogram_Creation_Pipeline.py",
+        "-droot",
+        "work_b",
+        "-m",
+        "sequential",
+        "-mac",
+        "Bank",
+        "-cn",
+        "cut_Complete_SIDIS_pipS6o",
+        "-n",
+        "Sys3D_pipS6o",
+        "-sa",
+        "-hpf",
+        "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_noSpline.hpp",
+        "-hps",
+        "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.hpp",
+        "-j",
+        "1",
+        "-j3D",
+        "1",
+        "-j2D",
+        "0",
+        "-j5D",
+        "0",
+        "-jBin",
+        "0",
+        "-jch4",
+        "0",
+        "-jdph",
+        "0",
+        "-j1D",
+        "0",
+        "-jdiag",
+        "0",
+        "-e",
+        "none",
+        "-cwn",
+        "systematics_3d_pips6o_batch111_20261030",
+        "-bids",
+        "111",
+        "-hdate",
+        "10_27_2026"
+      ],
+      "status": "running",
+      "pid": 927408,
+      "reason": "",
+      "external_merge": false,
+      "auto_merge": false,
+      "batch_name": "Sys3D_pipS6o",
+      "product_key": "Only_3D",
+      "replace_one_batch": "/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Only_3D_Sys3D_pipS6o_Bank_cut_Complete_SIDIS_pipS6o_Response_Matrices_Final_Thesis_Files_10_27_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_pipS6o_Bank_cut_Complete_SIDIS_pipS6o_Response_Matrices_Final_Thesis_Files_Batch111.root"
+    }
+  ],
+  "phase2": [
+    {
+      "key": "pipS6o__inherited__Spline",
+      "config_id": "pipS6o",
+      "branch": "inherited",
+      "weight_tag": "Spline",
+      "weight_label": "Spline",
+      "lineage": "pipS6o",
+      "local_order": 0,
+      "response": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_pipS6o_Bank_cut_Complete_SIDIS_pipS6o_Response_Matrices_Final_Thesis_Files_All.root",
+      "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS6o_inherited_Spline.root",
+      "array_id": "",
+      "submit_time": null,
+      "status": "waiting_phase1",
+      "bins": {
+        "1": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y01.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "2": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y02.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "3": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y03.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "4": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y04.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "5": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y05.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "6": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y06.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "7": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y07.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "8": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y08.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "9": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y09.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "10": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y10.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "11": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y11.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "12": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y12.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "13": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y13.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "14": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y14.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "15": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y15.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "16": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y16.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "17": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Spline_q2y17.root",
+          "slurm_state": "",
+          "where": ""
+        }
+      },
+      "reason": "",
+      "unsmeared": false
+    },
+    {
+      "key": "pipS6o__inherited__Unweighted",
+      "config_id": "pipS6o",
+      "branch": "inherited",
+      "weight_tag": "",
+      "weight_label": "Unweighted",
+      "lineage": "pipS6o",
+      "local_order": 1,
+      "response": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_pipS6o_Bank_cut_Complete_SIDIS_pipS6o_Response_Matrices_Final_Thesis_Files_All.root",
+      "final": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS6o_inherited_Unweighted.root",
+      "array_id": "",
+      "submit_time": null,
+      "status": "waiting_phase1",
+      "bins": {
+        "1": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y01.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "2": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y02.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "3": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y03.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "4": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y04.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "5": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y05.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "6": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y06.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "7": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y07.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "8": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y08.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "9": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y09.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "10": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y10.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "11": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y11.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "12": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y12.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "13": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y13.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "14": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y14.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "15": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y15.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "16": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y16.root",
+          "slurm_state": "",
+          "where": ""
+        },
+        "17": {
+          "status": "pending",
+          "root": "/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_pipS6o_inherited_Unweighted_q2y17.root",
+          "slurm_state": "",
+          "where": ""
+        }
+      },
+      "reason": "",
+      "unsmeared": false
+    }
+  ],
+  "pips6o_batch111": true,
+  "hybrid_date": "10_27_2026",
+  "email": true
+}

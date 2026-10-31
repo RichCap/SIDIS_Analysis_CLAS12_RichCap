@@ -1,0 +1,1 @@
+{"attempt": 1, "campaign": "systematics_3d_nominal_only_20261030", "configuration": "nominal_only_20261030", "cpus": "1", "index_spec": "1-171", "job_name": "RMatrix_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_10_30_2026", "memory": "4500M", "phase": "phase1", "slurm_id": "13913513", "time": "2026-10-30T19:13:06", "wall": "24:00:00"}
