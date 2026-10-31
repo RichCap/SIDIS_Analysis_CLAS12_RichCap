@@ -313,6 +313,70 @@ int Default_Bayes_Iterations(const std::string& name_main, int q2y, bool user_se
     return table;
 }
 
+bool Dense_Axis_Has_Index_Offset(const TAxis* axis){
+    // Dense 3D/5D axes are booked from -1.5 with two extra bins: index -1 and the index-0 overflow.
+    // Kinematic slots start at index 1 and are groups of 24 phi bins.
+    if(axis == nullptr){ return false; }
+    const int nbins = axis->GetNbins();
+    const double xmin = axis->GetXmin();
+    return (std::abs(xmin + 1.5) < 1e-6) && ((nbins % kPhiN) == 2) && (nbins > 2);
+}
+
+int Phi12_Dest_Bin(int bin, bool offset){
+    if(bin <= 0){ return bin; }
+    if(!offset){ return sidis5d::Merged_Dense_Bin(bin, kPhiN, 12); }
+    if(bin <= 2){ return bin; }
+    return 2 + sidis5d::Merged_Dense_Bin(bin - 2, kPhiN, 12);
+}
+
+TH1D* Merge_Phi12_TH1(TH1* input){
+    if(input == nullptr){ return nullptr; }
+    const bool offset = Dense_Axis_Has_Index_Offset(input->GetXaxis());
+    if(!offset){ return sidis5d::Merge_Dense_Phi_TH1(input, kPhiN, 12); }
+    const int nbins = input->GetNbinsX();
+    const int nout = 2 + ((nbins - 2) / kPhiN) * 12;
+    TH1D* out = new TH1D((std::string(input->GetName()) + "_phi12").c_str(), input->GetTitle(), nout, -1.5, -1.5 + nout);
+    out->SetDirectory(0);
+    out->Sumw2();
+    for(int bin = 1; bin <= nbins; ++bin){
+        const int dest = Phi12_Dest_Bin(bin, true);
+        const double content = out->GetBinContent(dest) + input->GetBinContent(bin);
+        const double err2 = out->GetBinError(dest) * out->GetBinError(dest) + input->GetBinError(bin) * input->GetBinError(bin);
+        out->SetBinContent(dest, content);
+        out->SetBinError(dest, std::sqrt(err2));
+    }
+    out->GetXaxis()->SetTitle(input->GetXaxis()->GetTitle());
+    return out;
+}
+
+TH2D* Merge_Phi12_TH2(TH2* input){
+    if(input == nullptr){ return nullptr; }
+    const bool offset_x = Dense_Axis_Has_Index_Offset(input->GetXaxis());
+    const bool offset_y = Dense_Axis_Has_Index_Offset(input->GetYaxis());
+    if((!offset_x) || (!offset_y)){ return sidis5d::Merge_Dense_Phi_TH2(input, kPhiN, 12); }
+    const int nx = input->GetNbinsX();
+    const int ny = input->GetNbinsY();
+    const int nx_out = 2 + ((nx - 2) / kPhiN) * 12;
+    const int ny_out = 2 + ((ny - 2) / kPhiN) * 12;
+    TH2D* out = new TH2D((std::string(input->GetName()) + "_phi12").c_str(), input->GetTitle(),
+                         nx_out, -1.5, -1.5 + nx_out, ny_out, -1.5, -1.5 + ny_out);
+    out->SetDirectory(0);
+    out->Sumw2();
+    for(int ix = 1; ix <= nx; ++ix){
+        const int dest_x = Phi12_Dest_Bin(ix, true);
+        for(int iy = 1; iy <= ny; ++iy){
+            const int dest_y = Phi12_Dest_Bin(iy, true);
+            const double content = out->GetBinContent(dest_x, dest_y) + input->GetBinContent(ix, iy);
+            const double err2 = out->GetBinError(dest_x, dest_y) * out->GetBinError(dest_x, dest_y) + input->GetBinError(ix, iy) * input->GetBinError(ix, iy);
+            out->SetBinContent(dest_x, dest_y, content);
+            out->SetBinError(dest_x, dest_y, std::sqrt(err2));
+        }
+    }
+    out->GetXaxis()->SetTitle(input->GetXaxis()->GetTitle());
+    out->GetYaxis()->SetTitle(input->GetYaxis()->GetTitle());
+    return out;
+}
+
 TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_GEN_1D, TH1* MC_BGS_1D,
                      UnfoldArgs& args, bool user_set_bi, const std::string& study_tag, RecSkipMap* skip_map_out,
                      TH1* acceptance_rdf = nullptr, TH1* acceptance_bdf = nullptr, TH1* compare_truth = nullptr){
@@ -328,12 +392,13 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
     std::cout << "\t" << Color::BOLD << "Unfolding Histogram:" << Color::END << "\n\t" << clean_name << std::endl;
 
     // 12-bin mode sums adjacent phi cells, including every rec/gen migration, before the acceptance skip.
+    // Index -1 and the index-0 overflow stay single bins. Kinematic slots, which start at 1, are paired.
     if(args.phi_bins == 12){
-        TH1D* merged_data = sidis5d::Merge_Dense_Phi_TH1(ExREAL_1D, kPhiN, 12);
-        TH1D* merged_rec = sidis5d::Merge_Dense_Phi_TH1(MC_REC_1D, kPhiN, 12);
-        TH1D* merged_gen = sidis5d::Merge_Dense_Phi_TH1(MC_GEN_1D, kPhiN, 12);
-        TH1D* merged_bkg = (MC_BGS_1D != nullptr) ? sidis5d::Merge_Dense_Phi_TH1(MC_BGS_1D, kPhiN, 12) : nullptr;
-        TH2D* merged_response = sidis5d::Merge_Dense_Phi_TH2(Response_2D, kPhiN, 12);
+        TH1D* merged_data = Merge_Phi12_TH1(ExREAL_1D);
+        TH1D* merged_rec = Merge_Phi12_TH1(MC_REC_1D);
+        TH1D* merged_gen = Merge_Phi12_TH1(MC_GEN_1D);
+        TH1D* merged_bkg = (MC_BGS_1D != nullptr) ? Merge_Phi12_TH1(MC_BGS_1D) : nullptr;
+        TH2D* merged_response = Merge_Phi12_TH2(Response_2D);
         if((merged_data == nullptr) || (merged_rec == nullptr) || (merged_gen == nullptr) || (merged_response == nullptr)){
             std::cout << Color::RED << "phi_bins=12 requires dense axes whose bin count is a multiple of 24" << Color::END << std::endl;
             return nullptr;
@@ -344,11 +409,11 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         MC_BGS_1D = merged_bkg;
         Response_2D = merged_response;
         if(acceptance_rdf != nullptr){
-            TH1D* merged_acc = sidis5d::Merge_Dense_Phi_TH1(acceptance_rdf, kPhiN, 12);
+            TH1D* merged_acc = Merge_Phi12_TH1(acceptance_rdf);
             if(merged_acc != nullptr){ acceptance_rdf = merged_acc; }
         }
         if(acceptance_bdf != nullptr){
-            TH1D* merged_acc_b = sidis5d::Merge_Dense_Phi_TH1(acceptance_bdf, kPhiN, 12);
+            TH1D* merged_acc_b = Merge_Phi12_TH1(acceptance_bdf);
             if(merged_acc_b != nullptr){ acceptance_bdf = merged_acc_b; }
         }
     }
@@ -736,8 +801,10 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
         }
     }
     TH1* ExREAL_1D_wExclusive_Background = nullptr;
-    std::string rho_rdf = rdf_name + "_(" + args.background_source + ")";
-    std::string rho_mdf = mdf_1d + "_(" + args.background_source + ")";
+    // Spline and AccSpline weight the response MC, not the rho0 background.
+    // Both candidates are the unweighted histogram. The response tag is not part of the key.
+    std::string rho_rdf = Strip_Weight_Tags(rdf_name) + "_(" + args.background_source + ")";
+    std::string rho_mdf = Strip_Weight_Tags(mdf_1d) + "_(" + args.background_source + ")";
     if(!args.closure_weight.empty()){
         // Keys are ...(lundvpk)_(Acc), not ...(Acc)_(lundvpk). Do not subtract the unweighted lund histogram.
         rho_rdf = closure_lund_key;
@@ -758,15 +825,16 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     }
     if((args.pseudo_data.empty()) && (key_in_file(input_file, rho_rdf) || key_in_file(input_file, rho_mdf))){
         std::string rho_key = key_in_file(input_file, rho_rdf) ? rho_rdf : rho_mdf;
-        std::cout << Color::BGREEN << "Subtracting the '" << args.background_source << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
+        std::cout << Color::BGREEN << "Subtracting the '" << args.background_source
+                  << "' histogram '" << rho_key << "' from the 'ExREAL_1D' histogram" << Color::END << std::endl;
         TH1* Lundrho = dynamic_cast<TH1*>(input_file->Get(rho_key.c_str()));
         auto sub = subtract_bkg_with_zero_floor(ExREAL_1D, Lundrho);
         ExREAL_1D_wExclusive_Background = sub.first;
         delete ExREAL_1D;
         ExREAL_1D = sub.second;
     } else if((args.pseudo_data.empty()) && (args.background_source != "None")){
-        std::cout << Color::Error << "Cannot subtract the '" << args.background_source
-                  << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
+        Crash_Report(args, "Missing unweighted '" + args.background_source +
+                     "' background for ExREAL_1D. Required '" + rho_rdf + "' or '" + rho_mdf + "'");
     }
 
     int q2y = Extract_Q2y(out_print_main);

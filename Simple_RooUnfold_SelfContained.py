@@ -3143,13 +3143,30 @@ def main_unfold(args):
                         MC_BGS_1D_initial = combined_fake
                     print(f"{color.BGREEN}Exclusive rho0 Q2-y bin {Q2_xB_Bin_Unfold}: data {ExREAL_1D_initial.Integral():.1f}, clasdis mdf {clasdis_fake.Integral():.1f}, lundvpk background {lundvpk_background_integral:.1f}, combined fake {MC_BGS_1D_initial.Integral():.1f}{color.END}")
 
-                if(f"{out_print_main_mdf_1D}_({args.background_source})" in mdf.GetListOfKeys()):
-                    print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D_initial' histogram{color.END}")
-                    LundrhoHist_mdf = mdf.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
+                # Spline weights the response MC, not the rho0 background. Prefer the unweighted RDF key.
+                rho_rdf_name = f"{strip_weight_tag_suffixes(out_print_main_rdf)}_({args.background_source})"
+                rho_mdf_name = f"{strip_weight_tag_suffixes(out_print_main_mdf_1D)}_({args.background_source})"
+                rho_key = ""
+                rho_file = None
+                if(rho_rdf_name in rdf.GetListOfKeys()):
+                    rho_key  = rho_rdf_name
+                    rho_file = rdf
+                elif(rho_rdf_name in mdf.GetListOfKeys()):
+                    rho_key  = rho_rdf_name
+                    rho_file = mdf
+                elif(rho_mdf_name in mdf.GetListOfKeys()):
+                    rho_key  = rho_mdf_name
+                    rho_file = mdf
+                elif(rho_mdf_name in rdf.GetListOfKeys()):
+                    rho_key  = rho_mdf_name
+                    rho_file = rdf
+                if(rho_key not in [""]):
+                    print(f"{color.BGREEN}Subtracting the '{args.background_source}' histogram '{rho_key}' from the 'ExREAL_1D_initial' histogram{color.END}")
+                    LundrhoHist_mdf = rho_file.Get(rho_key)
                     ExREAL_1D_initial_wExclusive_Background, ExREAL_1D_initial = subtract_bkg_with_zero_floor(ExREAL_1D_initial, LundrhoHist_mdf)
                     List_of_All_Histos_For_Unfolding[ExREAL_1D_initial_wExclusive_Background.GetName()] = ExREAL_1D_initial_wExclusive_Background
                 elif(args.background_source not in ["None"]):
-                    print(f"{color.Error}Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D_initial' histogram{color.END}")
+                    Crash_Report(args, f"Missing unweighted '{args.background_source}' background for ExREAL_1D_initial. Required '{rho_rdf_name}' or '{rho_mdf_name}'")
                 
                 # if(f"{out_print_main_mdf_1D}_({args.background_source})" in mdf.GetListOfKeys()):
                 #     print(f"{color.BGREEN}Adding the '{args.background_source}' files to the 'MC_REC_1D_initial' histogram{color.END}")
