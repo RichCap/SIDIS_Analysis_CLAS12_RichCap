@@ -243,7 +243,7 @@ struct UnfoldArgs {
     bool sim = false;
     bool mod = false;
     bool closure = false;
-    int bayes_iterations = 6;
+    int bayes_iterations = 5;
     int phi_bins = 24;
     int Num_Toys = 10;
     std::vector<std::string> bins = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17"};
@@ -328,7 +328,7 @@ inline void print_help(){
         "  --no_smear                 Unsmeared MC only\n"
         "  -sim, --simulation         Use reconstructed MC as data\n"
         "  -mod, --modulation         Modulated MC response matrices\n"
-        "  -bi, --bayes_iterations N  Bayesian iterations (default 6)\n"
+        "  -bi, --bayes_iterations N  Bayesian iterations (default 5; 3D uses its bin map unless this flag is passed)\n"
         "  -nt, --Num_Toys N          Toy count for unfolding errors (default 10)\n"
         "  -b, --bins 1 2 ...         Q2-y bin indices\n"
         "  -v, --verbose              Print saved histogram names\n"

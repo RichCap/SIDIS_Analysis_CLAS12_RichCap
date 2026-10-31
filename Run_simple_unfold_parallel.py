@@ -61,7 +61,7 @@ Script: {Name_of_Script}""",
     parser.add_argument('-rm', '--run_mode',
                         default='3D',
                         choices=['3D', '5D'],
-                        help="Run mode: 3D = parallel Q2-y bins via Simple_RooUnfold_SelfContained.py; 5D = single Dedicated_5D_Unfold.py job.\n")
+                        help="Run mode: 3D = parallel Q2-y bins via Simple_RooUnfold_SelfContained.py; 5D = one C++ unfold through run_Dedicated_5D_Unfold.py.\n")
 
     parser.add_argument('-s', '--script',
                         type=str,
@@ -179,12 +179,12 @@ Script: {Name_of_Script}""",
 def apply_run_mode_defaults(parsed_args, parser):
     if(parsed_args.run_mode == '5D'):
         if(parsed_args.script == parser.get_default('script')):
-            # parsed_args.script = './Dedicated_5D_Unfold.py'
-            parsed_args.script = os.path.join(EXEC_ROOT, 'Dedicated_5D_Unfold.py')
+            # Python Dedicated_5D_Unfold.py remains available when --script names it.
+            parsed_args.script = os.path.join(EXEC_ROOT, 'run_Dedicated_5D_Unfold.py')
         if(parsed_args.njobs == parser.get_default('njobs')):
             parsed_args.njobs = 1
         if(parsed_args.mail_subject == parser.get_default('mail_subject')):
-            parsed_args.mail_subject = 'Finished running Dedicated_5D_Unfold.py (5D_Bins All)'
+            parsed_args.mail_subject = 'Finished running run_Dedicated_5D_Unfold.py (5D_Bins All)'
 
 
 def effective_prefixes_for_run_mode(run_mode, log_prefix, time_prefix):

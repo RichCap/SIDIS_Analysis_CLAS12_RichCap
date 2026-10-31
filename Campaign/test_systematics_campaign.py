@@ -806,8 +806,11 @@ def nominal_and_5d_dry_run():
         raise SystemExit("5D command kept a relative spline path or the 3D sysregen HPP")
     if(five_text.count("PHASE2 ") != 1) or ("-wt Spline" not in five_text) or ("starts after phase1 success" not in five_text):
         raise SystemExit("5D dry-run did not show one gated Spline unfold")
-    for banned in ["-bi", "-ac ", "-ph ", "-err ", "AccSpline", "Unweighted"]:
-        if(banned in five_text.split("PHASE2 ", 1)[1]):
+    phase2_text = five_text.split("PHASE2 ", 1)[1]
+    if("-err covariance" not in phase2_text):
+        raise SystemExit("5D unfold did not request covariance")
+    for banned in ["-bi", "-ac ", "-ph ", "AccSpline", "Unweighted"]:
+        if(banned in phase2_text):
             raise SystemExit("5D unfold overrides a launcher default or adds another weight: %s" % banned)
     if(five_manifest["phase2"][0]["status"] != "waiting_phase1"):
         raise SystemExit("5D phase2 was not waiting on phase1")
@@ -1235,6 +1238,51 @@ def nominal_local_concurrency():
         raise SystemExit("resume dry-run changed the 11 Phase 2 branches")
 
 
+def covariance_and_iteration_defaults():
+    import Dedicated_5D_Unfold as py5
+    import Run_simple_unfold_parallel as parallel
+    import Simple_RooUnfold_SelfContained as simple_py
+    import run_Dedicated_5D_Unfold as five
+    import run_Simple_Unfold as simple
+    old_argv = list(sys.argv)
+    try:
+        sys.argv = ["run_Dedicated_5D_Unfold.py"]
+        five_args = five.parse_args()
+        if((five_args.error_mode != "covariance") or (five_args.bayes_iterations != 5)):
+            raise SystemExit("5D launcher default is not covariance and 5 iterations")
+        cmd = five.build_cpp_command(five_args)
+        if((os.path.basename(cmd[0]) != "Dedicated_5D_Unfold") or (cmd[cmd.index("--error_mode") + 1] != "covariance") or (cmd[cmd.index("--bayes_iterations") + 1] != "5")):
+            raise SystemExit("5D launcher did not forward covariance and 5 iterations to the C++ binary")
+        sys.argv = ["run_Dedicated_5D_Unfold.py", "-err", "not_a_mode"]
+        try:
+            five.parse_args()
+        except SystemExit:
+            pass
+        else:
+            raise SystemExit("invalid 5D error mode was accepted")
+        sys.argv = ["run_Simple_Unfold.py"]
+        if(simple.parse_args().error_mode != "covariance"):
+            raise SystemExit("3D launcher default is not covariance")
+        sys.argv = ["Dedicated_5D_Unfold.py"]
+        py_args = py5.parse_args()
+        if((py_args.error_mode != "covariance") or (py_args.bayes_iterations != 5)):
+            raise SystemExit("Python 5D default is not covariance and 5 iterations")
+        sys.argv = ["Simple_RooUnfold_SelfContained.py"]
+        if(simple_py.parse_args().error_mode != "covariance"):
+            raise SystemExit("Python 3D unfold default is not covariance")
+        sys.argv = ["Run_simple_unfold_parallel.py", "-rm", "5D"]
+        parsed, parser = parallel.parse_args()
+        parallel.apply_run_mode_defaults(parsed, parser)
+        if(not str(parsed.script).endswith("run_Dedicated_5D_Unfold.py")):
+            raise SystemExit("5D parallel runner still launches Python unfolding")
+    finally:
+        sys.argv = old_argv
+    from Campaign.systematics_campaign import dedicated_5d_command
+    text = runner.command_text(dedicated_5d_command("python", "run_Dedicated_5D_Unfold.py", "work_b", "/in.root", "/out.root"))
+    if(("-err covariance" not in text) or ("-wt Spline" not in text) or ("-bi" in text) or ("-ac" in text) or ("-ph" in text)):
+        raise SystemExit("generated 5D command is missing explicit covariance")
+
+
 def main():
     self_test()
     ledger_self_test()
@@ -1249,6 +1297,7 @@ def main():
     nominal_and_5d_dry_run()
     pips6o_batch111_dry_run()
     nominal_local_concurrency()
+    covariance_and_iteration_defaults()
     print("systematics campaign self-test ok")
     return 0
 

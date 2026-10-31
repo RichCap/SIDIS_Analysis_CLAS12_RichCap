@@ -102,10 +102,12 @@ void Log_Root_And_Matrix_Linkage(){
 }
 
 RooUnfold::ErrorTreatment ErrorTreatmentFromMode(const std::string& mode){
+    if(mode == "toys"){ return RooUnfold::kCovToys; }
     if(mode == "covariance"){ return RooUnfold::kCovariance; }
     if(mode == "errors"){ return RooUnfold::kErrors; }
     if(mode == "none"){ return RooUnfold::kNoError; }
-    return RooUnfold::kCovToys;
+    std::cerr << "Invalid error_mode: " << mode << std::endl;
+    std::exit(2);
 }
 
 TH1* CloneDetached(TH1* src, const std::string& tag){

@@ -369,13 +369,15 @@ def pips6o_batch111_path():
 
 
 def dedicated_5d_command(python, script, data_root, response, root_out):
-    # Inherited Spline. Iteration, acceptance, phi, and error mode stay on the launcher defaults.
+    # Inherited Spline. Iteration, acceptance, and phi stay on the C++ launcher defaults.
+    # Covariance is written on the command as well as being that launcher's default.
     return [
         python, script,
         "-droot", data_root,
         "-sfin", response,
         "-r", root_out,
         "-wt", "Spline",
+        "-err", "covariance",
     ]
 
 
@@ -1796,7 +1798,7 @@ def self_test():
     if(five_job.get("local_5d") is not True) or (five_job["weight_tag"] != "Spline") or (five_job["status"] != "waiting_phase1"):
         raise SystemExit("5D phase2 is not one waiting inherited Spline job")
     unfold = command_text(dedicated_5d_command("python", "run_Dedicated_5D_Unfold.py", "work_b", five_job["response"], five_job["launch_root"]))
-    if("-wt Spline" not in unfold) or ("-bi" in unfold) or ("-ac" in unfold) or ("-ph" in unfold) or ("-err" in unfold) or ("AccSpline" in unfold):
+    if("-wt Spline" not in unfold) or ("-err covariance" not in unfold) or ("-bi" in unfold) or ("-ac" in unfold) or ("-ph" in unfold) or ("AccSpline" in unfold):
         raise SystemExit("5D unfold command does not keep the launcher defaults")
     pip_manifest = build_manifest("work_b", "systematics_3d_pips6o_batch111_20261030", "both", 2, "Final_Thesis", False, "stamp", pips6o_batch111=True, shared_unfold=True)
     if([row["id"] for row in pip_manifest["phase1"]] != ["pipS6o"]) or (len(pip_manifest["phase2"]) != 2):

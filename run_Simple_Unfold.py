@@ -47,9 +47,9 @@ def parse_args():
                    type=int, default=500,
                    help="Number of Toys used to estimate the unfolding errors.\n")
     p.add_argument('-err', '--error_mode',
-                   type=str, default="toys",
+                   type=str, default="covariance",
                    choices=["toys", "covariance", "errors", "none"],
-                   help="RooUnfold error treatment: toys=kCovToys (default), covariance=kCovariance, errors=kErrors, none=kNoError.\n")
+                   help="RooUnfold error treatment. Default covariance=kCovariance. toys=kCovToys remains available, as do errors=kErrors and none=kNoError.\n")
     p.add_argument('-ist', '--iteration_study', action='store_true',
                    help="Optional RooUnfoldParms iteration/regularisation scan (not the default unfolding path).\n")
     p.add_argument('-pmin', '--parm_min', type=float, default=None,

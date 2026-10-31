@@ -747,7 +747,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     if(any(method in str(Method) for method in ["bbb", "svd", "inv"]) or (Method in ["Bin", "bin", "Bin-by-Bin", "Bin by Bin"])):
                         Unfolded_Histo = Unfolding_Histo.Hunfold()
                     else:
-                        Unfolded_Histo = Unfolding_Histo.Hunfold(ROOT.RooUnfold.kCovToys)
+                        Unfolded_Histo = Unfolding_Histo.Hunfold(ROOT.RooUnfold.kCovariance)
 
                     for bin_rec in range(0, MC_REC_1D.GetNbinsX() + 1):
                         if(MC_REC_1D.GetBinContent(bin_rec) == 0):

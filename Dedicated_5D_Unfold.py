@@ -62,9 +62,9 @@ def parse_args():
                    help="Number of Toys used to estimate the unfolding errors.\n")
     p.add_argument('-err', '--error_mode',
                    type=str,
-                   default="toys",
+                   default="covariance",
                    choices=["toys", "covariance", "errors", "none"],
-                   help="RooUnfold error treatment: toys=kCovToys (default), covariance=kCovariance, errors=kErrors, none=kNoError.\n")
+                   help="RooUnfold error treatment. Default covariance=kCovariance. toys=kCovToys remains available, as do errors=kErrors and none=kNoError.\n")
     p.add_argument('-ob', '--old_binning',
                    action='store_true',
                    help="Keep full reconstructed binning (previous behavior).\n")
@@ -534,14 +534,18 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     #########################################
 
                     Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_use, bayes_iterations)
-                    error_mode = str(getattr(args, "error_mode", "toys")).lower()
+                    error_mode = str(getattr(args, "error_mode", "covariance")).lower()
                     if(error_mode == "toys"):
                         Unfolding_Histo.SetNToys(args.Num_Toys)
-                    err_treat = {
+                    err_map = {
+                        "toys": ROOT.RooUnfold.kCovToys,
                         "covariance": ROOT.RooUnfold.kCovariance,
                         "errors": ROOT.RooUnfold.kErrors,
                         "none": ROOT.RooUnfold.kNoError,
-                    }.get(error_mode, ROOT.RooUnfold.kCovToys)
+                    }
+                    if(error_mode not in err_map):
+                        Crash_Report(args, "Invalid error_mode %s" % error_mode)
+                    err_treat = err_map[error_mode]
 
 ##==============##==============================================================##==============##
 ##==============##=====##     Finished Applying the RooUnfold Method     ##=====##==============##
