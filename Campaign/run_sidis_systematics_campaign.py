@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # One entry point for the 34+7 SIDIS 3D systematic campaign.
-# --dry_run writes the manifest and prints commands. It does not submit work.
+# --dry_run prints commands. It does not write the manifest, scan batches, or submit work.
 import argparse
 import os
 import subprocess
@@ -12,9 +12,10 @@ if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 
 from Campaign.systematics_campaign import (
-    COMPLETE_LINEAGE_COUNT, EMAIL_TO, LOCAL_DELAY_S, Q2Y_BINS, USED_CAMPAIGN_IDS, append_log, append_submission_history,
+    COMPLETE_LINEAGE_COUNT, DEFAULT_CUT, EMAIL_TO, LOCAL_DELAY_S, NOMINAL_ONLY_ID, Q2Y_BINS, USED_CAMPAIGN_IDS, append_log, append_submission_history,
     bin_root, branch_settings, build_manifest, campaign_directory, command_text, file_nonempty, job_stem, load_recovery_batches,
-    dedicated_5d_command, manifest_path, nominal_complete_command, nominal_only_command, only_5d_spline_command,
+    classify_saved_batches, dedicated_5d_command, manifest_path, nominal_batch_file_valid,
+    nominal_complete_command, nominal_only_command, nominal_resume_command, only_5d_spline_command,
     pips6o_batch111_command, remove_named_batch_file,
     output_counts, phase1_command, phase2_history_record, read_manifest,
     final_is_ready, part_is_ready, recovery_failure_text, recovery_phase1_command, regen_command, response_matrix_ready,
@@ -29,6 +30,7 @@ DEDICATED_5D_SCRIPT = os.path.join(_BOOT, "run_Dedicated_5D_Unfold.py")
 BIN_SCRIPT = os.path.join(_BOOT, "Simple_RooUnfold_SelfContained.py")
 DATAFRAMES_DIR = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
 WAIT_POLL_S = 60
+last_manifest = None
 
 
 def unfold_program(branch):
@@ -75,7 +77,7 @@ def fill_commands(manifest, python):
         if(row.get("nominal_only")):
             row["command"] = nominal_only_command(
                 python, SUBMIT_SCRIPT, manifest["data_root"], manifest["campaign"], row["hpp_nospline"], row["hpp_spline"],
-                manifest["max_local_workers"],
+                manifest["max_local_workers"], manifest.get("phase1_local_jobs", 1),
             )
             continue
         if(row.get("pips6o_batch111")):
@@ -191,6 +193,11 @@ def reconcile_existing(manifest):
             if(response_matrix_ready(row["response"], row["cut"])):
                 row["status"] = "success"
                 row["reason"] = ""
+            elif(row.get("nominal_only")):
+                # The coordinator stopped before _All.root was ready. Phase 2 stays waiting_phase1.
+                row["status"] = "planned"
+                row["pid"] = None
+                row["reason"] = "coordinator stopped before the merged response was ready"
             else:
                 row["status"] = "failed"
                 row["reason"] = row.get("reason") or "phase1 process ended without a response file"
@@ -240,9 +247,30 @@ def phase1_needs_start(row):
     return True
 
 
+def nominal_saved_batch_spec(data_root):
+    # Read-only classification of the existing 10_30_2026 directory. Dry-run does not call this.
+    paths = systematic_batch_paths(NOMINAL_ONLY_ID, DEFAULT_CUT, "10_30_2026", batch_name="Sys3D_%s" % NOMINAL_ONLY_ID)
+    return classify_saved_batches(paths, nominal_batch_file_valid)
+
+
+def nominal_merge_only_command(python, data_root):
+    # No array. The child merges the 171 batch files that are already valid.
+    code = "from Campaign.systematics_campaign import hadd_complete_nominal_batches; raise SystemExit(hadd_complete_nominal_batches(%r))" % data_root
+    return [python, "-c", code]
+
+
 def start_phase1(manifest, row, enabled_mail, camp):
     remove_named_batch_file(row.get("replace_one_batch"))
-    proc = subprocess.Popen(row["command"])
+    command = list(row["command"])
+    if(row.get("nominal_only") and manifest.get("resume_saved_batches")):
+        spec = nominal_saved_batch_spec(manifest["data_root"])
+        resumed = nominal_resume_command(command, spec)
+        if(resumed is None):
+            command = nominal_merge_only_command(sys.executable, manifest["data_root"])
+        else:
+            command = resumed
+        row["command"] = command
+    proc = subprocess.Popen(command)
     row["pid"] = proc.pid
     row["status"] = "running"
     row["reason"] = ""
@@ -496,6 +524,8 @@ def run_live(args, manifest):
     os.makedirs(os.path.join(camp, "final"), exist_ok=True)
     manifest["email"] = bool(args.email)
     reconcile_existing(manifest)
+    if(args.resume and manifest.get("nominal_only")):
+        manifest["resume_saved_batches"] = True
     fill_commands(manifest, sys.executable)
     write_manifest(camp, manifest)
     query_state, cancel_task = slurm_helpers()
@@ -856,6 +886,7 @@ def parse_args(argv):
     parser.add_argument("-incn", "--include_nominal", action="store_true")
     parser.add_argument("-suo", "--shared_unfold_output", action="store_true")
     parser.add_argument("-nmo", "--nominal_only", action="store_true")
+    parser.add_argument("-plc", "--phase1_local_concurrency", type=int, default=None)
     parser.add_argument("-5ds", "--only_5d_spline", action="store_true")
     parser.add_argument("-p6b", "--pips6o_batch111", action="store_true")
     return parser.parse_args(argv)
@@ -873,6 +904,8 @@ def resolve_recovery_path(path):
 
 
 def main(argv=None):
+    global last_manifest
+    last_manifest = None
     args = parse_args(sys.argv[1:] if(argv is None) else argv)
     if((args.campaign in USED_CAMPAIGN_IDS) and (not args.dry_run)):
         print("campaign id %s has already been used; choose a new id" % args.campaign, file=sys.stderr)
@@ -896,6 +929,13 @@ def main(argv=None):
     if(args.pips6o_batch111 and ((args.recovery_batches not in [None, ""]) or args.include_nominal or args.regenerate_nominal_spline_hpp or (not args.shared_unfold_output) or (args.weight_mode != "both"))):
         print("pips6o_batch111 requires -wm both and -suo, and does not take recovery batches, include_nominal, or HPP regeneration", file=sys.stderr)
         return 1
+    if(args.phase1_local_concurrency is not None):
+        if(not args.nominal_only):
+            print("phase1_local_concurrency requires nominal_only", file=sys.stderr)
+            return 1
+        if(int(args.phase1_local_concurrency) < 1):
+            print("phase1 local concurrency must be at least 1", file=sys.stderr)
+            return 1
     if((args.recovery_batches not in [None, ""]) and args.regenerate_nominal_spline_hpp):
         print("recovery does not regenerate the nominal spline HPP", file=sys.stderr)
         return 1
@@ -924,6 +964,7 @@ def main(argv=None):
             args.hpp_tag, args.regenerate_nominal_spline_hpp, stamp, previous=previous if(args.resume) else None,
             recovery=recovery, include_nominal=args.include_nominal, shared_unfold=args.shared_unfold_output,
             nominal_only=args.nominal_only, only_5d=args.only_5d_spline, pips6o_batch111=args.pips6o_batch111,
+            phase1_local_jobs=args.phase1_local_concurrency,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
@@ -933,10 +974,11 @@ def main(argv=None):
     if(args.regenerate_nominal_spline_hpp):
         nominal = [row for row in manifest["phase1"] if(row["nominal"])][0]
         regen_cmd = regen_command(sys.executable, SUBMIT_SCRIPT, args.data_root, nominal["hpp_spline"])
-    write_manifest(camp, manifest)
+    last_manifest = manifest
     if(args.dry_run):
         print_plan(manifest, regen_cmd)
         return 0
+    write_manifest(camp, manifest)
     if(args.email_message not in [None, ""]):
         print(args.email_message)
     run_live(args, manifest)

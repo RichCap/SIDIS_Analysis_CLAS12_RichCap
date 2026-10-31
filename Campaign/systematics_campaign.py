@@ -104,6 +104,19 @@ def worker_cap(requested, ceiling=None):
     return value
 
 
+def bounded_local_jobs(requested, cap):
+    # Omitted stays at one Only_3D worker. The request cannot pass the campaign cap.
+    if(requested in [None, ""]):
+        return 1
+    jobs = int(requested)
+    if(jobs < 1):
+        raise ValueError("phase1 local concurrency must be at least 1")
+    cap = int(cap)
+    if(jobs > cap):
+        return cap
+    return jobs
+
+
 def hpp_pair(data_root, tag):
     folder = pipeline_output_path(REL_HPP_OUT, data_root)
     pure = os.path.join(folder, "generated_acceptance_weights_%s_noSpline.hpp" % tag)
@@ -246,8 +259,11 @@ def recovery_phase1_command(python, submit_script, data_root, campaign, config, 
     return cmd
 
 
-def nominal_only_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline, cap):
+def nominal_only_command(python, submit_script, data_root, campaign, hpp_pure, hpp_spline, cap, local_jobs=1):
     # Hybrid: SLURM array plus the existing local walker. The hybrid process hadds _All.root.
+    # -j stays 1 so other products do not inherit a higher default. -j3D is the Only_3D pool.
+    # -cwc remains the campaign ledger cap. The pool is the smaller of the two.
+    jobs = bounded_local_jobs(local_jobs, cap)
     return [
         python, submit_script,
         "-droot", data_root,
@@ -260,7 +276,7 @@ def nominal_only_command(python, submit_script, data_root, campaign, hpp_pure, h
         "-hps", hpp_spline,
         "-spf", spline_event_weight_path(data_root),
         "-j", "1",
-        "-j3D", "1",
+        "-j3D", str(jobs),
         "-j2D", "0",
         "-j5D", "0",
         "-jBin", "0",
@@ -849,7 +865,7 @@ def keep_recorded_hpp(previous, assigned):
 SHARED_RESULT_CAMPAIGN = "systematics_3d_complete_20261029"
 
 
-def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False, nominal_only=False, only_5d=False, pips6o_batch111=False):
+def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False, nominal_only=False, only_5d=False, pips6o_batch111=False, phase1_local_jobs=None):
     batch_by_id = None
     job_by_id = None
     defer_by_id = None
@@ -858,6 +874,9 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
     chosen = [nominal_only, only_5d, pips6o_batch111]
     if(len([item for item in chosen if(item)]) > 1):
         raise ValueError("nominal_only, only_5d, and pips6o_batch111 are separate campaigns")
+    if((phase1_local_jobs not in [None, ""]) and (not nominal_only)):
+        raise ValueError("phase1_local_concurrency is only for nominal_only")
+    local_jobs = bounded_local_jobs(phase1_local_jobs, cap) if(nominal_only) else 1
     if(nominal_only or only_5d or pips6o_batch111):
         if(recovery is not None):
             raise ValueError("this campaign does not use a recovery batch file")
@@ -948,7 +967,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         else:
             response = response_path(data_root, config["id"], config["cut"])
         if(config.get("nominal_only")):
-            cmd = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"], cap)
+            cmd = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"], cap, local_jobs)
         elif(config.get("pips6o_batch111")):
             cmd = pips6o_batch111_command("PYTHON", "SUBMIT", data_root, campaign, paths["hpp_nospline"], paths["hpp_spline"])
         elif(config.get("only_5d")):
@@ -1009,7 +1028,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
             row["hpp_nospline"] = old.get("hpp_nospline") or row["hpp_nospline"]
             row["hpp_spline"] = old.get("hpp_spline") or row["hpp_spline"]
             if(row.get("nominal_only")):
-                row["command"] = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"], cap)
+                row["command"] = nominal_only_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"], cap, local_jobs)
             elif(row.get("pips6o_batch111")):
                 row["command"] = pips6o_batch111_command("PYTHON", "SUBMIT", data_root, campaign, row["hpp_nospline"], row["hpp_spline"])
             elif(row.get("only_5d")):
@@ -1127,6 +1146,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         payload["hybrid_date"] = "10_30_2026"
     if(nominal_only):
         payload["nominal_only"] = True
+        payload["phase1_local_jobs"] = local_jobs
     if(only_5d):
         payload["only_5d"] = True
     if(pips6o_batch111):
@@ -1332,6 +1352,129 @@ def systematic_batch_paths(config_id, cut, hybrid_date, num_batches=171, batch_n
     for index in range(1, int(num_batches) + 1):
         paths.append(pipeline.expected_batch_root_path(pipe, batch_dir, index))
     return paths
+
+
+def compact_batch_spec(indexes):
+    # 1,2,3,5 becomes 1-3,5. An empty selection is an empty string, not "all batches".
+    chosen = []
+    for index in indexes:
+        value = int(index)
+        if(value not in chosen):
+            chosen.append(value)
+    chosen.sort()
+    if(len(chosen) == 0):
+        return ""
+    ranges = []
+    start = chosen[0]
+    previous = chosen[0]
+    for index in chosen[1:]:
+        if(index == previous + 1):
+            previous = index
+            continue
+        ranges.append((start, previous))
+        start = index
+        previous = index
+    ranges.append((start, previous))
+    parts = []
+    for left, right in ranges:
+        if(left == right):
+            parts.append(str(left))
+        else:
+            parts.append("%s-%s" % (left, right))
+    return ",".join(parts)
+
+
+def only3d_batch_piece():
+    # Only_3D passes --no_make_2D and --no_unfold_5D, so the pipeline piece is MultiDim.
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    df = os.path.join(root, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import run_sidis_DataFrame_pipeline as pipeline
+    stub = type("Only3D", (), {})()
+    stub.unfold_5D_only = False
+    stub.extra = []
+    stub.no_make_2D = True
+    stub.no_unfold_5D = True
+    stub.z_axis_2D = ""
+    return pipeline.required_batch_piece(stub)
+
+
+def nominal_batch_file_valid(path):
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    df = os.path.join(root, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import run_sidis_DataFrame_pipeline as pipeline
+    return pipeline.batch_root_is_valid(path, only3d_batch_piece())
+
+
+def classify_saved_batches(paths, valid_fn):
+    # None means the batch directory is absent, so the caller submits the full set.
+    # "" means every file is already valid. Any other string is the missing or invalid set.
+    if(len(paths) == 0):
+        return None
+    directory = os.path.dirname(paths[0])
+    if(not os.path.isdir(directory)):
+        return None
+    missing = []
+    for index, path in enumerate(paths, start=1):
+        if(not valid_fn(path)):
+            missing.append(index)
+    return compact_batch_spec(missing)
+
+
+def nominal_resume_command(command, spec):
+    # spec None keeps the full hybrid submit. "" means do not submit any batch.
+    if(spec is None):
+        return list(command)
+    if(spec == ""):
+        return None
+    updated = [str(token) for token in command]
+    if("-bids" in updated):
+        updated[updated.index("-bids") + 1] = spec
+    else:
+        updated.extend(["-bids", spec])
+    return updated
+
+
+def hadd_complete_nominal_batches(data_root):
+    # Live resume only, and only when every batch file is already valid. No SLURM array.
+    # The existing hadd still walks batches 1-171. -bids here only selects the MultiDim check.
+    paths = systematic_batch_paths(NOMINAL_ONLY_ID, DEFAULT_CUT, "10_30_2026", batch_name="Sys3D_%s" % NOMINAL_ONLY_ID)
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    df = os.path.join(root, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import Submit_Full_Histogram_Creation_Pipeline as submit_full
+    import run_sidis_DataFrame_pipeline as pipeline
+    product = [item for item in submit_full.PRODUCTS if(item["key"] == "Only_3D")][0]
+    stub = type("Stub", (), {})()
+    stub.name = "Sys3D_%s" % NOMINAL_ONLY_ID
+    stub.matching_criteria = "Bank"
+    shared = submit_full.product_shared_name(stub, DEFAULT_CUT)
+    args = type("Pipe", (), {})()
+    args.name = submit_full.product_output_name(product, shared)
+    args.name_in = list(submit_full.PIPELINE_NAME_IN_GLOBS)
+    args.root = "SIDIS_epip_Response_Matrices_from_RDataFrames.root"
+    args.work_dir = pipeline_output_path(REL_HADD, data_root)
+    args.batch_ids = "1-%d" % len(paths)
+    args.unfold_5D_only = False
+    args.extra = []
+    args.no_make_2D = True
+    args.no_unfold_5D = True
+    args.z_axis_2D = ""
+    args.email = False
+    args.email_message = ""
+    args.verbose = False
+    args.data_root = data_root
+    args.campaign_worker_name = ""
+    class Clock(object):
+        def time_elapsed(self, return_Q=True):
+            return ["0s"]
+    args.timer = Clock()
+    pipeline.hadd_response_batches(args, os.path.dirname(paths[0]), len(paths))
+    return 0
 
 
 def key_has_q2y_any(names, q2y):
@@ -1625,8 +1768,22 @@ def self_test():
         raise SystemExit("nominal-only command is not hybrid")
     if("-cwc 11" not in only_cmd):
         raise SystemExit("nominal-only hybrid cap was not forwarded")
+    if("-j3D 1" not in only_cmd):
+        raise SystemExit("nominal-only default local concurrency is not 1")
     if(only["phase1"][0].get("auto_merge")) or (only["phase1"][0].get("batch_ids") not in [None, ""]):
         raise SystemExit("nominal-only added a second merge")
+    wide = command_text(nominal_only_command("python", "submit.py", "work_b", "demo", "/a.hpp", "/b.hpp", 30, 30))
+    if(("-j3D 30" not in wide) or ("-cwc 30" not in wide) or ("-j 1" not in wide)):
+        raise SystemExit("nominal local concurrency 30 was not forwarded")
+    capped = command_text(nominal_only_command("python", "submit.py", "work_b", "demo", "/a.hpp", "/b.hpp", 11, 30))
+    if(("-j3D 11" not in capped) or ("-cwc 11" not in capped)):
+        raise SystemExit("the campaign cap did not limit nominal local concurrency")
+    if(bounded_local_jobs(None, 30) != 1):
+        raise SystemExit("omitted phase1 local concurrency was not 1")
+    if(only3d_batch_piece() != "MultiDim"):
+        raise SystemExit("Only_3D batch piece is not MultiDim")
+    if(compact_batch_spec([1, 2, 3, 5, 171]) != "1-3,5,171") or (compact_batch_spec([]) != ""):
+        raise SystemExit("batch spec compaction changed")
     five_manifest = build_manifest("work_b", "nominal_5d_spline_20261030", "unweighted", 1, "Final_Thesis", False, "stamp", only_5d=True)
     if(len(five_manifest["phase1"]) != 1) or (len(five_manifest["phase2"]) != 1):
         raise SystemExit("5D schedule is not one phase1 and one phase2")

@@ -36,14 +36,14 @@ def hpp_matches_submit_full():
         raise SystemExit("HPP paths diverged from Submit_Full")
 
 
-def dry_run_writes_manifest():
+def dry_run_leaves_manifest_bytes():
+    # -n prints the plan and must not rewrite an existing manifest.
     code = runner.main(["-n", "-c", "systematics_self_test", "-droot", "work_b", "-wm", "both", "-mlw", "41"])
     if(code != 0):
         raise SystemExit("dry-run exit %s" % code)
-    camp = runner.campaign_directory("work_b", "systematics_self_test")
-    manifest = runner.read_manifest(camp)
+    manifest = runner.last_manifest
     if(manifest is None):
-        raise SystemExit("dry-run did not write a manifest")
+        raise SystemExit("dry-run did not build a manifest")
     if(len(manifest["phase1"]) != 34):
         raise SystemExit("dry-run phase1 count")
     if(len(manifest["phase2"]) != 74):
@@ -56,10 +56,20 @@ def dry_run_writes_manifest():
         raise SystemExit("dry-run dropped Bank matching")
     if(nominal["hpp_nospline"] in [None, ""]):
         raise SystemExit("manifest is missing the noSpline path")
+    camp = runner.campaign_directory("work_b", "systematics_self_test")
+    runner.write_manifest(camp, manifest)
+    path = runner.manifest_path(camp)
+    before = open(path, "rb").read()
+    sentinel = os.path.join(camp, "do_not_delete_batch.root")
+    open(sentinel, "wb").write(b"keep")
     resumed = runner.main(["-n", "-rs", "-c", "systematics_self_test", "-droot", "work_b", "-wm", "both", "-ht", "NotTheOriginalTag"])
     if(resumed != 0):
         raise SystemExit("resume dry-run exit %s" % resumed)
-    again = runner.read_manifest(camp)
+    if(open(path, "rb").read() != before):
+        raise SystemExit("resume dry-run changed the manifest bytes")
+    if(open(sentinel, "rb").read() != b"keep"):
+        raise SystemExit("resume dry-run changed a batch file")
+    again = runner.last_manifest
     again_nom = [row for row in again["phase1"] if(row["id"] == "nominal")][0]
     if(again_nom["hpp_nospline"] != nominal["hpp_nospline"]):
         raise SystemExit("resume dry-run replaced the recorded HPP path")
@@ -315,7 +325,7 @@ def recovery_static_checks():
                 raise SystemExit("dry-run wrote sbatch %s" % os.path.join(walk_root, name))
     if(os.path.isfile(os.path.join(camp, "submission_history.jsonl"))):
         raise SystemExit("dry-run wrote submission history")
-    manifest = runner.read_manifest(camp)
+    manifest = runner.last_manifest
     if((len(manifest["phase1"]) != 33) or (manifest.get("recovery_task_count") != 1580)):
         raise SystemExit("dry-run manifest counts")
     if(any(row["nominal"] for row in manifest["phase1"])):
@@ -429,7 +439,7 @@ def followup_recovery_20261029():
     if("nominal" in printed.split("PHASE1")[0]):
         pass
     camp = runner.campaign_directory("work_b", "systematics_3d_both_recovery_20261029")
-    manifest = runner.read_manifest(camp)
+    manifest = runner.last_manifest
     if((len(manifest["phase1"]) != 33) or (manifest.get("recovery_task_count") != 159)):
         raise SystemExit("20261029 manifest counts")
     deferred_ids = []
@@ -542,7 +552,7 @@ def complete_campaign_20261029():
     if("recovery tasks 130" not in printed):
         raise SystemExit("complete dry-run task count")
     camp = runner.campaign_directory("work_b", "systematics_3d_complete_20261029")
-    manifest = runner.read_manifest(camp)
+    manifest = runner.last_manifest
     if((len(manifest["phase1"]) != 34) or (manifest.get("recovery_task_count") != 130)):
         raise SystemExit("complete manifest counts")
     nominal = [row for row in manifest["phase1"] if(row.get("nominal_complete"))]
@@ -653,7 +663,7 @@ def phase2_spline_nosmear_dry_run():
         raise SystemExit("phase2 recovery dry-run exit %s" % code)
     printed = stdout.getvalue()
     camp = runner.campaign_directory("work_b", "systematics_3d_phase2_recover_20261030")
-    manifest = runner.read_manifest(camp)
+    manifest = runner.last_manifest
     ids = [row["id"] for row in manifest["phase1"]]
     if((len(ids) != 31) or ("dvz_tight_pip" in ids) or ("pipS6o" in ids) or ("noSmear" not in ids)):
         raise SystemExit("recovery inventory is not the 30 spline configs plus noSmear")
@@ -751,7 +761,7 @@ def nominal_and_5d_dry_run():
         raise SystemExit("nominal-only dry-run exit %s\n%s" % (code, stdout.getvalue()))
     printed = stdout.getvalue()
     camp = runner.campaign_directory("work_b", "systematics_3d_nominal_only_20261030")
-    manifest = runner.read_manifest(camp)
+    manifest = runner.last_manifest
     if(len(manifest["phase1"]) != 1) or (manifest["phase1"][0]["id"] != "nominal_only_20261030"):
         raise SystemExit("nominal-only dry-run did not select one phase1 configuration")
     if(len(manifest["phase2"]) != 11):
@@ -785,7 +795,7 @@ def nominal_and_5d_dry_run():
         raise SystemExit("5D dry-run exit %s\n%s" % (five_code, five_out.getvalue()))
     five_text = five_out.getvalue()
     five_camp = runner.campaign_directory("work_b", "nominal_5d_spline_20261030")
-    five_manifest = runner.read_manifest(five_camp)
+    five_manifest = runner.last_manifest
     if(len(five_manifest["phase1"]) != 1) or (len(five_manifest["phase2"]) != 1):
         raise SystemExit("5D dry-run schedule is not one and one")
     five_command = runner.command_text(five_manifest["phase1"][0]["command"])
@@ -847,7 +857,7 @@ def pips6o_batch111_dry_run():
     if(code != 0):
         raise SystemExit("pipS6o dry-run exit %s\n%s" % (code, stdout.getvalue()))
     camp = runner.campaign_directory("work_b", "systematics_3d_pips6o_batch111_20261030")
-    manifest = runner.read_manifest(camp)
+    manifest = runner.last_manifest
     if([row["id"] for row in manifest["phase1"]] != ["pipS6o"]):
         raise SystemExit("pipS6o dry-run selected another configuration")
     if("dvz_tight_pip" in stdout.getvalue()):
@@ -874,12 +884,363 @@ def pips6o_batch111_dry_run():
         raise SystemExit("the one-file removal touched another batch")
 
 
+def command_has(command, token):
+    return token in runner.command_text(command)
+
+
+def nominal_plan(extra):
+    import io
+    from contextlib import redirect_stdout
+    stdout = io.StringIO()
+    argv = ["-n", "-c", "systematics_plc_nominal_check", "-droot", "work_b", "-wm", "both", "-nmo", "-suo"] + extra
+    with redirect_stdout(stdout):
+        code = runner.main(argv)
+    if(code != 0):
+        raise SystemExit("nominal concurrency dry-run exit %s\n%s" % (code, stdout.getvalue()))
+    manifest = runner.last_manifest
+    if((len(manifest["phase2"]) != 11) or (manifest["phase1"][0].get("auto_merge"))):
+        raise SystemExit("nominal concurrency changed Phase 2 or the hybrid merge")
+    return manifest["phase1"][0]["command"], stdout.getvalue()
+
+
+def run_mocked_pool(jobs, n_batches, batch_ids, completed):
+    df = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import run_sidis_DataFrame_pipeline as pipeline
+    state = {"inflight": 0, "peak": 0, "started": []}
+    hadd_n = []
+    saved = {}
+
+    def patch(name, fn):
+        saved[name] = getattr(pipeline, name)
+        setattr(pipeline, name, fn)
+
+    def load_batches(data_root, execution_root=None):
+        return list(range(n_batches)), [], [], "mock"
+
+    def start(args, batch_index, batch_output_dir, log_dir, block_for_slot=False):
+        selected = pipeline.parse_batch_id_spec(getattr(args, "batch_ids", None), args.num_batches)
+        if((selected is not None) and (int(batch_index) not in selected)):
+            return None
+        if(int(batch_index) in completed):
+            return None
+        state["inflight"] += 1
+        if(state["inflight"] > state["peak"]):
+            state["peak"] = state["inflight"]
+        state["started"].append(int(batch_index))
+        return {"batch_index": int(batch_index)}
+
+    def finish(job_item, results, args):
+        state["inflight"] -= 1
+        results.append(0)
+        return True
+
+    def hadd(args, batch_output_dir, num_batches):
+        hadd_n.append(int(num_batches))
+
+    patch("resolved_batch_output_dir", lambda args, slurm=False: "/tmp/sidis_mock_batches")
+    patch("ensure_directory", lambda path: path)
+    patch("load_file_batches", load_batches)
+    patch("Update_Email", lambda *args, **kwargs: None)
+    patch("stop_if_outside_batches_missing", lambda args, output_dir, num_batches: None)
+    patch("start_job", start)
+    patch("finish_job", finish)
+    patch("wait_for_remaining_slurm_tasks", lambda args: None)
+    patch("hadd_response_batches", hadd)
+    patch("estimate_peak_memory_children", lambda: "0")
+    patch("Construct_Email", lambda *args, **kwargs: None)
+    args = type("Pool", (), {})()
+    args.jobs = int(jobs)
+    args.mode = "parallel"
+    args.batch_ids = batch_ids
+    args.data_root = "work_b"
+    args.log_dir = "/tmp"
+    args.continue_on_failure = False
+    args.campaign_resource_mode = None
+    try:
+        pipeline.run_local_batches(args)
+    finally:
+        for name, fn in saved.items():
+            setattr(pipeline, name, fn)
+    return state["peak"], state["started"], hadd_n
+
+
+def nominal_local_concurrency():
+    import tempfile
+    df = os.path.join(_BOOT, "Histo_Files_ROOT", "DataFrames")
+    if(df not in sys.path):
+        sys.path.insert(0, df)
+    import Submit_Full_Histogram_Creation_Pipeline as submit_full
+    import run_sidis_DataFrame_pipeline as pipeline
+    from Campaign.systematics_campaign import classify_saved_batches, nominal_resume_command
+    default_cmd, _printed = nominal_plan(["-mlw", "30"])
+    if((not command_has(default_cmd, "-j3D 1")) or (not command_has(default_cmd, "-cwc 30"))):
+        raise SystemExit("omitted -plc did not stay at one local worker: %s" % runner.command_text(default_cmd))
+    wide_cmd, _printed = nominal_plan(["-mlw", "30", "-plc", "30"])
+    text = runner.command_text(wide_cmd)
+    for token in ["-m hybrid", "-j3D 30", "-cwc 30", "-j 1"]:
+        if(token not in text):
+            raise SystemExit("nominal 30-worker command missing %s" % token)
+    for banned in [" -rlb ", " -dfm ", " -bids ", " -y "]:
+        if(banned in " %s " % text):
+            raise SystemExit("nominal 30-worker command contains %s" % banned)
+    capped_cmd, _printed = nominal_plan(["-mlw", "11", "-plc", "30"])
+    capped = runner.command_text(capped_cmd)
+    if(("-j3D 11" not in capped) or ("-cwc 11" not in capped) or ("-j3D 30" in capped)):
+        raise SystemExit("the campaign cap did not limit -j3D: %s" % capped)
+    refused = runner.main(["-n", "-c", "systematics_plc_reject_flag", "-droot", "work_b", "-plc", "30"])
+    if(refused == 0):
+        raise SystemExit("-plc was accepted without nominal_only")
+    refused = runner.main(["-n", "-c", "systematics_plc_reject_zero", "-droot", "work_b", "-wm", "both", "-nmo", "-suo", "-plc", "0"])
+    if(refused == 0):
+        raise SystemExit("-plc 0 was accepted")
+    old_argv = list(sys.argv)
+    sys.argv = [wide_cmd[1]] + [str(token) for token in wide_cmd[2:]]
+    try:
+        parsed = submit_full.parse_args()
+    finally:
+        sys.argv = old_argv
+    product = [item for item in submit_full.PRODUCTS if(item["key"] == "Only_3D")][0]
+    jobs = submit_full.product_job_count(parsed, product)
+    if(jobs != 30):
+        raise SystemExit("Only_3D scheduler jobs were %s" % jobs)
+    child = submit_full.build_pipeline_cmd(parsed, "cut_Complete_SIDIS", product, wide_cmd[wide_cmd.index("-hpf") + 1], wide_cmd[wide_cmd.index("-hps") + 1], mode="parallel", jobs=jobs)
+    if(child[child.index("--jobs") + 1] != "30"):
+        raise SystemExit("parallel --jobs did not receive -j3D")
+    if(child[child.index("--campaign_worker_cap") + 1] != "30"):
+        raise SystemExit("parallel worker cap was not -cwc")
+    slurm = submit_full.build_pipeline_cmd(parsed, "cut_Complete_SIDIS", product, "/hpp/a.hpp", "/hpp/b.hpp", mode="slurm", jobs=jobs)
+    if(("--jobs" in slurm) or ("--batch_ids" in slurm)):
+        raise SystemExit("the SLURM leg was limited by the local worker count")
+    peak, started, hadd_n = run_mocked_pool(jobs, 40, None, set())
+    if((peak != 30) or (len(started) != 40) or (hadd_n != [40])):
+        raise SystemExit("30 workers did not run together: peak %s started %s hadd %s" % (peak, len(started), hadd_n))
+    sys.argv = [capped_cmd[1]] + [str(token) for token in capped_cmd[2:]]
+    try:
+        capped_parsed = submit_full.parse_args()
+    finally:
+        sys.argv = old_argv
+    capped_jobs = submit_full.product_job_count(capped_parsed, product)
+    peak, _started, _hadd_n = run_mocked_pool(capped_jobs, 40, None, set())
+    if((capped_jobs != 11) or (peak != 11)):
+        raise SystemExit("the global cap did not limit the scheduler: jobs %s peak %s" % (capped_jobs, peak))
+    peak, _started, _hadd_n = run_mocked_pool(1, 40, None, set())
+    if(peak != 1):
+        raise SystemExit("the default scheduler started %s workers" % peak)
+    peak, started, hadd_n = run_mocked_pool(30, 8, "1-6", set([2]))
+    if((peak != 5) or (started != [1, 3, 4, 5, 6]) or (hadd_n != [8])):
+        raise SystemExit("completed or unlisted batches were started: %s hadd %s" % (started, hadd_n))
+    folder = tempfile.mkdtemp()
+    paths = [os.path.join(folder, "Batch%03d.root" % index) for index in range(1, 172)]
+    open(paths[0], "wb").write(b"ok")
+    open(paths[2], "wb").write(b"bad")
+
+    def valid_name(path):
+        return os.path.basename(path) == "Batch001.root"
+
+    spec = classify_saved_batches(paths, valid_name)
+    if(spec != "2-171"):
+        raise SystemExit("a valid batch was included in the resume list: %s" % spec)
+    if(classify_saved_batches([os.path.join(folder, "missing", "Batch001.root")], valid_name) is not None):
+        raise SystemExit("a missing batch directory was classified")
+    base = ["python", "submit.py", "-m", "hybrid", "-j3D", "30"]
+    resumed = nominal_resume_command(base, spec)
+    if(resumed[resumed.index("-bids") + 1] != "2-171"):
+        raise SystemExit("resume did not pass the incomplete batch list")
+    if("-bids" in nominal_resume_command(base, None)):
+        raise SystemExit("an absent directory added -bids")
+    if(nominal_resume_command(base, "") is not None):
+        raise SystemExit("a complete batch set was submitted again")
+    selected = pipeline.parse_batch_id_spec(spec, 171)
+    array = pipeline.slurm_array_spec(selected, 171)
+    if((1 in selected) or (array.split(",")[0] != "2") or ("1" in array.split(","))):
+        raise SystemExit("the new SLURM array includes a valid batch")
+    holder = type("Job", (), {})()
+    holder.name = "Only_3D_demo"
+    holder.name_in = ["*Final_Thesis_Files*.root"]
+    holder.root = "SIDIS_epip_Response_Matrices_from_RDataFrames.root"
+    holder.batch_ids = "2,3"
+    holder.num_batches = 3
+    holder.slurm_array_jobid = None
+    holder.mode = "parallel"
+    holder.campaign_worker_cap = None
+    holder.campaign_worker_name = None
+    holder.campaign_resource_mode = None
+    holder.verbose = False
+    work = tempfile.mkdtemp()
+    valid_path = pipeline.expected_batch_root_path(holder, work, 2)
+    invalid_path = pipeline.expected_batch_root_path(holder, work, 3)
+    unlisted_path = pipeline.expected_batch_root_path(holder, work, 1)
+    open(valid_path, "wb").write(b"ok")
+    open(invalid_path, "wb").write(b"bad")
+    open(unlisted_path, "wb").write(b"bad")
+    original_valid = pipeline.batch_root_is_valid
+    original_build = pipeline.build_main_command
+
+    def fake_valid(path, piece):
+        return path == valid_path
+
+    class StopLaunch(Exception):
+        pass
+
+    def stop_launch(*args, **kwargs):
+        raise StopLaunch()
+
+    pipeline.batch_root_is_valid = fake_valid
+    pipeline.build_main_command = stop_launch
+    try:
+        if(pipeline.start_job(holder, 1, work, work, False) is not None):
+            raise SystemExit("an unlisted batch was opened")
+        if(os.path.getsize(unlisted_path) == 0):
+            raise SystemExit("an unlisted batch file was removed")
+        if(pipeline.start_job(holder, 2, work, work, False) is not None):
+            raise SystemExit("a valid listed batch was started")
+        if(not os.path.isfile(valid_path)):
+            raise SystemExit("a valid batch file was removed")
+        launched = False
+        try:
+            pipeline.start_job(holder, 3, work, work, False)
+        except StopLaunch:
+            launched = True
+        if(not launched):
+            raise SystemExit("an invalid batch was not rewritten")
+        if(os.path.isfile(invalid_path)):
+            raise SystemExit("an invalid batch file was kept")
+    finally:
+        pipeline.batch_root_is_valid = original_valid
+        pipeline.build_main_command = original_build
+    calls = []
+    original_run = pipeline.subprocess.run
+    original_update = pipeline.Update_Email
+    original_merge = pipeline.merge_ch4_count_files
+
+    def fake_run(cmd, check=False):
+        calls.append(list(cmd))
+        class Result(object):
+            returncode = 0
+        return Result()
+
+    pipeline.subprocess.run = fake_run
+    pipeline.batch_root_is_valid = lambda path, piece: True
+    pipeline.Update_Email = lambda *args, **kwargs: None
+    pipeline.merge_ch4_count_files = lambda *args, **kwargs: None
+    try:
+        hadd_args = type("Hadd", (), {})()
+        hadd_args.name = "Only_3D_demo"
+        hadd_args.name_in = ["*Final_Thesis_Files*.root"]
+        hadd_args.root = "SIDIS_epip_Response_Matrices_from_RDataFrames.root"
+        hadd_args.work_dir = work
+        hadd_args.batch_ids = "4,9"
+        hadd_args.unfold_5D_only = False
+        hadd_args.extra = []
+        hadd_args.no_make_2D = True
+        hadd_args.no_unfold_5D = True
+        hadd_args.z_axis_2D = ""
+        hadd_args.email = False
+        hadd_args.email_message = ""
+        hadd_args.verbose = False
+        hadd_args.campaign_worker_name = ""
+
+        class Clock(object):
+            def time_elapsed(self, return_Q=True):
+                return ["0s"]
+
+        hadd_args.timer = Clock()
+        pipeline.hadd_response_batches(hadd_args, work, 171)
+    finally:
+        pipeline.subprocess.run = original_run
+        pipeline.batch_root_is_valid = original_valid
+        pipeline.Update_Email = original_update
+        pipeline.merge_ch4_count_files = original_merge
+    if((len(calls) != 1) or (len(calls[0]) != 174)):
+        raise SystemExit("hadd did not keep all 171 batches: %s" % (len(calls[0]) if(calls) else 0))
+    names = [os.path.basename(path) for path in calls[0][3:]]
+    if((not names[0].endswith("Batch001.root")) or (not names[1].endswith("Batch002.root")) or (not names[-1].endswith("Batch171.root"))):
+        raise SystemExit("hadd dropped a batch outside the resume list")
+    manifest = {
+        "nominal_only": True,
+        "phase1": [
+            {"id": "nominal_only_20261030", "status": "running", "pid": 99999999, "nominal_only": True, "response": os.path.join(work, "missing_all.root"), "cut": "cut_Complete_SIDIS", "reason": "old"},
+            {"id": "pipS6o", "status": "running", "pid": 99999999, "nominal_only": False, "response": os.path.join(work, "missing_pip.root"), "cut": "cut_Complete_SIDIS_pipS6o", "reason": ""},
+        ],
+        "phase2": [
+            {"key": "nominal_only_20261030__inherited__AccSpline", "status": "waiting_phase1", "final": os.path.join(work, "missing_final.root"), "reason": ""},
+        ],
+    }
+    runner.reconcile_existing(manifest)
+    nominal = manifest["phase1"][0]
+    if((nominal["status"] != "planned") or (nominal["pid"] is not None) or ("stopped before" not in nominal["reason"])):
+        raise SystemExit("a dead nominal coordinator was not returned to planned")
+    if(manifest["phase1"][1]["status"] != "failed"):
+        raise SystemExit("a non-nominal dead Phase 1 row was not failed")
+    if(manifest["phase2"][0]["status"] != "waiting_phase1"):
+        raise SystemExit("nominal Phase 2 was failed after the coordinator stopped")
+    nominal["status"] = "running"
+    nominal["pid"] = os.getpid()
+    runner.reconcile_existing(manifest)
+    if((nominal["status"] != "running") or (manifest["phase2"][0]["status"] != "waiting_phase1")):
+        raise SystemExit("a live nominal coordinator was reset")
+    row = {"id": "nominal_only_20261030", "nominal_only": True, "command": ["python", "submit.py", "-m", "hybrid", "-j3D", "30"], "response": os.path.join(work, "missing_all.root")}
+    live = {"resume_saved_batches": True, "data_root": "work_b", "nominal_only": True}
+    launched = []
+
+    class Proc(object):
+        pid = 4321
+
+    original_popen = runner.subprocess.Popen
+    original_spec = runner.nominal_saved_batch_spec
+
+    def fake_popen(cmd):
+        launched.append(list(cmd))
+        return Proc()
+
+    def fake_spec(data_root):
+        return "2-171"
+
+    runner.subprocess.Popen = fake_popen
+    runner.nominal_saved_batch_spec = fake_spec
+    try:
+        runner.start_phase1(live, row, False, work)
+    finally:
+        runner.subprocess.Popen = original_popen
+        runner.nominal_saved_batch_spec = original_spec
+    if((launched[0][launched[0].index("-bids") + 1] != "2-171") or ("-j3D" not in launched[0])):
+        raise SystemExit("resume did not submit only the incomplete batches")
+    bytes_campaign = "systematics_plc_resume_bytes"
+    plan_argv = ["-n", "-c", bytes_campaign, "-droot", "work_b", "-wm", "both", "-nmo", "-suo", "-mlw", "30", "-plc", "30"]
+    if(runner.main(plan_argv) != 0):
+        raise SystemExit("concurrency manifest plan failed")
+    saved_manifest = runner.last_manifest
+    camp = runner.campaign_directory("work_b", bytes_campaign)
+    runner.write_manifest(camp, saved_manifest)
+    manifest_path = runner.manifest_path(camp)
+    before = open(manifest_path, "rb").read()
+    called = {"n": 0}
+
+    def boom(data_root):
+        called["n"] += 1
+        raise SystemExit("dry-run classified the batch directory")
+
+    runner.nominal_saved_batch_spec = boom
+    try:
+        code = runner.main(["-n", "-rs"] + plan_argv[1:])
+    finally:
+        runner.nominal_saved_batch_spec = original_spec
+    if((code != 0) or (called["n"] != 0) or (open(manifest_path, "rb").read() != before)):
+        raise SystemExit("nominal -n -rs changed the manifest or scanned batches")
+    if("-j3D 30" not in runner.command_text(runner.last_manifest["phase1"][0]["command"])):
+        raise SystemExit("resume dry-run dropped the local concurrency")
+    if(len(runner.last_manifest["phase2"]) != 11):
+        raise SystemExit("resume dry-run changed the 11 Phase 2 branches")
+
+
 def main():
     self_test()
     ledger_self_test()
     squeue_compact_is_pending()
     hpp_matches_submit_full()
-    dry_run_writes_manifest()
+    dry_run_leaves_manifest_bytes()
     recovery_static_checks()
     followup_recovery_20261029()
     complete_campaign_20261029()
@@ -887,6 +1248,7 @@ def main():
     array_script_paths()
     nominal_and_5d_dry_run()
     pips6o_batch111_dry_run()
+    nominal_local_concurrency()
     print("systematics campaign self-test ok")
     return 0
 
