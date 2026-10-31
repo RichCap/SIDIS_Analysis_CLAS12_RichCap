@@ -372,8 +372,18 @@ def bc_nsub(counts):
 BC_STATUS_CACHE = {}
 
 
+def bc_required_histograms_ok(root_file, counts, bins):
+    # Extra histograms are allowed. A kept bin with the wrong axis is not complete.
+    nx_need = bc_nsub(counts) + 2
+    for q2_bin, zpt_bin in bins:
+        name = bc_hist_name(q2_bin, zpt_bin)
+        hist = root_file.Get(name)
+        if((hist is None) or (int(hist.GetNbinsX()) != nx_need) or (int(hist.GetNbinsY()) != 24)):
+            return False
+    return True
+
+
 def bc_histogram_status(path, counts):
-    # Integrity only. Histogram count, names, and axis sizes are not judged.
     # "unread" means the file was not judged, so the caller must not delete it.
     if((path in [None, ""]) or (not os.path.isfile(path))):
         return "missing"
@@ -426,7 +436,11 @@ def bc_histogram_status(path, counts):
             #         status = "incomplete"
             #         reason = "axis %s is not the expected size in %s" % (name, path)
             #         break
-            status = "complete"
+            if(not bc_required_histograms_ok(root_file, counts, bc_expected_bins())):
+                status = "incomplete"
+                reason = "histogram axes do not match %s" % path
+            else:
+                status = "complete"
     except Exception:
         status = "unread"
     finally:
@@ -511,13 +525,17 @@ def bc_complete_outputs(inputs, label, counts, tag):
 
 
 def remove_incomplete_bc_outputs(input_path, label, counts, dry_run, tag):
-    # A rejected file stays where it is. The next worker must not be pointed at it until a replacement is ready.
-    del dry_run
+    # An invalid file is removed so the next writer uses RECREATE. A complete file stays.
     for path in bc_output_candidates(input_path, label, tag):
         status = bc_histogram_status(path, counts)
         if(status == "complete"):
             continue
-        print("BC output was not removed: %s (%s)" % (path, status))
+        if(status == "unread"):
+            print("BC output was not removed: %s (%s)" % (path, status))
+            return False
+        print("removing incomplete BC output so it is recreated: %s (%s)" % (path, status))
+        if(not dry_run):
+            os.remove(path)
     return True
 
 
@@ -582,6 +600,72 @@ def bc_phase_names(label):
     if(label == ""):
         return "bc_hist", "bc_hadd", "bc_factors"
     return "bc_hist_%s" % label, "bc_hadd_%s" % label, "bc_factors_%s" % label
+
+
+BC_OUTSTANDING_TAG = "BC_New_Bins_from_BC_Cuts_10_26_2026"
+
+
+def bc_outstanding_configurations():
+    # One axis varies. The others stay at 1. Nominal, Q2, and y are not included.
+    specs = [("z", [3, 5, 7]), ("pt", [3, 5, 7]), ("phi", [5, 7, 9])]
+    configs = []
+    for variable, values in specs:
+        for value in values:
+            counts = {"q2": 1, "y": 1, "z": 1, "pt": 1, "phi": 1}
+            counts[variable] = int(value)
+            configs.append({"label": "sens_%s_%s" % (variable, value), "counts": counts})
+    return configs
+
+
+def bc_is_outstanding(label):
+    for config in bc_outstanding_configurations():
+        if(config["label"] == label):
+            return True
+    return False
+
+
+def bc_hist_argv(runner, label, counts, tag, message, done_inputs):
+    per_file = bc_worker_command(label, counts)
+    if(bc_is_outstanding(label)):
+        argv = [runner, "-d", BC_NO_RAD_BRACE, "-rm", "hybrid", "-j", "5", "-st", "03:00:00", "-y", "-e", "-rcl", message, "-rt", tag, "-jn", "BC_%s" % label, "-c", per_file]
+    else:
+        argv = [runner, "-d", BC_NO_RAD_BRACE, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", message, "-rt", tag, "-c", per_file]
+    if(len(done_inputs) > 0):
+        argv.extend(["-ex", ",".join([os.path.basename(path) for path in done_inputs])])
+    return argv
+
+
+def bc_outstanding_launch_commands(python, script, data_root, run_tag, dry_run):
+    commands = []
+    base = run_tag if(run_tag not in [None, ""]) else BC_OUTSTANDING_TAG
+    for config in bc_outstanding_configurations():
+        command = [python, script, "-orch", "direct", "-s", "bc", "-sys", "bc_one", "-v", config["label"], "-rt", base, "-droot", data_root]
+        if(dry_run):
+            command.append("-n")
+        commands.append(command)
+    return commands
+
+
+def record_z3_slurm_history():
+    # Record the October 26 task rows. The signal is not used to choose which files to redo.
+    print("prior SLURM array 13647621")
+    try:
+        proc = subprocess.run(["sacct", "-j", "13647621", "-n", "-P", "--format=JobID,State,ExitCode,Elapsed,Timelimit"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        print("sacct is not available; 13647621 task states were not read")
+        return
+    if(proc.returncode != 0):
+        print("sacct 13647621 returned %s" % proc.returncode)
+        print(proc.stderr.strip())
+        return
+    found = False
+    for line in proc.stdout.splitlines():
+        job_id = line.split("|")[0]
+        if(job_id in ["13647621_109", "13647621_176"]):
+            print(line)
+            found = True
+    if(not found):
+        print("sacct did not list 13647621_109 or 13647621_176")
 
 
 def bc_configurations(systematics):
@@ -1279,7 +1363,6 @@ def run_bc_config(args, label, counts):
     runner = os.path.join(bc_dir, "Run_BC_Scripts_Locally.py")
     factor = os.path.join(bc_dir, "BC_Corrections_Script.py")
     tag = bc_run_tag(label, getattr(args, "run_tag", None))
-    per_file = bc_worker_command(label, counts)
     bc_inputs = expand_patterns(BC_NO_RAD_PATTERNS)
     if(args.dry_run):
         print("BC inventory %s directory %s" % (hist_phase, bc_run_directory(tag)))
@@ -1316,9 +1399,7 @@ def run_bc_config(args, label, counts):
             if(not remove_incomplete_bc_outputs(bc_input, label, counts, args.dry_run, tag)):
                 mail_stop(hist_phase, "could not inspect an existing BC output; it was left in place")
                 return 1
-        argv = [runner, "-d", BC_NO_RAD_BRACE, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", phase_message(args, hist_phase), "-rt", tag, "-c", per_file]
-        if(len(done_inputs) > 0):
-            argv.extend(["-ex", ",".join([os.path.basename(path) for path in done_inputs])])
+        argv = bc_hist_argv(runner, label, counts, tag, phase_message(args, hist_phase), done_inputs)
         code = run_command(hist_phase, argv, bc_dir, args.dry_run, hadd_phase, mail_success=False)
         if(code != 0):
             return code
@@ -1397,11 +1478,44 @@ def run_bc_config(args, label, counts):
     return 0
 
 
+def run_bc_one(args):
+    label = getattr(args, "variation", None)
+    for config in bc_outstanding_configurations():
+        if(config["label"] != label):
+            continue
+        if((label == "sens_z_3") and (not args.dry_run)):
+            record_z3_slurm_history()
+        return run_bc_config(args, config["label"], config["counts"])
+    print("unknown BC configuration %s" % label)
+    return 1
+
+
+def run_bc_outstanding(args):
+    script = os.path.join(_BOOT, "Campaign", "run_sidis_campaign.py")
+    commands = bc_outstanding_launch_commands(sys.executable, script, args.data_root, getattr(args, "run_tag", None), args.dry_run)
+    procs = []
+    for command in commands:
+        print(" ".join(str(part) for part in command))
+        procs.append(subprocess.Popen([str(part) for part in command]))
+    failed = 0
+    for proc in procs:
+        if(proc.wait() != 0):
+            failed += 1
+    if(failed > 0):
+        print("BC configurations failed: %d" % failed)
+        return 1
+    return 0
+
+
 def run_bc(args):
     if((not args.dry_run) and (not root_module_ready())):
         mail_stop("bc_hist", "ROOT is not importable; BC outputs were not changed")
         return 1
     choice = getattr(args, "systematics", "nominal")
+    if(choice == "bc_outstanding"):
+        return run_bc_outstanding(args)
+    if(choice == "bc_one"):
+        return run_bc_one(args)
     for config in bc_configurations(choice):
         code = run_bc_config(args, config["label"], config["counts"])
         if(code != 0):

@@ -510,26 +510,33 @@ def submit_sbatch(script_path):
         raise RuntimeError(f"sbatch returned an empty job id for {script_path}")
     return job_id
 
+def hybrid_local_action(array_jobid, state, cancel_ok):
+    # start only when no array was submitted, or the task is pending and scancel succeeded.
+    # RETRY, a missing queue row, and any other state do not start a second copy.
+    if(array_jobid in [None, ""]):
+        return "start"
+    if(state == "RETRY"):
+        return "retry"
+    if((state == "PD") and cancel_ok):
+        return "start"
+    return "defer"
+
+
 def query_slurm_array_task_state(array_jobid, batch_index):
-    # Return SLURM state code (e.g. PD, R), None if absent, or 'IGNORE' if squeue is unusable.
-    global SLURM_ARRAY_CHECK_DISABLED
-    if(SLURM_ARRAY_CHECK_DISABLED):
-        return "IGNORE"
+    # Return a SLURM state, None when the task is absent, or RETRY when the queue cannot be read.
+    # A failed read is not cached. The next poll tries squeue again.
     try:
         proc = subprocess.run(["squeue", "-h", "-r", "-j", str(array_jobid), "-o", "%i %t"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except FileNotFoundError:
-        print(f"{color.Error}[WARNING]{color.END} squeue not found; disabling SLURM local coordination.")
-        SLURM_ARRAY_CHECK_DISABLED = True
-        return "IGNORE"
+        print(f"{color.Error}[WARNING]{color.END} squeue not found for array job {array_jobid}.")
+        return "RETRY"
     except Exception as exc:
         print(f"{color.Error}[WARNING]{color.END} Exception while running squeue for array job {array_jobid}: {exc}")
-        SLURM_ARRAY_CHECK_DISABLED = True
-        return "IGNORE"
+        return "RETRY"
     if(proc.returncode != 0):
         msg = proc.stderr.strip() if(proc.stderr.strip() not in [""]) else "(no additional message from squeue)"
         print(f"{color.Error}[WARNING]{color.END} squeue for array job {array_jobid} returned code {proc.returncode}: {msg}")
-        SLURM_ARRAY_CHECK_DISABLED = True
-        return "IGNORE"
+        return "RETRY"
     target_id = f"{array_jobid}_{batch_index}"
     for line in proc.stdout.strip().splitlines():
         parts = line.split()
@@ -557,35 +564,42 @@ def cancel_slurm_array_task(array_jobid, batch_index):
     return True
 
 def slurm_array_has_active_tasks(array_jobid):
-    global SLURM_ARRAY_CHECK_DISABLED
+    # None means the queue could not be read. False means no active task rows.
     if(array_jobid in [None, ""]):
-        return False
-    if(SLURM_ARRAY_CHECK_DISABLED):
         return False
     try:
         proc = subprocess.run(["squeue", "-h", "-r", "-j", str(array_jobid)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except FileNotFoundError:
         print(f"{color.Error}[WARNING]{color.END} squeue not found; cannot check active tasks for SLURM array job {array_jobid}.")
-        SLURM_ARRAY_CHECK_DISABLED = True
-        return False
+        return None
     except Exception as exc:
         print(f"{color.Error}[WARNING]{color.END} Exception while checking active tasks for SLURM array job {array_jobid}: {exc}")
-        SLURM_ARRAY_CHECK_DISABLED = True
-        return False
+        return None
     if(proc.returncode != 0):
         msg = proc.stderr.strip() if(proc.stderr.strip() not in [""]) else "(no additional message from squeue)"
         print(f"{color.Error}[WARNING]{color.END} squeue for array job {array_jobid} returned code {proc.returncode}: {msg}")
-        SLURM_ARRAY_CHECK_DISABLED = True
-        return False
+        return None
     return any(line.strip() not in [""] for line in proc.stdout.splitlines())
 
 def wait_until_slurm_idle(array_jobid, poll_seconds=30.0):
     if(array_jobid in [None, ""]):
         return
-    while(slurm_array_has_active_tasks(array_jobid)):
+    misses = 0
+    while(True):
+        active = slurm_array_has_active_tasks(array_jobid)
+        if(active is None):
+            misses += 1
+            if(misses >= 4):
+                print(f"{color.Error}[WARNING]{color.END} Queue inspection for {array_jobid} stayed unavailable. Local tasks were not started from an unknown owner.")
+                return
+            time.sleep(max(1.0, float(poll_seconds)))
+            continue
+        misses = 0
+        if(not active):
+            print(f"{color.BGREEN}[INFO]{color.END} No active SLURM tasks remain for array job {array_jobid}.")
+            return
         print(f"{color.BBLUE}[INFO]{color.END} Waiting for remaining SLURM tasks of array job {array_jobid}...")
         time.sleep(max(1.0, float(poll_seconds)))
-    print(f"{color.BGREEN}[INFO]{color.END} No active SLURM tasks remain for array job {array_jobid}.")
 
 def array_task_states(array_jobid, expected_indexes):
     # Task rows only. Step rows such as 123_0.batch are ignored.
@@ -637,23 +651,15 @@ def classify_owner_slurm(state, exit_code):
 #     return True
 
 def should_start_local_hybrid_job(array_jobid, job_index):
-    # Hybrid ownership (squeue-based): PD -> cancel then local; active/absent/IGNORE -> skip local.
+    # Kept for callers that only need a boolean. The hybrid loop uses hybrid_local_action so a retry is not a permanent skip.
+    if(array_jobid in [None, ""]):
+        return True
     state = query_slurm_array_task_state(array_jobid, job_index)
-    if(state == "IGNORE"):
-        print(f"{color.BYELLOW}[INFO]{color.END} SLURM state checks unusable; skipping local start for index {job_index} to avoid double-processing.")
-        return False
-    if(state is None):
-        print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {array_jobid}_{job_index} not in queue; skipping local start.")
-        return False
+    cancel_ok = False
     if(state == "PD"):
         print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {array_jobid}_{job_index} is pending; attempting cancel for local processing.")
-        cancelled = cancel_slurm_array_task(array_jobid, job_index)
-        if(not cancelled):
-            print(f"{color.BYELLOW}[INFO]{color.END} Could not safely cancel {array_jobid}_{job_index}; skipping local start.")
-            return False
-        return True
-    print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {array_jobid}_{job_index} is in state '{state}'; skipping local start.")
-    return False
+        cancel_ok = cancel_slurm_array_task(array_jobid, job_index)
+    return hybrid_local_action(array_jobid, state, cancel_ok) == "start"
 
 def main():
 
@@ -954,11 +960,17 @@ def main():
                 timer.stop()
                 # return 0
                 return 1
-            array_id = submit_sbatch(script_path)
-            jobid_path = os.path.join(log_run_dir, "slurm_array_jobid.txt")
-            with open(jobid_path, "w") as fh:
-                fh.write(f"{array_id}\n")
-            print(f"{color.BGREEN}Submitted hybrid SLURM array job {array_id}{color.END}")
+            try:
+                array_id = submit_sbatch(script_path)
+            except RuntimeError as exc:
+                print(f"{color.Error}[WARNING]{color.END} {exc}")
+                print(f"{color.BBLUE}[INFO]{color.END} No SLURM array was submitted. This configuration continues with local workers.")
+                array_id = None
+            if(array_id not in [None, ""]):
+                jobid_path = os.path.join(log_run_dir, "slurm_array_jobid.txt")
+                with open(jobid_path, "w") as fh:
+                    fh.write(f"{array_id}\n")
+                print(f"{color.BGREEN}Submitted hybrid SLURM array job {array_id}{color.END}")
 
             running = []
             pending = list(mid_indices)
@@ -1016,14 +1028,36 @@ def main():
                     except Exception:
                         pass
 
+            claim_tries = {}
             while((len(pending) > 0) or (len(running) > 0)):
+                retry_later = []
                 while((len(pending) > 0) and (len(running) < max_jobs)):
                     job_num = pending.pop(0)
-                    if(not should_start_local_hybrid_job(array_id, job_num)):
-                        skipped_indices.append(job_num)
-                        print(f"{color.BBLUE}SKIP {color.END}: {job_num+1:>3.0f} of {len(files)}  (owned by SLURM or uninspectable)")
+                    if(array_id in [None, ""]):
+                        start_job(job_num, files[job_num])
                         continue
-                    start_job(job_num, files[job_num])
+                    state = query_slurm_array_task_state(array_id, job_num)
+                    cancel_ok = False
+                    if(state == "PD"):
+                        print(f"{color.BBLUE}[INFO]{color.END} SLURM array task {array_id}_{job_num} is pending; attempting cancel for local processing.")
+                        cancel_ok = cancel_slurm_array_task(array_id, job_num)
+                    action = hybrid_local_action(array_id, state, cancel_ok)
+                    if(action == "start"):
+                        start_job(job_num, files[job_num])
+                    elif(action == "retry"):
+                        claim_tries[job_num] = claim_tries.get(job_num, 0) + 1
+                        if(claim_tries[job_num] <= 4):
+                            retry_later.append(job_num)
+                        else:
+                            skipped_indices.append(job_num)
+                            print(f"{color.BBLUE}SKIP {color.END}: {job_num+1:>3.0f} of {len(files)}  (queue inspection stayed unavailable; local copy not started)")
+                    else:
+                        skipped_indices.append(job_num)
+                        print(f"{color.BBLUE}SKIP {color.END}: {job_num+1:>3.0f} of {len(files)}  (owned by SLURM or not confirmed pending)")
+                if(len(retry_later) > 0):
+                    pending.extend(retry_later)
+                    if(len(running) == 0):
+                        time.sleep(max(1.0, float(args.poll_seconds)))
 
                 if(len(running) == 0):
                     if(len(pending) == 0):
