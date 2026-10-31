@@ -1,0 +1,614 @@
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3105: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if((tdf not in ["N/A"]) and out_print_main_tdf):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3294: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if((tdf not in ["N/A"]) and ExTRUE_1D_initial):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3376: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3386: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3405: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3412: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3419: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3426: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3452: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if("N/A" not in [tdf, ExTRUE_1D]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:570: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(Response_2D in ["N/A", "None", "Error"]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:581: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+TH1D::Sumw2:0: RuntimeWarning: Sum of squares of weights structure already created
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:612: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(Response_2D in ["N/A", "None", "Error"]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:1864: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:1964: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:1997: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(MC_BGS_1D not in ["None"]):
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Simple_RooUnfold_SelfContained.py:3596: FutureWarning: 
+TObject.__eq__ is deprecated and will be removed in ROOT 6.40.
+
+It forwards to TObject::Equals(), which uses pointer comparison if not overridden in derived classes.
+This may be confusing, because people expect value comparisons.
+Use Pythons `is` for pointer comparison, or request/implement `operator==` on the C++ side if you need value-based equality checks.
+  if(tdf not in ["N/A"]):
+
+[1m[94mSmear option selected is: both[0m
+
+
+[91mRunning Bin 'All' for Q2-y Bins by default (will skip at end)[0m
+
+
+Running for Q2-xB/Q2-y Bins: '2', '0'
+[1m
+Starting RG-A SIDIS Analysis
+[0m
+
+Started running on [1m10-31-2026[0m at [1m05:14 p.m.[0m
+
+The total number of histograms available for the [1mRDataFrame[0m in '[1m[94m/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root[0m' is [1m1326[0m
+
+
+[1mDone Loading RDataFrame files...
+[0m
+[1m[94m
+
+Starting Unfolding Procedures...
+[0m
+Bin 1 is not in Q2_y_Bin_List = ['2', '0']
+Bin 10 is not in Q2_y_Bin_List = ['2', '0']
+Bin 11 is not in Q2_y_Bin_List = ['2', '0']
+Bin 12 is not in Q2_y_Bin_List = ['2', '0']
+Bin 13 is not in Q2_y_Bin_List = ['2', '0']
+Bin 14 is not in Q2_y_Bin_List = ['2', '0']
+Bin 15 is not in Q2_y_Bin_List = ['2', '0']
+Bin 16 is not in Q2_y_Bin_List = ['2', '0']
+Bin 17 is not in Q2_y_Bin_List = ['2', '0']
+
+Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=2, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
+[1m[92mSubtracting the 'rho0_new' files to the 'ExREAL_1D_initial' histogram[0m
+[1m[96mStarting [4m[95mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mAcceptance Correction of Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal_1D'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=2, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[91m
+Bin 2 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.00258882445781027)[0m
+[91m
+Bin 23 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.012776334623336692)[0m
+[91m
+Bin 24 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.006706727479038717)[0m
+[91m
+Bin 25 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.009583792116273948)[0m
+[91m
+Bin 26 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.01841075018516559)[0m
+[91m
+Bin 27 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0001939047429100116)[0m
+[91m
+Bin 28 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0030166579187270366)[0m
+[91m
+Bin 29 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.015400615139512757)[0m
+[91m
+Bin 48 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.012809162839594976)[0m
+[91m
+Bin 49 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 4.9855695459254045e-05)[0m
+[91m
+Bin 50 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 1.1072664359861592e-05)[0m
+[91m
+Bin 52 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 1.6395861684510828e-05)[0m
+[91m
+Bin 53 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.00107726375007481)[0m
+[91m
+Bin 54 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.009425733506329251)[0m
+[91m
+Bin 55 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.011306032248383488)[0m
+[91m
+Bin 72 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.016184120931499388)[0m
+[91m
+Bin 73 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 1.6274540651090124e-05)[0m
+[91m
+Bin 96 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.00599677518954338)[0m
+[91m
+Bin 100 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 2.5838291055429594e-05)[0m
+[91m
+Bin 121 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0011298187744712904)[0m
+[91m
+Bin 123 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.003792323653064555)[0m
+[91m
+Bin 145 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.01435569360097662)[0m
+[91m
+Bin 146 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.011060064658839543)[0m
+[91m
+Bin 147 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.018442666895412924)[0m
+[91m
+Bin 168 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.01629554005525848)[0m
+[91m
+Bin 169 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.002667906444460339)[0m
+[91m
+Bin 170 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.006858145614726211)[0m
+[91m
+Bin 172 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 7.322051272664037e-05)[0m
+[91m
+Bin 173 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.002525229336737036)[0m
+[91m
+Bin 174 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.013401004960440601)[0m
+[91m
+Bin 193 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 2.757669769045157e-05)[0m
+[91m
+Bin 196 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 2.3452377602041295e-05)[0m
+[91m
+Bin 216 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.009210409075348086)[0m
+[91m
+Bin 217 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 4.693755896530845e-05)[0m
+[91m
+Bin 219 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 6.191912124383131e-06)[0m
+[91m
+Bin 220 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.000759484291641968)[0m
+[91m
+Bin 241 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.006000581499650481)[0m
+[91m
+Bin 243 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.010845340600808278)[0m
+[91m
+Bin 291 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.00707078313253012)[0m
+[91m
+Bin 313 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0009800189219037999)[0m
+[91m
+Bin 314 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0015376440127986251)[0m
+[91m
+Bin 316 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 1.955512099731117e-05)[0m
+[91m
+Bin 336 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.008806449241626033)[0m
+[91m
+Bin 337 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 9.774072318361084e-06)[0m
+[91m
+Bin 339 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 6.698441324230323e-05)[0m
+[91m
+Bin 340 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.001751178579131703)[0m
+[91m
+Bin 361 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.006034548944337812)[0m
+[91m
+Bin 362 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 4.1180437233292326e-05)[0m
+[91m
+Bin 435 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0019487052891826284)[0m
+[91m
+Bin 436 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.010563142365933679)[0m
+[91m
+Bin 457 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0014916814398099043)[0m
+[91m
+Bin 458 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.00019860452218749765)[0m
+[91m
+Bin 460 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0006501508932296973)[0m
+[91m
+Bin 481 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0011571710571097952)[0m
+[91m
+Bin 555 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0003795412835221431)[0m
+[91m
+Bin 556 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.004299547971630661)[0m
+[91m
+Bin 577 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0021698534388816613)[0m
+[91m
+Bin 578 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.00012480738859740496)[0m
+[91m
+Bin 579 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0015294337973656283)[0m
+[91m
+Bin 580 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.006206076601784014)[0m
+[91m
+Bin 601 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.005668715774817724)[0m
+[91m
+Bin 602 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0012565392917348328)[0m
+[91m
+Bin 675 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 3.291341303864857e-05)[0m
+[91m
+Bin 676 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0010540494664045689)[0m
+[91m
+Bin 697 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.0013803038311647408)[0m
+[91m
+Bin 698 had a very low acceptance...
+	(cut_criteria = 0.02)
+	(Bin_Content  = 0.00010398509182157252)[0m
+[1m[96mFinished [95mBin-by-Bin[0m[1m[96m Unfolding Procedure.[0m
+
+Current Time: [1m05:14 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+
+[94mRunning Multi3D_Slice(...)[0m
+
+Bin 3 is not in Q2_y_Bin_List = ['2', '0']
+Bin 4 is not in Q2_y_Bin_List = ['2', '0']
+Bin 5 is not in Q2_y_Bin_List = ['2', '0']
+Bin 6 is not in Q2_y_Bin_List = ['2', '0']
+Bin 7 is not in Q2_y_Bin_List = ['2', '0']
+Bin 8 is not in Q2_y_Bin_List = ['2', '0']
+Bin 9 is not in Q2_y_Bin_List = ['2', '0']
+
+Unfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='DataFrame_Type'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))
+[1m[92mSubtracting the 'rho0_new' files to the 'ExREAL_1D_initial' histogram[0m
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=10, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=11, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=554, MinBin=-1.5, MaxBin=552.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=12, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=362, MinBin=-1.5, MaxBin=360.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=13, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=14, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=746, MinBin=-1.5, MaxBin=744.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=458, MinBin=-1.5, MaxBin=456.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=16, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=578, MinBin=-1.5, MaxBin=576.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=17, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=602, MinBin=-1.5, MaxBin=600.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=2, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=3, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=674, MinBin=-1.5, MaxBin=672.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=4, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=554, MinBin=-1.5, MaxBin=552.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=6, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=7, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=9, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+[91m[1mERROR IN RDF...
+[0m[91mDataframe is missing: [1m[94m((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=All, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)[0m
+
+Total: 2
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92m/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_nominal_only_20261030_BinByBin_Unweighted_q2y02.root[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 207
+
+
+Current Time: [1m05:14 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+Conditions for running 'Create_Fits_and_Apply_RC_and_BC' were not set...
+Need to run: '(args.fit and args.Use_TTree) or args.Apply_RC'
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92m/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_nominal_only_20261030_BinByBin_Unweighted_q2y02.root[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 207
+
+
+Current Time: [1m05:14 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s).
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Simple_RooUnfold_SelfContained.py' script has finished running.
+Started running on [1m10-31-2026[0m at [1m05:14 p.m.[0m
+
+Input File:
+	/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root
+Output File:
+	/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_nominal_only_20261030_BinByBin_Unweighted_q2y02.root
+
+
+
+Arguments:
+--unfolding_3D (3D Unfolding Only)                  --> True
+--unfolding_5D (Ran 5D Unfolding Fits)              --> False
+--run_sectors                                       --> False
+--sectors_to_unfold                                 --> None
+--allow_other_variables (for unfolding)             --> False
+--simulation (unfolding synthetic data)             --> False
+--modulation (data unfolded with modulated MC)      --> False
+--closure  (modulated MC unfolded with itself)      --> False
+--weighed_acceptance (use acceptance weights only)  --> False
+--test                                              --> False
+--verbose                                           --> False
+--weight_tag                                        --> ''
+--fit                                               --> False
+--remake_fit                                        --> False
+--CrossSection_Norm                                 --> False
+--tag_proton                                        --> False
+--cut_proton                                        --> False
+--Common_Int_Bins                                   --> False
+--bayes_iterations                                  --> None
+--Num_Toys                                          --> 500
+--error_mode                                        --> 'covariance'
+--old_binning                                       --> False
+--no_post_unfold_acc_cut                            --> False
+--bin_by_bin_only                                   --> True
+--Unfold_Methods                                    --> ['Bayesian']
+--title                                             --> None
+--EvGen                                             --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.02
+--Use_TTree                                         --> False
+--Apply_RC                                          --> False
+--Apply_BC                                          --> False
+--Add_Uncertainties                                 --> False
+--fit_error_source                                  --> 'histogram'
+--fit_corrections                                   --> 'all'
+--save_json                                         --> False
+--json_name                                         --> None
+--old_json                                          --> False
+--background_source                                 --> 'rho0_new'
+--unfold_exclusive_rho0                             --> False
+--use_spline_init                                   --> False
+--fit_init_file                                     --> None
+--data_root                                         --> 'work_b'
+--pass_version                                      --> 'Pass 2'
+--smearing_options                                  --> 'both'
+--Q2_y_Bin_List                                     --> ['2', '0']
+--Run_5D_Unfold                                     --> False
+--run_sec_unfold                                    --> False
+
+
+The time that this code finished is [1m05:14 p.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s).
+Saved 207 Histograms...
+Rate = 207.00 Histograms/Seconds
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+    
+    

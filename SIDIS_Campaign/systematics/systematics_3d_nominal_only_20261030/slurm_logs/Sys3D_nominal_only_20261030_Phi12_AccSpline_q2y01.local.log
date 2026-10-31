@@ -1,0 +1,88 @@
+
+Started running on [1m10-31-2026[0m at [1m04:16 p.m.[0m
+[1mROOT version: 6.38.04[0m  ROOTSYS=/cvmfs/jlab.opensciencegrid.org/hallb/clas12/sw/almalinux9-gcc11/local/root/6.38.04
+libMatrix: /cvmfs/jlab.opensciencegrid.org/hallb/clas12/sw/almalinux9-gcc11/local/root/6.38.04/lib/libMatrix.so
+
+[1m[94mWill be saving results to [0m[1m/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_nominal_only_20261030_Phi12_AccSpline_q2y01_WAccSpline.root[0m
+
+
+[1mStarting Simple 3D/1D Unfolding Analysis
+[0m
+The total number of histograms in '[1m[94m/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root[0m' is [1m1326[0m
+[1m[94mSaving to: [1m[92m/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_nominal_only_20261030_Phi12_AccSpline_q2y01_WAccSpline.root[0m
+[91m[1mCannot subtract the 'rho0_new' files to the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(AccSpline)[0m
+
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[91mphi_bins=12 requires dense axes whose bin count is a multiple of 24[0m
+
+[91m[1mCRASH WARNING![0m
+Unfold_Function returned ERROR
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Dedicated_5D_Unfold.py' script has [91m[1m[4mCRASHED![0m
+Started running on [1m10-31-2026[0m at [1m04:16 p.m.[0m
+
+Input File:
+	/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root
+Output File:
+	/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfold_parts/Sys3D_nominal_only_20261030_Phi12_AccSpline_q2y01_WAccSpline.root
+
+
+
+[91m[1mCRASH WARNING![0m
+Unfold_Function returned ERROR
+
+
+
+Detected 5D Configuration:
+	increment  = 0
+	num_bins   = 0
+	num_slices = 0
+
+Arguments:
+--test                                              --> False
+--no_smear                                          --> False
+--sim                                               --> False
+--mod                                               --> False
+--bayes_iterations                                  --> 5
+--Num_Toys                                          --> 500
+--bins                                              --> ['1']
+--verbose                                           --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.020000
+--background_source                                 --> 'rho0_new'
+--require_weighed                                   --> False
+--weight_tag                                        --> 'AccSpline'
+--closure_weight                                    --> ''
+--pseudo_data                                       --> ''
+--increment                                         --> None
+--num_bins                                          --> None
+--matrix_pdf                                        --> False
+--logz                                              --> False
+--recover_slices                                    --> False
+--data_root                                         --> 'work_b'
+--error_mode                                        --> 'covariance'
+--iteration_study                                   --> False
+--old_binning                                       --> False
+--no_post_unfold_acc_cut                            --> False
+--pass_version                                      --> 'Pass 2'
+--closure                                           --> False
+--smearing_options                                  --> 'smear'
+
+
+The time that this code finished is [1m04:16 p.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+malloc(): smallbin double linked list corrupted
