@@ -3,7 +3,7 @@
   "data_root": "work_b",
   "weight_mode": "both",
   "shared_unfold": true,
-  "max_local_workers": 11,
+  "max_local_workers": 30,
   "hpp_tag": "Final_Thesis",
   "regenerate_nominal_spline_hpp": false,
   "phase1": [
@@ -42,7 +42,7 @@
         "-j",
         "1",
         "-j3D",
-        "1",
+        "30",
         "-j2D",
         "0",
         "-j5D",
@@ -62,16 +62,18 @@
         "-cwn",
         "systematics_3d_nominal_only_20261030",
         "-cwc",
-        "11",
+        "30",
         "-hdate",
         "10_30_2026",
         "-st",
         "24:00:00",
         "-o3m",
-        "4500M"
+        "4500M",
+        "-bids",
+        "2-171"
       ],
       "status": "running",
-      "pid": 914355,
+      "pid": 1140790,
       "reason": "",
       "external_merge": false,
       "auto_merge": false,
@@ -1403,5 +1405,7 @@
   ],
   "hybrid_date": "10_30_2026",
   "nominal_only": true,
-  "email": true
+  "phase1_local_jobs": 30,
+  "email": true,
+  "resume_saved_batches": true
 }

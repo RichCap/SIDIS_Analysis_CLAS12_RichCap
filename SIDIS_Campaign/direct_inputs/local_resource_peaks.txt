@@ -5,3 +5,4 @@ mode=Only_5D reserved_gb=14 max_child_rss=7.97 GB memavailable=yes
 mode=Diagnostic_1D reserved_gb=5 max_child_rss=832.47 MB memavailable=yes
 mode=Diagnostic_1D reserved_gb=5 max_child_rss=894.88 MB memavailable=yes
 mode=Only_1D reserved_gb=4 max_child_rss=901.74 MB memavailable=yes
+mode=Only_3D reserved_gb=4 max_child_rss=1.86 GB memavailable=yes

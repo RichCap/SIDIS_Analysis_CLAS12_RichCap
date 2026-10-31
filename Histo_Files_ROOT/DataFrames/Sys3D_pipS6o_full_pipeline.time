@@ -34,3 +34,7 @@ peak_memory: 484.00 MB
 
 
 ===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-10-30T19:36:06 name=Sys3D_pipS6o mode=sequential email=none =====
+=== TASK: Only_3D | cut=cut_Complete_SIDIS_pipS6o | mode=sequential | rc=0 ===
+wall_time: 26078.47 s
+peak_memory: 1.86 GB
+

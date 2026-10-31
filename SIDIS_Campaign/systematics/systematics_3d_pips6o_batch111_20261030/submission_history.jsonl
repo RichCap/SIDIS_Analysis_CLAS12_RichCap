@@ -1,0 +1,2 @@
+{"attempt": 1, "campaign": "systematics_3d_pips6o_batch111_20261030", "configuration": "pipS6o", "cpus": "1", "index_spec": "1-17", "job_name": "Sys3D_pipS6o_inherited_Spline", "memory": "15000", "phase": "phase2", "slurm_id": "13917365", "time": "2026-10-31T02:50:48", "wall": "1:40:00"}
+{"attempt": 1, "campaign": "systematics_3d_pips6o_batch111_20261030", "configuration": "pipS6o", "cpus": "1", "index_spec": "1-17", "job_name": "Sys3D_pipS6o_inherited_Unweighted", "memory": "15000", "phase": "phase2", "slurm_id": "13917366", "time": "2026-10-31T02:50:48", "wall": "1:40:00"}
