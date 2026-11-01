@@ -30,6 +30,27 @@
     "bc_factors_sens_y_7": "success",
     "bc_hist_sens_z_3": "success",
     "bc_hadd_sens_z_3": "success",
-    "bc_factors_sens_z_3": "success"
+    "bc_factors_sens_z_3": "success",
+    "bc_hist_sens_pt_7": "success",
+    "bc_hadd_sens_pt_7": "success",
+    "bc_factors_sens_pt_7": "success",
+    "bc_hist_sens_pt_3": "success",
+    "bc_hadd_sens_pt_3": "success",
+    "bc_factors_sens_pt_3": "success",
+    "bc_hist_sens_phi_5": "success",
+    "bc_hadd_sens_phi_5": "success",
+    "bc_factors_sens_phi_5": "success",
+    "bc_hist_sens_z_7": "success",
+    "bc_hadd_sens_z_7": "success",
+    "bc_factors_sens_z_7": "success",
+    "bc_hist_sens_pt_5": "success",
+    "bc_hadd_sens_pt_5": "success",
+    "bc_factors_sens_pt_5": "success",
+    "bc_hist_sens_phi_9": "success",
+    "bc_hadd_sens_phi_9": "success",
+    "bc_factors_sens_phi_9": "success",
+    "bc_hist_sens_z_5": "success",
+    "bc_hadd_sens_z_5": "success",
+    "bc_factors_sens_z_5": "success"
   }
 }
