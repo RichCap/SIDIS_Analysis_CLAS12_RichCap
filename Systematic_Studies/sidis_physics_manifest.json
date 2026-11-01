@@ -1,0 +1,1652 @@
+{
+  "bin_centering": {
+    "blocks_aggregation": false,
+    "event_nominal": {
+      "counts": {
+        "phi": 5,
+        "pt": 3,
+        "q2": 3,
+        "y": 3,
+        "z": 3
+      },
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026.json",
+      "path_status": "verified",
+      "role": "event_unweighted_reference"
+    },
+    "event_root": {
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026.root",
+      "path_status": "verified",
+      "role": "supporting_subbin_distributions"
+    },
+    "initial_spline": {
+      "path": null,
+      "path_status": "needs_configuration"
+    },
+    "iteration_combine": "not_combined",
+    "later_spline": {
+      "path": null,
+      "path_status": "needs_configuration"
+    },
+    "sensitivity": [
+      {
+        "combine": "not_combined",
+        "label": "sens_q2_3",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 3,
+        "variable": "q2"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_q2_5",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 5,
+        "variable": "q2"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_q2_7",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 7,
+        "variable": "q2"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_y_3",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 3,
+        "variable": "y"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_y_5",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 5,
+        "variable": "y"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_y_7",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 7,
+        "variable": "y"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_z_3",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 3,
+        "variable": "z"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_z_5",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 5,
+        "variable": "z"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_z_7",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 7,
+        "variable": "z"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_pt_3",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 3,
+        "variable": "pt"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_pt_5",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 5,
+        "variable": "pt"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_pt_7",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 7,
+        "variable": "pt"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_phi_5",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 5,
+        "variable": "phi"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_phi_7",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 7,
+        "variable": "phi"
+      },
+      {
+        "combine": "not_combined",
+        "label": "sens_phi_9",
+        "other_variables": 1,
+        "path": null,
+        "path_status": "absent_on_disk",
+        "study_state": "blocked",
+        "value": 9,
+        "variable": "phi"
+      }
+    ],
+    "transfer": {
+      "prescription": "user_decision"
+    }
+  },
+  "comparisons": {
+    "unweighted_versus_spline": {
+      "combine": "not_combined",
+      "nominal_ids": [
+        "nominals.unweighted",
+        "nominals.spline"
+      ],
+      "role": "weight_scheme"
+    }
+  },
+  "dimension": {
+    "bayesian_1d": {
+      "enabled": false,
+      "path": null,
+      "path_status": "needs_configuration",
+      "study_state": "disabled"
+    },
+    "spline": {
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/nominal_5d_spline_20261030/Unfolded_5D_inherited_Spline.root",
+      "path_status": "absent_on_disk",
+      "study_state": "blocked",
+      "weight_tag": "Spline"
+    },
+    "unweighted": {
+      "bayes_iterations": 5,
+      "dimension": "5D",
+      "input_response": "SIDIS_epip_Response_Matrices_from_RDataFrames_Only_5D_SIDIS_Workflow_Bank_Response_Matrices_Final_Thesis_Files_All.root",
+      "iteration_mismatch_bins": [
+        1,
+        5
+      ],
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "nominal_iterations_bins_1_and_5": 6,
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/unfolded_5d_cpp_covariance.root",
+      "path_status": "verified",
+      "study_state": "ready",
+      "weight_tag": ""
+    }
+  },
+  "method_branches_blocked": [
+    {
+      "branch": "Acc015",
+      "eligible": false,
+      "file_name": "Sys3D_nominal_only_20261030_Acc015_AccSpline.root",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Acc015_AccSpline.root",
+      "path_status": "verified",
+      "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
+      "spline_path": null,
+      "study_state": "blocked",
+      "unweighted_path": null,
+      "weight_tag": "AccSpline"
+    },
+    {
+      "branch": "Acc025",
+      "eligible": false,
+      "file_name": "Sys3D_nominal_only_20261030_Acc025_AccSpline.root",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Acc025_AccSpline.root",
+      "path_status": "verified",
+      "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
+      "spline_path": null,
+      "study_state": "blocked",
+      "unweighted_path": null,
+      "weight_tag": "AccSpline"
+    },
+    {
+      "branch": "BayesMinus1",
+      "eligible": false,
+      "file_name": "Sys3D_nominal_only_20261030_BayesMinus1_AccSpline.root",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BayesMinus1_AccSpline.root",
+      "path_status": "verified",
+      "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
+      "spline_path": null,
+      "study_state": "blocked",
+      "unweighted_path": null,
+      "weight_tag": "AccSpline"
+    },
+    {
+      "branch": "BayesPlus1",
+      "eligible": false,
+      "file_name": "Sys3D_nominal_only_20261030_BayesPlus1_AccSpline.root",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BayesPlus1_AccSpline.root",
+      "path_status": "verified",
+      "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
+      "spline_path": null,
+      "study_state": "blocked",
+      "unweighted_path": null,
+      "weight_tag": "AccSpline"
+    },
+    {
+      "branch": "NoRho0",
+      "eligible": false,
+      "file_name": "Sys3D_nominal_only_20261030_NoRho0_AccSpline.root",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_NoRho0_AccSpline.root",
+      "path_status": "verified",
+      "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
+      "spline_path": null,
+      "study_state": "blocked",
+      "unweighted_path": null,
+      "weight_tag": "AccSpline"
+    },
+    {
+      "branch": "Phi12",
+      "eligible": false,
+      "file_name": "Sys3D_nominal_only_20261030_Phi12_AccSpline.root",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Phi12_AccSpline.root",
+      "path_status": "verified",
+      "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
+      "spline_path": null,
+      "study_state": "blocked",
+      "unweighted_path": null,
+      "weight_tag": "AccSpline"
+    }
+  ],
+  "nominals": {
+    "spline": {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793486360,
+        "size": 4102280
+      },
+      "method": "Bayesian",
+      "nominal_id": null,
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_AcceptanceWeightVariation_Spline.root",
+      "path_status": "verified",
+      "role": "nominal",
+      "source": "nominal",
+      "variation": "nominal",
+      "weight_tag": "Spline"
+    },
+    "unweighted": {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793486411,
+        "size": 3356079
+      },
+      "method": "Bayesian",
+      "nominal_id": null,
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "nominal",
+      "source": "nominal",
+      "variation": "nominal",
+      "weight_tag": ""
+    }
+  },
+  "radiative": {
+    "blocks_aggregation": false,
+    "cross_section": {
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/Running_EvGen_richcap/sidis/build/example/cross_section",
+      "path_status": "absent_on_disk"
+    },
+    "enabled": true,
+    "event_ratio_root": {
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/Running_EvGen_richcap/Run_Large_Files_For_Iterative_Corrections/Comparison_With_Unfolding/build_EvGen_PerFile_Hists_Runtime_ifarm_rc/merged_outputs/RC_Factors_ifarm_rc.root",
+      "path_status": "verified",
+      "role": "nominal_correction"
+    },
+    "execute": "inspect",
+    "scan_root": {
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root",
+      "path_status": "verified"
+    },
+    "study_state": "pending"
+  },
+  "run": {
+    "campaigns": "both",
+    "force": false,
+    "max_concurrent": 2,
+    "output_dir": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign",
+    "spline_overlay": false,
+    "stages": [
+      "resolve"
+    ],
+    "tolerance": 1e-09,
+    "uncertainty_campaign": null
+  },
+  "schema_version": 1,
+  "splines": {
+    "compute_txt": {
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+      "path_status": "verified"
+    },
+    "pkl": {
+      "A": {
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Fit_Par_A.pkl",
+        "path_status": "verified"
+      },
+      "B": {
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Fit_Par_B.pkl",
+        "path_status": "verified"
+      },
+      "C": {
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Fit_Par_C.pkl",
+        "path_status": "verified"
+      }
+    }
+  },
+  "variations": [
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484507,
+        "size": 4094198
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_chi2_strict_pip_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "chi2_strict_pip",
+      "variation": "chi2_strict_pip",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383521,
+        "size": 3390697
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_chi2_strict_pip_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "chi2_strict_pip",
+      "variation": "chi2_strict_pip",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484558,
+        "size": 4110114
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfid_loose_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfid_el",
+      "variation": "loose",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383521,
+        "size": 3409012
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfid_loose_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfid_el",
+      "variation": "loose",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484686,
+        "size": 4109973
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfid_loose_pip_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfid_pip",
+      "variation": "loose",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383521,
+        "size": 3408682
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfid_loose_pip_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfid_pip",
+      "variation": "loose",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484623,
+        "size": 4109957
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfid_tight_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfid_el",
+      "variation": "tight",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383521,
+        "size": 3408885
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfid_tight_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfid_el",
+      "variation": "tight",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484746,
+        "size": 4105703
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfid_tight_pip_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfid_pip",
+      "variation": "tight",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383522,
+        "size": 3405247
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfid_tight_pip_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfid_pip",
+      "variation": "tight",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485345,
+        "size": 4111405
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfidref_loose_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfidref_el",
+      "variation": "loose",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383522,
+        "size": 3410567
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfidref_loose_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfidref_el",
+      "variation": "loose",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485397,
+        "size": 4108894
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfidref_tight_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfidref_el",
+      "variation": "tight",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383522,
+        "size": 3407608
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcfidref_tight_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcfidref_el",
+      "variation": "tight",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484803,
+        "size": 4110209
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcv_loose_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcv_el",
+      "variation": "loose",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383522,
+        "size": 3408440
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcv_loose_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcv_el",
+      "variation": "loose",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484860,
+        "size": 4108939
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcv_tight_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcv_el",
+      "variation": "tight",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383522,
+        "size": 3407040
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dcv_tight_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dcv_el",
+      "variation": "tight",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484916,
+        "size": 4109746
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dvz_loose_pip_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dvz_pip",
+      "variation": "loose",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383522,
+        "size": 3408287
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dvz_loose_pip_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dvz_pip",
+      "variation": "loose",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793484973,
+        "size": 4109132
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dvz_tight_pip_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dvz_pip",
+      "variation": "tight",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793468333,
+        "size": 3408008
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_dvz_tight_pip_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "dvz_pip",
+      "variation": "tight",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485421,
+        "size": 3936619
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS1o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS1o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383563,
+        "size": 3220903
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS1o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS1o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485447,
+        "size": 3944628
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS2o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS2o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383563,
+        "size": 3228626
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS2o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS2o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485476,
+        "size": 3951060
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS3o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS3o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383563,
+        "size": 3235751
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS3o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS3o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485503,
+        "size": 3947336
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS4o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS4o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383564,
+        "size": 3232511
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS4o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS4o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485530,
+        "size": 3943308
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS5o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS5o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383564,
+        "size": 3228955
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS5o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS5o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485557,
+        "size": 3944461
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS6o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS6o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383564,
+        "size": 3228013
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_eS6o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "electron_sector",
+      "variation": "eS6o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485135,
+        "size": 4112141
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_ecband_loose_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "ecband_el",
+      "variation": "loose",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383562,
+        "size": 3411017
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_ecband_loose_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "ecband_el",
+      "variation": "loose",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485184,
+        "size": 4111915
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_ecband_tight_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "ecband_el",
+      "variation": "tight",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383563,
+        "size": 3410442
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_ecband_tight_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "ecband_el",
+      "variation": "tight",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485234,
+        "size": 4113279
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_ecthr_loose_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "ecthr_el",
+      "variation": "loose",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383563,
+        "size": 3412239
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_ecthr_loose_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "ecthr_el",
+      "variation": "loose",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485290,
+        "size": 4112967
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_ecthr_tight_el_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "ecthr_el",
+      "variation": "tight",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383563,
+        "size": 3411837
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_ecthr_tight_el_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "ecthr_el",
+      "variation": "tight",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485914,
+        "size": 4107123
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_noSmear_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "noSmear",
+      "variation": "noSmear",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793468333,
+        "size": 3406113
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_noSmear_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "noSmear",
+      "variation": "noSmear",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485766,
+        "size": 4116259
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_no_pip_testdc_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "no_pip_testdc",
+      "variation": "no_pip_testdc",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383574,
+        "size": 3413655
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_no_pip_testdc_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "no_pip_testdc",
+      "variation": "no_pip_testdc",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485815,
+        "size": 4108458
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_no_sector_pcal_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "no_sector_pcal",
+      "variation": "no_sector_pcal",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3406907
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_no_sector_pcal_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "no_sector_pcal",
+      "variation": "no_sector_pcal",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485864,
+        "size": 4109337
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_no_valerii_knockout_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "no_valerii_knockout",
+      "variation": "no_valerii_knockout",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3408462
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_no_valerii_knockout_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "no_valerii_knockout",
+      "variation": "no_valerii_knockout",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793488131,
+        "size": 25615384
+      },
+      "method": "Bin",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BinByBin_Spline.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "correction_method",
+      "variation": "BinByBin",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793488471,
+        "size": 11934091
+      },
+      "method": "Bin",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BinByBin_Unweighted.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "correction_method",
+      "variation": "BinByBin",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485032,
+        "size": 4108761
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pcalvol_loose_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pcalvol",
+      "variation": "loose",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3407153
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pcalvol_loose_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pcalvol",
+      "variation": "loose",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485086,
+        "size": 4106175
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pcalvol_tight_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pcalvol",
+      "variation": "tight",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3404501
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pcalvol_tight_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pcalvol",
+      "variation": "tight",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485585,
+        "size": 3948660
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS1o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS1o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3235534
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS1o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS1o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485610,
+        "size": 3938574
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS2o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS2o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3224039
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS2o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS2o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485636,
+        "size": 3937678
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS3o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS3o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3222976
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS3o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS3o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485662,
+        "size": 3943730
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS4o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS4o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3226262
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS4o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS4o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485689,
+        "size": 3945657
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS5o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS5o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793383575,
+        "size": 3230331
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS5o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS5o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485716,
+        "size": 3949232
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS6o_inherited_Spline.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS6o",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "not_combined",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793468333,
+        "size": 3233119
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_pipS6o_inherited_Unweighted.root",
+      "path_status": "verified",
+      "role": "cut",
+      "source": "pion_sector",
+      "variation": "pipS6o",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793485962,
+        "size": 4102095
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_inherited_AccSpline.root",
+      "path_status": "verified",
+      "role": "acceptance_reweighting",
+      "source": "acceptance_reweighting",
+      "variation": "AccSpline",
+      "weight_tag": "AccSpline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": null,
+        "size": null
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": null,
+      "path_status": "absent_on_disk",
+      "role": "acceptance_reweighting",
+      "source": "acceptance_reweighting",
+      "variation": "Acc",
+      "weight_tag": "Acc"
+    }
+  ]
+}

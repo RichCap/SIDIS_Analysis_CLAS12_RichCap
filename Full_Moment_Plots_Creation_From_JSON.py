@@ -122,6 +122,9 @@ def parse_args():
     p.add_argument("-err", "--err_suffix",
                    default="_ERR",
                    help="Error key suffix (e.g. Fit_Par_B + _ERR -> Fit_Par_B_ERR).\n")
+    p.add_argument("-ses", "--sys_err_suffix",
+                   default=None,
+                   help="Optional second error suffix drawn as a band behind the statistical bars. Example: _SYS. Does not replace --err_suffix and does not scale the points.\n")
 
     p.add_argument("-q", "--q2y_count",
                    type=int,
@@ -717,6 +720,11 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
         if(series_id not in series_map):
             series_map[series_id] = {"color": scolor, "marker": smarker, "points": []}
         series_map[series_id]["points"].append((float(xval), float(yval), float(yerr), key_str))
+        sys_suffix = getattr(args, "sys_err_suffix", None)
+        if(sys_suffix not in [None, ""]):
+            sys_key = f"{y_par}{sys_suffix}"
+            sys_err = entry.get(sys_key)
+            series_map[series_id].setdefault("sys_errors", []).append(None if(sys_err is None) else float(sys_err))
     for sid in series_map.keys():
         series_map[sid]["points"].sort(key=lambda tt: tt[0])
     return series_map
@@ -1419,6 +1427,19 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
                 c1._keepalive.append(gr_spline)
 
             pts = series_map[sid]["points"]
+            sys_errors = series_map[sid].get("sys_errors")
+            if((sys_errors is not None) and (len(sys_errors) == len(pts)) and (any(value is not None for value in sys_errors))):
+                gr_sys = ROOT.TGraphErrors(len(pts))
+                for ip, (xx, yy, ey, key_str) in enumerate(pts):
+                    gr_sys.SetPoint(ip, float(xx), float(yy))
+                    sys_err = 0.0 if(sys_errors[ip] is None) else float(sys_errors[ip])
+                    gr_sys.SetPointError(ip, 0.0, sys_err)
+                gr_sys.SetLineColorAlpha(int(series_map[sid]["color"]), 0.35)
+                gr_sys.SetFillColorAlpha(int(series_map[sid]["color"]), 0.25)
+                gr_sys.SetFillStyle(1001)
+                gr_sys.SetMarkerSize(0)
+                gr_sys.Draw("E2 SAME")
+                c1._keepalive.append(gr_sys)
             gr  = ROOT.TGraphErrors(len(pts))
             for ip, (xx, yy, ey, key_str) in enumerate(pts):
                 gr.SetPoint(ip, float(xx), float(yy))

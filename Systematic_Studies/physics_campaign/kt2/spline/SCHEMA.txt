@@ -1,0 +1,66 @@
+kt2_results.tsv has one row for each attempted (Q2, y, z) extraction.
+Blank numeric fields mean the quantity is undefined for that row.
+Units: Q2 in GeV^2, P_T in GeV, P_T^2 and <k_T^2> in GeV^2. A0 is the fully corrected cross section after one P_T^2 normalization.
+
+Slope rules:
+A successful fit always stores inv_kt2 = -a and inv_kt2_err = sigma_a.
+near_zero_slope: |a| < 1e-12, or a is not finite. kt2 and kt2_err are then blank.
+slope_consistent_with_zero: |a| < 2 * sigma_a. kt2 = -1/a and kt2_err = sigma_a / a^2 are still stored when the slope is numerically invertible.
+positive_slope: a > 0. The slope is not forced through zero, and kt2 is negative.
+poor: chi2/ndf > 2.0. log_uncertainty_large: at least one used point has sigma_A/A > 0.5.
+cov_ab is the slope-intercept covariance Cov(b, a) = Cov(parameter 0, parameter 1).
+ln_c0_err = b_err. c0 = exp(b). c0_err = exp(b) * b_err.
+kt2_err = sigma_a / a^2 when kt2 is defined.
+
+kt2_results.tsv columns:
+  q2y_bin
+  q2
+  q2_min
+  q2_max
+  y
+  y_min
+  y_max
+  z_row
+  z
+  z_min
+  z_max
+  n_points
+  n_excluded
+  excluded_zpt
+  a
+  a_err
+  b
+  b_err
+  inv_kt2
+  inv_kt2_err
+  kt2
+  kt2_err
+  ln_c0
+  ln_c0_err
+  c0
+  c0_err
+  chi2
+  ndf
+  chi2_ndf
+  cov_ab
+  status
+
+kt2_points.tsv columns:
+  q2y_bin
+  q2
+  y
+  z_row
+  z
+  zpt_bin
+  pT
+  pT2
+  pT_min
+  pT_max
+  A
+  A_err
+  ln_rel_err
+  used
+  exclude_reason
+
+pT2 is the square of the P_T bin midpoint, not the midpoint of the squared borders.
+Normalization is applied once: A0 = Fit_Par_A / (bin area * luminosity * photon flux), with Delta(pT2) in the bin area.
