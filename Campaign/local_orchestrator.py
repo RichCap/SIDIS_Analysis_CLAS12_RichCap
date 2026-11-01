@@ -624,10 +624,12 @@ def bc_is_outstanding(label):
     return False
 
 
-def bc_hist_argv(runner, label, counts, tag, message, done_inputs):
+def bc_hist_argv(runner, label, counts, tag, message, done_inputs, local_concurrent_recovery=False):
     per_file = bc_worker_command(label, counts)
     if(bc_is_outstanding(label)):
         argv = [runner, "-d", BC_NO_RAD_BRACE, "-rm", "hybrid", "-j", "5", "-st", "03:00:00", "-y", "-e", "-rcl", message, "-rt", tag, "-jn", "BC_%s" % label, "-c", per_file]
+        if(local_concurrent_recovery):
+            argv.append("-lcr")
     else:
         argv = [runner, "-d", BC_NO_RAD_BRACE, "-rm", "hybrid", "-j", "10", "-y", "-e", "-rcl", message, "-rt", tag, "-c", per_file]
     if(len(done_inputs) > 0):
@@ -1399,7 +1401,7 @@ def run_bc_config(args, label, counts):
             if(not remove_incomplete_bc_outputs(bc_input, label, counts, args.dry_run, tag)):
                 mail_stop(hist_phase, "could not inspect an existing BC output; it was left in place")
                 return 1
-        argv = bc_hist_argv(runner, label, counts, tag, phase_message(args, hist_phase), done_inputs)
+        argv = bc_hist_argv(runner, label, counts, tag, phase_message(args, hist_phase), done_inputs, getattr(args, "local_concurrent_recovery", False))
         code = run_command(hist_phase, argv, bc_dir, args.dry_run, hadd_phase, mail_success=False)
         if(code != 0):
             return code

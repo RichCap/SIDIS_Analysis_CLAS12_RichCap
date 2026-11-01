@@ -46,6 +46,15 @@ def test_commands():
             raise SystemExit("missing %s in %s" % (needed, text))
     if("-j 10" in text):
         raise SystemExit("outstanding command used 10 workers")
+    if("-lcr" in text):
+        raise SystemExit("outstanding command gained -lcr without the flag")
+    phi7 = [config for config in bc_outstanding_configurations() if(config["label"] == "sens_phi_7")][0]
+    phi7_tag = bc_run_tag(phi7["label"], BC_OUTSTANDING_TAG)
+    recovery = bc_hist_argv(runner, phi7["label"], phi7["counts"], phi7_tag, "msg", ["done_a.root"], True)
+    recovery_text = " ".join(recovery)
+    for needed in ["-rm hybrid", "-j 5", "-st 03:00:00", "-lcr", "-nbh 7"]:
+        if(needed not in recovery_text):
+            raise SystemExit("missing %s in %s" % (needed, recovery_text))
     nominal = bc_hist_argv(runner, "", {"q2": 3, "y": 3, "z": 3, "pt": 3, "phi": 5}, "nominal_tag", "msg", [])
     nominal_text = " ".join(nominal)
     if("-j 10" not in nominal_text):

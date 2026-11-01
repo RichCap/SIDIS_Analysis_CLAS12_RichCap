@@ -172,6 +172,10 @@ def parse_args():
                         type=str,
                         help="Optional comma-separated fnmatch patterns (basename or full path) to drop after discovery. Empty means keep every discovered file. Omit this flag later to include previously skipped files without changing the default glob.\n")
 
+    parser.add_argument("-lcr", "--local_concurrent_recovery",
+                        action="store_true",
+                        help="Hybrid recovery only. Run every remaining file in the local pool and do not submit a SLURM array.\n")
+
     return parser.parse_args()
 
 def expand_brace_patterns(pattern):
@@ -930,6 +934,17 @@ def main():
         if(args.indices not in ["", None]):
             requested = set(parse_indices_spec(args.indices, n_files))
             mid_indices = [i for i in mid_indices if(i in requested)]
+        local_concurrent = bool(args.local_concurrent_recovery)
+        if(local_concurrent):
+            # Every remaining file starts in the local pool. The last file is not held back, and no array is submitted.
+            mid_indices = list(range(n_files))
+            array_lo, array_hi = None, None
+        if(local_concurrent):
+            slurm_index_text = "not submitted"
+            final_index_text = "included in the local pool"
+        else:
+            slurm_index_text = "0..%s" % (n_files - 2 if(n_files >= 2) else "N/A")
+            final_index_text = "%s (local completion job only)" % (n_files - 1 if(n_files >= 1) else "N/A")
 
         hybrid_email_text = f"""
 {color.BBLUE}Hybrid mode enabled{color.END}
@@ -937,8 +952,8 @@ def main():
     Log Output Directory      = {log_dir_run}
     ROOT Output Directory     = {root_run_dir}
     Number of Files           = {n_files}
-    SLURM competitive indices = 0..{n_files-2 if(n_files >= 2) else 'N/A'}
-    Final index               = {n_files-1 if(n_files >= 1) else 'N/A'} (local completion job only)
+    SLURM competitive indices = {slurm_index_text}
+    Final index               = {final_index_text}
 """
         print(hybrid_email_text)
         args.run_context_line = f"{args.run_context_line}\n{hybrid_email_text}"
@@ -972,6 +987,7 @@ def main():
                     fh.write(f"{array_id}\n")
                 print(f"{color.BGREEN}Submitted hybrid SLURM array job {array_id}{color.END}")
 
+        if((array_lo is not None) or local_concurrent):
             running = []
             pending = list(mid_indices)
 
@@ -1105,7 +1121,7 @@ def main():
                     else:
                         print(f"{color.BGREEN}DONE {color.END}: index {index} owner=slurm")
 
-        if(n_files > 0):
+        if((n_files > 0) and (not local_concurrent)):
             final_rc = run_final_file(args, base_cmd, files[-1], timer)
             if(final_rc != 0):
                 num_fail += 1
