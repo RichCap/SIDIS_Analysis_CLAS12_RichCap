@@ -51,6 +51,9 @@
     "bc_factors_sens_phi_9": "success",
     "bc_hist_sens_z_5": "success",
     "bc_hadd_sens_z_5": "success",
-    "bc_factors_sens_z_5": "success"
+    "bc_factors_sens_z_5": "success",
+    "bc_hist_sens_phi_7": "success",
+    "bc_hadd_sens_phi_7": "success",
+    "bc_factors_sens_phi_7": "success"
   }
 }
