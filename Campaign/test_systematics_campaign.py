@@ -46,7 +46,7 @@ def dry_run_leaves_manifest_bytes():
         raise SystemExit("dry-run did not build a manifest")
     if(len(manifest["phase1"]) != 34):
         raise SystemExit("dry-run phase1 count")
-    if(len(manifest["phase2"]) != 74):
+    if(len(manifest["phase2"]) != 82):
         raise SystemExit("dry-run both-mode phase2 count")
     nominal = [row for row in manifest["phase1"] if(row["id"] == "nominal")][0]
     other = [row for row in manifest["phase1"] if(row["id"] == "chi2_strict_pip")][0]
@@ -583,26 +583,33 @@ def complete_campaign_20261029():
     if("wait for external merge; then Phase 2" not in printed):
         raise SystemExit("dvz wait line missing")
     nominal_rows = [row for row in manifest["phase2"] if(row["config_id"] == "nominal_complete_20261029")]
-    if(len(nominal_rows) != 11):
+    if(len(nominal_rows) != 18):
         raise SystemExit("nominal Phase 2 count %s" % len(nominal_rows))
     keys = [row["key"] for row in nominal_rows]
     for required in [
-        "nominal_complete_20261029__inherited__AccSpline",
-        "nominal_complete_20261029__BayesMinus1__AccSpline",
-        "nominal_complete_20261029__BayesPlus1__AccSpline",
-        "nominal_complete_20261029__Acc015__AccSpline",
-        "nominal_complete_20261029__Acc025__AccSpline",
-        "nominal_complete_20261029__Phi12__AccSpline",
-        "nominal_complete_20261029__NoRho0__AccSpline",
-        "nominal_complete_20261029__AcceptanceWeightVariation__Spline",
+        "nominal_complete_20261029__inherited__Spline",
         "nominal_complete_20261029__inherited__Unweighted",
+        "nominal_complete_20261029__inherited__Acc",
+        "nominal_complete_20261029__inherited__AccSpline",
+        "nominal_complete_20261029__BayesMinus1__Spline",
+        "nominal_complete_20261029__BayesMinus1__Unweighted",
+        "nominal_complete_20261029__BayesPlus1__Spline",
+        "nominal_complete_20261029__BayesPlus1__Unweighted",
+        "nominal_complete_20261029__Acc015__Spline",
+        "nominal_complete_20261029__Acc015__Unweighted",
+        "nominal_complete_20261029__Acc025__Spline",
+        "nominal_complete_20261029__Acc025__Unweighted",
+        "nominal_complete_20261029__Phi12__Spline",
+        "nominal_complete_20261029__Phi12__Unweighted",
+        "nominal_complete_20261029__NoRho0__Spline",
+        "nominal_complete_20261029__NoRho0__Unweighted",
         "nominal_complete_20261029__BinByBin__Spline",
         "nominal_complete_20261029__BinByBin__Unweighted",
     ]:
         if(required not in keys):
             raise SystemExit("missing nominal Phase 2 %s" % required)
-    if("nominal_complete_20261029__inherited__Spline" in keys):
-        raise SystemExit("spline Bayesian was scheduled twice")
+    if(any(("AcceptanceWeightVariation" in key) or (key.endswith("__AccSpline") and ("__inherited__" not in key)) for key in keys)):
+        raise SystemExit("an ordinary branch still uses AccSpline or AcceptanceWeightVariation")
     bin_row = [row for row in nominal_rows if(row["key"].endswith("BinByBin__Unweighted"))][0]
     if(bin_row["lineage"] != [row["lineage"] for row in nominal_rows if(row["key"].endswith("BinByBin__Spline"))][0]):
         raise SystemExit("bin-by-bin weights do not share a lineage")
@@ -764,9 +771,9 @@ def nominal_and_5d_dry_run():
     manifest = runner.last_manifest
     if(len(manifest["phase1"]) != 1) or (manifest["phase1"][0]["id"] != "nominal_only_20261030"):
         raise SystemExit("nominal-only dry-run did not select one phase1 configuration")
-    if(len(manifest["phase2"]) != 11):
+    if(len(manifest["phase2"]) != 18):
         raise SystemExit("nominal-only phase2 count %s" % len(manifest["phase2"]))
-    if(printed.count("PHASE2 ") != 11):
+    if(printed.count("PHASE2 ") != 18):
         raise SystemExit("nominal-only printed %s phase2 rows" % printed.count("PHASE2 "))
     command = runner.command_text(manifest["phase1"][0]["command"])
     for token in ["-sa", "-m hybrid", "-j3D 1", "-j5D 0", "-cwc 11", NOMINAL_SYSREGEN_HPP]:
@@ -785,7 +792,7 @@ def nominal_and_5d_dry_run():
         if(row["status"] != "waiting_phase1"):
             raise SystemExit("nominal phase2 was not waiting on phase1: %s" % row["status"])
     labels = [row["key"] for row in manifest["phase2"]]
-    for needed in ["AcceptanceWeightVariation", "BinByBin", "Unweighted", "inherited__AccSpline"]:
+    for needed in ["inherited__Spline", "inherited__Acc", "BinByBin", "Unweighted", "inherited__AccSpline"]:
         if(not any(needed in key for key in labels)):
             raise SystemExit("nominal phase2 missing %s" % needed)
     five_out = io.StringIO()
@@ -901,7 +908,7 @@ def nominal_plan(extra):
     if(code != 0):
         raise SystemExit("nominal concurrency dry-run exit %s\n%s" % (code, stdout.getvalue()))
     manifest = runner.last_manifest
-    if((len(manifest["phase2"]) != 11) or (manifest["phase1"][0].get("auto_merge"))):
+    if((len(manifest["phase2"]) != 18) or (manifest["phase1"][0].get("auto_merge"))):
         raise SystemExit("nominal concurrency changed Phase 2 or the hybrid merge")
     return manifest["phase1"][0]["command"], stdout.getvalue()
 
@@ -1234,8 +1241,8 @@ def nominal_local_concurrency():
         raise SystemExit("nominal -n -rs changed the manifest or scanned batches")
     if("-j3D 30" not in runner.command_text(runner.last_manifest["phase1"][0]["command"])):
         raise SystemExit("resume dry-run dropped the local concurrency")
-    if(len(runner.last_manifest["phase2"]) != 11):
-        raise SystemExit("resume dry-run changed the 11 Phase 2 branches")
+    if(len(runner.last_manifest["phase2"]) != 18):
+        raise SystemExit("resume dry-run changed the Phase 2 branches")
 
 
 def covariance_and_iteration_defaults():

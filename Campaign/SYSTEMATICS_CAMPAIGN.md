@@ -21,13 +21,13 @@ The command prepares 34 Phase 1 response-matrix configurations and 7 nominal-onl
 | `-ht` / `--hpp_tag` | `Final_Thesis` | Tag for the existing `noSpline` and `withSpline` HPP files |
 | `-em` / `--email_message` | empty | Extra text printed at startup |
 
-Nominal Phase 2 always reads the `AccSpline` histograms. `--weight_mode` does not change that. `AcceptanceWeightVariation` reads `Spline` from the same nominal file.
+Nominal ordinary Phase 2 reads `Unweighted` and `Spline`. `Acc` is compared with `Unweighted`, and `AccSpline` is compared with `Spline`. `--weight_mode` does not change that.
 
 ## What is scheduled
 
 Phase 1 is one hybrid Only_3D run per stored cut, all with Bank matching. The strict π⁺ χ² configuration is `cut_Complete_SIDIS_chi2_strict_pip`. Smearing-off uses `cut_Complete_SIDIS_noSmear` and `--unsmeared`. Each configuration keeps the four MC histogram variants: unweighted, `Acc`, `Spline`, and `AccSpline`.
 
-Phase 2 branches, from the nominal response only: `BayesMinus1`, `BayesPlus1`, `Acc015`, `Acc025`, `Phi12`, `NoRho0`, `AcceptanceWeightVariation`. Six-bin φₕ merging is not available in the current unfolder, so it is not scheduled.
+Phase 2 branches, from the nominal response only: `BayesMinus1`, `BayesPlus1`, `Acc015`, `Acc025`, `Phi12`, `NoRho0`, each as `Unweighted` and `Spline`. Six-bin φₕ merging is not available in the current unfolder, so it is not scheduled.
 
 ## HPP regeneration
 
@@ -110,7 +110,7 @@ A later file, `Campaign/recovery_batches_20261029.json`, is a separate campaign.
 
 `Campaign/recovery_batches_complete_20261029.json` with `-incn` / `--include_nominal` is one submission. The campaign id is `systematics_3d_complete_20261029`. The three ids already used are refused for a live run. `-rnh` stays rejected. The October 29 recovery file is unchanged.
 
-Nominal histograms use `Sys3D_nominal_complete_20261029`, the existing Final_Thesis HPP pair, and the acc020 spline-weight file. They do not regenerate HPP files. After that merge passes the 17-bin plain and `_(Spline)` object check, Phase 2 submits the original AccSpline Bayesian branch, the seven variation branches, Bayesian Unweighted, and bin-by-bin Spline and Unweighted. Spline Bayesian is `AcceptanceWeightVariation` only. Bin-by-bin calls `Simple_RooUnfold_SelfContained.py -u3D -bbo` and returns the measured/acceptance correction before RooUnfold. The local-worker ceiling for `-incn` is 43. Without `-incn` the ceiling stays 41.
+Nominal histograms use `Sys3D_nominal_complete_20261029`, the existing Final_Thesis HPP pair, and the acc020 spline-weight file. They do not regenerate HPP files. After that merge passes the 17-bin plain and `_(Spline)` object check, Phase 2 submits inherited `Unweighted` and `Spline`, the six variation branches in both weights, inherited `Acc` and `AccSpline`, and bin-by-bin Spline and Unweighted. Bin-by-bin calls `Simple_RooUnfold_SelfContained.py -u3D -bbo` and returns the measured/acceptance correction before RooUnfold. The local-worker ceiling for `-incn` is 43. Without `-incn` the ceiling stays 41.
 
 `dvz_loose_pip` has an empty batch list and `external_merge`. The coordinator does not hadd it. A pause in file growth stays pending. Phase 2 starts after two object-check passes at the same size. `ecband_tight_el` and `ecthr_tight_el` still submit only their listed batches with `-dfm`. The same coordinator hadds them after all 171 batch files are valid on two successive reads, then starts Phase 2. No resume command is required. `pipS6o` stays on its selective non-deferred route.
 

@@ -1,0 +1,20 @@
+2026-11-01 weight-fix local rerun
+Campaign ordinary nominal weights are Unweighted and Spline. Acc and AccSpline stay on inherited only.
+Reused Sys3D_nominal_only_20261030_inherited_Spline.root (copy of AcceptanceWeightVariation_Spline, 4102280 bytes). That unfold was not rerun.
+Archive: SIDIS_Campaign/systematics/systematics_3d_complete_20261029/archived_superseded_accspline_20261031/
+Kept: inherited_Unweighted, inherited_Spline, inherited_AccSpline, both BinByBin files, and the 33 non-nominal Unweighted and Spline finals.
+Starting 13 missing nominal unfolds, one Simple_Unfold process at a time.
+2026-11-01 15:58:14 PROGRESS inherited Acc OK 54.2s Sys3D_nominal_only_20261030_inherited_Acc.root completed 1/13 remaining 12 failed 0
+2026-11-01 15:59:09 PROGRESS Acc015 Unweighted OK 55.0s Sys3D_nominal_only_20261030_Acc015_Unweighted.root completed 2/13 remaining 11 failed 0
+2026-11-01 16:00:03 PROGRESS Acc015 Spline OK 54.5s Sys3D_nominal_only_20261030_Acc015_Spline.root completed 3/13 remaining 10 failed 0
+2026-11-01 16:00:55 PROGRESS Acc025 Unweighted OK 52.3s Sys3D_nominal_only_20261030_Acc025_Unweighted.root completed 4/13 remaining 9 failed 0
+2026-11-01 16:01:48 PROGRESS Acc025 Spline OK 53.0s Sys3D_nominal_only_20261030_Acc025_Spline.root completed 5/13 remaining 8 failed 0
+2026-11-01 16:02:43 PROGRESS NoRho0 Unweighted OK 55.0s Sys3D_nominal_only_20261030_NoRho0_Unweighted.root completed 6/13 remaining 7 failed 0
+2026-11-01 16:03:37 PROGRESS NoRho0 Spline OK 53.3s Sys3D_nominal_only_20261030_NoRho0_Spline.root completed 7/13 remaining 6 failed 0
+2026-11-01 16:03:45 PROGRESS Phi12 Unweighted OK 8.3s Sys3D_nominal_only_20261030_Phi12_Unweighted.root completed 8/13 remaining 5 failed 0
+2026-11-01 16:03:53 PROGRESS Phi12 Spline OK 7.8s Sys3D_nominal_only_20261030_Phi12_Spline.root completed 9/13 remaining 4 failed 0
+2026-11-01 16:04:37 PROGRESS BayesMinus1 Unweighted OK 44.4s Sys3D_nominal_only_20261030_BayesMinus1_Unweighted.root completed 10/13 remaining 3 failed 0
+2026-11-01 16:05:21 PROGRESS BayesMinus1 Spline OK 44.2s Sys3D_nominal_only_20261030_BayesMinus1_Spline.root completed 11/13 remaining 2 failed 0
+2026-11-01 16:06:26 PROGRESS BayesPlus1 Unweighted OK 64.3s Sys3D_nominal_only_20261030_BayesPlus1_Unweighted.root completed 12/13 remaining 1 failed 0
+2026-11-01 16:07:29 PROGRESS BayesPlus1 Spline OK 63.3s Sys3D_nominal_only_20261030_BayesPlus1_Spline.root completed 13/13 remaining 0 failed 0
+2026-11-01 16:07:29 DONE weight-fix completed 13/13 remaining 0 failed 0

@@ -80,7 +80,7 @@ def phase1_configs():
 def phase2_branches():
     return [
         "BayesMinus1", "BayesPlus1", "Acc015", "Acc025",
-        "Phi12", "NoRho0", "AcceptanceWeightVariation",
+        "Phi12", "NoRho0",
     ]
 
 
@@ -503,8 +503,6 @@ def branch_settings(branch, q2y, weight_tag):
         settings["phi_bins"] = 12
     elif(branch == "NoRho0"):
         settings["background"] = "None"
-    elif(branch == "AcceptanceWeightVariation"):
-        settings["weight_tag"] = "Spline"
     elif(branch == "BinByBin"):
         settings["method"] = "Bin"
     elif(branch != "inherited"):
@@ -516,25 +514,26 @@ def phase2_jobs(config, weight_mode):
     jobs = []
     requested = config.get("phase2_weights") or weight_mode
     if(config["nominal"]):
-        jobs.append({"config_id": config["id"], "branch": "inherited", "weight_tag": "AccSpline", "local_order": 0, "lineage": config["id"]})
-        for branch in phase2_branches():
-            tag = "Spline" if(branch == "AcceptanceWeightVariation") else "AccSpline"
-            jobs.append({
-                "config_id": config["id"],
-                "branch": branch,
-                "weight_tag": tag,
-                "local_order": 0,
-                "lineage": "nominal__%s" % branch,
-            })
-        if(config.get("nominal_complete")):
-            # Spline Bayesian is AcceptanceWeightVariation. Do not add a second inherited Spline job.
+        # Ordinary variations are Unweighted and Spline. Acc and AccSpline are acceptance comparisons only.
+        ordinary = ["inherited"] + phase2_branches()
+        for branch in ordinary:
+            for tag in ["", "Spline"]:
+                jobs.append({
+                    "config_id": config["id"],
+                    "branch": branch,
+                    "weight_tag": tag,
+                    "local_order": 0 if(tag == "Spline") else 1,
+                    "lineage": config["id"] if(branch == "inherited") else "%s__%s" % (config["id"], branch),
+                })
+        for tag in ["Acc", "AccSpline"]:
             jobs.append({
                 "config_id": config["id"],
                 "branch": "inherited",
-                "weight_tag": "",
+                "weight_tag": tag,
                 "local_order": 0,
-                "lineage": "%s__Unweighted" % config["id"],
+                "lineage": "%s__acceptance" % config["id"],
             })
+        if(config.get("nominal_complete")):
             jobs.append({
                 "config_id": config["id"],
                 "branch": "BinByBin",
@@ -813,9 +812,9 @@ def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_
 
 def output_counts(weight_mode):
     if(weight_mode == "both"):
-        arrays = 74
+        arrays = 82
     elif(weight_mode in ["unweighted", "weighted"]):
-        arrays = 41
+        arrays = 49
     else:
         raise ValueError("unknown weight mode %s" % weight_mode)
     return arrays, arrays * 17, arrays
@@ -1613,8 +1612,8 @@ def self_test():
     smear = [row for row in rows if(row["id"] == "noSmear")]
     if((len(smear) != 1) or (not smear[0]["unsmeared"]) or (smear[0]["cut"] != "cut_Complete_SIDIS_noSmear")):
         raise SystemExit("noSmear is not paired with unsmeared")
-    if(len(phase2_branches()) != 7):
-        raise SystemExit("Phase 2 branch count is not 7")
+    if(len(phase2_branches()) != 6):
+        raise SystemExit("Phase 2 branch count is not 6")
     if("Phi6" in phase2_branches()):
         raise SystemExit("Phi6 was enabled")
     if(nominal_iterations(1) != 6) or (nominal_iterations(5) != 6) or (nominal_iterations(2) != 5):
@@ -1629,10 +1628,10 @@ def self_test():
         raise SystemExit("Acc025")
     if(branch_settings("Phi12", 3, "AccSpline")["phi_bins"] != 12):
         raise SystemExit("Phi12")
-    if(branch_settings("NoRho0", 3, "AccSpline")["background"] != "None"):
+    if(branch_settings("NoRho0", 3, "Spline")["background"] != "None"):
         raise SystemExit("NoRho0")
-    if(branch_settings("AcceptanceWeightVariation", 3, "AccSpline")["weight_tag"] != "Spline"):
-        raise SystemExit("acceptance-weight tag")
+    if(branch_settings("BayesMinus1", 1, "Spline")["weight_tag"] != "Spline"):
+        raise SystemExit("ordinary branch changed its requested weight")
     if(worker_cap(None) != 41):
         raise SystemExit("default cap")
     try:
@@ -1645,8 +1644,20 @@ def self_test():
     nominal = rows[0]
     other = [row for row in rows if(row["id"] == "dcfid_loose_el")][0]
     nom_jobs = phase2_jobs(nominal, "both")
-    if(len(nom_jobs) != 8):
+    if(len(nom_jobs) != 16):
         raise SystemExit("nominal Phase 2 job count %s" % len(nom_jobs))
+    ordinary_tags = {}
+    for job in nom_jobs:
+        if(job["weight_tag"] in ["Acc", "AccSpline"] and job["branch"] != "inherited"):
+            raise SystemExit("acceptance weight was applied to %s" % job["branch"])
+        if(job["weight_tag"] not in ["Acc", "AccSpline"]):
+            ordinary_tags.setdefault(job["branch"], []).append(job["weight_tag"])
+    for branch in ["inherited"] + phase2_branches():
+        if(sorted(ordinary_tags.get(branch, [])) != ["", "Spline"]):
+            raise SystemExit("%s weights %s" % (branch, ordinary_tags.get(branch)))
+    acceptance_tags = [job["weight_tag"] for job in nom_jobs if(job["branch"] == "inherited")]
+    if("Acc" not in acceptance_tags or "AccSpline" not in acceptance_tags):
+        raise SystemExit("acceptance comparisons missing")
     if(any(job["branch"] != "inherited" and job["lineage"] == "nominal" for job in nom_jobs)):
         raise SystemExit("a nominal branch reused the nominal lineage")
     if(phase2_jobs(other, "unweighted")[0]["weight_tag"] not in ["", None]):
@@ -1656,11 +1667,11 @@ def self_test():
         raise SystemExit("both-mode order is not weighted then unweighted")
     if(len(set(job["lineage"] for job in both)) != 1):
         raise SystemExit("both mode split the lineage")
-    if(output_counts("unweighted") != (41, 697, 41)):
+    if(output_counts("unweighted") != (49, 833, 49)):
         raise SystemExit("unweighted counts")
-    if(output_counts("weighted") != (41, 697, 41)):
+    if(output_counts("weighted") != (49, 833, 49)):
         raise SystemExit("weighted counts")
-    if(output_counts("both") != (74, 1258, 74)):
+    if(output_counts("both") != (82, 1394, 82)):
         raise SystemExit("both counts")
     cmd = phase1_command("python", "Submit_Full_Histogram_Creation_Pipeline.py", "work_b", "demo", 41, other, "/hpp/a_noSpline.hpp", "/hpp/a_withSpline.hpp")
     text = command_text(cmd)
@@ -1711,10 +1722,10 @@ def self_test():
     resumed_nom = [row for row in resumed["phase1"] if(row["id"] == "nominal")][0]
     if(resumed_nom["hpp_spline"] != nominal_row["hpp_spline"]):
         raise SystemExit("resume replaced the recorded HPP path")
-    if(len(manifest["phase2"]) != 41):
+    if(len(manifest["phase2"]) != 49):
         raise SystemExit("unweighted Phase 2 rows %s" % len(manifest["phase2"]))
     both_manifest = build_manifest("work_b", "demo", "both", 41, "Final_Thesis", False, "stamp")
-    if(len(both_manifest["phase2"]) != 74):
+    if(len(both_manifest["phase2"]) != 82):
         raise SystemExit("both Phase 2 rows %s" % len(both_manifest["phase2"]))
     script = sbatch_script("SysUnfold_nominal", "/logs", "python3", "run_Simple_Unfold.py", "work_b", "/in.root", "/parts", "Sys3D_nominal_inherited_AccSpline", "inherited", "AccSpline")
     bayes_script = sbatch_script("SysUnfold_bayes", "/logs", "python3", "run_Simple_Unfold.py", "work_b", "/in.root", "/parts", "Sys3D_nominal_BayesMinus1_AccSpline", "BayesMinus1", "AccSpline")
@@ -1759,7 +1770,7 @@ def self_test():
     if(response_names_ready(no_gdf, DEFAULT_CUT)):
         raise SystemExit("a 5D file without the gdf 1D was accepted")
     only = build_manifest("work_b", "systematics_3d_nominal_only_20261030", "both", 11, "Final_Thesis", False, "stamp", nominal_only=True, shared_unfold=True)
-    if(len(only["phase1"]) != 1) or (len(only["phase2"]) != 11):
+    if(len(only["phase1"]) != 1) or (len(only["phase2"]) != 18):
         raise SystemExit("nominal-only schedule is %s phase1 and %s phase2" % (len(only["phase1"]), len(only["phase2"])))
     only_cmd = command_text(only["phase1"][0]["command"])
     if(NOMINAL_SYSREGEN_HPP not in only_cmd) or ("-sa" not in only["phase1"][0]["command"]) or ("-rnh" in only_cmd) or ("-hso" in only_cmd):
