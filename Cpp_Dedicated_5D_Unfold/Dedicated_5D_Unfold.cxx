@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include <regex>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -77,6 +78,60 @@ int extract_slice_increment(const std::string& name){
 
 std::string Strip_Slice_Increment(const std::string& name){
     return std::regex_replace(name, kSliceIncrementRe, "");
+}
+
+const std::vector<std::string> kWeightSuffixes = {
+    "_(AccSpline)", "_(AccJSON)", "_(Acc)", "_(JSON)", "_(Spline)", "_(Weighed)"
+};
+
+std::string Trailing_Weight_Suffix(const std::string& name){
+    for(const auto& tag : kWeightSuffixes){
+        if((name.size() >= tag.size()) && (name.compare(name.size() - tag.size(), tag.size(), tag) == 0)){
+            return tag;
+        }
+    }
+    return "";
+}
+
+std::string Strip_Weight_Tags(std::string name){
+    for(const auto& tag : kWeightSuffixes){
+        name = replace_all(name, tag, "");
+    }
+    return name;
+}
+
+std::string Slice_Name_For_Rebuild(const std::string& standard_name, const std::string& slice_num, int increment){
+    // make_rm5d_single writes {base}_Slice_n_(Increment='inc')_(Weight). The 1D stem keeps the weight at the end.
+    std::string suffix = Trailing_Weight_Suffix(standard_name);
+    std::string base = suffix.empty() ? standard_name : standard_name.substr(0, standard_name.size() - suffix.size());
+    return base + "_Slice_" + slice_num + "_(Increment='" + std::to_string(increment) + "')" + suffix;
+}
+
+void Report_Missing_Slice(const std::map<std::string, TH2*>& list, const std::string& standard_name, const std::string& missing_name, const std::string& slice_index, int increment){
+    std::string suffix = Trailing_Weight_Suffix(standard_name);
+    const std::regex slice_re(R"(_Slice_(\d+)_\(Increment=')");
+    std::vector<int> present;
+    for(const auto& kv : list){
+        if(Trailing_Weight_Suffix(kv.first) != suffix){ continue; }
+        std::smatch match;
+        if(std::regex_search(kv.first, match, slice_re) && (match.size() > 1)){
+            present.push_back(std::atoi(match[1].str().c_str()));
+        }
+    }
+    std::sort(present.begin(), present.end());
+    std::ostringstream listed;
+    for(size_t i = 0; i < present.size(); ++i){
+        if(i != 0){ listed << ","; }
+        listed << present[i];
+    }
+    std::cout << Color::Error << "ERROR IN Rebuild_Matrix_5D(...): " << Color::END_R
+              << "'Slicing_Name' is missing from 'List_of_Sliced_Histos'" << Color::END_B
+              << "\n\tSlicing_Name = " << missing_name
+              << "\n\tweight_suffix = " << (suffix.empty() ? "(none)" : suffix)
+              << "\n\tslice_index = " << slice_index
+              << "\n\tincrement = " << increment
+              << "\n\tpresent_slices = " << (present.empty() ? "(none)" : listed.str())
+              << std::endl;
 }
 
 std::string Apply_Matrix_1D_Replacements(std::string name){
@@ -390,21 +445,18 @@ TH2D* Rebuild_Matrix_5D(const std::map<std::string, TH2*>& List_of_Sliced_Histos
             Increment = List_of_Sliced_Histos.begin()->second->GetNbinsX();
         }
     }
-    std::string Slicing_Name = Standard_Name + "_Slice_SLICE-NUM_(Increment='" + std::to_string(Increment) + "')";
     std::cout << "\n" << Color::BBLUE << "Running Rebuild_Matrix_5D(...)" << Color::END << "\n" << std::endl;
     int Num_Slices = (Increment == 0) ? 0 : (Num__Bins / Increment);
     for(const std::string& test : std::vector<std::string>{"1", std::to_string(Num_Slices)}){
-        std::string missing_name = replace_all(Slicing_Name, "SLICE-NUM", test);
+        std::string missing_name = Slice_Name_For_Rebuild(Standard_Name, test, Increment);
         if(List_of_Sliced_Histos.find(missing_name) == List_of_Sliced_Histos.end()){
-            std::cout << Color::Error << "ERROR IN Rebuild_Matrix_5D(...): " << Color::END_R
-                      << "'Slicing_Name' is missing from 'List_of_Sliced_Histos'" << Color::END_B
-                      << "\n\tSlicing_Name = " << missing_name << std::endl;
+            Report_Missing_Slice(List_of_Sliced_Histos, Standard_Name, missing_name, test, Increment);
             return nullptr;
         }
     }
     std::string Histo_Title = Title;
     if(Title == "Default"){
-        auto it = List_of_Sliced_Histos.find(replace_all(Slicing_Name, "SLICE-NUM", "1"));
+        auto it = List_of_Sliced_Histos.find(Slice_Name_For_Rebuild(Standard_Name, "1", Increment));
         TH2* first = it->second;
         Histo_Title = std::string(first->GetTitle()) + ";" + first->GetXaxis()->GetTitle() + ";" + first->GetYaxis()->GetTitle();
     }
@@ -422,7 +474,7 @@ TH2D* Rebuild_Matrix_5D(const std::map<std::string, TH2*>& List_of_Sliced_Histos
     const int dst_xstride = dst_nx + 2;
     int X_Bin_5D = 0;
     for(int slice_num = 1; slice_num <= Num_Slices; ++slice_num){
-        TH2* Histo_Add = List_of_Sliced_Histos.at(replace_all(Slicing_Name, "SLICE-NUM", std::to_string(slice_num)));
+        TH2* Histo_Add = List_of_Sliced_Histos.at(Slice_Name_For_Rebuild(Standard_Name, std::to_string(slice_num), Increment));
         const int src_nx = Histo_Add->GetNbinsX();
         const int src_ny = Histo_Add->GetNbinsY();
         const int src_xstride = src_nx + 2;
@@ -1261,8 +1313,29 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
     }
     TH1* ExREAL_1D_wExclusive_Background = nullptr;
     std::string out_print_main_rdf_1D_bgs = out_print_main_rdf;
-    std::string rho_rdf = out_print_main_rdf_1D_bgs + "_(" + args.background_source + ")";
-    std::string rho_mdf = out_print_main_mdf_1D + "_(" + args.background_source + ")";
+    // Previous lookup appended _(rho0_new) onto the weight-tagged 1D name, then warned and continued.
+    // A Spline mdf name became ..._(Spline)_(rho0_new), which is not the written background key.
+    // std::string rho_rdf = out_print_main_rdf_1D_bgs + "_(" + args.background_source + ")";
+    // std::string rho_mdf = out_print_main_mdf_1D + "_(" + args.background_source + ")";
+    // if(key_in_file(input_file, rho_rdf)){
+    //     std::cout << Color::BGREEN << "Subtracting the '" << args.background_source << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
+    //     TH1* LundrhoHist_rdf = dynamic_cast<TH1*>(input_file->Get(rho_rdf.c_str()));
+    //     auto sub = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf);
+    //     ExREAL_1D_wExclusive_Background = sub.first;
+    //     ExREAL_1D = sub.second;
+    // } else if(key_in_file(input_file, rho_mdf)){
+    //     std::cout << Color::BGREEN << "Subtracting the '" << args.background_source << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
+    //     TH1* LundrhoHist_rdf = dynamic_cast<TH1*>(input_file->Get(rho_mdf.c_str()));
+    //     auto sub = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf);
+    //     ExREAL_1D_wExclusive_Background = sub.first;
+    //     ExREAL_1D = sub.second;
+    // } else if(args.background_source != "None"){
+    //     std::cout << Color::Error << "Cannot subtract the '" << args.background_source
+    //               << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
+    // }
+    // Spline weights the response, not the exclusive-rho background. Match Simple_Unfold and use the unweighted key.
+    std::string rho_rdf = Strip_Weight_Tags(out_print_main_rdf_1D_bgs) + "_(" + args.background_source + ")";
+    std::string rho_mdf = Strip_Weight_Tags(out_print_main_mdf_1D) + "_(" + args.background_source + ")";
     if(key_in_file(input_file, rho_rdf)){
         std::cout << Color::BGREEN << "Subtracting the '" << args.background_source << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
         TH1* LundrhoHist_rdf = dynamic_cast<TH1*>(input_file->Get(rho_rdf.c_str()));
@@ -1276,8 +1349,8 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
         ExREAL_1D_wExclusive_Background = sub.first;
         ExREAL_1D = sub.second;
     } else if(args.background_source != "None"){
-        std::cout << Color::Error << "Cannot subtract the '" << args.background_source
-                  << "' files to the 'ExREAL_1D' histogram" << Color::END << std::endl;
+        Crash_Report(args, "Missing unweighted '" + args.background_source +
+                     "' background for ExREAL_1D. Required '" + rho_rdf + "' or '" + rho_mdf + "'");
     }
     RecSkipMap skip_map_5d;
     const RecSkipMap* skip_ptr = nullptr;

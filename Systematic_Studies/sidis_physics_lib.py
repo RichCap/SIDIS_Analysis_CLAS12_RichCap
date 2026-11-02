@@ -26,7 +26,7 @@ SPLINE_NOMINAL_NAME = "Sys3D_nominal_only_20261030_inherited_Spline.root"
 UNWEIGHTED_NOMINAL_NAME = "Sys3D_nominal_only_20261030_inherited_Unweighted.root"
 UNWEIGHTED_5D_NAME = "unfolded_5d_cpp_covariance.root"
 RC_FACTOR_ROOT = "/Users/richardcapobianco/Desktop/Work_Offline.nosync/Running_EvGen_richcap/Run_Large_Files_For_Iterative_Corrections/Comparison_With_Unfolding/build_EvGen_PerFile_Hists_Runtime_ifarm_rc/merged_outputs/RC_Factors_ifarm_rc.root"
-SPLINE_5D_PATH = os.path.join(ANALYSIS_ROOT, "SIDIS_Campaign", "systematics", "nominal_5d_spline_20261030", "Unfolded_5D_inherited_Spline.root")
+SPLINE_5D_PATH = os.path.join(ANALYSIS_ROOT, "SIDIS_Campaign", "systematics", "nominal_5d_spline_20261030", "unfolded", "Unfolded_5D_inherited_Spline_WSpline.root")
 ITERATION_MISMATCH_BINS = [1, 5]
 ACCSPLINE_VARIATION_NAME = "Sys3D_nominal_only_20261030_inherited_AccSpline.root"
 ACC_VARIATION_NAME = "Sys3D_nominal_only_20261030_inherited_Acc.root"
@@ -306,7 +306,7 @@ def build_manifest(unfolded_dir=None):
         pkl = "%s_Fit_Par_%s.pkl" % (SPLINE_PREFIX, letter)
         spline_files[letter] = {"path": pkl, "path_status": path_state(pkl, False)}
     txt = SPLINE_PREFIX + "_Compute_SplineWeight.txt"
-    five_d_spline = os.path.join(ANALYSIS_ROOT, "SIDIS_Campaign", "systematics", "nominal_5d_spline_20261030", "Unfolded_5D_inherited_Spline.root")
+    five_d_spline = SPLINE_5D_PATH
     manifest = {
         "schema_version": 1,
         "nominals": nominals,
@@ -320,7 +320,7 @@ def build_manifest(unfolded_dir=None):
             },
         },
         "dimension": {
-            "spline": {"path": five_d_spline, "path_status": path_state(five_d_spline, True), "study_state": "blocked"},
+            "spline": {"path": five_d_spline, "path_status": path_state(five_d_spline, True), "study_state": "ready" if(os.path.isfile(five_d_spline)) else "blocked", "weight_tag": "Spline"},
             "unweighted": {"path": None, "path_status": "absent_on_disk", "study_state": "blocked", "reason": "No unweighted 5D job was scheduled."},
             "bayesian_1d": {"path": None, "path_status": "needs_configuration", "enabled": False, "study_state": "disabled"},
         },
@@ -1134,7 +1134,7 @@ def patch_manifest(manifest):
     spline_dim = manifest["dimension"].get("spline", {})
     spline_dim["path"] = SPLINE_5D_PATH
     spline_dim["path_status"] = path_state(SPLINE_5D_PATH, True)
-    spline_dim["study_state"] = "blocked"
+    spline_dim["study_state"] = "ready" if(os.path.isfile(SPLINE_5D_PATH)) else "blocked"
     spline_dim["weight_tag"] = "Spline"
     manifest["dimension"]["spline"] = spline_dim
     manifest["radiative"]["event_ratio_root"] = {

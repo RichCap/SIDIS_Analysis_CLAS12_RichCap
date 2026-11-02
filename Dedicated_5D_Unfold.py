@@ -625,6 +625,56 @@ def subtract_bkg_with_zero_floor(hist_data, hist_background):
 ##==========##==========##        5D Detection / Validation Helpers                ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
 SLICE_INCREMENT_RE = re.compile(r"_Slice_1_\(Increment='(\d+)'\)")
+WEIGHT_SUFFIXES = ["_(AccSpline)", "_(AccJSON)", "_(Acc)", "_(JSON)", "_(Spline)", "_(Weighed)"]
+SLICE_NUMBER_RE = re.compile(r"_Slice_(\d+)_\(Increment='(\d+)'\)")
+
+def Trailing_Weight_Suffix(name):
+    text = str(name)
+    for tag in WEIGHT_SUFFIXES:
+        if(text.endswith(tag)):
+            return tag
+    return ""
+
+def Strip_Weight_Tags(name):
+    text = str(name)
+    for tag in WEIGHT_SUFFIXES:
+        text = text.replace(tag, "")
+    return text
+
+def Slice_Name_For_Rebuild(standard_name, slice_num, increment):
+    # make_rm5d_single writes {base}_Slice_n_(Increment='inc')_(Weight). The 1D stem keeps the weight at the end.
+    suffix = Trailing_Weight_Suffix(standard_name)
+    base   = standard_name[:-len(suffix)] if(suffix not in ["", None]) else standard_name
+    return f"{base}_Slice_{slice_num}_(Increment='{increment}'){suffix}"
+
+def Present_Slice_Numbers(list_of_sliced_histos, suffix):
+    found = []
+    for key in list_of_sliced_histos:
+        if(Trailing_Weight_Suffix(key) != suffix):
+            continue
+        match = SLICE_NUMBER_RE.search(str(key))
+        if(match):
+            found.append(int(match.group(1)))
+    return sorted(found)
+
+def Rho_Background_Names(rdf_name, mdf_1d_name, background_source):
+    # Spline weights the response, not the exclusive-rho background.
+    rho_rdf = f"{Strip_Weight_Tags(rdf_name)}_({background_source})"
+    rho_mdf = f"{Strip_Weight_Tags(mdf_1d_name)}_({background_source})"
+    return rho_rdf, rho_mdf
+
+def Subtract_Unweighted_Rho(input_file, ExREAL_1D, rdf_name, mdf_1d_name, args):
+    if(args.background_source in ["None"]):
+        return None, ExREAL_1D
+    rho_rdf, rho_mdf = Rho_Background_Names(rdf_name, mdf_1d_name, args.background_source)
+    keys = input_file.GetListOfKeys()
+    if(rho_rdf in keys):
+        print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
+        return subtract_bkg_with_zero_floor(ExREAL_1D, input_file.Get(rho_rdf))
+    if(rho_mdf in keys):
+        print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
+        return subtract_bkg_with_zero_floor(ExREAL_1D, input_file.Get(rho_mdf))
+    Crash_Report(args, crash_message=f"Missing unweighted '{args.background_source}' background for ExREAL_1D. Required '{rho_rdf}' or '{rho_mdf}'")
 
 def Passes_Weighed_Filter(name, args):
     weight_tag = getattr(args, "weight_tag", "")
@@ -811,15 +861,18 @@ def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Titl
             if(Increment is None):
                 first_key = list(List_of_Sliced_Histos.keys())[0]
                 Increment = List_of_Sliced_Histos[first_key].GetNbinsX()
-    Slicing_Name = f"{Standard_Name}_Slice_SLICE-NUM_(Increment='{Increment}')"
     print(f"\n{color.BBLUE}Running Rebuild_Matrix_5D(...){color.END}\n")
     Num_Slices = int(Num__Bins/Increment)
     for test in ["1", str(Num_Slices)]:
-        if(Slicing_Name.replace("SLICE-NUM", str(test)) not in List_of_Sliced_Histos):
-            missing_name = Slicing_Name.replace("SLICE-NUM", str(test))
-            print(f"{color.Error}ERROR IN Rebuild_Matrix_5D(...): {color.END_R}'Slicing_Name' is missing from 'List_of_Sliced_Histos'{color.END_B}\n\tSlicing_Name = {missing_name}")
+        missing_name = Slice_Name_For_Rebuild(Standard_Name, test, Increment)
+        if(missing_name not in List_of_Sliced_Histos):
+            suffix = Trailing_Weight_Suffix(Standard_Name)
+            present = Present_Slice_Numbers(List_of_Sliced_Histos, suffix)
+            present_text = "(none)" if(len(present) == 0) else ",".join([str(number) for number in present])
+            print(f"{color.Error}ERROR IN Rebuild_Matrix_5D(...): {color.END_R}'Slicing_Name' is missing from 'List_of_Sliced_Histos'{color.END_B}\n\tSlicing_Name = {missing_name}\n\tweight_suffix = {suffix if(suffix not in ['']) else '(none)'}\n\tslice_index = {test}\n\tincrement = {Increment}\n\tpresent_slices = {present_text}")
             return "ERROR"
-    Histo_Title = Title if(Title not in ["Default"]) else "".join([str(List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", "1")].GetTitle()), ";", str(List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", "1")].GetXaxis().GetTitle()), ";", str(List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", "1")].GetYaxis().GetTitle())])
+    first_name = Slice_Name_For_Rebuild(Standard_Name, "1", Increment)
+    Histo_Title = Title if(Title not in ["Default"]) else "".join([str(List_of_Sliced_Histos[first_name].GetTitle()), ";", str(List_of_Sliced_Histos[first_name].GetXaxis().GetTitle()), ";", str(List_of_Sliced_Histos[first_name].GetYaxis().GetTitle())])
     rec_bins = skip_map.n_kept if(skip_map is not None) else Num__Bins
     rec_min = 0.5 if(skip_map is not None) else Min_Range
     rec_max = (rec_bins + 0.5) if(skip_map is not None) else Max_Range
@@ -831,7 +884,7 @@ def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Titl
         Rebuilt_5D_Matrix = ROOT.TH2D(str(Standard_Name), str(Histo_Title), rec_bins, rec_min, rec_max, Num__Bins, Min_Range, Max_Range)
     X_Bin_5D = 0
     for slice_num in range(1, Num_Slices + 1):
-        Histo_Add = List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", str(slice_num))]
+        Histo_Add = List_of_Sliced_Histos[Slice_Name_For_Rebuild(Standard_Name, slice_num, Increment)]
         X_Bin_5D += -1
         for x_bin in range(0, Histo_Add.GetNbinsX() + 1):
             X_Bin_5D += 1
@@ -1334,19 +1387,20 @@ def Prepare_5D_Matrix_For_Pdf(input_file, args):
         MC_BGS_1D = "None"
         print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
         raise TypeError("Missing (5D) Background Histogram")
-    if(f"{out_print_main_rdf}_({args.background_source})" in input_file.GetListOfKeys()):
-        print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
-        LundrhoHist_rdf = input_file.Get(f"{out_print_main_rdf}_({args.background_source})")
-        ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
-    elif(f"{out_print_main_mdf_1D}_({args.background_source})" in input_file.GetListOfKeys()):
-        print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
-        LundrhoHist_rdf = input_file.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
-        ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
-    elif(args.background_source not in ["None"]):
-        ExREAL_1D_wExclusive_Background = None
-        print(f"{color.Error}Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
-    else:
-        ExREAL_1D_wExclusive_Background = None
+    # Previous lookup appended _(background) onto the weight-tagged 1D name, then warned and continued.
+    # A Spline mdf name became ..._(Spline)_(rho0_new), which is not the written background key.
+    # if(f"{out_print_main_rdf}_({args.background_source})" in input_file.GetListOfKeys()):
+    #     LundrhoHist_rdf = input_file.Get(f"{out_print_main_rdf}_({args.background_source})")
+    #     ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
+    # elif(f"{out_print_main_mdf_1D}_({args.background_source})" in input_file.GetListOfKeys()):
+    #     LundrhoHist_rdf = input_file.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
+    #     ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
+    # elif(args.background_source not in ["None"]):
+    #     ExREAL_1D_wExclusive_Background = None
+    #     print(f"Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D' histogram")
+    # else:
+    #     ExREAL_1D_wExclusive_Background = None
+    ExREAL_1D_wExclusive_Background, ExREAL_1D = Subtract_Unweighted_Rho(input_file, ExREAL_1D, out_print_main_rdf, out_print_main_mdf_1D, args)
     skip_map_5d = None
     if(not getattr(args, "old_binning", False)):
         bdf_in = None if(MC_BGS_1D in ["None", None]) else MC_BGS_1D
@@ -1467,18 +1521,18 @@ def main_5D_unfold(args):
         raise TypeError("Missing (5D) Background Histogram")
     if(args.sim and (str(MC_BGS_1D) not in ["None"])):
         ExREAL_1D.Add(MC_BGS_1D)
-    ExREAL_1D_wExclusive_Background = None
-    out_print_main_rdf_1D_bgs = out_print_main_rdf
-    if(f"{out_print_main_rdf_1D_bgs}_({args.background_source})" in input_file.GetListOfKeys()):
-        print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
-        LundrhoHist_rdf = input_file.Get(f"{out_print_main_rdf_1D_bgs}_({args.background_source})")
-        ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
-    elif(f"{out_print_main_mdf_1D}_({args.background_source})" in input_file.GetListOfKeys()):
-        print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
-        LundrhoHist_rdf = input_file.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
-        ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
-    elif(args.background_source not in ["None"]):
-        print(f"{color.Error}Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
+    # Previous lookup appended _(background) onto the weight-tagged 1D name, then warned and continued.
+    # A Spline mdf name became ..._(Spline)_(rho0_new), which is not the written background key.
+    # out_print_main_rdf_1D_bgs = out_print_main_rdf
+    # if(f"{out_print_main_rdf_1D_bgs}_({args.background_source})" in input_file.GetListOfKeys()):
+    #     LundrhoHist_rdf = input_file.Get(f"{out_print_main_rdf_1D_bgs}_({args.background_source})")
+    #     ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
+    # elif(f"{out_print_main_mdf_1D}_({args.background_source})" in input_file.GetListOfKeys()):
+    #     LundrhoHist_rdf = input_file.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
+    #     ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
+    # elif(args.background_source not in ["None"]):
+    #     print(f"Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D' histogram")
+    ExREAL_1D_wExclusive_Background, ExREAL_1D = Subtract_Unweighted_Rho(input_file, ExREAL_1D, out_print_main_rdf, out_print_main_mdf_1D, args)
     skip_map_5d = None
     if(not getattr(args, "old_binning", False)):
         bdf_in = None if(MC_BGS_1D in ["None", None]) else MC_BGS_1D

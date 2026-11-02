@@ -201,7 +201,7 @@
       "study_state": "disabled"
     },
     "spline": {
-      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/nominal_5d_spline_20261030/Unfolded_5D_inherited_Spline.root",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/nominal_5d_spline_20261030/unfolded/Unfolded_5D_inherited_Spline_WSpline.root",
       "path_status": "absent_on_disk",
       "study_state": "blocked",
       "weight_tag": "Spline"
