@@ -80,6 +80,13 @@ def record_is_usable(record):
     return record.get("status") in ["completed", "completed_partial"]
 
 
+def refinement_verified(directory):
+    # A note, a fit JSON, or a zero return code is not enough. The after-quality must match the saved fit.
+    import sidis_physics_extensions as ext
+    audited = ext.audit_one_directory(directory)
+    return audited["classification"] == "verified", audited
+
+
 def central_values_finite(observables):
     for parameter in phys.PARAMETERS:
         values = observables[parameter]
@@ -103,8 +110,13 @@ def combine_for_campaign(manifest, campaign):
 
 
 def subdivision_shifts(report):
-    # Per bin and parameter, exactly 15 signed observable shifts. Anything else stays out.
+    # Fifteen refined observable shifts per bin and parameter. Factors and unfinished studies stay out.
     block = report.get("subdivision", {}) if(isinstance(report, dict)) else {}
+    state = block.get("study_state")
+    if(state in [None, "", "awaiting_observable_shifts", "pending", "blocked", "missing", "deferred"]):
+        return None
+    if(block.get("shift_origin") in ["factor", "factor_difference", "bc_factor"]):
+        return None
     shifts = block.get("observable_shifts")
     if(not isinstance(shifts, dict) or len(shifts) == 0):
         return None
@@ -199,7 +211,7 @@ def totals_match_independent(result, combine):
     for bin_name, total in result["totals"].items():
         independent = {}
         for source, table in result["sources"].items():
-            if(combine.get(source) != "independent"):
+            if(not phys.source_enters_quadrature(source, combine)):
                 continue
             reduced = table.get(bin_name)
             if(reduced is None):
@@ -239,7 +251,6 @@ def single_variation_is_absolute(groups, result):
 def source_rows_for(campaign, result, combine, total_flags, source_flags):
     rows = []
     for source in sorted(result["sources"].keys()):
-        in_total = combine.get(source) == "independent"
         for bin_name in sorted(result["sources"][source].keys()):
             reduced = result["sources"][source][bin_name]
             for parameter in phys.PARAMETERS:
@@ -254,7 +265,7 @@ def source_rows_for(campaign, result, combine, total_flags, source_flags):
                     "rms": "" if(rms_value is None) else rms_value,
                     "n_shifts": len(piece.get("shifts", [])),
                     "combine": combine.get(source, ""),
-                    "in_total": in_total,
+                    "in_total": phys.source_enters_quadrature(source, combine),
                     "stat_nominal": "" if(piece.get("stat_nominal") is None) else piece.get("stat_nominal"),
                     "R_source": "" if(flag_row.get("R_source") is None) else flag_row.get("R_source"),
                     "flag": flag_row.get("flag", ""),
@@ -309,6 +320,9 @@ def main():
     failed = []
     for campaign in ["unweighted", "spline"]:
         nominal_path = fit_json_for({"campaign": campaign, "source": "nominal", "variation": "nominal"})
+        nominal_ok, nominal_audit = refinement_verified(os.path.dirname(nominal_path))
+        if(not nominal_ok):
+            raise SystemExit("nominal refinement is not verified for %s: %s" % (campaign, nominal_audit.get("reason")))
         nominal_cells[campaign] = fit_collection(nominal_path, "Bayesian", "3D")
         groups = {}
         combine = combine_for_campaign(manifest, campaign)
@@ -324,6 +338,16 @@ def main():
                     "variation": job["variation"],
                     "status": "missing" if(record is None) else record.get("status"),
                     "validation": None if(record is None) else record.get("validation"),
+                })
+                continue
+            variation_ok, variation_audit = refinement_verified(os.path.dirname(fit_json_for(job)))
+            if(not variation_ok):
+                failed.append({
+                    "campaign": campaign,
+                    "source": job["source"],
+                    "variation": job["variation"],
+                    "status": variation_audit["classification"],
+                    "validation": variation_audit.get("reason"),
                 })
                 continue
             cells = fit_collection(fit_json_for(job), job["method"], job.get("dimension", "3D"))
@@ -410,14 +434,16 @@ def main():
             append_subdivision(groups, parsed_subdivision)
             combine["bin_centering_subdivision"] = "independent"
             subdivision_entered = True
+        for source in phys.FORCED_NOT_COMBINED:
+            combine[source] = "not_combined"
         result = phys.aggregate_campaign(groups, combine, manifest["run"].get("tolerance", 1.0e-9))
         if(not totals_match_independent(result, combine)):
             raise SystemExit("quadrature is not the independent-source sum for %s" % campaign)
         absolute_ok, absolute_count = single_variation_is_absolute(groups, result)
         if(not absolute_ok):
             raise SystemExit("single variation RMS is not the absolute difference for %s" % campaign)
-        for source in ("electron_sector", "pion_sector", "unweighted_versus_spline"):
-            if(source in result["sources"] and combine.get(source) == "independent"):
+        for source in phys.FORCED_NOT_COMBINED:
+            if(source in result["sources"] and phys.source_enters_quadrature(source, combine)):
                 raise SystemExit("%s entered the %s total" % (source, campaign))
         excluded = [
             "radiative systematic pending; no number; not zero",
@@ -425,6 +451,8 @@ def main():
             "bin-centering iteration blocked; not_combined; no number",
             "unweighted versus spline is not_combined and is not added to either total",
             "electron_sector and pion_sector stay not_combined; empty bins are omitted and are not zero",
+            "radiative SF 0 and SF 2 shifts stay not_combined until the combination is reviewed; not zero",
+            "spline BC alternative stays not_combined; not zero",
             "bayesian 1D is disabled and contributes no number",
         ]
         if(campaign == "spline"):
@@ -455,7 +483,7 @@ def main():
         for source in sorted(result["sources"].keys()):
             result["rms_summary"][source] = {
                 "combine": combine.get(source, ""),
-                "in_total": combine.get(source) == "independent",
+                "in_total": phys.source_enters_quadrature(source, combine),
                 "parameters": rms_summary(result["sources"][source]),
             }
         result["total_summary"] = rms_summary(result["totals"])

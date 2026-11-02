@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, THIS_DIR)
@@ -374,6 +375,246 @@ def test_partial_coverage_and_stages():
     print("partial coverage and stages ok")
 
 
+def test_recovery_contracts():
+    decision = phys.phi_canvas_decision(10, 3, False)
+    expect(decision["save"] and (not decision["thesis_ready"]), "partial canvas is saved and is not thesis ready")
+    expect(not phys.phi_canvas_decision(4, 0, True)["save"], "dry run does not save")
+    expect(phys.phi_canvas_decision(4, 0, False)["thesis_ready"], "complete canvas")
+    bins = [(1, 1)]
+    coverage = phys.fixed_point_coverage(set(), bins)
+    expect(coverage["calls"] == 24 and (not coverage["ok"]) and (len(coverage["holes"]) == 24), "one cell needs 24 factors")
+    full = {}
+    for phi in range(1, 25):
+        full[(1, 1, phi)] = True
+    covered = phys.fixed_point_coverage(set(full.keys()), bins)
+    expect(covered["ok"] and covered["calls"] == 24, "complete cell")
+    analysis = phys.nominal_analysis_bins()
+    expect(len(analysis) == 452, "analysis bin count")
+    expect(len(analysis) * 24 == 10848, "fixed-point grid")
+    values = {}
+    for phi in range(1, 25):
+        values[phi] = 1.1
+    values.pop(3)
+    assembled = phys.assemble_phi_factors(values, 1, 1)
+    expect((not assembled["complete"]) and (len(assembled["factors"]) == 23), "a hole is not filled")
+    expect(phys.bc_factor_key(1, 1, 3) not in assembled["factors"], "missing phi is absent")
+    failed = {"ok": False, "mode": "RC", "rc": 1.0}
+    factor, reason = phys.factor_from_fixed_point(failed)
+    expect(factor is None and reason == "not_ok", "failed factor is not stored")
+    good = {
+        "ok": True,
+        "mode": "RC",
+        "rc": 0.9,
+        "sf_index": 0,
+        "delta_rc_meaning": "cubature estimate of sigma_tot divided by |sigma_B|; not a statistical or systematic uncertainty",
+        "normalization_reference": "note",
+        "physics_configuration": "Prokudin",
+        "normalization_convention": "prokudin",
+        "normalization_gamma": "not_used",
+    }
+    factor, reason = phys.factor_from_fixed_point(good)
+    expect(factor == 0.9 and reason == "ok", "accepted rc")
+    expect(phys.continuous_benchmark_matches(0, 3.2640895232967875e-05, 2.9883114578853511e-05, 0.9155114884432165), "sf0 benchmark")
+    expect(not phys.continuous_benchmark_matches(2, 3.2640895232967875e-05, 2.9883114578853511e-05, 0.9155114884432165), "sf0 is not the sf2 benchmark")
+    plan = phys.stage_request_plan(["world_comparisons", "thesis_integration_plan"], "no", "no")
+    expect(plan["ok"] and (not plan["falls_back_to_resolve_only"]), "requested stages do not fall back")
+    expect(plan["actions"][0]["action"] == "run_or_record_blocker", "world stage has no enable flag")
+    expect(plan["actions"][1]["action"] == "write_partial_plan", "thesis stage has no enable flag")
+    radiative = phys.stage_request_plan(["radiative"], "no", "no")
+    expect(radiative["actions"][0]["action"] == "record_grid_not_enabled", "rc grid stays off")
+    unknown = phys.stage_request_plan(["not_a_stage"], "no", "no")
+    expect((not unknown["ok"]) and unknown["blocker"] == "unknown_stage", "unknown stage")
+    groups = {"particle": {"b": [phys.variation_bin_record("particle", "up", "b", {"A": {"nominal": 1.0, "variation": 2.0, "stat_nominal": 0.1}, "B": {"nominal": 0.0, "variation": 0.0, "stat_nominal": 0.1}, "C": {"nominal": 0.0, "variation": 0.0, "stat_nominal": 0.1}})]}, "radiative_sf0": {"b": [phys.variation_bin_record("radiative_sf0", "sf0", "b", {"A": {"nominal": 1.0, "variation": 5.0, "stat_nominal": 0.1}, "B": {"nominal": 0.0, "variation": 0.0, "stat_nominal": 0.1}, "C": {"nominal": 0.0, "variation": 0.0, "stat_nominal": 0.1}})]}}
+    combined = phys.aggregate_campaign(groups, {"particle": "independent", "radiative_sf0": "independent"}, 1.0e-9)
+    expect(combined["totals"]["b"]["A"]["up"] == 1.0, "unapproved radiative shift stays out of the sum")
+    note = {"scope": "demo", "start_mode": "manual", "error_source": "histogram", "changed": "Worst (1,1) 4.00 to 1.50. JSON still has 1.", "left_bins": "none", "unresolved": "none"}
+    fit = {"Fit_Pars_from_3D_Bayesian": {"(Q2_y_Bin_1)-(z_pT_Bin_1)": {"Chi2": 3.0, "NDF": 2.0, "Fit_Par_A": 1.0}}}
+    classified = phys.classify_refinement_dir(note, fit, "special_fit_parameters_set = {('1', '1'): {}}", 0)
+    expect(classified["classification"] == "verified", "after quality matches")
+    thin = dict(note)
+    thin["changed"] = "Edited some bins in refine_init.py."
+    unverifiable = phys.classify_refinement_dir(thin, fit, "special_fit_parameters_set = {}", 0)
+    expect(unverifiable["classification"] == "unverifiable" and (not unverifiable["validated"]), "unverifiable is not fully validated")
+    expect(str(unverifiable["minimum_check"]).strip() != "", "unverifiable names a check")
+    cell = {"Fit_Par_A": 10.0, "Fit_Par_A_ERR": 1.0, "Fit_Par_B": 0.2, "Fit_Par_B_ERR": 0.01, "Fit_Par_C": -0.1, "Fit_Par_C_ERR": 0.01}
+    document = phys.build_normalized_document(
+        {"(Q2_y_Bin_1)-(z_pT_Bin_1)": cell},
+        {"(Q2_y_Bin_1)-(z_pT_Bin_1)": {"A": {"up": 2.0}, "B": {"up": 0.05}, "C": {"up": 0.04}}},
+        {"(Q2_y_Bin_1)-(z_pT_Bin_1)": 100.0},
+        "unweighted",
+        "/tmp/bc/fit.json",
+        "/tmp/budgets.json",
+    )
+    stored = document["Fit_Pars_from_3D_BC_RC_Bayesian"]["(Q2_y_Bin_1)-(z_pT_Bin_1)"]
+    expect(abs(stored["Fit_Par_A"] - 0.1) < 1.0e-12, "A is scaled")
+    expect(stored["Fit_Par_B"] == 0.2 and stored["Fit_Par_C"] == -0.1, "B and C stay unscaled")
+    expect(document["systematic_scope"] == "provisional_acceptance_level", "provisional label")
+    expect(os.path.basename(phys.normalized_bc_path("/tmp/out", "unweighted")) == "normalized_bc.json", "new normalized name")
+    shifts = {}
+    for variable in phys.BC_SENSITIVITY.keys():
+        shifts[variable] = [2.0, 2.0, 2.0]
+    pooled = phys.pooled_subdivision_rms(shifts)
+    expect(abs(pooled["pooled"] - 2.0) < 1.0e-12 and pooled["count"] == 15, "pooled rms of fifteen shifts")
+    print("recovery contracts ok")
+
+
+def test_sf2_worker_pool():
+    import sidis_physics_extensions as ext
+    sf0 = phys.resolve_worker_count("RC", 0, 5)
+    expect(sf0["workers"] == 1, "sf0 stays at one process")
+    bc = phys.resolve_worker_count("BC", None, 4)
+    expect(bc["workers"] == 1, "bc stays at one process")
+    sf2 = phys.resolve_worker_count("RC", 2, 3)
+    expect(sf2["workers"] == 3 and sf2["clamped"] == "", "sf2 uses the requested workers")
+    try:
+        phys.resolve_worker_count("RC", 2, 6)
+        raise SystemExit("untested worker count was accepted")
+    except ValueError:
+        pass
+    folder = tempfile.mkdtemp()
+    fingerprint = {"mark": "unit"}
+    calls = os.path.join(folder, "calls.txt")
+
+    def stub(job):
+        script = (
+            "import json,sys\n"
+            "open(%r,'a').write('%s\\n')\n"
+            "print(json.dumps({'ok': True, 'q2y': %s, 'phi': %s}))\n"
+        ) % (calls, "%s-%s-%s" % (job["q2y"], job["zpt"], job["phi"]), job["q2y"], job["phi"])
+        return [sys.executable, "-c", script]
+
+    jobs = []
+    for phi in range(1, 5):
+        jobs.append({"mode": "RC", "sf": 2, "q2y": 1, "zpt": phi, "phi": phi})
+    first = ext.run_fixed_point_pool(jobs, os.path.join(folder, "cache"), os.path.join(folder, "logs"), 2, fingerprint, stub, retry_failed=False, timeout_s=30)
+    expect(first["succeeded"] == 4 and first["failed"] == 0, "four isolated jobs")
+    seen = open(calls).read().split()
+    expect(sorted(seen) == ["1-1-1", "1-2-2", "1-3-3", "1-4-4"], "each job kept its indices")
+    paths = []
+    for job in jobs:
+        path = os.path.join(folder, "cache", phys.fixed_point_cache_name("RC", job["q2y"], job["zpt"], job["phi"], 2))
+        paths.append(path)
+        payload = json.load(open(path))
+        expect(payload["phi_bin"] == job["phi"] and payload["ok"] is True, "saved identity")
+    expect(len(set(paths)) == 4, "outputs do not share a path")
+    second = ext.run_fixed_point_pool(jobs, os.path.join(folder, "cache"), os.path.join(folder, "logs"), 2, fingerprint, stub, retry_failed=False, timeout_s=30)
+    expect(second["skipped_ok"] == 4 and second["ran"] == 0, "successful cache is not rerun")
+    failed_dir = os.path.join(folder, "failed")
+    bad_job = [{"mode": "RC", "sf": 2, "q2y": 2, "zpt": 2, "phi": 2}]
+
+    def fail_once(job):
+        script = "import json,sys\nprint(json.dumps({'ok': False, 'error': 'bad'}))\nsys.exit(1)\n"
+        return [sys.executable, "-c", script]
+
+    failed = ext.run_fixed_point_pool(bad_job, failed_dir, os.path.join(folder, "failed_logs"), 1, fingerprint, fail_once, retry_failed=False, timeout_s=30)
+    expect(failed["failed"] == 1, "failure is recorded")
+    stored = json.load(open(os.path.join(failed_dir, phys.fixed_point_cache_name("RC", 2, 2, 2, 2))))
+    expect(stored["ok"] is False and stored["result"].get("rc") is None, "failed object has no substitute factor")
+    left = ext.run_fixed_point_pool(bad_job, failed_dir, os.path.join(folder, "failed_logs"), 1, fingerprint, stub, retry_failed=False, timeout_s=30)
+    expect(left["left_failed"] == 1 and left["ran"] == 0, "failed cache is not retried by default")
+    retried = ext.run_fixed_point_pool(bad_job, failed_dir, os.path.join(folder, "failed_logs"), 1, fingerprint, stub, retry_failed=True, timeout_s=30)
+    expect(retried["succeeded"] == 1, "retry_failed reruns only the failed cell")
+    rows = [
+        {"workers": 1, "failures": 0, "swapouts_delta": 0, "compressor_delta": 0, "per_second": 1.0},
+        {"workers": 2, "failures": 0, "swapouts_delta": 0, "compressor_delta": 0, "per_second": 1.8},
+        {"workers": 3, "failures": 0, "swapouts_delta": 0, "compressor_delta": 0, "per_second": 2.4},
+        {"workers": 4, "failures": 0, "swapouts_delta": 0, "compressor_delta": 0, "per_second": 2.5},
+        {"workers": 5, "failures": 0, "swapouts_delta": 1, "compressor_delta": 0, "per_second": 3.0},
+    ]
+    expect(ext.recommend_sf2_workers(rows) == 3, "small gain and swap stop the recommendation at 3")
+    print("sf2 worker pool ok")
+
+
+def test_rc_grid_exclusivity():
+    import sidis_physics_extensions as ext
+    expect(phys.resolve_worker_count("RC", 2, None)["workers"] == 4, "default sf2 workers")
+    expect(phys.resolve_worker_count("RC", 2, 2)["workers"] == 2, "sf2 override")
+    expect(phys.resolve_worker_count("RC", 0, 4)["workers"] == 1, "sf0 stays at one")
+    off = phys.radiative_stage_gate("no", ["radiative", "mosaic"], False, False)
+    expect(off["grid_enabled"] is False, "disabled grid")
+    active = phys.radiative_stage_gate("yes", ["radiative", "mosaic"], False, True)
+    expect(active["concurrent_stages"] == [] and active["downstream_stages"] == [], "exclusive while active")
+    blocked = phys.radiative_stage_gate("yes", ["radiative", "mosaic"], False, False)
+    expect(blocked["downstream_stages"] == [], "incomplete blocks downstream")
+    done = phys.radiative_stage_gate("yes", ["radiative", "mosaic"], True, False)
+    expect(done["downstream_stages"] == ["mosaic"] and done["sf2_workers"] == 4, "downstream after both grids")
+    folder = tempfile.mkdtemp()
+    fingerprint = {"mark": "grid"}
+    calls = []
+
+    def command(job):
+        calls.append(int(job["sf"]))
+        if(int(job["sf"]) == 0):
+            script = "import json,sys\nprint(json.dumps({'ok': False, 'error': 'sf0'}))\nsys.exit(1)\n"
+        else:
+            script = "import json,sys\nprint(json.dumps({'ok': True}))\n"
+        return [sys.executable, "-c", script]
+
+    status = ext.run_radiative_grids(
+        [{"mode": "RC", "sf": 0, "q2y": 1, "zpt": 1, "phi": 1}],
+        [{"mode": "RC", "sf": 2, "q2y": 1, "zpt": 1, "phi": 1}],
+        os.path.join(folder, "cache"),
+        os.path.join(folder, "logs"),
+        None,
+        fingerprint,
+        command,
+        os.path.join(folder, "rc_grid.lock"),
+        True,
+        False,
+        30,
+        os.path.join(folder, "rc_grid_status.json"),
+    )
+    expect(status["complete"] is False and status["reason"] == "sf0_incomplete", "sf0 failure stops the pair")
+    expect(calls == [0], "sf2 did not start")
+    expect(status["sf2_workers"] == 4, "sf2 default recorded")
+    written = json.load(open(os.path.join(folder, "rc_grid_status.json")))
+    expect(written["complete"] is False, "status file is not complete")
+    kept = os.path.join(folder, "cache", phys.fixed_point_cache_name("RC", 3, 3, 3, 2))
+    os.makedirs(os.path.dirname(kept), exist_ok=True)
+    json.dump({"ok": True, "skill_fingerprint": fingerprint, "phi_bin": 3}, open(kept, "w"))
+    ext.run_fixed_point_pool(
+        [{"mode": "RC", "sf": 2, "q2y": 3, "zpt": 3, "phi": 3}],
+        os.path.join(folder, "cache"),
+        os.path.join(folder, "logs"),
+        1,
+        fingerprint,
+        command,
+        False,
+        30,
+    )
+    expect(json.load(open(kept))["ok"] is True, "completed cache remains")
+    lock_path = os.path.join(folder, "held.lock")
+    held = ext.RcGridLock(lock_path, True)
+    held.__enter__()
+    probe = "import fcntl,sys\nh=open(sys.argv[1],'a+')\ntry:\n fcntl.flock(h.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)\nexcept BlockingIOError:\n sys.exit(0)\nfcntl.flock(h.fileno(), fcntl.LOCK_UN)\nh.close()\nsys.exit(2)\n"
+    busy = subprocess.run([sys.executable, "-c", probe, lock_path])
+    expect(busy.returncode == 0, "second grid sees a busy lock")
+    held.__exit__(None, None, None)
+    free = subprocess.run([sys.executable, "-c", probe, lock_path])
+    expect(free.returncode == 2, "lock released after the holder exits")
+    parent_file = os.path.join(folder, "parent.pid")
+    child_file = os.path.join(folder, "child.pid")
+    tree = "import os,sys,time\nopen(sys.argv[1],'w').write(str(os.getpid()))\npid=os.fork()\nif pid==0:\n open(sys.argv[2],'w').write(str(os.getpid()))\n time.sleep(30)\n os._exit(0)\ntime.sleep(30)\n"
+    proc = subprocess.Popen([sys.executable, "-c", tree, parent_file, child_file], start_new_session=True)
+    for _ in range(50):
+        if(os.path.isfile(child_file) and (os.path.getsize(child_file) > 0)):
+            break
+        time.sleep(0.05)
+    child_pid = int(open(child_file).read())
+    ext.terminate_process_group(proc.pid)
+    proc.wait(timeout=5)
+
+    def alive(pid):
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        return True
+
+    expect((not alive(proc.pid)) and (not alive(child_pid)), "correct.py tree and cross_section child stop together")
+    print("rc grid exclusivity ok")
+
+
 def main():
     manifest = test_nominal_and_weights()
     test_shards_and_commands(manifest)
@@ -382,6 +623,9 @@ def main():
     test_normalization_and_registry()
     test_init_mosaic_radiative_bc_kt2()
     test_partial_coverage_and_stages()
+    test_recovery_contracts()
+    test_sf2_worker_pool()
+    test_rc_grid_exclusivity()
     test_root_family_and_parser()
     print("sidis physics tests ok")
 

@@ -1,0 +1,20 @@
+{
+  "unweighted": {
+    "bins": 452,
+    "convention": "Fit_Par_A is the amplitude of the per-bin yield. Phi12 histograms sum adjacent 15 degree bins, so Delta phi_h is 30 degrees versus 15 degrees. Width-normalized A is Fit_Par_A/Delta phi_h. B and C are dimensionless and are not rescaled.",
+    "rms_raw_A": 19503.89254728497,
+    "rms_A_per_degree": 9.069627492374824,
+    "rms_B": 0.01019255457731537,
+    "rms_C": 0.007935673110136557,
+    "median_abs_raw_ratio": 16882.072103063325
+  },
+  "spline": {
+    "bins": 452,
+    "convention": "Fit_Par_A is the amplitude of the per-bin yield. Phi12 histograms sum adjacent 15 degree bins, so Delta phi_h is 30 degrees versus 15 degrees. Width-normalized A is Fit_Par_A/Delta phi_h. B and C are dimensionless and are not rescaled.",
+    "rms_raw_A": 19666.94110192259,
+    "rms_A_per_degree": 10.496342773869953,
+    "rms_B": 0.011877547548844293,
+    "rms_C": 0.00888402779476423,
+    "median_abs_raw_ratio": 17115.344829694575
+  }
+}

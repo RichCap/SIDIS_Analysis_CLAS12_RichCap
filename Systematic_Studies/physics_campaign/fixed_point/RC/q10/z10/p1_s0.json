@@ -1,0 +1,99 @@
+{
+  "command": [
+    "/Users/richardcapobianco/opt/miniforge3/envs/updated_python/bin/python",
+    "/Users/richardcapobianco/.grok/skills/sidis-bin-corrections/scripts/correct.py",
+    "-m",
+    "RC",
+    "-q",
+    "10",
+    "-z",
+    "10",
+    "-p",
+    "1",
+    "-s",
+    "0"
+  ],
+  "mode": "RC",
+  "ok": true,
+  "phi_bin": 1,
+  "q2y_bin": 10,
+  "result": {
+    "center": {
+      "E_b": 10.6,
+      "Q2": 3.3,
+      "beam_pol": "U",
+      "k0_cut": 0.01,
+      "pT": 0.45,
+      "pT2": 0.2025,
+      "phi": 0.0,
+      "phi_h_deg": 7.5,
+      "phi_h_rad": 0.1308996938995747,
+      "target_pol": "U",
+      "x": 0.27650184571696784,
+      "y": 0.6000000000000001,
+      "z": 0.45
+    },
+    "command": [
+      "/Users/richardcapobianco/Desktop/Work_Offline.nosync/EvGen_sidis_fork/sidis/build/example/cross_section",
+      "0",
+      "10.6",
+      "U",
+      "U",
+      "0.2765018457169678",
+      "0.6000000000000001",
+      "0.45",
+      "0.2025",
+      "0.1308996938995747",
+      "0",
+      "0.01"
+    ],
+    "definition": "bin-center \u03c3_tot / \u03c3_B",
+    "delta_rc": 8.94625659163916e-05,
+    "delta_rc_meaning": "cubature estimate of \u03c3_tot divided by |\u03c3_B|; not a statistical or systematic uncertainty",
+    "edges": {
+      "pt_max": 0.5,
+      "pt_min": 0.4,
+      "q2_max": 3.7,
+      "q2_min": 2.9,
+      "y_max": 0.65,
+      "y_min": 0.55,
+      "z_max": 0.5,
+      "z_min": 0.4
+    },
+    "grid_directory": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/EvGen_sidis_fork/sidis/share/sidis/sf_set/prokudin",
+    "mode": "RC",
+    "normalization_convention": "prokudin",
+    "normalization_gamma": "not_used",
+    "normalization_reference": "/Users/richardcapobianco/.grok/skills/sidis-bin-corrections/references/electroproduction-normalization.md",
+    "ok": true,
+    "phi_bin": 1,
+    "phi_deg_max": 15.0,
+    "phi_deg_min": 0.0,
+    "physics_configuration": "Prokudin",
+    "q2y_bin": 10,
+    "rc": 0.9062086971391996,
+    "sf_index": 0,
+    "sigma_B": 4.2777749738757165e-06,
+    "sigma_nrad": 2.923145710344542e-06,
+    "sigma_nrad_err": 7.613019924620555e-13,
+    "sigma_rad": 9.534111753860444e-07,
+    "sigma_rad_err": 3.8193942358338454e-10,
+    "sigma_tot": 3.876556885730587e-06,
+    "sigma_tot_err": 3.827007255758466e-10,
+    "structure_function_set": "prokudin",
+    "zpt_bin": 10
+  },
+  "seconds": 0.9962539672851562,
+  "sf_index": 0,
+  "skill_fingerprint": {
+    "correct_py": {
+      "mtime": 1793608936,
+      "size": 17159
+    },
+    "normalization_note": {
+      "mtime": 1793608986,
+      "size": 7205
+    }
+  },
+  "zpt_bin": 10
+}

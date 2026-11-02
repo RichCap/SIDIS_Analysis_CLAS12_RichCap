@@ -1,0 +1,353 @@
+{
+  "jobs": [
+    {
+      "mode": "RC",
+      "phi": 1,
+      "q2y": 1,
+      "sf": 2,
+      "zpt": 1
+    },
+    {
+      "mode": "RC",
+      "phi": 12,
+      "q2y": 1,
+      "sf": 2,
+      "zpt": 32
+    },
+    {
+      "mode": "RC",
+      "phi": 6,
+      "q2y": 5,
+      "sf": 2,
+      "zpt": 1
+    },
+    {
+      "mode": "RC",
+      "phi": 10,
+      "q2y": 8,
+      "sf": 2,
+      "zpt": 6
+    },
+    {
+      "mode": "RC",
+      "phi": 15,
+      "q2y": 9,
+      "sf": 2,
+      "zpt": 1
+    },
+    {
+      "mode": "RC",
+      "phi": 18,
+      "q2y": 11,
+      "sf": 2,
+      "zpt": 1
+    },
+    {
+      "mode": "RC",
+      "phi": 3,
+      "q2y": 14,
+      "sf": 2,
+      "zpt": 34
+    },
+    {
+      "mode": "RC",
+      "phi": 24,
+      "q2y": 17,
+      "sf": 2,
+      "zpt": 1
+    }
+  ],
+  "recommended_workers": 4,
+  "rows": [
+    {
+      "bins": 8,
+      "compressor_delta": 0,
+      "cpu_peak_percent": 100.0,
+      "elapsed_s": 49.13847899436951,
+      "failures": 0,
+      "free_percent_min": 48.0,
+      "jobs": [
+        {
+          "phi": 1,
+          "q2y": 1,
+          "zpt": 1
+        },
+        {
+          "phi": 12,
+          "q2y": 1,
+          "zpt": 32
+        },
+        {
+          "phi": 6,
+          "q2y": 5,
+          "zpt": 1
+        },
+        {
+          "phi": 10,
+          "q2y": 8,
+          "zpt": 6
+        },
+        {
+          "phi": 15,
+          "q2y": 9,
+          "zpt": 1
+        },
+        {
+          "phi": 18,
+          "q2y": 11,
+          "zpt": 1
+        },
+        {
+          "phi": 3,
+          "q2y": 14,
+          "zpt": 34
+        },
+        {
+          "phi": 24,
+          "q2y": 17,
+          "zpt": 1
+        }
+      ],
+      "max_threads": 1,
+      "mean_job_s": 6.141433089971542,
+      "per_second": 0.1628052020274513,
+      "rss_peak_kb": 31264,
+      "sample_gap_s": 0.4672408103942871,
+      "succeeded": 8,
+      "swapouts_delta": 0,
+      "workers": 1
+    },
+    {
+      "bins": 8,
+      "compressor_delta": 2298,
+      "cpu_peak_percent": 200.0,
+      "elapsed_s": 25.445217847824097,
+      "failures": 0,
+      "free_percent_min": 48.0,
+      "jobs": [
+        {
+          "phi": 1,
+          "q2y": 1,
+          "zpt": 1
+        },
+        {
+          "phi": 12,
+          "q2y": 1,
+          "zpt": 32
+        },
+        {
+          "phi": 6,
+          "q2y": 5,
+          "zpt": 1
+        },
+        {
+          "phi": 10,
+          "q2y": 8,
+          "zpt": 6
+        },
+        {
+          "phi": 15,
+          "q2y": 9,
+          "zpt": 1
+        },
+        {
+          "phi": 18,
+          "q2y": 11,
+          "zpt": 1
+        },
+        {
+          "phi": 3,
+          "q2y": 14,
+          "zpt": 34
+        },
+        {
+          "phi": 24,
+          "q2y": 17,
+          "zpt": 1
+        }
+      ],
+      "max_threads": 1,
+      "mean_job_s": 6.358786404132843,
+      "per_second": 0.31440092389242824,
+      "rss_peak_kb": 62752,
+      "sample_gap_s": 0.4797661304473877,
+      "succeeded": 8,
+      "swapouts_delta": 0,
+      "workers": 2
+    },
+    {
+      "bins": 8,
+      "compressor_delta": 8186,
+      "cpu_peak_percent": 300.0,
+      "elapsed_s": 19.506385803222656,
+      "failures": 0,
+      "free_percent_min": 48.0,
+      "jobs": [
+        {
+          "phi": 1,
+          "q2y": 1,
+          "zpt": 1
+        },
+        {
+          "phi": 12,
+          "q2y": 1,
+          "zpt": 32
+        },
+        {
+          "phi": 6,
+          "q2y": 5,
+          "zpt": 1
+        },
+        {
+          "phi": 10,
+          "q2y": 8,
+          "zpt": 6
+        },
+        {
+          "phi": 15,
+          "q2y": 9,
+          "zpt": 1
+        },
+        {
+          "phi": 18,
+          "q2y": 11,
+          "zpt": 1
+        },
+        {
+          "phi": 3,
+          "q2y": 14,
+          "zpt": 34
+        },
+        {
+          "phi": 24,
+          "q2y": 17,
+          "zpt": 1
+        }
+      ],
+      "max_threads": 1,
+      "mean_job_s": 6.514163315296173,
+      "per_second": 0.4101221046637106,
+      "rss_peak_kb": 63328,
+      "sample_gap_s": 0.48539304733276367,
+      "succeeded": 8,
+      "swapouts_delta": 0,
+      "workers": 3
+    },
+    {
+      "bins": 8,
+      "compressor_delta": 4013,
+      "cpu_peak_percent": 400.0,
+      "elapsed_s": 13.552266120910645,
+      "failures": 0,
+      "free_percent_min": 47.0,
+      "jobs": [
+        {
+          "phi": 1,
+          "q2y": 1,
+          "zpt": 1
+        },
+        {
+          "phi": 12,
+          "q2y": 1,
+          "zpt": 32
+        },
+        {
+          "phi": 6,
+          "q2y": 5,
+          "zpt": 1
+        },
+        {
+          "phi": 10,
+          "q2y": 8,
+          "zpt": 6
+        },
+        {
+          "phi": 15,
+          "q2y": 9,
+          "zpt": 1
+        },
+        {
+          "phi": 18,
+          "q2y": 11,
+          "zpt": 1
+        },
+        {
+          "phi": 3,
+          "q2y": 14,
+          "zpt": 34
+        },
+        {
+          "phi": 24,
+          "q2y": 17,
+          "zpt": 1
+        }
+      ],
+      "max_threads": 1,
+      "mean_job_s": 6.7460775673389435,
+      "per_second": 0.5903071802623693,
+      "rss_peak_kb": 110240,
+      "sample_gap_s": 0.57682204246521,
+      "succeeded": 8,
+      "swapouts_delta": 0,
+      "workers": 4
+    },
+    {
+      "bins": 8,
+      "compressor_delta": 4042,
+      "cpu_peak_percent": 498.29999999999995,
+      "elapsed_s": 14.180186986923218,
+      "failures": 0,
+      "free_percent_min": 47.0,
+      "jobs": [
+        {
+          "phi": 1,
+          "q2y": 1,
+          "zpt": 1
+        },
+        {
+          "phi": 12,
+          "q2y": 1,
+          "zpt": 32
+        },
+        {
+          "phi": 6,
+          "q2y": 5,
+          "zpt": 1
+        },
+        {
+          "phi": 10,
+          "q2y": 8,
+          "zpt": 6
+        },
+        {
+          "phi": 15,
+          "q2y": 9,
+          "zpt": 1
+        },
+        {
+          "phi": 18,
+          "q2y": 11,
+          "zpt": 1
+        },
+        {
+          "phi": 3,
+          "q2y": 14,
+          "zpt": 34
+        },
+        {
+          "phi": 24,
+          "q2y": 17,
+          "zpt": 1
+        }
+      ],
+      "max_threads": 1,
+      "mean_job_s": 7.244555324316025,
+      "per_second": 0.5641674547294401,
+      "rss_peak_kb": 117248,
+      "sample_gap_s": 0.5477290153503418,
+      "succeeded": 8,
+      "swapouts_delta": 0,
+      "workers": 5
+    }
+  ]
+}

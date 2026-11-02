@@ -267,7 +267,7 @@ special_fit_parameters_set = {
     ('3', '17'): {'B_initial': -0.23435380523801647, 'C_initial': -0.0008945435911696244, 'B_limits': None, 'C_limits': None},
     ('3', '18'): {'B_initial': -0.3245502151093915, 'C_initial': 0.04762424360476507, 'B_limits': [-0.2, -0.5], 'C_limits': [-0.05, 0.1]},
     ('3', '19'): {'B_initial': -0.051846167306111045, 'C_initial': 0.006218489592409615, 'B_limits': None, 'C_limits': None},
-    ('3', '2'): {'B_initial': -0.1440760249264203, 'C_initial': 0.025104328582243506, 'B_limits': None, 'C_limits': None},
+    ('3', '2'): {'B_initial': -0.28536666603485833, 'C_initial': -0.0009624801206585697, 'B_limits': [-0.4053666660348583, 0.04743590418013739], 'C_limits': [-0.12096248012065856, 0.18195082389635284]},
     ('3', '20'): {'B_initial': -0.08244969857887821, 'C_initial': 0.004510535680297461, 'B_limits': None, 'C_limits': None},
     ('3', '21'): {'B_initial': -0.12447309503330004, 'C_initial': -0.037995793818335094, 'B_limits': None, 'C_limits': None},
     ('3', '22'): {'B_initial': -0.166812146327577, 'C_initial': -0.03440378554635306, 'B_limits': None, 'C_limits': None},

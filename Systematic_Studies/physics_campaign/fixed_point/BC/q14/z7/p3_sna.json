@@ -1,0 +1,92 @@
+{
+  "command": [
+    "/Users/richardcapobianco/opt/miniforge3/envs/updated_python/bin/python",
+    "/Users/richardcapobianco/.grok/skills/sidis-bin-corrections/scripts/correct.py",
+    "-m",
+    "BC",
+    "-q",
+    "14",
+    "-z",
+    "7",
+    "-p",
+    "3"
+  ],
+  "mode": "BC",
+  "ok": true,
+  "phi_bin": 3,
+  "q2y_bin": 14,
+  "result": {
+    "bc": 0.9938020039637958,
+    "center_subbin": 203,
+    "center_subbin_point": {
+      "A": 11851.50236025309,
+      "B": 0.0009923556230326813,
+      "C": -0.004537081265920229,
+      "Q2": 4.5,
+      "pT": 0.13,
+      "phi_h_deg": 37.5,
+      "xB": 0.37704825,
+      "y": 0.6000000000000001,
+      "z": 0.44499999999999995
+    },
+    "center_weight": 11846.915895296874,
+    "definition": "unweighted mean of rawA sub-bin midpoint weights / center sub-bin weight",
+    "edges": {
+      "pt_max": 0.21,
+      "pt_min": 0.05,
+      "q2_max": 5.3,
+      "q2_min": 3.7,
+      "y_max": 0.65,
+      "y_min": 0.55,
+      "z_max": 0.5,
+      "z_min": 0.39
+    },
+    "mean_weight": 11773.48875753658,
+    "mode": "BC",
+    "n_sub": 405,
+    "normalization_convention": "raw_fit_amplitude",
+    "normalization_gamma": "not_applied",
+    "normalization_reference": "/Users/richardcapobianco/.grok/skills/sidis-bin-corrections/references/electroproduction-normalization.md",
+    "note": "Spline-based alternative. Not the nominal event-based BC factor. Weights are raw fit amplitudes, not A_ep.",
+    "ok": true,
+    "parent_center": {
+      "Q2": 4.5,
+      "pT": 0.13,
+      "phi_h_deg": 37.5,
+      "y": 0.6000000000000001,
+      "z": 0.445
+    },
+    "phi_bin": 3,
+    "phi_deg_max": 45.0,
+    "phi_deg_min": 30.0,
+    "physics_configuration": "first-iteration raw-amplitude spline",
+    "q2y_bin": 14,
+    "spline_file": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+    "spline_header": {
+      "Dimension mode": "4D_xB",
+      "Fit set": "Fit_Pars_from_3D_BC_RC_Bayesian",
+      "Generated on": "10-26-2026 21:19:44"
+    },
+    "sub_bins": {
+      "pT": 3,
+      "phi": 5,
+      "q2": 3,
+      "y": 3,
+      "z": 3
+    },
+    "zpt_bin": 7
+  },
+  "seconds": 0.31418275833129883,
+  "sf_index": null,
+  "skill_fingerprint": {
+    "correct_py": {
+      "mtime": 1793608936,
+      "size": 17159
+    },
+    "normalization_note": {
+      "mtime": 1793608986,
+      "size": 7205
+    }
+  },
+  "zpt_bin": 7
+}

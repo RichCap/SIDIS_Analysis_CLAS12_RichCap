@@ -1,0 +1,2806 @@
+{
+  "count": 89,
+  "counts": {
+    "incomplete": 0,
+    "unverifiable": 0,
+    "verified": 89
+  },
+  "rows": [
+    {
+      "checked": [
+        {
+          "after": "1.29",
+          "before": "5.88",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 1.290939314445238
+        },
+        {
+          "after": "2.78",
+          "before": "5.29",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_29)",
+          "stored_reduced_chi2": 2.776583519483104
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/corrected/spline/bc",
+      "evidence": [
+        "checked 2 bins",
+        "family Fit_Pars_from_3D_BC_RC_Bayesian cells 452",
+        "overlays 1"
+      ],
+      "fit": "physics_campaign/corrected/spline/bc/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/corrected/spline/bc/refinement_note.json",
+      "overlay_count": 1,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/corrected/spline/bc/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.58",
+          "before": "11.61",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.5801303924578525
+        },
+        {
+          "after": "1.42",
+          "before": "4.70",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4195748105109631
+        },
+        {
+          "after": "3.41",
+          "before": "5.90",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_29)",
+          "stored_reduced_chi2": 3.4051500289015606
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/corrected/spline/rc",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_RC_Bayesian cells 452",
+        "overlays 7"
+      ],
+      "fit": "physics_campaign/corrected/spline/rc/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/corrected/spline/rc/refinement_note.json",
+      "overlay_count": 7,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/corrected/spline/rc/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.45",
+          "before": "3.73",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_29)",
+          "stored_reduced_chi2": 2.4539572514875805
+        },
+        {
+          "after": "1.53",
+          "before": "3.52",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 1.5257971492055447
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/corrected/unweighted/bc",
+      "evidence": [
+        "checked 2 bins",
+        "family Fit_Pars_from_3D_BC_RC_Bayesian cells 452",
+        "overlays 3"
+      ],
+      "fit": "physics_campaign/corrected/unweighted/bc/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/corrected/unweighted/bc/refinement_note.json",
+      "overlay_count": 3,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/corrected/unweighted/bc/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.44",
+          "before": "",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.443352234181324
+        },
+        {
+          "after": "1.13",
+          "before": "",
+          "bin": "(Q2_y_Bin_15)-(z_pT_Bin_15)",
+          "stored_reduced_chi2": 1.133846831918611
+        },
+        {
+          "after": "2.97",
+          "before": "",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_29)",
+          "stored_reduced_chi2": 2.964937474793781
+        },
+        {
+          "after": "1.94",
+          "before": "",
+          "bin": "(Q2_y_Bin_11)-(z_pT_Bin_20)",
+          "stored_reduced_chi2": 1.9378536482942026
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/corrected/unweighted/rc",
+      "evidence": [
+        "checked 4 bins",
+        "family Fit_Pars_from_3D_RC_Bayesian cells 452",
+        "overlays 7"
+      ],
+      "fit": "physics_campaign/corrected/unweighted/rc/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/corrected/unweighted/rc/refinement_note.json",
+      "overlay_count": 7,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/corrected/unweighted/rc/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.919",
+          "before": "12.3",
+          "bin": "(Q2_y_Bin_17)-(z_pT_Bin_23)",
+          "stored_reduced_chi2": 2.91899470904803
+        },
+        {
+          "after": "3.629",
+          "before": "12.9",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 3.629426894738923
+        },
+        {
+          "after": "2.226",
+          "before": "7.79",
+          "bin": "(Q2_y_Bin_17)-(z_pT_Bin_27)",
+          "stored_reduced_chi2": 2.226305491031075
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/acceptance_reweighting/AccSpline",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/acceptance_reweighting/AccSpline/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/acceptance_reweighting/AccSpline/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/acceptance_reweighting/AccSpline/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.51",
+          "before": "25.76",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.507304915342158
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/acceptance_threshold/Acc015",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/acceptance_threshold/Acc015/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/acceptance_threshold/Acc015/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/acceptance_threshold/Acc015/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.588",
+          "before": "17.8",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.587789826092027
+        },
+        {
+          "after": "1.408",
+          "before": "14.78",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4084230230788157
+        },
+        {
+          "after": "1.926",
+          "before": "12.57",
+          "bin": "(Q2_y_Bin_11)-(z_pT_Bin_9)",
+          "stored_reduced_chi2": 1.9256266790208996
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/acceptance_threshold/Acc025",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/acceptance_threshold/Acc025/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/acceptance_threshold/Acc025/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/acceptance_threshold/Acc025/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.66",
+          "before": "18.22",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.659893359587393
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/bayes_iteration/BayesMinus1",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/bayes_iteration/BayesMinus1/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/bayes_iteration/BayesMinus1/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/bayes_iteration/BayesMinus1/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.547",
+          "before": "17.59",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.547492433694632
+        },
+        {
+          "after": "1.387",
+          "before": "14.58",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.3872758776587546
+        },
+        {
+          "after": "1.5",
+          "before": "8.51",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.4999043839635582
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/bayes_iteration/BayesPlus1",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/bayes_iteration/BayesPlus1/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/bayes_iteration/BayesPlus1/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/bayes_iteration/BayesPlus1/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.589",
+          "before": "17.89",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.5893619769814653
+        },
+        {
+          "after": "2.073",
+          "before": "5.36",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.073314124608368
+        },
+        {
+          "after": "2.212",
+          "before": "5.28",
+          "bin": "(Q2_y_Bin_4)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 2.2121502260655155
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/chi2_strict_pip/chi2_strict_pip",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/chi2_strict_pip/chi2_strict_pip/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/chi2_strict_pip/chi2_strict_pip/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/chi2_strict_pip/chi2_strict_pip/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.49",
+          "before": "17.07",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.485853320995429
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/correction_method/BinByBin",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bin cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/correction_method/BinByBin/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/correction_method/BinByBin/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/correction_method/BinByBin/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.59",
+          "before": "17.80",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.587807310594331
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dcfid_el/loose",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dcfid_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dcfid_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dcfid_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.59",
+          "before": "17.80",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.587807310594331
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dcfid_el/tight",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dcfid_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dcfid_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dcfid_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.547",
+          "before": "27.11",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.5473232539406545
+        },
+        {
+          "after": "1.382",
+          "before": "14.46",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.382256798504844
+        },
+        {
+          "after": "2.262",
+          "before": "7.04",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.2619909552177297
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dcfid_pip/loose",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dcfid_pip/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dcfid_pip/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dcfid_pip/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.539",
+          "before": "17.4",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.5391883829137303
+        },
+        {
+          "after": "1.327",
+          "before": "14.48",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.3267039647416448
+        },
+        {
+          "after": "1.902",
+          "before": "10.15",
+          "bin": "(Q2_y_Bin_11)-(z_pT_Bin_9)",
+          "stored_reduced_chi2": 1.901649157553637
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dcfid_pip/tight",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dcfid_pip/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dcfid_pip/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dcfid_pip/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.72",
+          "before": "17.67",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.7233903479321075
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dcfidref_el/loose",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dcfidref_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dcfidref_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dcfidref_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.626",
+          "before": "16.72",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.625582281575432
+        },
+        {
+          "after": "1.448",
+          "before": "14.04",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4481349463625781
+        },
+        {
+          "after": "1.704",
+          "before": "12.02",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.704167599430168
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dcfidref_el/tight",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dcfidref_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dcfidref_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dcfidref_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.53",
+          "before": "16.26",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.526843896641562
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dcv_el/loose",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dcv_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dcv_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dcv_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.574",
+          "before": "17.03",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.574030284565285
+        },
+        {
+          "after": "1.384",
+          "before": "15.08",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.384345829297155
+        },
+        {
+          "after": "1.475",
+          "before": "7.22",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.4754766520817462
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dcv_el/tight",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dcv_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dcv_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dcv_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.66",
+          "before": "18.37",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.661858315821029
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dvz_pip/loose",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dvz_pip/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dvz_pip/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dvz_pip/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.581",
+          "before": "17.31",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.580507252525352
+        },
+        {
+          "after": "1.441",
+          "before": "16.03",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4406962600005242
+        },
+        {
+          "after": "1.575",
+          "before": "8.89",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.575197153280473
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/dvz_pip/tight",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/dvz_pip/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/dvz_pip/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/dvz_pip/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.56",
+          "before": "17.50",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.5561244369165177
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/ecband_el/loose",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/ecband_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/ecband_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/ecband_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.559",
+          "before": "18.32",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.5587428289490757
+        },
+        {
+          "after": "1.386",
+          "before": "15.2",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.3859479397226055
+        },
+        {
+          "after": "1.565",
+          "before": "8.99",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.5649456400383621
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/ecband_el/tight",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/ecband_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/ecband_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/ecband_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.58",
+          "before": "17.29",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.583922407009634
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/ecthr_el/loose",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/ecthr_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/ecthr_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/ecthr_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.515",
+          "before": "17.66",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.515473940941538
+        },
+        {
+          "after": "1.433",
+          "before": "16.41",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4327500338524564
+        },
+        {
+          "after": "1.541",
+          "before": "7.45",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.5407851202368907
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/ecthr_el/tight",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/ecthr_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/ecthr_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/ecthr_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.98",
+          "before": "5.67",
+          "bin": "(Q2_y_Bin_6)-(z_pT_Bin_23)",
+          "stored_reduced_chi2": 1.9813537955691578
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/electron_sector/eS1o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 418",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/electron_sector/eS1o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/electron_sector/eS1o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/electron_sector/eS1o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.232",
+          "before": "18.11",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_10)",
+          "stored_reduced_chi2": 2.232381492820781
+        },
+        {
+          "after": "2.131",
+          "before": "8.74",
+          "bin": "(Q2_y_Bin_9)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 2.1306008623015114
+        },
+        {
+          "after": "1.477",
+          "before": "6.7",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 1.477052889868284
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/electron_sector/eS2o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 420",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/electron_sector/eS2o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/electron_sector/eS2o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/electron_sector/eS2o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.30",
+          "before": "5.74",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 1.300338412724868
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/electron_sector/eS3o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 422",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/electron_sector/eS3o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/electron_sector/eS3o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/electron_sector/eS3o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.928",
+          "before": "6.46",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_13)",
+          "stored_reduced_chi2": 1.9280142736376114
+        },
+        {
+          "after": "1.36",
+          "before": "5.65",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 1.3599029931918711
+        },
+        {
+          "after": "1.57",
+          "before": "5.43",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 1.5701113674605807
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/electron_sector/eS4o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 421",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/electron_sector/eS4o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/electron_sector/eS4o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/electron_sector/eS4o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "0.78",
+          "before": "5.12",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 0.7843378765573223
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/electron_sector/eS5o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 421",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/electron_sector/eS5o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/electron_sector/eS5o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/electron_sector/eS5o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "0.466",
+          "before": "4.62",
+          "bin": "(Q2_y_Bin_7)-(z_pT_Bin_22)",
+          "stored_reduced_chi2": 0.4661448900842416
+        },
+        {
+          "after": "0.998",
+          "before": "5.14",
+          "bin": "(Q2_y_Bin_7)-(z_pT_Bin_34)",
+          "stored_reduced_chi2": 0.9979771025636218
+        },
+        {
+          "after": "1.091",
+          "before": "4.46",
+          "bin": "(Q2_y_Bin_15)-(z_pT_Bin_14)",
+          "stored_reduced_chi2": 1.090636361058296
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/electron_sector/eS6o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 421",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/electron_sector/eS6o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/electron_sector/eS6o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/electron_sector/eS6o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.63",
+          "before": "19.04",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.626926511035319
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/noSmear/noSmear",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/noSmear/noSmear/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/noSmear/noSmear/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/noSmear/noSmear/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.154",
+          "before": "33.46",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 2.15426732038886
+        },
+        {
+          "after": "1.782",
+          "before": "6.44",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_2)",
+          "stored_reduced_chi2": 1.7824766644459555
+        },
+        {
+          "after": "2.813",
+          "before": "7.16",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.8132577647934656
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/no_pip_testdc/no_pip_testdc",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/no_pip_testdc/no_pip_testdc/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/no_pip_testdc/no_pip_testdc/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/no_pip_testdc/no_pip_testdc/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.42",
+          "before": "14.80",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4172448607052262
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/no_sector_pcal/no_sector_pcal",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/no_sector_pcal/no_sector_pcal/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/no_sector_pcal/no_sector_pcal/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/no_sector_pcal/no_sector_pcal/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.797",
+          "before": "19.54",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.7970147579922955
+        },
+        {
+          "after": "1.417",
+          "before": "14.8",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4172506883803742
+        },
+        {
+          "after": "1.653",
+          "before": "8.96",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.652646259519885
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/no_valerii_knockout/no_valerii_knockout",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/no_valerii_knockout/no_valerii_knockout/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/no_valerii_knockout/no_valerii_knockout/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/no_valerii_knockout/no_valerii_knockout/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.43",
+          "before": "1.89",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 1.4291841838557597
+        },
+        {
+          "after": "1.89",
+          "before": "6.86",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 1.8934084952924692
+        },
+        {
+          "after": "1.42",
+          "before": "14.80",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.41725068964806
+        },
+        {
+          "after": "2.57",
+          "before": "4.52",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_24)",
+          "stored_reduced_chi2": 2.565974191944141
+        },
+        {
+          "after": "3.71",
+          "before": "7.16",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_29)",
+          "stored_reduced_chi2": 3.7129024117715885
+        },
+        {
+          "after": "0.78",
+          "before": "2.26",
+          "bin": "(Q2_y_Bin_4)-(z_pT_Bin_33)",
+          "stored_reduced_chi2": 0.7810619086428393
+        },
+        {
+          "after": "1.26",
+          "before": "5.43",
+          "bin": "(Q2_y_Bin_4)-(z_pT_Bin_34)",
+          "stored_reduced_chi2": 1.2640868103743514
+        },
+        {
+          "after": "1.31",
+          "before": "1.92",
+          "bin": "(Q2_y_Bin_5)-(z_pT_Bin_31)",
+          "stored_reduced_chi2": 1.3099557902608365
+        },
+        {
+          "after": "1.20",
+          "before": "2.15",
+          "bin": "(Q2_y_Bin_6)-(z_pT_Bin_1)",
+          "stored_reduced_chi2": 1.2042029679510748
+        },
+        {
+          "after": "1.71",
+          "before": "2.59",
+          "bin": "(Q2_y_Bin_7)-(z_pT_Bin_10)",
+          "stored_reduced_chi2": 1.7075416844717395
+        },
+        {
+          "after": "1.39",
+          "before": "2.64",
+          "bin": "(Q2_y_Bin_7)-(z_pT_Bin_21)",
+          "stored_reduced_chi2": 1.3869661084185045
+        },
+        {
+          "after": "2.69",
+          "before": "4.11",
+          "bin": "(Q2_y_Bin_9)-(z_pT_Bin_7)",
+          "stored_reduced_chi2": 2.694479745086414
+        },
+        {
+          "after": "2.02",
+          "before": "3.26",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_8)",
+          "stored_reduced_chi2": 2.019649716694088
+        },
+        {
+          "after": "1.56",
+          "before": "8.70",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.559586685901486
+        },
+        {
+          "after": "1.31",
+          "before": "2.67",
+          "bin": "(Q2_y_Bin_11)-(z_pT_Bin_3)",
+          "stored_reduced_chi2": 1.3063818159112102
+        },
+        {
+          "after": "2.55",
+          "before": "3.55",
+          "bin": "(Q2_y_Bin_11)-(z_pT_Bin_20)",
+          "stored_reduced_chi2": 2.546179125068368
+        },
+        {
+          "after": "4.26",
+          "before": "5.17",
+          "bin": "(Q2_y_Bin_12)-(z_pT_Bin_24)",
+          "stored_reduced_chi2": 4.259375984035991
+        },
+        {
+          "after": "2.59",
+          "before": "17.80",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.587807310459102
+        },
+        {
+          "after": "2.26",
+          "before": "6.73",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.2641857978899993
+        },
+        {
+          "after": "1.17",
+          "before": "3.28",
+          "bin": "(Q2_y_Bin_15)-(z_pT_Bin_15)",
+          "stored_reduced_chi2": 1.17260634188089
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/nominal/nominal",
+      "evidence": [
+        "checked 20 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/nominal/nominal/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/nominal/nominal/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/nominal/nominal/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.588",
+          "before": "17.79",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.5876956095892356
+        },
+        {
+          "after": "1.164",
+          "before": "15.69",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.1638433983139018
+        },
+        {
+          "after": "1.56",
+          "before": "8.7",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.559596259297097
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/pcalvol/loose",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/pcalvol/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/pcalvol/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/pcalvol/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.59",
+          "before": "17.80",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.58777538742342
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/pcalvol/tight",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/pcalvol/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/pcalvol/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/pcalvol/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.949",
+          "before": "49.21",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_18)",
+          "stored_reduced_chi2": 1.9486515536553068
+        },
+        {
+          "after": "4.512",
+          "before": "20.91",
+          "bin": "(Q2_y_Bin_9)-(z_pT_Bin_14)",
+          "stored_reduced_chi2": 4.511833526304129
+        },
+        {
+          "after": "8.712",
+          "before": "22.04",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_14)",
+          "stored_reduced_chi2": 8.711649328362315
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/phi_bins/Phi12",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/phi_bins/Phi12/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/phi_bins/Phi12/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/phi_bins/Phi12/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "0.47",
+          "before": "6.14",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 0.4699196882078637
+        },
+        {
+          "after": "2.499",
+          "before": "7.62",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_23)",
+          "stored_reduced_chi2": 2.4986558142339255
+        },
+        {
+          "after": "2.018",
+          "before": "6.12",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 2.0183846125592413
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/pion_sector/pipS1o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 421",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/pion_sector/pipS1o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/pion_sector/pipS1o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/pion_sector/pipS1o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.20",
+          "before": "6.88",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 1.2042959057968794
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/pion_sector/pipS2o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 421",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/pion_sector/pipS2o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/pion_sector/pipS2o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/pion_sector/pipS2o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.054",
+          "before": "4.77",
+          "bin": "(Q2_y_Bin_2)-(z_pT_Bin_6)",
+          "stored_reduced_chi2": 1.0541591162466568
+        },
+        {
+          "after": "0.593",
+          "before": "3.2",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 0.5931997577450359
+        },
+        {
+          "after": "1.204",
+          "before": "3.29",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_14)",
+          "stored_reduced_chi2": 1.203548237922268
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/pion_sector/pipS3o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 421",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/pion_sector/pipS3o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/pion_sector/pipS3o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/pion_sector/pipS3o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.35",
+          "before": "20.60",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_10)",
+          "stored_reduced_chi2": 1.3526344937368113
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/pion_sector/pipS4o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 420",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/pion_sector/pipS4o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/pion_sector/pipS4o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/pion_sector/pipS4o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.501",
+          "before": "6.42",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_29)",
+          "stored_reduced_chi2": 1.5008703630994211
+        },
+        {
+          "after": "0.798",
+          "before": "5.63",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 0.797732834698057
+        },
+        {
+          "after": "1.316",
+          "before": "5.95",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_13)",
+          "stored_reduced_chi2": 1.3161752714374004
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/pion_sector/pipS5o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 420",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/pion_sector/pipS5o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/pion_sector/pipS5o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/pion_sector/pipS5o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.88",
+          "before": "14.81",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 1.8831146326731616
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/pion_sector/pipS6o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 423",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/pion_sector/pipS6o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/pion_sector/pipS6o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/pion_sector/pipS6o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.32",
+          "before": "16.23",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_4)",
+          "stored_reduced_chi2": 2.3180219954141914
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/spline/rho0_subtraction/NoRho0",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/spline/rho0_subtraction/NoRho0/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/spline/rho0_subtraction/NoRho0/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/spline/rho0_subtraction/NoRho0/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "3.95",
+          "before": "15.59",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_29)",
+          "stored_reduced_chi2": 3.953110743285721
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/acceptance_reweighting/Acc",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/acceptance_reweighting/Acc/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/acceptance_reweighting/Acc/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/acceptance_reweighting/Acc/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.66",
+          "before": "26.08",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.6603327460156438
+        },
+        {
+          "after": "0.942",
+          "before": "5.51",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 0.9423806765800963
+        },
+        {
+          "after": "2.232",
+          "before": "6.77",
+          "bin": "(Q2_y_Bin_2)-(z_pT_Bin_3)",
+          "stored_reduced_chi2": 2.232349192775937
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/acceptance_threshold/Acc015",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/acceptance_threshold/Acc015/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/acceptance_threshold/Acc015/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/acceptance_threshold/Acc015/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.43",
+          "before": "16.16",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4285262056633725
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/acceptance_threshold/Acc025",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/acceptance_threshold/Acc025/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/acceptance_threshold/Acc025/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/acceptance_threshold/Acc025/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.481",
+          "before": "16.75",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4810495741096779
+        },
+        {
+          "after": "1.769",
+          "before": "9.17",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.7692548804928574
+        },
+        {
+          "after": "2.548",
+          "before": "6.87",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.5478812534757873
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/bayes_iteration/BayesMinus1",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/bayes_iteration/BayesMinus1/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/bayes_iteration/BayesMinus1/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/bayes_iteration/BayesMinus1/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.41",
+          "before": "15.90",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4060175290052837
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/bayes_iteration/BayesPlus1",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/bayes_iteration/BayesPlus1/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/bayes_iteration/BayesPlus1/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/bayes_iteration/BayesPlus1/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.35",
+          "before": "12.84",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 2.350941091769436
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/chi2_strict_pip/chi2_strict_pip",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/chi2_strict_pip/chi2_strict_pip/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/chi2_strict_pip/chi2_strict_pip/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/chi2_strict_pip/chi2_strict_pip/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.529",
+          "before": "14.04",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.5290900044340643
+        },
+        {
+          "after": "2.306",
+          "before": "9.29",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_8)",
+          "stored_reduced_chi2": 2.3063663817171474
+        },
+        {
+          "after": "0.685",
+          "before": "4.34",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_2)",
+          "stored_reduced_chi2": 0.685094772015181
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/correction_method/BinByBin",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bin cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/correction_method/BinByBin/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/correction_method/BinByBin/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/correction_method/BinByBin/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.435",
+          "before": "16.22",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4350583244139932
+        },
+        {
+          "after": "1.652",
+          "before": "8.53",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.6519246697247256
+        },
+        {
+          "after": "2.517",
+          "before": "6.77",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.517137682364841
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dcfid_el/loose",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dcfid_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dcfid_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dcfid_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.435",
+          "before": "16.22",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4350583244139932
+        },
+        {
+          "after": "1.652",
+          "before": "8.53",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.6519246697247256
+        },
+        {
+          "after": "2.517",
+          "before": "6.77",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.517137682364841
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dcfid_el/tight",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dcfid_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dcfid_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dcfid_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.66",
+          "before": "26.39",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.6644717939664253
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dcfid_pip/loose",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dcfid_pip/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dcfid_pip/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dcfid_pip/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.29",
+          "before": "15.70",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.286256650137208
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dcfid_pip/tight",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dcfid_pip/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dcfid_pip/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dcfid_pip/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.72",
+          "before": "23.85",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.7198458358182662
+        },
+        {
+          "after": "1.739",
+          "before": "18.89",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.7389767203164168
+        },
+        {
+          "after": "1.343",
+          "before": "11.29",
+          "bin": "(Q2_y_Bin_4)-(z_pT_Bin_34)",
+          "stored_reduced_chi2": 1.342594092254779
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dcfidref_el/loose",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dcfidref_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dcfidref_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dcfidref_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.45",
+          "before": "15.57",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.446102286493022
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dcfidref_el/tight",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dcfidref_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dcfidref_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dcfidref_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.776",
+          "before": "28.82",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.7757974738578721
+        },
+        {
+          "after": "1.394",
+          "before": "15.88",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.3936086137947035
+        },
+        {
+          "after": "2.396",
+          "before": "6.17",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.3957730576322467
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dcv_el/loose",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dcv_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dcv_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dcv_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.36",
+          "before": "16.55",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.3621868076560726
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dcv_el/tight",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dcv_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dcv_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dcv_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.413",
+          "before": "15.64",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.412644090775775
+        },
+        {
+          "after": "1.58",
+          "before": "8.12",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.5796781952562466
+        },
+        {
+          "after": "2.456",
+          "before": "6.61",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.455622976250086
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dimension/5D",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_5D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dimension/5D/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dimension/5D/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dimension/5D/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.415",
+          "before": "15.95",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4145499808943078
+        },
+        {
+          "after": "1.643",
+          "before": "8.27",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.6430165814386761
+        },
+        {
+          "after": "2.555",
+          "before": "6.6",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.554955937317399
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dvz_pip/loose",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dvz_pip/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dvz_pip/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dvz_pip/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.46",
+          "before": "17.48",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.460254067751321
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/dvz_pip/tight",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/dvz_pip/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/dvz_pip/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/dvz_pip/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.432",
+          "before": "15.84",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4319181272491068
+        },
+        {
+          "after": "1.703",
+          "before": "8.94",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.702869332607105
+        },
+        {
+          "after": "2.531",
+          "before": "6.76",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.531169731717872
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/ecband_el/loose",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/ecband_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/ecband_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/ecband_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.40",
+          "before": "16.64",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4031338332077645
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/ecband_el/tight",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/ecband_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/ecband_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/ecband_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.442",
+          "before": "16.21",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.441583498511502
+        },
+        {
+          "after": "1.667",
+          "before": "8.55",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.6667687757236749
+        },
+        {
+          "after": "2.524",
+          "before": "6.52",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.523755553979058
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/ecthr_el/loose",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/ecthr_el/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/ecthr_el/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/ecthr_el/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.47",
+          "before": "17.96",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4683562977338354
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/ecthr_el/tight",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/ecthr_el/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/ecthr_el/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/ecthr_el/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.294",
+          "before": "12.11",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_10)",
+          "stored_reduced_chi2": 2.2937011617704135
+        },
+        {
+          "after": "2.119",
+          "before": "8.53",
+          "bin": "(Q2_y_Bin_6)-(z_pT_Bin_23)",
+          "stored_reduced_chi2": 2.118958369391338
+        },
+        {
+          "after": "1.168",
+          "before": "6.14",
+          "bin": "(Q2_y_Bin_15)-(z_pT_Bin_24)",
+          "stored_reduced_chi2": 1.1676169419950961
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/electron_sector/eS1o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 422",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/electron_sector/eS1o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/electron_sector/eS1o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/electron_sector/eS1o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.07",
+          "before": "9.60",
+          "bin": "(Q2_y_Bin_9)-(z_pT_Bin_19)",
+          "stored_reduced_chi2": 2.0674618014361643
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/electron_sector/eS2o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 424",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/electron_sector/eS2o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/electron_sector/eS2o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/electron_sector/eS2o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.776",
+          "before": "13.67",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_10)",
+          "stored_reduced_chi2": 2.776378010599639
+        },
+        {
+          "after": "1.461",
+          "before": "5.88",
+          "bin": "(Q2_y_Bin_6)-(z_pT_Bin_23)",
+          "stored_reduced_chi2": 1.4612822715643212
+        },
+        {
+          "after": "1.015",
+          "before": "4.89",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.015304342835662
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/electron_sector/eS3o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 426",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/electron_sector/eS3o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/electron_sector/eS3o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/electron_sector/eS3o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.58",
+          "before": "5.38",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 1.5812386592064565
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/electron_sector/eS4o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 424",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/electron_sector/eS4o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/electron_sector/eS4o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/electron_sector/eS4o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "0.793",
+          "before": "5.37",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 0.7931192646227756
+        },
+        {
+          "after": "1.207",
+          "before": "4.36",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_13)",
+          "stored_reduced_chi2": 1.2073790463769285
+        },
+        {
+          "after": "1.452",
+          "before": "4.52",
+          "bin": "(Q2_y_Bin_9)-(z_pT_Bin_32)",
+          "stored_reduced_chi2": 1.452047128314972
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/electron_sector/eS5o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 424",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/electron_sector/eS5o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/electron_sector/eS5o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/electron_sector/eS5o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.44",
+          "before": "12.06",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_23)",
+          "stored_reduced_chi2": 1.4374571397080875
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/electron_sector/eS6o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 424",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/electron_sector/eS6o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/electron_sector/eS6o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/electron_sector/eS6o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.419",
+          "before": "13.99",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4194501472529106
+        },
+        {
+          "after": "1.752",
+          "before": "10.29",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.7524938769728602
+        },
+        {
+          "after": "2.388",
+          "before": "6.86",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.3879086844363426
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/noSmear/noSmear",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/noSmear/noSmear/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/noSmear/noSmear/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/noSmear/noSmear/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.34",
+          "before": "33.94",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 2.3414113923132596
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/no_pip_testdc/no_pip_testdc",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/no_pip_testdc/no_pip_testdc/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/no_pip_testdc/no_pip_testdc/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/no_pip_testdc/no_pip_testdc/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.62",
+          "before": "26.39",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.6203609208556289
+        },
+        {
+          "after": "1.435",
+          "before": "16.22",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4350520346202753
+        },
+        {
+          "after": "2.399",
+          "before": "5.56",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.39865010443199
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/no_sector_pcal/no_sector_pcal",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/no_sector_pcal/no_sector_pcal/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/no_sector_pcal/no_sector_pcal/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/no_sector_pcal/no_sector_pcal/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.44",
+          "before": "16.22",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4350583239612256
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/no_valerii_knockout/no_valerii_knockout",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/no_valerii_knockout/no_valerii_knockout/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/no_valerii_knockout/no_valerii_knockout/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/no_valerii_knockout/no_valerii_knockout/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.44",
+          "before": "16.22",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.4350583244078452
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/nominal/nominal",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/nominal/nominal/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/nominal/nominal/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/nominal/nominal/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.24",
+          "before": "17.28",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.2437017608939305
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/pcalvol/loose",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/pcalvol/loose/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/pcalvol/loose/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/pcalvol/loose/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.484",
+          "before": "9.62",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.483962301722154
+        },
+        {
+          "after": "1.245",
+          "before": "9.28",
+          "bin": "(Q2_y_Bin_4)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 1.245110583732693
+        },
+        {
+          "after": "1.661",
+          "before": "8.41",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.6609982716190066
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/pcalvol/tight",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/pcalvol/tight/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/pcalvol/tight/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/pcalvol/tight/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "4.61",
+          "before": "47.52",
+          "bin": "(Q2_y_Bin_9)-(z_pT_Bin_14)",
+          "stored_reduced_chi2": 4.613563214153337
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/phi_bins/Phi12",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/phi_bins/Phi12/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/phi_bins/Phi12/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/phi_bins/Phi12/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.49",
+          "before": "10.44",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_23)",
+          "stored_reduced_chi2": 2.487738317334948
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/pion_sector/pipS1o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 425",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/pion_sector/pipS1o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/pion_sector/pipS1o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/pion_sector/pipS1o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.191",
+          "before": "7.67",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 1.1906578051009042
+        },
+        {
+          "after": "0.929",
+          "before": "5.28",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 0.9294842138663435
+        },
+        {
+          "after": "1.748",
+          "before": "5.79",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_11)",
+          "stored_reduced_chi2": 1.7482867211986484
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/pion_sector/pipS2o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 423",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/pion_sector/pipS2o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/pion_sector/pipS2o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/pion_sector/pipS2o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.01",
+          "before": "4.44",
+          "bin": "(Q2_y_Bin_15)-(z_pT_Bin_24)",
+          "stored_reduced_chi2": 2.0050590459241544
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/pion_sector/pipS3o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 425",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/pion_sector/pipS3o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/pion_sector/pipS3o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/pion_sector/pipS3o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "2.055",
+          "before": "8.91",
+          "bin": "(Q2_y_Bin_1)-(z_pT_Bin_13)",
+          "stored_reduced_chi2": 2.0550376068212515
+        },
+        {
+          "after": "1.174",
+          "before": "6.21",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.1736496990868557
+        },
+        {
+          "after": "2.418",
+          "before": "6.53",
+          "bin": "(Q2_y_Bin_9)-(z_pT_Bin_32)",
+          "stored_reduced_chi2": 2.4180273945050246
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/pion_sector/pipS4o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 421",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/pion_sector/pipS4o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/pion_sector/pipS4o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/pion_sector/pipS4o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.56",
+          "before": "8.12",
+          "bin": "(Q2_y_Bin_10)-(z_pT_Bin_23)",
+          "stored_reduced_chi2": 1.5607685765723924
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/pion_sector/pipS5o",
+      "evidence": [
+        "checked 1 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 425",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/pion_sector/pipS5o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/pion_sector/pipS5o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/pion_sector/pipS5o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.588",
+          "before": "14.23",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_28)",
+          "stored_reduced_chi2": 1.5884727173870832
+        },
+        {
+          "after": "2.692",
+          "before": "11.2",
+          "bin": "(Q2_y_Bin_13)-(z_pT_Bin_10)",
+          "stored_reduced_chi2": 2.6922254441058513
+        },
+        {
+          "after": "1.345",
+          "before": "9.12",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_17)",
+          "stored_reduced_chi2": 1.3450476607019546
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/pion_sector/pipS6o",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 425",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/pion_sector/pipS6o/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/pion_sector/pipS6o/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/pion_sector/pipS6o/refine_init.py",
+      "validated": true
+    },
+    {
+      "checked": [
+        {
+          "after": "1.631",
+          "before": "11.36",
+          "bin": "(Q2_y_Bin_3)-(z_pT_Bin_16)",
+          "stored_reduced_chi2": 1.6314669565562772
+        },
+        {
+          "after": "1.41",
+          "before": "6.51",
+          "bin": "(Q2_y_Bin_11)-(z_pT_Bin_3)",
+          "stored_reduced_chi2": 1.4104504994125384
+        },
+        {
+          "after": "2.638",
+          "before": "5.37",
+          "bin": "(Q2_y_Bin_14)-(z_pT_Bin_5)",
+          "stored_reduced_chi2": 2.637607926357692
+        }
+      ],
+      "classification": "verified",
+      "directory": "physics_campaign/fits/unweighted/rho0_subtraction/NoRho0",
+      "evidence": [
+        "checked 3 bins",
+        "family Fit_Pars_from_3D_Bayesian cells 452",
+        "overlays 0"
+      ],
+      "fit": "physics_campaign/fits/unweighted/rho0_subtraction/NoRho0/fit.json",
+      "minimum_check": "",
+      "note": "physics_campaign/fits/unweighted/rho0_subtraction/NoRho0/refinement_note.json",
+      "overlay_count": 0,
+      "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+      "refine_init": "physics_campaign/fits/unweighted/rho0_subtraction/NoRho0/refine_init.py",
+      "validated": true
+    }
+  ]
+}

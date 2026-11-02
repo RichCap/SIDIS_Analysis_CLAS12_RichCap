@@ -1,7 +1,7 @@
 {
     "Fit_Pars_from_1D_Bin": {},
     "Meta_Data_of_Last_Run": {
-        "Start_Time": "Ran on \u001b[1m11-1-2026\u001b[0m at \u001b[1m07:55 p.m.\u001b[0m",
+        "Start_Time": "Ran on \u001b[1m11-2-2026\u001b[0m at \u001b[1m05:39 a.m.\u001b[0m",
         "test": false,
         "verbose": false,
         "no_smear": false,
@@ -33,7 +33,7 @@
         "EvGen": false,
         "Min_Allowed_Acceptance_Cut": 0.02,
         "email": false,
-        "email_message": "\n\u001b[1m\u001b[96mDone Saving JSON File.\u001b[0m\nTime Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 28 Second(s). \n\u001b[1m\u001b[96mDone Saving JSON File.\u001b[0m\nTime Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 28 Second(s). ",
+        "email_message": "\n\u001b[1m\u001b[96mDone Saving JSON File.\u001b[0m\nTime Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 16 Second(s). \n\u001b[1m\u001b[96mDone Saving JSON File.\u001b[0m\nTime Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 16 Second(s). ",
         "single_file_input": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/fits/spline/correction_method/BinByBin/fit_copy.root",
         "root": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/fits/spline/correction_method/BinByBin/fit_copy.root",
         "Use_TTree": true,
@@ -53,14 +53,10 @@
         "pass_version": "Pass 2",
         "smearing_options": "smear",
         "Q2_y_Bin_List": [
+            "1",
             "3",
-            "4",
-            "5",
-            "7",
-            "10",
-            "13",
-            "14",
-            "15",
+            "12",
+            "16",
             "0"
         ],
         "Run_5D_Unfold": false,
@@ -271,14 +267,14 @@
             "Fit_Par_C_ERR": 0.007029249920137592
         },
         "(Q2_y_Bin_1)-(z_pT_Bin_22)": {
-            "Fit_Par_A": 27503.36940736172,
-            "Fit_Par_A_ERR": 151.03515310321745,
-            "Chi2": 25.42626090256964,
+            "Fit_Par_A": 28246.618583132644,
+            "Fit_Par_A_ERR": 281.75457237903356,
+            "Chi2": 15.662099195822915,
             "NDF": 15.0,
-            "Fit_Par_B": -0.07913726041620939,
-            "Fit_Par_B_ERR": 0.009582198692467979,
-            "Fit_Par_C": -0.012500001503187495,
-            "Fit_Par_C_ERR": 0.0016679985265738032
+            "Fit_Par_B": -0.0378157205864672,
+            "Fit_Par_B_ERR": 0.014057958793644682,
+            "Fit_Par_C": 0.019945707352558937,
+            "Fit_Par_C_ERR": 0.014206457603181951
         },
         "(Q2_y_Bin_1)-(z_pT_Bin_23)": {
             "Fit_Par_A": 28356.132211457953,
@@ -921,14 +917,14 @@
             "Fit_Par_C_ERR": 0.003644844552116535
         },
         "(Q2_y_Bin_12)-(z_pT_Bin_7)": {
-            "Fit_Par_A": 7906.495857887796,
-            "Fit_Par_A_ERR": 65.66065107815075,
-            "Chi2": 33.99540781228805,
+            "Fit_Par_A": 7903.7231113411935,
+            "Fit_Par_A_ERR": 65.66419692139289,
+            "Chi2": 19.015391847713396,
             "NDF": 21.0,
-            "Fit_Par_B": -0.020312700114369055,
-            "Fit_Par_B_ERR": 0.0015207113037120149,
-            "Fit_Par_C": -0.01646361613453722,
-            "Fit_Par_C_ERR": 0.0119049783245389
+            "Fit_Par_B": -0.06770437555787723,
+            "Fit_Par_B_ERR": 0.011989142243599774,
+            "Fit_Par_C": -0.019219883307029437,
+            "Fit_Par_C_ERR": 0.014156018470305745
         },
         "(Q2_y_Bin_12)-(z_pT_Bin_8)": {
             "Fit_Par_A": 8457.937254903338,
@@ -1931,14 +1927,14 @@
             "Fit_Par_C_ERR": 0.008391615610518047
         },
         "(Q2_y_Bin_16)-(z_pT_Bin_12)": {
-            "Fit_Par_A": 4184.508825764319,
-            "Fit_Par_A_ERR": 29.639756764948288,
-            "Chi2": 39.36980535027829,
+            "Fit_Par_A": 4198.615339295862,
+            "Fit_Par_A_ERR": 29.920591887496812,
+            "Chi2": 27.470294789707925,
             "NDF": 21.0,
-            "Fit_Par_B": -0.33865692498273675,
-            "Fit_Par_B_ERR": 0.01077725479787947,
-            "Fit_Par_C": 0.05999999979932171,
-            "Fit_Par_C_ERR": 0.0015052009459288924
+            "Fit_Par_B": -0.33652910069225717,
+            "Fit_Par_B_ERR": 0.010756209170561082,
+            "Fit_Par_C": 0.09615989072003159,
+            "Fit_Par_C_ERR": 0.010368231044012265
         },
         "(Q2_y_Bin_16)-(z_pT_Bin_13)": {
             "Fit_Par_A": 11412.539122556956,
@@ -2641,14 +2637,14 @@
             "Fit_Par_C_ERR": 0.008757941481243786
         },
         "(Q2_y_Bin_3)-(z_pT_Bin_2)": {
-            "Fit_Par_A": 11358.425627715524,
-            "Fit_Par_A_ERR": 91.35842508902442,
-            "Chi2": 29.916350882904574,
+            "Fit_Par_A": 11302.67855495425,
+            "Fit_Par_A_ERR": 92.80056124339899,
+            "Chi2": 18.14185096083602,
             "NDF": 16.0,
-            "Fit_Par_B": -0.09707889524959659,
-            "Fit_Par_B_ERR": 0.0017615351274409344,
-            "Fit_Par_C": 0.03049097816904454,
-            "Fit_Par_C_ERR": 0.01046694571468024
+            "Fit_Par_B": -0.1391527929835697,
+            "Fit_Par_B_ERR": 0.012262469983748983,
+            "Fit_Par_C": 0.022244807866031995,
+            "Fit_Par_C_ERR": 0.01591631398637934
         },
         "(Q2_y_Bin_3)-(z_pT_Bin_3)": {
             "Fit_Par_A": 11631.947608151275,

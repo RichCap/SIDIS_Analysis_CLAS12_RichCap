@@ -108,12 +108,23 @@ def action_record_refinement(args):
     handle = open(args.note)
     note = json.load(handle)
     handle.close()
-    ok = phys.refinement_note_ok(note)
     plan_handle = open(args.work_plan)
     plan = json.load(plan_handle)
     plan_handle.close()
+    fit_payload = json.load(open(args.fit_json))
+    init_text = ""
+    if(os.path.isfile(args.refine_init)):
+        init_text = open(args.refine_init).read()
+    classified = phys.classify_refinement_dir(note, fit_payload, init_text, 0)
     output_dir = os.path.dirname(os.path.abspath(args.work_plan))
     registry = phys.PhysicsRegistry(output_dir)
+    label = classified["classification"]
+    if(label == "verified"):
+        status, validation, refinement_status = "completed", "ok", "refined"
+    elif(label == "unverifiable"):
+        status, validation, refinement_status = "completed_partial", "unverifiable", "unverifiable"
+    else:
+        status, validation, refinement_status = "failed", "incomplete", "incomplete"
     record = {
         "stage": "refine",
         "producer": "record_refinement",
@@ -122,15 +133,128 @@ def action_record_refinement(args):
         "variation": str(args.variation),
         "match": "%s|%s|%s" % (args.campaign, args.source, args.variation),
         "config_fingerprint": "refined",
-        "status": "completed" if(ok) else "failed",
-        "validation": "ok" if(ok) else "incomplete_note",
-        "refinement_status": "refined" if(ok) else "incomplete",
+        "status": status,
+        "validation": validation,
+        "refinement_status": refinement_status,
         "run_id": plan.get("run_id", ""),
+        "audit_reason": classified["reason"],
     }
     registry.append(record)
-    if(not ok):
-        raise SystemExit("refinement note is incomplete")
-    print(record["status"])
+    print(label)
+    if(label == "incomplete"):
+        raise SystemExit("refinement evidence is incomplete: %s" % classified["reason"])
+    if(label == "unverifiable"):
+        print("not fully validated: %s" % classified["minimum_check"])
+
+
+def action_audit_refinements(args):
+    import sidis_physics_extensions as ext
+    summary = ext.write_audit(args.output_dir, args.manifest)
+    print(json.dumps(summary, sort_keys=True))
+
+
+def action_world_comparisons(args):
+    import sidis_physics_extensions as ext
+    report = ext.world_comparison_report(args.output_dir)
+    path = os.path.join(args.output_dir, "reports", "world_comparisons.md")
+    print(ext.write_stage_report(path, report["markdown"]))
+    print(report["status"])
+    if(report["blocker"] != ""):
+        print(report["blocker"])
+
+
+def action_theory_comparisons(args):
+    import sidis_physics_extensions as ext
+    report = ext.theory_comparison_report(args.output_dir)
+    path = os.path.join(args.output_dir, "reports", "theory_comparisons.md")
+    print(ext.write_stage_report(path, report["markdown"]))
+    print(report["status"])
+
+
+def action_fixed_point_run(args):
+    if(args.enable != "yes"):
+        raise SystemExit("fixed_point_run refuses to start unless --enable yes is passed")
+    import sidis_physics_extensions as ext
+    limit = resolve_worker_count_from_args(args)
+    jobs = fixed_point_jobs_from_args(args)
+    summary = ext.run_fixed_point_pool(
+        jobs,
+        args.cache_dir,
+        args.log_dir,
+        limit["workers"],
+        phys.skill_input_fingerprint(),
+        ext.correct_py_command,
+        retry_failed=args.retry_failed,
+        timeout_s=args.timeout_s,
+    )
+    summary["clamped"] = limit["clamped"]
+    print(json.dumps(summary, sort_keys=True))
+    if((summary["failed"] > 0) or (summary["left_failed"] > 0) or (summary.get("stopped", 0) > 0)):
+        raise SystemExit("fixed-point grid is incomplete")
+
+
+def resolve_worker_count_from_args(args):
+    return phys.resolve_worker_count(args.mode, args.sf, args.workers, allow_untested=args.allow_untested)
+
+
+def fixed_point_jobs_from_args(args):
+    bins = phys.nominal_analysis_bins()
+    if(args.limit is not None):
+        bins = bins[:int(args.limit)]
+    jobs = []
+    for q2y_bin, zpt_bin in bins:
+        for phi_bin in range(1, 25):
+            jobs.append({"mode": args.mode, "sf": args.sf, "q2y": q2y_bin, "zpt": zpt_bin, "phi": phi_bin})
+    return jobs
+
+
+def action_radiative_grids(args):
+    if(args.enable != "yes"):
+        raise SystemExit("radiative_grids refuses to start unless --enable yes is passed")
+    import sidis_physics_extensions as ext
+    jobs_sf0 = []
+    jobs_sf2 = []
+    bins = phys.nominal_analysis_bins()
+    if(args.limit is not None):
+        bins = bins[:int(args.limit)]
+    for q2y_bin, zpt_bin in bins:
+        for phi_bin in range(1, 25):
+            jobs_sf0.append({"mode": "RC", "sf": 0, "q2y": q2y_bin, "zpt": zpt_bin, "phi": phi_bin})
+            jobs_sf2.append({"mode": "RC", "sf": 2, "q2y": q2y_bin, "zpt": zpt_bin, "phi": phi_bin})
+    lock_path = args.lock_path if(args.lock_path not in [None, ""]) else os.path.join(args.cache_dir, "rc_grid.lock")
+    status = ext.run_radiative_grids(
+        jobs_sf0,
+        jobs_sf2,
+        args.cache_dir,
+        args.log_dir,
+        args.workers,
+        phys.skill_input_fingerprint(),
+        ext.correct_py_command,
+        lock_path,
+        wait_for_lock=(not args.no_wait_for_lock),
+        retry_failed=args.retry_failed,
+        timeout_s=args.timeout_s,
+    )
+    print(json.dumps({"complete": status["complete"], "reason": status["reason"], "sf2_workers": status["sf2_workers"]}, sort_keys=True))
+    if(not status["complete"]):
+        raise SystemExit("radiative grids incomplete: %s" % status["reason"])
+
+
+def action_sf2_benchmark(args):
+    if(args.confirm_benchmark != "yes"):
+        raise SystemExit("sf2_benchmark refuses to start unless --confirm_benchmark yes is passed")
+    import sidis_physics_extensions as ext
+    report = ext.run_sf2_concurrency_benchmark(args.cache_dir, [1, 2, 3, 4, 5])
+    phys.write_json(args.report, report)
+    print(json.dumps({"recommended_workers": report["recommended_workers"], "report": args.report}, sort_keys=True))
+
+
+def action_thesis_plan(args):
+    import sidis_physics_extensions as ext
+    thesis_root = args.thesis_root if(args.thesis_root not in [None, ""]) else ext.THESIS_ROOT
+    text = ext.thesis_plan_markdown(args.output_dir, thesis_root)
+    path = os.path.join(args.output_dir, "reports", "SIDIS_Thesis_Integration_Plan.md")
+    print(ext.write_stage_report(path, text))
 
 
 def action_report_markdown(args):
@@ -299,7 +423,51 @@ def main():
     record_refinement.add_argument("-s", "--source", required=True)
     record_refinement.add_argument("-v", "--variation", required=True)
     record_refinement.add_argument("-n", "--note", required=True)
+    record_refinement.add_argument("-fj", "--fit_json", required=True)
+    record_refinement.add_argument("-ri", "--refine_init", required=True)
     record_refinement.set_defaults(func=action_record_refinement)
+    audit = sub.add_parser("audit_refinements")
+    audit.add_argument("-o", "--output_dir", required=True)
+    audit.add_argument("-m", "--manifest", required=True)
+    audit.set_defaults(func=action_audit_refinements)
+    world = sub.add_parser("world_comparisons")
+    world.add_argument("-o", "--output_dir", required=True)
+    world.set_defaults(func=action_world_comparisons)
+    theory = sub.add_parser("theory_comparisons")
+    theory.add_argument("-o", "--output_dir", required=True)
+    theory.set_defaults(func=action_theory_comparisons)
+    thesis = sub.add_parser("thesis_integration_plan")
+    thesis.add_argument("-o", "--output_dir", required=True)
+    thesis.add_argument("-t", "--thesis_root", default="")
+    thesis.set_defaults(func=action_thesis_plan)
+    fixed = sub.add_parser("fixed_point_run")
+    fixed.add_argument("-en", "--enable", default="no")
+    fixed.add_argument("-m", "--mode", required=True, choices=["RC", "BC"])
+    fixed.add_argument("-s", "--sf", type=int, default=0)
+    fixed.add_argument("-w", "--workers", type=int, default=None)
+    fixed.add_argument("-cd", "--cache_dir", required=True)
+    fixed.add_argument("-ld", "--log_dir", required=True)
+    fixed.add_argument("-n", "--limit", type=int, default=None)
+    fixed.add_argument("-rf", "--retry_failed", action="store_true")
+    fixed.add_argument("-au", "--allow_untested", action="store_true")
+    fixed.add_argument("-to", "--timeout_s", type=int, default=120)
+    fixed.set_defaults(func=action_fixed_point_run)
+    grids = sub.add_parser("radiative_grids")
+    grids.add_argument("-en", "--enable", default="no")
+    grids.add_argument("-w", "--workers", type=int, default=None)
+    grids.add_argument("-cd", "--cache_dir", required=True)
+    grids.add_argument("-ld", "--log_dir", required=True)
+    grids.add_argument("-lk", "--lock_path", default="")
+    grids.add_argument("-nw", "--no_wait_for_lock", action="store_true")
+    grids.add_argument("-n", "--limit", type=int, default=None)
+    grids.add_argument("-rf", "--retry_failed", action="store_true")
+    grids.add_argument("-to", "--timeout_s", type=int, default=120)
+    grids.set_defaults(func=action_radiative_grids)
+    bench = sub.add_parser("sf2_benchmark")
+    bench.add_argument("-cb", "--confirm_benchmark", default="no")
+    bench.add_argument("-cd", "--cache_dir", required=True)
+    bench.add_argument("-r", "--report", required=True)
+    bench.set_defaults(func=action_sf2_benchmark)
     report_md = sub.add_parser("report_markdown")
     report_md.add_argument("-o", "--output_dir", required=True)
     report_md.add_argument("-r", "--run_id", required=True)

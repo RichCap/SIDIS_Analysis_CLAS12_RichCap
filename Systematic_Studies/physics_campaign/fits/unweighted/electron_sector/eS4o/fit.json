@@ -441,14 +441,14 @@
             "Fit_Par_C_ERR": 0.023743731736143355
         },
         "(Q2_y_Bin_2)-(z_pT_Bin_16)": {
-            "Fit_Par_A": 16649.408903007105,
-            "Fit_Par_A_ERR": 273.8013881574807,
-            "Chi2": 26.31127749919255,
+            "Fit_Par_A": 16318.422031009331,
+            "Fit_Par_A_ERR": 296.7029768318953,
+            "Chi2": 17.934342389753272,
             "NDF": 11.0,
-            "Fit_Par_B": -0.08266987559345326,
-            "Fit_Par_B_ERR": 0.004700388903685682,
-            "Fit_Par_C": 0.06764043267842373,
-            "Fit_Par_C_ERR": 0.02538963195565273
+            "Fit_Par_B": -0.1653893460991698,
+            "Fit_Par_B_ERR": 0.028589931430211254,
+            "Fit_Par_C": 0.03417781829165187,
+            "Fit_Par_C_ERR": 0.025389508544612065
         },
         "(Q2_y_Bin_2)-(z_pT_Bin_17)": {
             "Fit_Par_A": 15353.631133347144,
@@ -4242,7 +4242,7 @@
         }
     },
     "Meta_Data_of_Last_Run": {
-        "Start_Time": "Ran on \u001b[1m11-1-2026\u001b[0m at \u001b[1m07:57 p.m.\u001b[0m",
+        "Start_Time": "Ran on \u001b[1m11-2-2026\u001b[0m at \u001b[1m05:35 a.m.\u001b[0m",
         "test": false,
         "verbose": false,
         "no_smear": false,
@@ -4294,15 +4294,7 @@
         "pass_version": "Pass 2",
         "smearing_options": "smear",
         "Q2_y_Bin_List": [
-            "1",
             "2",
-            "5",
-            "6",
-            "9",
-            "10",
-            "13",
-            "14",
-            "16",
             "0"
         ],
         "Run_5D_Unfold": false,

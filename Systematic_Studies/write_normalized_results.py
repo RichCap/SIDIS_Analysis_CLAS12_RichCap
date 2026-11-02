@@ -18,41 +18,27 @@ class NormArgs:
 
 
 def main():
-    budgets = json.load(open(os.path.join(THIS_DIR, "physics_campaign", "budgets.json")))
+    # Writes normalized_bc.json. The older normalized.json is left in place.
+    output_dir = os.path.join(THIS_DIR, "physics_campaign")
+    budget_path = os.path.join(output_dir, "budgets.json")
+    budgets = json.load(open(budget_path))
     for campaign in ["unweighted", "spline"]:
-        fit_path = os.path.join(THIS_DIR, "physics_campaign", "corrected", campaign, "fit.json")
+        fit_path = os.path.join(output_dir, "corrected", campaign, "bc", "fit.json")
         payload = json.load(open(fit_path))
         cells = payload["Fit_Pars_from_3D_BC_RC_Bayesian"]
         totals = budgets["budgets"][campaign]["totals"]
-        prepared = {}
         scales = {}
-        for bin_name, cell in cells.items():
+        for bin_name in cells.keys():
             q2y = int(bin_name.split("Q2_y_Bin_")[1].split(")")[0])
             zpt = int(bin_name.split("z_pT_Bin_")[1].split(")")[0])
             _, area, lumi, flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y, z_pT_Bin=zpt, args_in=NormArgs())
             scales[bin_name] = float(area) * float(lumi) * float(flux)
-            updated = dict(cell)
-            total = totals.get(bin_name, {})
-            for parameter, field in phys.FIT_FIELDS.items():
-                piece = total.get(parameter, {})
-                sys_value = piece.get("up")
-                if(sys_value is None):
-                    raise SystemExit("missing systematic for %s %s" % (campaign, bin_name))
-                updated[field + "_SYS"] = float(sys_value)
-            prepared[bin_name] = updated
-        stat_copy = phys.normalize_campaign_copy(prepared, "statistical", scales)
-        sys_copy = phys.normalize_campaign_copy(prepared, "systematic", scales)
-        merged = phys.merge_normalized(stat_copy, sys_copy)
-        out = {
-            "normalization_status": "applied",
-            "campaign": campaign,
-            "provisional_systematic": True,
-            "unassigned_factor_uncertainty": True,
-            "Fit_Pars_from_3D_BC_RC_Bayesian": merged["cells"],
-        }
-        dest = os.path.join(THIS_DIR, "physics_campaign", "corrected", campaign, "normalized.json")
-        phys.write_json(dest, out)
-        print(campaign, "bins", len(merged["cells"]), dest)
+        document = phys.build_normalized_document(cells, totals, scales, campaign, fit_path, budget_path)
+        dest = phys.normalized_bc_path(output_dir, campaign)
+        if(os.path.isfile(dest)):
+            raise SystemExit("refusing to replace %s without a separate execution authorization" % dest)
+        phys.write_json(dest, document)
+        print(campaign, "bins", len(document["Fit_Pars_from_3D_BC_RC_Bayesian"]), dest)
 
 
 if(__name__ == "__main__"):

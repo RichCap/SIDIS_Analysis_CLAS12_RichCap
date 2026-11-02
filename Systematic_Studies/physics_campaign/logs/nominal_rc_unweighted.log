@@ -1,4 +1,4 @@
-start Sun Nov  1 20:20:37 EST 2026
+start Mon Nov  2 15:03:16 EST 2026
 
 
 [1m[92m[43m
@@ -16,7 +16,7 @@ Running for Q2-xB/Q2-y Bins: '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '
 Starting RG-A SIDIS Analysis
 [0m
 
-Started running on [1m11-1-2026[0m at [1m08:20 p.m.[0m
+Started running on [1m11-2-2026[0m at [1m03:03 p.m.[0m
 
 
 [91m[1mUsing Existing TTree [0m[1m(File is: [4mSystematic_Studies/physics_campaign/corrected/unweighted/rc/corrected.root[0m[1m)[91m[1m instead of Creating New Unfolded Histograms[0m
@@ -24,7 +24,7 @@ Started running on [1m11-1-2026[0m at [1m08:20 p.m.[0m
 [1m[94mRecovered: [1m[92m452[0m[1m[94m items[0m
 
 
-Current Time: [1m08:20 p.m.[0m
+Current Time: [1m03:03 p.m.[0m
 Time Elapsed Up To Now:
 0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
 
@@ -493,7 +493,7 @@ Adding to Main List...[0m
 [1m[92mLength of Main List of Histograms (After adding Fits): [0m[1m2712[0m
 
 
-Current Time: [1m08:21 p.m.[0m
+Current Time: [1m03:03 p.m.[0m
 Time Elapsed Up To Now:
 0 Day(s), 0 Hour(s), 0 Minute(s), and 38 Second(s).
 
@@ -508,7 +508,7 @@ Counting Total Number of/Saving collected histograms...
 Final Count = 2712
 
 
-Current Time: [1m08:21 p.m.[0m
+Current Time: [1m03:03 p.m.[0m
 Time Elapsed Up To Now:
 0 Day(s), 0 Hour(s), 0 Minute(s), and 38 Second(s).
 
@@ -525,7 +525,7 @@ Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 38 Second(s).
 
 
 The 'Simple_RooUnfold_SelfContained.py' script has finished running.
-Started running on [1m11-1-2026[0m at [1m08:20 p.m.[0m
+Started running on [1m11-2-2026[0m at [1m03:03 p.m.[0m
 
 Input File:
 	Systematic_Studies/physics_campaign/corrected/unweighted/rc/corrected.root
@@ -587,7 +587,7 @@ Arguments:
 --_fit_corrections_seen                             --> True
 
 
-The time that this code finished is [1m08:21 p.m.[0m
+The time that this code finished is [1m03:03 p.m.[0m
 The total time the code took to run is:
 0 Day(s), 0 Hour(s), 0 Minute(s), and 38 Second(s).
 Saved 2712 Histograms...
@@ -600,4 +600,4 @@ Rate = 71.37 Histograms/Seconds
     	                                   	   [0m
     
     
-exit 0 Sun Nov  1 20:21:17 EST 2026
+exit 0 Mon Nov  2 15:03:56 EST 2026

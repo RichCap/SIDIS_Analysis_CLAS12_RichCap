@@ -354,6 +354,641 @@
     },
     "study_state": "pending"
   },
+  "refinement_audit": {
+    "count": 89,
+    "counts": {
+      "incomplete": 0,
+      "unverifiable": 0,
+      "verified": 89
+    },
+    "evidence": "physics_campaign/reports/refinement_consistency_audit.json",
+    "report": "physics_campaign/reports/SIDIS_Refinement_Consistency_Audit.md",
+    "rows": [
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/corrected/spline/bc",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/corrected/spline/rc",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/corrected/unweighted/bc",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/corrected/unweighted/rc",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/acceptance_reweighting/AccSpline",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/acceptance_threshold/Acc015",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/acceptance_threshold/Acc025",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/bayes_iteration/BayesMinus1",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/bayes_iteration/BayesPlus1",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/chi2_strict_pip/chi2_strict_pip",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/correction_method/BinByBin",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dcfid_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dcfid_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dcfid_pip/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dcfid_pip/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dcfidref_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dcfidref_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dcv_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dcv_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dvz_pip/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/dvz_pip/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/ecband_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/ecband_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/ecthr_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/ecthr_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/electron_sector/eS1o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/electron_sector/eS2o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/electron_sector/eS3o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/electron_sector/eS4o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/electron_sector/eS5o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/electron_sector/eS6o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/noSmear/noSmear",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/no_pip_testdc/no_pip_testdc",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/no_sector_pcal/no_sector_pcal",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/no_valerii_knockout/no_valerii_knockout",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/nominal/nominal",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/pcalvol/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/pcalvol/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/phi_bins/Phi12",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/pion_sector/pipS1o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/pion_sector/pipS2o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/pion_sector/pipS3o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/pion_sector/pipS4o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/pion_sector/pipS5o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/pion_sector/pipS6o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/spline/rho0_subtraction/NoRho0",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/acceptance_reweighting/Acc",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/acceptance_threshold/Acc015",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/acceptance_threshold/Acc025",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/bayes_iteration/BayesMinus1",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/bayes_iteration/BayesPlus1",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/chi2_strict_pip/chi2_strict_pip",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/correction_method/BinByBin",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dcfid_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dcfid_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dcfid_pip/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dcfid_pip/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dcfidref_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dcfidref_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dcv_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dcv_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dimension/5D",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dvz_pip/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/dvz_pip/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/ecband_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/ecband_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/ecthr_el/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/ecthr_el/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/electron_sector/eS1o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/electron_sector/eS2o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/electron_sector/eS3o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/electron_sector/eS4o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/electron_sector/eS5o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/electron_sector/eS6o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/noSmear/noSmear",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/no_pip_testdc/no_pip_testdc",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/no_sector_pcal/no_sector_pcal",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/no_valerii_knockout/no_valerii_knockout",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/nominal/nominal",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/pcalvol/loose",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/pcalvol/tight",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/phi_bins/Phi12",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/pion_sector/pipS1o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/pion_sector/pipS2o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/pion_sector/pipS3o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/pion_sector/pipS4o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/pion_sector/pipS5o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/pion_sector/pipS6o",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      },
+      {
+        "classification": "verified",
+        "directory": "physics_campaign/fits/unweighted/rho0_subtraction/NoRho0",
+        "minimum_check": "",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "validated": true
+      }
+    ]
+  },
   "run": {
     "campaigns": "both",
     "force": false,

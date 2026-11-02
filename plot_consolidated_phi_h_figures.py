@@ -383,11 +383,39 @@ def resolve_family(args, family):
     return info
 
 
+def phi_canvas_decision(drawn, na_count, dry_run):
+    studies = os.path.join(ANALYSIS, "Systematic_Studies")
+    if(studies not in sys.path):
+        sys.path.insert(0, studies)
+    import sidis_physics_lib as phys
+    return phys.phi_canvas_decision(drawn, na_count, dry_run)
+
+
 def room_for_labels(pad, top=0.18):
     pad.SetLeftMargin(0.20)
     pad.SetRightMargin(0.02)
     pad.SetBottomMargin(0.11)
     pad.SetTopMargin(top)
+
+
+def mark_na_pad(pad, q2y, zpt, reason, alive):
+    # Text only. No histogram is created, so a missing bin is not stored as zero.
+    pad.cd()
+    ROOT.gStyle.SetOptTitle(0)
+    room_for_labels(pad)
+    label = ROOT.TPaveText(0.08, 0.22, 0.92, 0.78, "NDC")
+    label.SetBorderSize(0)
+    label.SetFillStyle(0)
+    label.SetTextFont(42)
+    label.SetTextAlign(22)
+    label.SetTextSize(0.11)
+    label.AddText("N/A")
+    label.AddText("%s-%s" % (q2y, zpt))
+    label.AddText(reason)
+    label.Draw()
+    alive.append(label)
+    draw_bin_label(pad, q2y, zpt, alive)
+    pad.Modified()
 
 
 def draw_bin_label(pad, q2y, zpt, alive, text_size=0.065):
@@ -610,6 +638,8 @@ def draw_family(args, info, q2y_bins):
         bc_results = json.load(open(args.bc_json))["results"]
     counts = {}
     missing = []
+    drawn = 0
+    na_count = 0
     fit_block = info.get("fit_block")
     for q2y in q2y_bins:
         kept, rows, cols = retained_bins(q2y)
@@ -625,15 +655,20 @@ def draw_family(args, info, q2y_bins):
             pad = grid.cd(zpt)
             if(hists is None):
                 missing.append("missing %s %s-%s" % (family, q2y, zpt))
+                mark_na_pad(pad, q2y, zpt, "empty", alive)
+                na_count += 1
                 continue
             fit_func = None
             if(fit_block is not None):
                 pars = fit_block.get("(Q2_y_Bin_%s)-(z_pT_Bin_%s)" % (q2y, zpt))
                 if(not isinstance(pars, dict)):
                     missing.append("missing fit %s-%s" % (q2y, zpt))
-                else:
-                    fit_func = make_fit("fit_%s_%s_%s" % (family, q2y, zpt), pars)
+                    mark_na_pad(pad, q2y, zpt, "missing fit", alive)
+                    na_count += 1
+                    continue
+                fit_func = make_fit("fit_%s_%s_%s" % (family, q2y, zpt), pars)
             draw_stack(pad, hists, [item[1] for item in spec], [item[2] for item in spec], spec, fit_func, alive, q2y, zpt)
+            drawn += 1
             if(with_integrated):
                 if(summed is None):
                     summed = hists[0].Clone("all_%s_%s" % (family, q2y))
@@ -657,13 +692,16 @@ def draw_family(args, info, q2y_bins):
                 panel[0].GetYaxis().SetLabelSize(0.07)
     if(legend_entries):
         draw_global_legend(host, legend_entries, alive)
-    thesis_ready = (len(missing) == 0)
+    decision = phi_canvas_decision(drawn, na_count, args.dry_run)
     destination = info["pdf"]
-    if(thesis_ready and (not args.dry_run)):
+    if(decision["save"]):
         save_one_page(canvas, destination)
-    elif(not thesis_ready):
+    if(len(missing) > 0):
         info["reason"] = "; ".join(missing[:8])
-    info["thesis_ready"] = thesis_ready
+    info["thesis_ready"] = decision["thesis_ready"]
+    info["pdf_written"] = decision["save"]
+    info["na_count"] = na_count
+    info["drawn"] = drawn
     info["counts"] = counts
     canvas.Clear()
     alive.clear()
@@ -706,6 +744,8 @@ def draw_bc_family(args, info, q2y_bins):
     canvas, host = make_host(info["family"], args.summary_text, alive)
     missing = []
     counts = {}
+    pad_count = 0
+    na_count = 0
     legend_entries = None
     for q2y in q2y_bins:
         kept, rows, cols = retained_bins(q2y)
@@ -717,32 +757,40 @@ def draw_bc_family(args, info, q2y_bins):
         for zpt in kept:
             pad = grid.cd(zpt)
             try:
-                drawn = plotter(bc_args, main_pad=pad, save_plot=False, q2_y_bin_override=q2y, z_pT_bin_override=zpt, json_data=payload, draw_legend=False)
+                drawn_objects = plotter(bc_args, main_pad=pad, save_plot=False, q2_y_bin_override=q2y, z_pT_bin_override=zpt, json_data=payload, draw_legend=False)
             except Exception as exc:
                 missing.append("bc draw %s-%s %s" % (q2y, zpt, exc))
+                mark_na_pad(pad, q2y, zpt, "missing", alive)
+                na_count += 1
                 continue
-            if(not isinstance(drawn, dict)):
+            if(not isinstance(drawn_objects, dict)):
                 missing.append("bc draw returned no pad objects %s-%s" % (q2y, zpt))
+                mark_na_pad(pad, q2y, zpt, "missing", alive)
+                na_count += 1
                 continue
-            alive.append(drawn)
+            alive.append(drawn_objects)
             if(info["family"] == "bc_subbin"):
-                hists = [drawn["h_ave"], drawn["h_center"]]
+                hists = [drawn_objects["h_ave"], drawn_objects["h_center"]]
             else:
-                hists = [drawn["h_bc"]]
+                hists = [drawn_objects["h_bc"]]
             show_existing_hists(pad, hists, q2y, zpt, alive)
+            pad_count += 1
             if(legend_entries is None):
                 if(info["family"] == "bc_subbin"):
-                    legend_entries = [("Average sub-bin", drawn["h_ave"], "points"), ("Center sub-bin", drawn["h_center"], "points")]
+                    legend_entries = [("Average sub-bin", drawn_objects["h_ave"], "points"), ("Center sub-bin", drawn_objects["h_center"], "points")]
                 else:
-                    legend_entries = [("BC factor", drawn["h_bc"], "points")]
+                    legend_entries = [("BC factor", drawn_objects["h_bc"], "points")]
     if(legend_entries):
         draw_global_legend(host, legend_entries, alive)
-    thesis_ready = (len(missing) == 0)
-    if(thesis_ready and (not args.dry_run)):
+    decision = phi_canvas_decision(pad_count, na_count, args.dry_run)
+    if(decision["save"]):
         save_one_page(canvas, info["pdf"])
-    elif(not thesis_ready):
+    if(len(missing) > 0):
         info["reason"] = "; ".join(missing[:8])
-    info["thesis_ready"] = thesis_ready
+    info["thesis_ready"] = decision["thesis_ready"]
+    info["pdf_written"] = decision["save"]
+    info["na_count"] = na_count
+    info["drawn"] = pad_count
     info["counts"] = counts
     return info
 
@@ -779,7 +827,8 @@ def main():
             info = draw_bc_family(args, info, q2y_bins)
         else:
             info = draw_family(args, info, q2y_bins)
-        print("STATUS family=%s thesis_ready=%s pdf=%s reason=%s" % (family, "yes" if(info["thesis_ready"]) else "no", info["pdf"] if(info["thesis_ready"]) else "", info["reason"]))
+        pdf_out = info["pdf"] if(info.get("pdf_written")) else ""
+        print("STATUS family=%s thesis_ready=%s pdf=%s na=%s drawn=%s reason=%s" % (family, "yes" if(info["thesis_ready"]) else "no", pdf_out, info.get("na_count", 0), info.get("drawn", 0), info["reason"]))
     for handle in OPEN_FILES.values():
         handle.Close()
 

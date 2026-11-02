@@ -5,6 +5,7 @@ import datetime
 import json
 import math
 import os
+import re
 import shutil
 import sys
 
@@ -764,7 +765,7 @@ def aggregate_campaign(groups_by_source, combine_by_source, tolerance):
     for bin_name, sources in groups_by_bin.items():
         independent = {}
         for source, reduced in sources.items():
-            if(combine_by_source.get(source) == "not_combined"):
+            if(not source_enters_quadrature(source, combine_by_source)):
                 continue
             independent[source] = {name: values for name, values in reduced.items() if(name != "_method")}
         if(len(independent) == 0):
@@ -917,6 +918,7 @@ def missing_uncertainty_fields(artifact, suffix):
 def mosaic_command(artifact, spline_overlay, spline_prefix, campaign, x_mode="z", uncertainty="statistical"):
     if(artifact.get("normalization_status") != "applied"):
         raise ValueError("mosaic requires normalization_status applied")
+    reject_stale_normalized_artifact(artifact)
     if(uncertainty not in ["statistical", "systematic"]):
         raise ValueError("unknown uncertainty channel")
     if(x_mode not in ["z", "pt", "pt2"]):
@@ -1529,3 +1531,456 @@ def write_json(path, payload):
     handle.close()
     os.replace(temporary, path)
     return path
+
+
+KNOWN_STAGES = [
+    "resolve",
+    "nominal",
+    "variations",
+    "radiative",
+    "bin_centering",
+    "aggregate",
+    "correct",
+    "nominal_rc",
+    "nominal_bc",
+    "mosaic",
+    "kt2",
+    "phi_figures",
+    "report_markdown",
+    "report_pptx",
+    "world_comparisons",
+    "theory_comparisons",
+    "thesis_integration_plan",
+]
+FORCED_NOT_COMBINED = [
+    "electron_sector",
+    "pion_sector",
+    "unweighted_versus_spline",
+    "radiative_sf0",
+    "radiative_sf2",
+    "radiative_sf0_versus_sf2",
+    "bc_spline_alternative",
+]
+PHI_BIN_COUNT = 24
+RC_SF2_WORKERS_DEFAULT = 4
+RC_SF2_WORKERS_TESTED_MAX = 5
+LOCAL_PYTHON = "/Users/richardcapobianco/opt/miniforge3/envs/updated_python/bin/python"
+SKILL_CORRECT = os.path.expanduser("~/.grok/skills/sidis-bin-corrections/scripts/correct.py")
+SKILL_NORM_NOTE = os.path.expanduser("~/.grok/skills/sidis-bin-corrections/references/electroproduction-normalization.md")
+FORK_CROSS_SECTION = "/Users/richardcapobianco/Desktop/Work_Offline.nosync/EvGen_sidis_fork/sidis/build/example/cross_section"
+CONTINUOUS_BENCHMARK = {
+    0: {
+        "sigma_B": 3.2640895232967875e-05,
+        "sigma_tot": 2.9883114578853511e-05,
+        "rc": 0.9155114884432165,
+    },
+    2: {
+        "sigma_B": 5.1022637054989254e-04,
+        "sigma_tot": 4.6766432619644064e-04,
+        "rc": 0.91658203728752596,
+    },
+}
+INDEXED_BIN_1_1_FACTORS = {
+    "delta_q2": 0.4,
+    "delta_y": 0.1,
+    "delta_z": 0.31,
+    "delta_pt": 0.17,
+    "delta_phi_deg": 15.0,
+    "area": 0.03162,
+    "lumi": 4.5818041672663315e10,
+    "gamma": 6.715367807307382e-4,
+}
+PROVENANCE_FIELDS = [
+    "normalization_reference",
+    "physics_configuration",
+    "normalization_convention",
+    "normalization_gamma",
+]
+AFTER_QUALITY = re.compile(r"\((\d+)\s*,\s*(\d+)\)\s+([0-9]+(?:\.[0-9]+)?)\s+(?:to|→|->)\s+([0-9]+(?:\.[0-9]+)?)")
+AFTER_QUALITY_AT = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s+(?:to|→|->)\s+([0-9]+(?:\.[0-9]+)?)\s+at Q2-y\s+(\d+),\s*z-pT\s+(\d+)")
+FITTED_COUNT = re.compile(r"(\d+)\s+fitted cells")
+JSON_STILL = re.compile(r"JSON still(?: has)?\s+(\d+)")
+INIT_KEY = re.compile(r"\(\s*'(\d+)'\s*,\s*'(\d+)'")
+IMPROVED_LIST = re.compile(r"improved,\s+to\s+([0-9.,\s]+and\s+[0-9]+(?:\.[0-9]+)?)")
+
+
+def source_enters_quadrature(source, combine_by_source):
+    if(source in FORCED_NOT_COMBINED):
+        return False
+    return combine_by_source.get(source) == "independent"
+
+
+def stage_request_plan(stage_names, rc_fixed_point="no", bc_spline_alternative="no"):
+    unknown = []
+    for name in stage_names:
+        if(name not in KNOWN_STAGES):
+            unknown.append(name)
+    if(len(unknown) > 0):
+        return {"ok": False, "blocker": "unknown_stage", "unknown": unknown, "falls_back_to_resolve_only": False}
+    actions = []
+    for name in stage_names:
+        if(name == "radiative"):
+            if(rc_fixed_point == "yes"):
+                actions.append({"stage": name, "action": "run_rc_grid"})
+            else:
+                actions.append({"stage": name, "action": "record_grid_not_enabled", "flag": "rc_fixed_point"})
+        elif(name == "bin_centering"):
+            if(bc_spline_alternative == "yes"):
+                actions.append({"stage": name, "action": "run_bc_grid"})
+            else:
+                actions.append({"stage": name, "action": "record_grid_not_enabled", "flag": "bc_spline_alternative"})
+        elif(name in ["world_comparisons", "theory_comparisons"]):
+            actions.append({"stage": name, "action": "run_or_record_blocker"})
+        elif(name == "thesis_integration_plan"):
+            actions.append({"stage": name, "action": "write_partial_plan"})
+        else:
+            actions.append({"stage": name, "action": "run"})
+    return {
+        "ok": True,
+        "stages": list(stage_names),
+        "actions": actions,
+        "rc_fixed_point": rc_fixed_point,
+        "bc_spline_alternative": bc_spline_alternative,
+        "falls_back_to_resolve_only": False,
+    }
+
+
+def phi_canvas_decision(drawn, na_count, dry_run):
+    thesis_ready = (int(na_count) == 0) and (int(drawn) > 0)
+    save = (not dry_run) and ((int(drawn) + int(na_count)) > 0)
+    return {"save": save, "thesis_ready": thesis_ready}
+
+
+def skill_input_fingerprint():
+    return {
+        "correct_py": file_fingerprint(SKILL_CORRECT),
+        "normalization_note": file_fingerprint(SKILL_NORM_NOTE),
+    }
+
+
+def accept_fixed_point_record(payload):
+    if(not isinstance(payload, dict)):
+        return False, "not_an_object"
+    if(payload.get("ok") is not True):
+        return False, "not_ok"
+    for key in PROVENANCE_FIELDS:
+        if(str(payload.get(key, "")).strip() == ""):
+            return False, "missing_%s" % key
+    mode = payload.get("mode")
+    if(mode == "RC"):
+        if(payload.get("rc") in [None, ""]):
+            return False, "missing_rc"
+        meaning = str(payload.get("delta_rc_meaning", ""))
+        if("not a statistical" not in meaning):
+            return False, "delta_rc_meaning"
+        if(payload.get("sf_index") not in [0, 2]):
+            return False, "sf_index"
+    elif(mode == "BC"):
+        if(payload.get("bc") in [None, ""]):
+            return False, "missing_bc"
+        if(int(payload.get("n_sub", 0)) != 405):
+            return False, "n_sub"
+        if(int(payload.get("center_subbin", 0)) != 203):
+            return False, "center_subbin"
+    else:
+        return False, "unknown_mode"
+    return True, "ok"
+
+
+def factor_from_fixed_point(payload):
+    # A failed or incomplete object contributes no factor. It is not replaced by 0, 1, or a nominal value.
+    accepted, reason = accept_fixed_point_record(payload)
+    if(not accepted):
+        return None, reason
+    if(payload["mode"] == "RC"):
+        return float(payload["rc"]), "ok"
+    return float(payload["bc"]), "ok"
+
+
+def radiative_stage_gate(rc_fixed_point, stage_names, grid_complete, grid_active, sf2_workers=None):
+    # While the RC grids are active, no other stage is concurrent. Downstream stages wait for both grids.
+    enabled = (str(rc_fixed_point) == "yes") and ("radiative" in list(stage_names))
+    limit = resolve_worker_count("RC", 2, sf2_workers)
+    others = [name for name in stage_names if(name != "radiative")]
+    if(not enabled):
+        return {"grid_enabled": False, "sf0_workers": 1, "sf2_workers": limit["workers"], "concurrent_stages": [], "downstream_stages": others}
+    if(grid_active or (not grid_complete)):
+        return {"grid_enabled": True, "sf0_workers": 1, "sf2_workers": limit["workers"], "concurrent_stages": [], "downstream_stages": []}
+    return {"grid_enabled": True, "sf0_workers": 1, "sf2_workers": limit["workers"], "concurrent_stages": [], "downstream_stages": others}
+
+
+def resolve_worker_count(mode, sf_index, requested, allow_untested=False):
+    # SF 0 and spline BC stay at one process. Only RC SF 2 uses the worker limit.
+    count = RC_SF2_WORKERS_DEFAULT if(requested is None) else int(requested)
+    if(count < 1):
+        raise ValueError("worker count must be at least 1")
+    mode_name = str(mode)
+    sf_value = None if(sf_index is None) else int(sf_index)
+    if((mode_name == "BC") or ((mode_name == "RC") and (sf_value == 0))):
+        return {"workers": 1, "clamped": "sf0_and_bc_stay_at_one_process"}
+    if((mode_name != "RC") or (sf_value != 2)):
+        raise ValueError("unsupported fixed-point configuration")
+    if((count > RC_SF2_WORKERS_TESTED_MAX) and (not allow_untested)):
+        raise ValueError("SF 2 worker counts above %s were not benchmarked" % RC_SF2_WORKERS_TESTED_MAX)
+    return {"workers": count, "clamped": ""}
+
+
+def fixed_point_cache_state(path, fingerprint):
+    if(not os.path.isfile(path)):
+        return "missing"
+    try:
+        handle = open(path)
+        payload = json.load(handle)
+        handle.close()
+    except (OSError, ValueError):
+        return "invalid"
+    if(not isinstance(payload, dict)):
+        return "invalid"
+    if(payload.get("skill_fingerprint") != fingerprint):
+        return "stale"
+    if(payload.get("ok") is True):
+        return "ok"
+    return "failed"
+
+
+def fixed_point_cache_name(mode, q2y_bin, zpt_bin, phi_bin, sf_index):
+    sf_token = "na" if(sf_index is None) else str(int(sf_index))
+    return os.path.join(mode, "q%d" % int(q2y_bin), "z%d" % int(zpt_bin), "p%d_s%s.json" % (int(phi_bin), sf_token))
+
+
+def fixed_point_coverage(ok_keys, expected_bins):
+    holes = []
+    for q2y_bin, zpt_bin in expected_bins:
+        for phi_bin in range(1, PHI_BIN_COUNT + 1):
+            if((int(q2y_bin), int(zpt_bin), phi_bin) not in ok_keys):
+                holes.append([int(q2y_bin), int(zpt_bin), phi_bin])
+    calls = len(expected_bins) * PHI_BIN_COUNT
+    return {"calls": calls, "holes": holes, "ok": len(holes) == 0}
+
+
+def assemble_phi_factors(values_by_phi, q2y_bin, zpt_bin):
+    # values_by_phi maps phi bin -> accepted factor, or omits a failed phi. Missing keys are holes.
+    factors = {}
+    holes = []
+    for phi_bin in range(1, PHI_BIN_COUNT + 1):
+        key = bc_factor_key(q2y_bin, zpt_bin, phi_bin)
+        if(phi_bin not in values_by_phi):
+            holes.append(key)
+            continue
+        value = values_by_phi[phi_bin]
+        if(value is None):
+            holes.append(key)
+            continue
+        factors[key] = float(value)
+    return {"factors": factors, "holes": holes, "complete": len(holes) == 0}
+
+
+def normalized_bc_path(output_dir, campaign):
+    return os.path.join(output_dir, "corrected", campaign, "normalized_bc.json")
+
+
+def stale_normalized_path(output_dir, campaign):
+    return os.path.join(output_dir, "corrected", campaign, "normalized.json")
+
+
+def normalization_provenance(campaign, fit_path, budget_path):
+    return {
+        "normalization_status": "applied",
+        "campaign": campaign,
+        "systematic_scope": "provisional_acceptance_level",
+        "systematic_scope_text": "Acceptance-level budget attached to the BC central values. Not the complete final systematic.",
+        "provisional_systematic": True,
+        "unassigned_factor_uncertainty": True,
+        "source_fit": os.path.abspath(fit_path),
+        "source_fit_fingerprint": file_fingerprint(fit_path),
+        "budget_path": os.path.abspath(budget_path),
+        "budget_fingerprint": file_fingerprint(budget_path),
+        "scales_A_only": True,
+        "fit_family": "Fit_Pars_from_3D_BC_RC_Bayesian",
+    }
+
+
+def build_normalized_document(cells, totals, scales, campaign, fit_path, budget_path):
+    prepared = {}
+    for bin_name, cell in cells.items():
+        updated = dict(cell)
+        total = totals[bin_name]
+        for parameter, field in FIT_FIELDS.items():
+            piece = total[parameter]
+            sys_value = piece.get("up")
+            if(sys_value is None):
+                raise ValueError("missing systematic for %s" % bin_name)
+            updated[field + "_SYS"] = float(sys_value)
+        prepared[bin_name] = updated
+    stat_copy = normalize_campaign_copy(prepared, "statistical", scales)
+    sys_copy = normalize_campaign_copy(prepared, "systematic", scales)
+    merged = merge_normalized(stat_copy, sys_copy)
+    document = normalization_provenance(campaign, fit_path, budget_path)
+    document["Fit_Pars_from_3D_BC_RC_Bayesian"] = merged["cells"]
+    return document
+
+
+def reject_stale_normalized_artifact(artifact):
+    path = str(artifact.get("path", ""))
+    if(path == ""):
+        return
+    folder = os.path.dirname(path)
+    fresh = os.path.join(folder, "normalized_bc.json")
+    if((os.path.basename(path) == "normalized.json") and os.path.isfile(fresh)):
+        raise ValueError("stale normalized.json is refused because normalized_bc.json exists")
+    if(os.path.basename(path) != "normalized_bc.json"):
+        return
+    if(artifact.get("systematic_scope") != "provisional_acceptance_level"):
+        raise ValueError("normalized file is missing the provisional acceptance-level label")
+    expected = artifact.get("source_fit_fingerprint")
+    if(not isinstance(expected, dict)):
+        raise ValueError("normalized file is missing source_fit_fingerprint")
+    fit_path = os.path.join(folder, "bc", "fit.json")
+    current = file_fingerprint(fit_path)
+    if((expected.get("size") != current.get("size")) or (expected.get("mtime") != current.get("mtime"))):
+        raise ValueError("normalized file does not match the latest BC fit")
+
+
+def continuous_benchmark_matches(sf_index, sigma_b, sigma_tot, rc_value):
+    row = CONTINUOUS_BENCHMARK.get(int(sf_index))
+    if(row is None):
+        return False
+    for got, name in [(sigma_b, "sigma_B"), (sigma_tot, "sigma_tot"), (rc_value, "rc")]:
+        reference = row[name]
+        scale = max(abs(reference), 1.0e-30)
+        if(abs(float(got) - reference) / scale > 1.0e-9):
+            return False
+    return True
+
+
+def parse_cross_section_text(text):
+    values = {}
+    for line in str(text).splitlines():
+        if("=" not in line):
+            continue
+        label, rest = line.split("=", 1)
+        label = label.strip()
+        token = rest.strip().split()[0]
+        try:
+            values[label] = float(token)
+        except ValueError:
+            continue
+    return values
+
+
+def fit_family_cells(payload):
+    for key in ["Fit_Pars_from_3D_Bayesian", "Fit_Pars_from_3D_RC_Bayesian", "Fit_Pars_from_3D_BC_RC_Bayesian", "Fit_Pars_from_3D_Bin", "Fit_Pars_from_5D_Bayesian"]:
+        block = payload.get(key)
+        if(isinstance(block, dict) and (len(block) > 0)):
+            return key, block
+    return None, {}
+
+
+def reduced_chi2(cell):
+    if(not isinstance(cell, dict)):
+        return None
+    chi2 = cell.get("Chi2")
+    ndf = cell.get("NDF")
+    if((chi2 is None) or (ndf in [None, 0, 0.0])):
+        return None
+    return float(chi2) / float(ndf)
+
+
+def after_matches(cell, claimed, decimals):
+    reduced = reduced_chi2(cell)
+    raw = None if(not isinstance(cell, dict)) else cell.get("Chi2")
+    tolerance = (0.5 * (10.0 ** (-int(decimals)))) + 0.001
+    for value in [reduced, raw]:
+        if(value is None):
+            continue
+        if(abs(float(value) - float(claimed)) <= tolerance):
+            return True
+    return False
+
+
+def classify_refinement_dir(note, fit_payload, refine_init_text, overlay_count):
+    evidence = []
+    if(not refinement_note_ok(note)):
+        return {"classification": "incomplete", "reason": "note is missing a required field", "minimum_check": "restore scope, start_mode, error_source, changed, left_bins, and unresolved", "evidence": ["required note fields are empty or absent"]}
+    if(not isinstance(fit_payload, dict)):
+        return {"classification": "incomplete", "reason": "fit JSON is missing", "minimum_check": "confirm the fit JSON for this directory", "evidence": ["fit JSON missing"]}
+    family, cells = fit_family_cells(fit_payload)
+    if(family is None):
+        return {"classification": "incomplete", "reason": "fit JSON has no populated family", "minimum_check": "confirm the fit family key and cell count", "evidence": ["no populated fit family"]}
+    text = " ".join([str(note.get("changed", "")), str(note.get("scope", "")), str(note.get("left_bins", ""))])
+    claimed_counts = []
+    for match in JSON_STILL.finditer(text):
+        claimed_counts.append(int(match.group(1)))
+    for match in FITTED_COUNT.finditer(text):
+        claimed_counts.append(int(match.group(1)))
+    if(len(set(claimed_counts)) > 1):
+        return {
+            "classification": "incomplete",
+            "reason": "the note states more than one cell count",
+            "minimum_check": "keep one cell count and compare it with %s" % family,
+            "evidence": ["note counts %s" % claimed_counts],
+        }
+    if((len(claimed_counts) > 0) and (len(cells) != claimed_counts[0])):
+        return {
+            "classification": "incomplete",
+            "reason": "stated cell count does not match the fit JSON",
+            "minimum_check": "compare the note's cell count with %s (%s cells)" % (family, len(cells)),
+            "evidence": ["note counts %s; JSON %s has %s" % (claimed_counts, family, len(cells))],
+        }
+    init_keys = set()
+    if(refine_init_text not in [None, ""]):
+        for match in INIT_KEY.finditer(refine_init_text):
+            init_keys.add((match.group(1), match.group(2)))
+    mismatches = []
+    checked = []
+    pairs = []
+    changed = str(note.get("changed", ""))
+    for match in AFTER_QUALITY.finditer(changed):
+        pairs.append((match.group(1), match.group(2), match.group(3), match.group(4)))
+    for match in AFTER_QUALITY_AT.finditer(changed):
+        pairs.append((match.group(3), match.group(4), match.group(1), match.group(2)))
+    improved = IMPROVED_LIST.search(changed)
+    if(improved is not None):
+        numbers = re.findall(r"[0-9]+(?:\.[0-9]+)?", improved.group(1))
+        head = changed.split("improved, to", 1)[0]
+        listed = re.findall(r"\((\d+)\s*,\s*(\d+)\)", head)
+        if(len(listed) == len(numbers)):
+            for (q2y, zpt), after in zip(listed, numbers):
+                pairs.append((q2y, zpt, "", after))
+    for q2y, zpt, before, after in pairs:
+        bin_name = "(Q2_y_Bin_%s)-(z_pT_Bin_%s)" % (q2y, zpt)
+        cell = cells.get(bin_name)
+        decimals = len(after.split(".")[1]) if("." in after) else 0
+        if(cell is None):
+            mismatches.append("%s is absent from the fit JSON" % bin_name)
+            continue
+        if(not after_matches(cell, after, decimals)):
+            mismatches.append("%s after %s does not match Chi2/NDF %s" % (bin_name, after, reduced_chi2(cell)))
+            continue
+        checked.append({"bin": bin_name, "before": before, "after": after, "stored_reduced_chi2": reduced_chi2(cell)})
+        if(("refine_init" in str(note.get("changed", ""))) and ((q2y, zpt) not in init_keys) and (len(init_keys) > 0)):
+            mismatches.append("%s is named as edited but is absent from refine_init.py" % bin_name)
+    if(len(mismatches) > 0):
+        return {"classification": "incomplete", "reason": mismatches[0], "minimum_check": "refit only the bins named in the mismatch list", "evidence": mismatches, "checked": checked}
+    claims_guide = "refine_init" in str(note.get("changed", ""))
+    if(claims_guide and (refine_init_text in [None, ""])):
+        return {"classification": "incomplete", "reason": "the note cites refine_init.py and that file is absent", "minimum_check": "restore or regenerate the guide file, then compare its keys with the note", "evidence": ["refine_init.py absent"]}
+    if(len(checked) == 0):
+        minimum = "compare each bin named in changed with the stored Chi2/NDF and with refine_init.py"
+        if(int(overlay_count) == 0):
+            minimum = "open the histogram for one bin named in changed; no overlay file is stored. " + minimum
+        return {
+            "classification": "unverifiable",
+            "reason": "the note has no before/after number that can be compared with the fit JSON",
+            "minimum_check": minimum,
+            "evidence": ["family %s has %s cells" % (family, len(cells)), "overlays %s" % overlay_count, "guide keys %s" % len(init_keys)],
+            "validated": False,
+        }
+    return {
+        "classification": "verified",
+        "reason": "each stated after-quality matches the saved fit, and the stated cell count matches",
+        "minimum_check": "",
+        "evidence": ["checked %s bins" % len(checked), "family %s cells %s" % (family, len(cells)), "overlays %s" % overlay_count],
+        "checked": checked,
+        "validated": True,
+    }

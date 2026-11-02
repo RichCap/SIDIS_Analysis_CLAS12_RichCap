@@ -1,0 +1,468 @@
+# Refinement consistency audit
+
+This audit only reads fit JSON, refinement notes, guide files, and overlay files. It does not refit.
+
+`verified` means each stated after-quality matches the saved fit and the stated cell count matches. It is not a new visual review of every histogram.
+
+`unverifiable` means the note cannot be checked against a stored before/after number. Those fits stay in place and are not fully validated.
+
+`incomplete` is the only class scheduled for a later targeted refinement.
+
+Records: `89`. Verified: `89`. Incomplete: `0`. Unverifiable: `0`.
+
+## incomplete
+
+None.
+
+## unverifiable
+
+None.
+
+## verified
+
+- `corrected/spline/bc`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 2 bins
+  - Evidence: family Fit_Pars_from_3D_BC_RC_Bayesian cells 452
+  - Evidence: overlays 1
+- `corrected/spline/rc`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_RC_Bayesian cells 452
+  - Evidence: overlays 7
+- `corrected/unweighted/bc`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 2 bins
+  - Evidence: family Fit_Pars_from_3D_BC_RC_Bayesian cells 452
+  - Evidence: overlays 3
+- `corrected/unweighted/rc`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 4 bins
+  - Evidence: family Fit_Pars_from_3D_RC_Bayesian cells 452
+  - Evidence: overlays 7
+- `fits/spline/acceptance_reweighting/AccSpline`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/acceptance_threshold/Acc015`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/acceptance_threshold/Acc025`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/bayes_iteration/BayesMinus1`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/bayes_iteration/BayesPlus1`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/chi2_strict_pip/chi2_strict_pip`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/correction_method/BinByBin`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bin cells 452
+  - Evidence: overlays 0
+- `fits/spline/dcfid_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dcfid_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dcfid_pip/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dcfid_pip/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dcfidref_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dcfidref_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dcv_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dcv_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dvz_pip/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/dvz_pip/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/ecband_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/ecband_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/ecthr_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/ecthr_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/electron_sector/eS1o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 418
+  - Evidence: overlays 0
+- `fits/spline/electron_sector/eS2o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 420
+  - Evidence: overlays 0
+- `fits/spline/electron_sector/eS3o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 422
+  - Evidence: overlays 0
+- `fits/spline/electron_sector/eS4o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 421
+  - Evidence: overlays 0
+- `fits/spline/electron_sector/eS5o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 421
+  - Evidence: overlays 0
+- `fits/spline/electron_sector/eS6o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 421
+  - Evidence: overlays 0
+- `fits/spline/noSmear/noSmear`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/no_pip_testdc/no_pip_testdc`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/no_sector_pcal/no_sector_pcal`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/no_valerii_knockout/no_valerii_knockout`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/nominal/nominal`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 20 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/pcalvol/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/pcalvol/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/phi_bins/Phi12`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/spline/pion_sector/pipS1o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 421
+  - Evidence: overlays 0
+- `fits/spline/pion_sector/pipS2o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 421
+  - Evidence: overlays 0
+- `fits/spline/pion_sector/pipS3o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 421
+  - Evidence: overlays 0
+- `fits/spline/pion_sector/pipS4o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 420
+  - Evidence: overlays 0
+- `fits/spline/pion_sector/pipS5o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 420
+  - Evidence: overlays 0
+- `fits/spline/pion_sector/pipS6o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 423
+  - Evidence: overlays 0
+- `fits/spline/rho0_subtraction/NoRho0`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/acceptance_reweighting/Acc`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/acceptance_threshold/Acc015`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/acceptance_threshold/Acc025`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/bayes_iteration/BayesMinus1`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/bayes_iteration/BayesPlus1`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/chi2_strict_pip/chi2_strict_pip`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/correction_method/BinByBin`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bin cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dcfid_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dcfid_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dcfid_pip/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dcfid_pip/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dcfidref_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dcfidref_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dcv_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dcv_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dimension/5D`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_5D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dvz_pip/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/dvz_pip/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/ecband_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/ecband_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/ecthr_el/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/ecthr_el/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/electron_sector/eS1o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 422
+  - Evidence: overlays 0
+- `fits/unweighted/electron_sector/eS2o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 424
+  - Evidence: overlays 0
+- `fits/unweighted/electron_sector/eS3o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 426
+  - Evidence: overlays 0
+- `fits/unweighted/electron_sector/eS4o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 424
+  - Evidence: overlays 0
+- `fits/unweighted/electron_sector/eS5o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 424
+  - Evidence: overlays 0
+- `fits/unweighted/electron_sector/eS6o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 424
+  - Evidence: overlays 0
+- `fits/unweighted/noSmear/noSmear`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/no_pip_testdc/no_pip_testdc`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/no_sector_pcal/no_sector_pcal`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/no_valerii_knockout/no_valerii_knockout`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/nominal/nominal`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/pcalvol/loose`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/pcalvol/tight`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/phi_bins/Phi12`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+- `fits/unweighted/pion_sector/pipS1o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 425
+  - Evidence: overlays 0
+- `fits/unweighted/pion_sector/pipS2o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 423
+  - Evidence: overlays 0
+- `fits/unweighted/pion_sector/pipS3o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 425
+  - Evidence: overlays 0
+- `fits/unweighted/pion_sector/pipS4o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 421
+  - Evidence: overlays 0
+- `fits/unweighted/pion_sector/pipS5o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 1 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 425
+  - Evidence: overlays 0
+- `fits/unweighted/pion_sector/pipS6o`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 425
+  - Evidence: overlays 0
+- `fits/unweighted/rho0_subtraction/NoRho0`
+  - Reason: each stated after-quality matches the saved fit, and the stated cell count matches
+  - Evidence: checked 3 bins
+  - Evidence: family Fit_Pars_from_3D_Bayesian cells 452
+  - Evidence: overlays 0
+
