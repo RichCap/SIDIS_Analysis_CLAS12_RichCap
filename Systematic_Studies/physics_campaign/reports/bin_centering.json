@@ -1,0 +1,207 @@
+{
+  "event_counts_match": true,
+  "evgen_bin_centering": {
+    "implemented": false,
+    "study_state": "deferred"
+  },
+  "injection_spline": {
+    "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+    "path_status": "verified",
+    "provenance": "jlab_work_paths.REL_SPLINE_DEFAULT and Campaign/local_orchestrator.py --spline_file",
+    "role": "original_injection",
+    "study_state": "verified"
+  },
+  "iteration": {
+    "combine": "not_combined",
+    "study_state": "blocked",
+    "systematic": null
+  },
+  "method": {
+    "alternative": "initial_spline",
+    "combine": "not_combined",
+    "kind": "estimated_transfer",
+    "reference": "event_unweighted",
+    "study_state": "blocked",
+    "systematic": null,
+    "transfer_prescription": "user_decision"
+  },
+  "sensitivity_blocked": 0,
+  "subdivision": {
+    "campaign": "unweighted",
+    "combine": "independent",
+    "pooled": "rms_of_all_15",
+    "spline_transfer": "user_decision",
+    "study_state": "awaiting_observable_shifts",
+    "systematic": null,
+    "variables": 5,
+    "variations_each": 3
+  },
+  "subdivisions": {
+    "phi": [
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 5,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_phi_5.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "phi"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 7,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_phi_7.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "phi"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 9,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_phi_9.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "phi"
+      }
+    ],
+    "pt": [
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 3,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_pt_3.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "pt"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 5,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_pt_5.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "pt"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 7,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_pt_7.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "pt"
+      }
+    ],
+    "q2": [
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 3,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_q2_3.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "q2"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 5,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_q2_5.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "q2"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 7,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_q2_7.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "q2"
+      }
+    ],
+    "y": [
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 3,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_y_3.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "y"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 5,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_y_5.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "y"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 7,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_y_7.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "y"
+      }
+    ],
+    "z": [
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 3,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_z_3.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "z"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 5,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_z_5.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "z"
+      },
+      {
+        "comparison_basis": "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid.",
+        "count": 7,
+        "others_at_one": true,
+        "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/BC_Corrections/Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_z_7.json",
+        "path_status": "verified",
+        "studied_count_matches": true,
+        "study_state": "verified",
+        "variable": "z"
+      }
+    ]
+  },
+  "updated_spline": {
+    "path": null,
+    "path_status": "needs_configuration",
+    "reason": "No configuration names a spline file written after the weighted unfold and its refit.",
+    "study_state": "blocked"
+  }
+}

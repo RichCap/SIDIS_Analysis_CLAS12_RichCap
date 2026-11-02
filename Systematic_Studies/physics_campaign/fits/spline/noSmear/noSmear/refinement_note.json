@@ -1,0 +1,8 @@
+{
+  "scope": "spline noSmear/noSmear on variation shard 1. 3D Bayesian phi_h, 452 fitted cells, Q2-y 1-17. RC_Bayesian, BC_RC_Bayesian, and 5D are absent and were not created. No publication.",
+  "start_mode": "manual. Spline B windows are tight (median width 0.020, 945 of 1390 narrower than 0.05), so --use_spline_init was not used. Changed bins are in refine_init.py, a copy of nominal_init.py.",
+  "error_source": "histogram",
+  "changed": "Initial run_shard was not treated as finished. 20 bins were trapped by a small first-pass moment start: the second pass only moves a parameter halfway, so A(1+B cos phi+C cos 2phi) was too flat. Starts were moved to the histogram cosine and limits that excluded it were widened in refine_init.py. Remade Q2-y 1 3 4 6 7 9 10 11 12 13 14 15 with --unfolding_3D --fit_corrections Bayesian --fit_error_source histogram --fit_init_file, no pass cap and no chi-squared stop. All 20 improved. Worst (13,4) 19.04 to 2.63. Other cells in those Q2-y bins did not move, and unselected Q2-y bins are unchanged. JSON still has 452 cells. The shared manual initializer and the universal spline file were not edited.",
+  "left_bins": "No 5D family, so nothing was left from a 3D-versus-5D disagreement. Histogram shapes that disagree with a neighbor were kept, including (9,7) B -0.426 beside neighbor -0.067; (15,15) B -0.296 beside neighbor -0.022; (11,20) B -0.271 beside neighbor -0.031; (3,24) B -0.270 beside neighbor -0.035.",
+  "unresolved": "The best three-parameter curve still misses the histogram in (1,32) 5.99, (1,7) 5.77, (1,14) 5.45, (6,12) 4.94, (2,6) 4.88, (6,6) 4.84, (2,5) 4.59, (2,4) 4.57. Further guide changes do not help those bins. Empty histograms stay N/A and are not zeroes."
+}

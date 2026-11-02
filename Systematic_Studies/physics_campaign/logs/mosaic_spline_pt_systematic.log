@@ -1,0 +1,20 @@
+
+[1m[94mBeginning to run 'Full_Moment_Plots_Creation_From_JSON.py'[0m
+
+
+Started running on [1m11-1-2026[0m at [1m08:38 p.m.[0m
+
+[96m[INFO] single | file=Systematic_Studies/physics_campaign/corrected/spline/normalized.json | fit_set=Fit_Pars_from_3D_BC_RC_Bayesian[0m
+Info in <TCanvas::Print>: pdf file sidis_mosaic_spline_pt_systematic_3D_BayesianUnfold_BC_RC_pT_Amplitude.pdf has been created
+Info in <TCanvas::Print>: pdf file sidis_mosaic_spline_pt_systematic_3D_BayesianUnfold_BC_RC_pT_CosPhiMoment.pdf has been created
+Info in <TCanvas::Print>: pdf file sidis_mosaic_spline_pt_systematic_3D_BayesianUnfold_BC_RC_pT_Cos2PhiMoment.pdf has been created
+
+[1m[94mFinished running 'Full_Moment_Plots_Creation_From_JSON.py'[0m
+
+
+The time that this code finished is [1m08:38 p.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 3 Second(s).
+
+
+

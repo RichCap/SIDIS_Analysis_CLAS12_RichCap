@@ -193,13 +193,13 @@ def parse_args():
     # Slightly smaller default title size (after increased canvas size)
     p.add_argument("-s", "--title_size",
                    type=float,
-                   default=0.028,
+                   default=0.032,
                    # help="Global title TLatex size (NDC).\n")
                    help=argparse.SUPPRESS)
 
     p.add_argument("-p", "--title_x",
                    type=float,
-                   default=0.01,
+                   default=0.50,
                    # help="Global title X position (NDC).\n")
                    help=argparse.SUPPRESS)
     p.add_argument("-P", "--title_y",
@@ -849,8 +849,8 @@ def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
         gr_spline.SetPoint(ip, float(xx), float(yy))
 
     gr_spline.SetLineColorAlpha(int(series_map[sid]["color"]), 0.45)
-    gr_spline.SetLineWidth(0)
-    gr_spline.SetLineStyle(7)
+    gr_spline.SetLineWidth(2)
+    gr_spline.SetLineStyle(1)
     gr_spline.SetMarkerColorAlpha(int(series_map[sid]["color"]), 0.45)
     # gr_spline.SetMarkerSize(1)
     gr_spline.SetMarkerSize(1.5)
@@ -1222,7 +1222,7 @@ def draw_global_title(args, canvas, title_text):
     canvas.cd()
     tex = ROOT.TLatex()
     tex.SetNDC(True)
-    tex.SetTextAlign(13)
+    tex.SetTextAlign(23)
     tex.SetTextFont(42)
     tex.SetTextSize(float(args.title_size))
     tex.DrawLatex(float(args.title_x), float(args.title_y), str(title_text))

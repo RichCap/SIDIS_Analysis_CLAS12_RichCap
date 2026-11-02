@@ -73,6 +73,7 @@ def action_bin_centering(args):
         handle.close()
         meta = payload.get("meta", {})
     report = phys.bin_centering_report(meta, args.initial_spline, args.later_spline)
+    report["subdivisions"] = phys.discover_bc_subdivisions()
     write_report(args.output, report)
 
 
@@ -81,8 +82,65 @@ def action_mosaic(args):
     artifact = json.load(handle)
     handle.close()
     artifact["path"] = args.artifact
-    cmd = phys.mosaic_command(artifact, args.spline_overlay, args.spline_prefix, args.campaign)
-    print("\n".join(cmd))
+    if((args.x_mode not in [None, ""]) and (args.uncertainty not in [None, ""])):
+        commands = [phys.mosaic_command(artifact, args.spline_overlay, args.spline_prefix, args.campaign, args.x_mode, args.uncertainty)]
+    else:
+        commands = phys.mosaic_command_set(artifact, args.spline_overlay, args.spline_prefix, args.campaign)
+    if(args.test):
+        cmd = commands[0] + ["--test"]
+        py = "/Users/richardcapobianco/opt/miniforge3/envs/updated_python/bin/python"
+        proc = subprocess.run([py] + cmd, cwd=phys.ANALYSIS_ROOT)
+        if(proc.returncode != 0):
+            raise SystemExit(proc.returncode)
+        print("mosaic test ok")
+        return
+    for cmd in commands:
+        print(" ".join(cmd))
+        print("")
+
+
+def action_record_agent(args):
+    path = phys.write_agent_report(args.output_dir, args.run_id, args.stage, args.campaign, args.source_or_shard, args.label, args.body)
+    print(path)
+
+
+def action_record_refinement(args):
+    handle = open(args.note)
+    note = json.load(handle)
+    handle.close()
+    ok = phys.refinement_note_ok(note)
+    plan_handle = open(args.work_plan)
+    plan = json.load(plan_handle)
+    plan_handle.close()
+    output_dir = os.path.dirname(os.path.abspath(args.work_plan))
+    registry = phys.PhysicsRegistry(output_dir)
+    record = {
+        "stage": "refine",
+        "producer": "record_refinement",
+        "campaign": args.campaign,
+        "source": args.source,
+        "variation": str(args.variation),
+        "match": "%s|%s|%s" % (args.campaign, args.source, args.variation),
+        "config_fingerprint": "refined",
+        "status": "completed" if(ok) else "failed",
+        "validation": "ok" if(ok) else "incomplete_note",
+        "refinement_status": "refined" if(ok) else "incomplete",
+        "run_id": plan.get("run_id", ""),
+    }
+    registry.append(record)
+    if(not ok):
+        raise SystemExit("refinement note is incomplete")
+    print(record["status"])
+
+
+def action_report_markdown(args):
+    import sidis_physics_reports as reports
+    print(reports.write_markdown(args.output_dir, args.run_id))
+
+
+def action_report_pptx(args):
+    import sidis_physics_reports as reports
+    print(reports.write_pptx(args.output_dir, args.run_id))
 
 
 def action_run_shard(args):
@@ -143,15 +201,32 @@ def action_run_shard(args):
         proc = subprocess.run(cmd, cwd=phys.ANALYSIS_ROOT, env=env, stdout=log, stderr=log)
         n_cells = 0
         fit_key = phys.expected_fit_key(job)
+        fitted_bins = []
         if((proc.returncode == 0) and os.path.isfile(json_out)):
             payload = json.load(open(json_out))
-            n_cells = len(payload.get(fit_key, {}))
+            fitted_bins = list(payload.get(fit_key, {}).keys())
+            n_cells = len(fitted_bins)
+        coverage = None
+        if(proc.returncode == 0):
+            expected_rows = phys.scan_fit_family(copy_root, fit_key)
+            coverage = phys.classify_fit_coverage(expected_rows, fitted_bins)
+            phys.write_json(os.path.join(os.path.dirname(json_out), "fit_coverage.json"), coverage)
         record = dict(wanted)
-        record["status"] = "completed" if((proc.returncode == 0) and (n_cells > 0)) else "failed"
-        record["validation"] = "ok" if(record["status"] == "completed") else ("empty_fit" if(proc.returncode == 0) else "failed")
+        if(proc.returncode != 0):
+            record["status"] = "failed"
+            record["validation"] = "failed"
+        elif(coverage is None):
+            record["status"] = "failed"
+            record["validation"] = "empty_fit"
+        else:
+            record["status"] = coverage["status"]
+            record["validation"] = "ok" if(coverage["status"] in ["completed", "completed_partial"]) else "empty_fit"
         record["returncode"] = proc.returncode
         record["n_cells"] = n_cells
+        record["na"] = None if(coverage is None) else coverage["na"]
+        record["other_failure"] = None if(coverage is None) else coverage["other_failure"]
         record["fit_key"] = fit_key
+        record["refinement_status"] = "initial_fit"
         record["output"] = json_out
         record["iteration_mismatch_bins"] = job.get("iteration_mismatch_bins", [])
         registry.append(record)
@@ -205,7 +280,34 @@ def main():
     mosaic.add_argument("-c", "--campaign", required=True)
     mosaic.add_argument("-so", "--spline_overlay", action="store_true")
     mosaic.add_argument("-sp", "--spline_prefix", default=phys.SPLINE_PREFIX)
+    mosaic.add_argument("-x", "--x_mode", default="")
+    mosaic.add_argument("-u", "--uncertainty", default="")
+    mosaic.add_argument("-t", "--test", action="store_true")
     mosaic.set_defaults(func=action_mosaic)
+    record_agent = sub.add_parser("record_agent")
+    record_agent.add_argument("-o", "--output_dir", required=True)
+    record_agent.add_argument("-r", "--run_id", required=True)
+    record_agent.add_argument("-st", "--stage", required=True)
+    record_agent.add_argument("-c", "--campaign", required=True)
+    record_agent.add_argument("-ss", "--source_or_shard", required=True)
+    record_agent.add_argument("-l", "--label", required=True)
+    record_agent.add_argument("-b", "--body", required=True)
+    record_agent.set_defaults(func=action_record_agent)
+    record_refinement = sub.add_parser("record_refinement")
+    record_refinement.add_argument("-w", "--work_plan", required=True)
+    record_refinement.add_argument("-c", "--campaign", required=True)
+    record_refinement.add_argument("-s", "--source", required=True)
+    record_refinement.add_argument("-v", "--variation", required=True)
+    record_refinement.add_argument("-n", "--note", required=True)
+    record_refinement.set_defaults(func=action_record_refinement)
+    report_md = sub.add_parser("report_markdown")
+    report_md.add_argument("-o", "--output_dir", required=True)
+    report_md.add_argument("-r", "--run_id", required=True)
+    report_md.set_defaults(func=action_report_markdown)
+    report_pptx = sub.add_parser("report_pptx")
+    report_pptx.add_argument("-o", "--output_dir", required=True)
+    report_pptx.add_argument("-r", "--run_id", required=True)
+    report_pptx.set_defaults(func=action_report_pptx)
     fit_plan = sub.add_parser("fit_plan")
     fit_plan.add_argument("-k", "--kind", required=True, choices=["nominal", "variation"])
     fit_plan.add_argument("-c", "--campaign", required=True)

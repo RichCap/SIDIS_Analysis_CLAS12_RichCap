@@ -1,0 +1,5 @@
+uncertainty_source=systematic
+uncertainty_campaign=spline
+already_normalized=True
+The fit uses one error field. A different field can change the slope because the point weights change.
+This is not a cross-bin systematic covariance.

@@ -229,7 +229,7 @@
       "eligible": false,
       "file_name": "Sys3D_nominal_only_20261030_Acc015_AccSpline.root",
       "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Acc015_AccSpline.root",
-      "path_status": "verified",
+      "path_status": "absent_on_disk",
       "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
       "spline_path": null,
       "study_state": "blocked",
@@ -241,7 +241,7 @@
       "eligible": false,
       "file_name": "Sys3D_nominal_only_20261030_Acc025_AccSpline.root",
       "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Acc025_AccSpline.root",
-      "path_status": "verified",
+      "path_status": "absent_on_disk",
       "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
       "spline_path": null,
       "study_state": "blocked",
@@ -253,7 +253,7 @@
       "eligible": false,
       "file_name": "Sys3D_nominal_only_20261030_BayesMinus1_AccSpline.root",
       "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BayesMinus1_AccSpline.root",
-      "path_status": "verified",
+      "path_status": "absent_on_disk",
       "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
       "spline_path": null,
       "study_state": "blocked",
@@ -265,7 +265,7 @@
       "eligible": false,
       "file_name": "Sys3D_nominal_only_20261030_BayesPlus1_AccSpline.root",
       "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BayesPlus1_AccSpline.root",
-      "path_status": "verified",
+      "path_status": "absent_on_disk",
       "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
       "spline_path": null,
       "study_state": "blocked",
@@ -277,7 +277,7 @@
       "eligible": false,
       "file_name": "Sys3D_nominal_only_20261030_NoRho0_AccSpline.root",
       "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_NoRho0_AccSpline.root",
-      "path_status": "verified",
+      "path_status": "absent_on_disk",
       "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
       "spline_path": null,
       "study_state": "blocked",
@@ -289,7 +289,7 @@
       "eligible": false,
       "file_name": "Sys3D_nominal_only_20261030_Phi12_AccSpline.root",
       "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Phi12_AccSpline.root",
-      "path_status": "verified",
+      "path_status": "absent_on_disk",
       "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
       "spline_path": null,
       "study_state": "blocked",
@@ -309,7 +309,7 @@
       },
       "method": "Bayesian",
       "nominal_id": null,
-      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_AcceptanceWeightVariation_Spline.root",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_inherited_Spline.root",
       "path_status": "verified",
       "role": "nominal",
       "source": "nominal",
@@ -1636,17 +1636,233 @@
       "dimension": "3D",
       "enabled": true,
       "fingerprint": {
-        "mtime": null,
-        "size": null
+        "mtime": 1793566693,
+        "size": 3845033
       },
       "method": "Bayesian",
       "nominal_id": "nominals.unweighted",
-      "path": null,
-      "path_status": "absent_on_disk",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_inherited_Acc.root",
+      "path_status": "verified",
       "role": "acceptance_reweighting",
       "source": "acceptance_reweighting",
       "variation": "Acc",
       "weight_tag": "Acc"
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793566803,
+        "size": 4105810
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Acc015_Spline.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "acceptance_threshold",
+      "variation": "Acc015",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793566748,
+        "size": 3359705
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Acc015_Unweighted.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "acceptance_threshold",
+      "variation": "Acc015",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793566908,
+        "size": 4098833
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Acc025_Spline.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "acceptance_threshold",
+      "variation": "Acc025",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793566855,
+        "size": 3352545
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Acc025_Unweighted.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "acceptance_threshold",
+      "variation": "Acc025",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793567121,
+        "size": 4124675
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BayesMinus1_Spline.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "bayes_iteration",
+      "variation": "BayesMinus1",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793567077,
+        "size": 3374882
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BayesMinus1_Unweighted.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "bayes_iteration",
+      "variation": "BayesMinus1",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793567249,
+        "size": 4124539
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BayesPlus1_Spline.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "bayes_iteration",
+      "variation": "BayesPlus1",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793567186,
+        "size": 3374924
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_BayesPlus1_Unweighted.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "bayes_iteration",
+      "variation": "BayesPlus1",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793567017,
+        "size": 3890290
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_NoRho0_Spline.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "rho0_subtraction",
+      "variation": "NoRho0",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793566963,
+        "size": 3144141
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_NoRho0_Unweighted.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "rho0_subtraction",
+      "variation": "NoRho0",
+      "weight_tag": ""
+    },
+    {
+      "campaign": "spline",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793567033,
+        "size": 3582657
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.spline",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Phi12_Spline.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "phi_bins",
+      "variation": "Phi12",
+      "weight_tag": "Spline"
+    },
+    {
+      "campaign": "unweighted",
+      "combine": "independent",
+      "dimension": "3D",
+      "enabled": true,
+      "fingerprint": {
+        "mtime": 1793567025,
+        "size": 3016532
+      },
+      "method": "Bayesian",
+      "nominal_id": "nominals.unweighted",
+      "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded/Sys3D_nominal_only_20261030_Phi12_Unweighted.root",
+      "path_status": "verified",
+      "role": "method",
+      "source": "phi_bins",
+      "variation": "Phi12",
+      "weight_tag": ""
     }
   ]
 }

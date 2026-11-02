@@ -1,0 +1,4656 @@
+{
+  "lower_acceptance_review": "No sector has an empty fraction at or above 0.25. A separate lower-acceptance unfold is not indicated by this coverage cut. Empty bins remain N/A.",
+  "n_sectors": 24,
+  "sectors": [
+    {
+      "campaign": "spline",
+      "empty": 34,
+      "empty_bins": [
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 21
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.0752212389380531,
+      "expected": 452,
+      "file": "Sys3D_eS1o_inherited_Spline.root",
+      "filled": 418,
+      "fitted": 0,
+      "name": "eS1o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 418
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 30,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 21
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.06637168141592921,
+      "expected": 452,
+      "file": "Sys3D_eS1o_inherited_Unweighted.root",
+      "filled": 422,
+      "fitted": 0,
+      "name": "eS1o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 422
+    },
+    {
+      "campaign": "spline",
+      "empty": 32,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 21
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.07079646017699115,
+      "expected": 452,
+      "file": "Sys3D_eS2o_inherited_Spline.root",
+      "filled": 420,
+      "fitted": 0,
+      "name": "eS2o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 420
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 28,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.061946902654867256,
+      "expected": 452,
+      "file": "Sys3D_eS2o_inherited_Unweighted.root",
+      "filled": 424,
+      "fitted": 0,
+      "name": "eS2o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 424
+    },
+    {
+      "campaign": "spline",
+      "empty": 30,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.06637168141592921,
+      "expected": 452,
+      "file": "Sys3D_eS3o_inherited_Spline.root",
+      "filled": 422,
+      "fitted": 0,
+      "name": "eS3o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 422
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 26,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        }
+      ],
+      "empty_fraction": 0.05752212389380531,
+      "expected": 452,
+      "file": "Sys3D_eS3o_inherited_Unweighted.root",
+      "filled": 426,
+      "fitted": 0,
+      "name": "eS3o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 426
+    },
+    {
+      "campaign": "spline",
+      "empty": 31,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.06858407079646017,
+      "expected": 452,
+      "file": "Sys3D_eS4o_inherited_Spline.root",
+      "filled": 421,
+      "fitted": 0,
+      "name": "eS4o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 421
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 28,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.061946902654867256,
+      "expected": 452,
+      "file": "Sys3D_eS4o_inherited_Unweighted.root",
+      "filled": 424,
+      "fitted": 0,
+      "name": "eS4o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 424
+    },
+    {
+      "campaign": "spline",
+      "empty": 31,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.06858407079646017,
+      "expected": 452,
+      "file": "Sys3D_eS5o_inherited_Spline.root",
+      "filled": 421,
+      "fitted": 0,
+      "name": "eS5o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 421
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 28,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.061946902654867256,
+      "expected": 452,
+      "file": "Sys3D_eS5o_inherited_Unweighted.root",
+      "filled": 424,
+      "fitted": 0,
+      "name": "eS5o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 424
+    },
+    {
+      "campaign": "spline",
+      "empty": 31,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.06858407079646017,
+      "expected": 452,
+      "file": "Sys3D_eS6o_inherited_Spline.root",
+      "filled": 421,
+      "fitted": 0,
+      "name": "eS6o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 421
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 28,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.061946902654867256,
+      "expected": 452,
+      "file": "Sys3D_eS6o_inherited_Unweighted.root",
+      "filled": 424,
+      "fitted": 0,
+      "name": "eS6o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "electron_sector",
+      "interrupted_before_save": 424
+    },
+    {
+      "campaign": "spline",
+      "empty": 31,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.06858407079646017,
+      "expected": 452,
+      "file": "Sys3D_pipS1o_inherited_Spline.root",
+      "filled": 421,
+      "fitted": 0,
+      "name": "pipS1o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 421
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 27,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.059734513274336286,
+      "expected": 452,
+      "file": "Sys3D_pipS1o_inherited_Unweighted.root",
+      "filled": 425,
+      "fitted": 0,
+      "name": "pipS1o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 425
+    },
+    {
+      "campaign": "spline",
+      "empty": 31,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.06858407079646017,
+      "expected": 452,
+      "file": "Sys3D_pipS2o_inherited_Spline.root",
+      "filled": 421,
+      "fitted": 0,
+      "name": "pipS2o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 421
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 29,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.06415929203539823,
+      "expected": 452,
+      "file": "Sys3D_pipS2o_inherited_Unweighted.root",
+      "filled": 423,
+      "fitted": 0,
+      "name": "pipS2o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 423
+    },
+    {
+      "campaign": "spline",
+      "empty": 31,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.06858407079646017,
+      "expected": 452,
+      "file": "Sys3D_pipS3o_inherited_Spline.root",
+      "filled": 421,
+      "fitted": 0,
+      "name": "pipS3o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 421
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 27,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.059734513274336286,
+      "expected": 452,
+      "file": "Sys3D_pipS3o_inherited_Unweighted.root",
+      "filled": 425,
+      "fitted": 0,
+      "name": "pipS3o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 425
+    },
+    {
+      "campaign": "spline",
+      "empty": 32,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 21
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.07079646017699115,
+      "expected": 452,
+      "file": "Sys3D_pipS4o_inherited_Spline.root",
+      "filled": 420,
+      "fitted": 0,
+      "name": "pipS4o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 420
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 31,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 21
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.06858407079646017,
+      "expected": 452,
+      "file": "Sys3D_pipS4o_inherited_Unweighted.root",
+      "filled": 421,
+      "fitted": 0,
+      "name": "pipS4o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 421
+    },
+    {
+      "campaign": "spline",
+      "empty": 32,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 21
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.07079646017699115,
+      "expected": 452,
+      "file": "Sys3D_pipS5o_inherited_Spline.root",
+      "filled": 420,
+      "fitted": 0,
+      "name": "pipS5o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 420
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 27,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 24
+        }
+      ],
+      "empty_fraction": 0.059734513274336286,
+      "expected": 452,
+      "file": "Sys3D_pipS5o_inherited_Unweighted.root",
+      "filled": 425,
+      "fitted": 0,
+      "name": "pipS5o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 425
+    },
+    {
+      "campaign": "spline",
+      "empty": 29,
+      "empty_bins": [
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 26
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 27
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 28
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        }
+      ],
+      "empty_fraction": 0.06415929203539823,
+      "expected": 452,
+      "file": "Sys3D_pipS6o_inherited_Spline.root",
+      "filled": 423,
+      "fitted": 0,
+      "name": "pipS6o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 423
+    },
+    {
+      "campaign": "unweighted",
+      "empty": 27,
+      "empty_bins": [
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 3,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 5
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 9
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 10
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 16
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 17
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 23
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 29
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 4,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 7,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 6
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 7
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 14
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 20
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 25
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 31
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 32
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 33
+        },
+        {
+          "q2y": 8,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 34
+        },
+        {
+          "q2y": 11,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 4
+        },
+        {
+          "q2y": 12,
+          "reason": "empty_histogram",
+          "status": "N/A",
+          "zpt": 8
+        }
+      ],
+      "empty_fraction": 0.059734513274336286,
+      "expected": 452,
+      "file": "Sys3D_pipS6o_inherited_Unweighted.root",
+      "filled": 425,
+      "fitted": 0,
+      "name": "pipS6o",
+      "note": "Empty histograms are N/A. The first campaign process died on an empty histogram before any sector JSON was saved, so the filled histograms are not fitted results and are not other failures. They are not zero.",
+      "other_failure": 0,
+      "sector": "pion_sector",
+      "interrupted_before_save": 425
+    }
+  ]
+}

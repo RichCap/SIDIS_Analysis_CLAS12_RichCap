@@ -1,0 +1,8 @@
+{
+  "scope": "spline dcv_el tight on variation shard 0. 3D Bayesian, 452 fitted cells, Q2-y 1-17. 3D Bayesian only. RC_Bayesian and BC_RC_Bayesian are absent and were not created. No publication.",
+  "start_mode": "manual",
+  "error_source": "histogram",
+  "changed": "Widened only the trapped keys in refine_init.py and remade Q2-y 3 4 6 7 9 10 13 14 15 with --fit_error_source histogram and --fit_init_file. 12 bins improved and the other cells in those Q2-y bins did not move. Largest drops: (13,4) 17.03 to 2.574; (3,16) 15.08 to 1.384; (10,11) 7.22 to 1.475. JSON still has 452 cells. No pass cap and no chi-squared stop. nominal_init.py and the universal spline file were not edited.",
+  "left_bins": "No empty histograms. B or C that disagrees with a neighbor was left when the histogram's own cosine already matches the stored curve.",
+  "unresolved": "No hard failures. The remaining high chi2/NDF tail follows the best cosine already, so it was not retuned: (13,10) 7.14, (1,19) 6.11, (1,32) 6.03, (1,14) 5.79."
+}

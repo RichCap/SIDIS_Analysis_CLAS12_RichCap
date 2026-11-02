@@ -1,0 +1,243 @@
+{
+  "expected": 452,
+  "fitted": 423,
+  "na": 29,
+  "na_bins": [
+    {
+      "bin": "(Q2_y_Bin_12)-(z_pT_Bin_8)",
+      "integral": 0.0,
+      "q2y": 12,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 8
+    },
+    {
+      "bin": "(Q2_y_Bin_3)-(z_pT_Bin_4)",
+      "integral": 0.0,
+      "q2y": 3,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 4
+    },
+    {
+      "bin": "(Q2_y_Bin_3)-(z_pT_Bin_5)",
+      "integral": 0.0,
+      "q2y": 3,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 5
+    },
+    {
+      "bin": "(Q2_y_Bin_3)-(z_pT_Bin_25)",
+      "integral": 0.0,
+      "q2y": 3,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 25
+    },
+    {
+      "bin": "(Q2_y_Bin_3)-(z_pT_Bin_26)",
+      "integral": 0.0,
+      "q2y": 3,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 26
+    },
+    {
+      "bin": "(Q2_y_Bin_3)-(z_pT_Bin_27)",
+      "integral": 0.0,
+      "q2y": 3,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 27
+    },
+    {
+      "bin": "(Q2_y_Bin_3)-(z_pT_Bin_28)",
+      "integral": 0.0,
+      "q2y": 3,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 28
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_7)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 7
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_8)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 8
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_9)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 9
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_10)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 10
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_16)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 16
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_17)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 17
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_23)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 23
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_29)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 29
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_31)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 31
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_32)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 32
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_33)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 33
+    },
+    {
+      "bin": "(Q2_y_Bin_4)-(z_pT_Bin_34)",
+      "integral": 0.0,
+      "q2y": 4,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 34
+    },
+    {
+      "bin": "(Q2_y_Bin_7)-(z_pT_Bin_4)",
+      "integral": 0.0,
+      "q2y": 7,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 4
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_6)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 6
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_7)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 7
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_8)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 8
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_14)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 14
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_20)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 20
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_31)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 31
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_32)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 32
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_33)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 33
+    },
+    {
+      "bin": "(Q2_y_Bin_8)-(z_pT_Bin_34)",
+      "integral": 0.0,
+      "q2y": 8,
+      "reason": "empty_histogram",
+      "status": "N/A",
+      "zpt": 34
+    }
+  ],
+  "na_fraction": 0.06415929203539823,
+  "other_bins": [],
+  "other_failure": 0,
+  "status": "completed_partial"
+}

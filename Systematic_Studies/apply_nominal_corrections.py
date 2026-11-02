@@ -21,8 +21,16 @@ import sidis_physics_lib as phys
 PY = "/Users/richardcapobianco/opt/miniforge3/envs/updated_python/bin/python"
 
 
+def rc_histogram_name(name):
+    return name.replace("_(Bayesian)_", "_(RC_Bayesian)_", 1)
+
+
+def bc_histogram_name(name):
+    return name.replace("_(RC_Bayesian)_", "_(BC_RC_Bayesian)_", 1)
+
+
 def corrected_name(name):
-    return name.replace("_(Bayesian)_", "_(BC_RC_Bayesian)_", 1)
+    return bc_histogram_name(rc_histogram_name(name))
 
 
 def apply_bc(hist, q2y_bin, zpt_bin, results, problems):
@@ -48,6 +56,76 @@ def apply_bc(hist, q2y_bin, zpt_bin, results, problems):
         hist.SetBinContent(ib, content / factor)
         hist.SetBinError(ib, math.sqrt((stat / factor) ** 2 + (content * error / (factor * factor)) ** 2))
     return True
+
+
+def write_rc_only(nominal_path, rc_path, out_root):
+    # Acceptance Bayesian histograms divided by the nominal event-ratio factor. No BC factor is applied.
+    os.makedirs(os.path.dirname(out_root), exist_ok=True)
+    source = ROOT.TFile.Open(nominal_path, "READ")
+    rc_file = ROOT.TFile.Open(rc_path, "READ")
+    dest = ROOT.TFile.Open(out_root, "RECREATE")
+    problems = []
+    written = 0
+    names = []
+    for key in source.GetListOfKeys():
+        name = key.GetName()
+        if("(MultiDim_3D_Histo)_(Bayesian)_" not in name):
+            continue
+        if(("RC_Bayesian" in name) or ("BC_RC" in name) or ("Bin_All" in name) or ("z_pT_Bin_All" in name)):
+            continue
+        if(("Q2_y_Bin_" not in name) or ("z_pT_Bin_" not in name)):
+            continue
+        q2y = name.split("Q2_y_Bin_")[1].split(")")[0]
+        zpt = name.split("z_pT_Bin_")[1].split(")")[0]
+        if((not q2y.isdigit()) or (not zpt.isdigit())):
+            continue
+        factor = rc_file.Get(phys.rc_factor_name(q2y, zpt))
+        hist = key.ReadObj()
+        if((factor is None) or (hist.GetNbinsX() != factor.GetNbinsX())):
+            problems.append({"bin": [q2y, zpt], "reason": "missing_or_incompatible_rc"})
+            continue
+        corrected = hist.Clone(rc_histogram_name(name))
+        corrected.Divide(factor)
+        dest.cd()
+        corrected.Write()
+        names.append(corrected.GetName())
+        written += 1
+    dest.Close()
+    rc_file.Close()
+    source.Close()
+    return {"written": written, "problems": problems, "names": names}
+
+
+def write_bc_on_rc(rc_root, bc_results, out_root):
+    # Nominal BC factors applied once to the RC-corrected histograms.
+    os.makedirs(os.path.dirname(out_root), exist_ok=True)
+    source = ROOT.TFile.Open(rc_root, "READ")
+    dest = ROOT.TFile.Open(out_root, "RECREATE")
+    problems = []
+    written = 0
+    names = []
+    for key in source.GetListOfKeys():
+        name = key.GetName()
+        if("(MultiDim_3D_Histo)_(RC_Bayesian)_" not in name):
+            continue
+        if("BC_RC" in name):
+            continue
+        if(("Q2_y_Bin_" not in name) or ("z_pT_Bin_" not in name)):
+            continue
+        q2y = name.split("Q2_y_Bin_")[1].split(")")[0]
+        zpt = name.split("z_pT_Bin_")[1].split(")")[0]
+        if((not q2y.isdigit()) or (not zpt.isdigit())):
+            continue
+        hist = key.ReadObj().Clone(bc_histogram_name(name))
+        if(not apply_bc(hist, q2y, zpt, bc_results, problems)):
+            continue
+        dest.cd()
+        hist.Write()
+        names.append(hist.GetName())
+        written += 1
+    dest.Close()
+    source.Close()
+    return {"written": written, "problems": problems, "names": names}
 
 
 def correct_campaign(campaign, nominal_path, rc_path, bc_results, out_root):
@@ -107,25 +185,23 @@ def fit_corrected(out_root, json_out):
 
 
 def main():
-    handle = open(os.path.join(THIS_DIR, "sidis_physics_manifest.json"))
-    manifest = json.load(handle)
-    handle.close()
-    bc = json.load(open(phys.BC_EVENT_JSON))
-    results = bc["results"]
-    budgets = json.load(open(os.path.join(THIS_DIR, "physics_campaign", "budgets.json")))
-    for campaign in ["unweighted", "spline"]:
-        nominal = manifest["nominals"][campaign]["path"]
-        out_root = os.path.join(THIS_DIR, "physics_campaign", "corrected", campaign, "corrected.root")
-        report = correct_campaign(campaign, nominal, phys.RC_FACTOR_ROOT, results, out_root)
-        phys.write_json(os.path.join(os.path.dirname(out_root), "correction_report.json"), report)
-        print(campaign, "histograms", report["written"], "problems", len(report["problems"]))
-        if(report["written"] == 0):
-            raise SystemExit("no corrected histograms for %s" % campaign)
-        json_out = os.path.join(os.path.dirname(out_root), "fit.json")
-        code = fit_corrected(out_root, json_out)
-        print(campaign, "fit rc", code)
-        if(code != 0):
-            raise SystemExit("corrected fit failed for %s" % campaign)
+    # Writes one correction stage. Fitting is refine-phi-fits, not this script.
+    import argparse
+    parser = argparse.ArgumentParser(description="Write nominal RC or BC histograms. Does not fit.")
+    parser.add_argument("-st", "--stage", required=True, choices=["rc", "bc"])
+    parser.add_argument("-c", "--campaign", required=True)
+    parser.add_argument("-i", "--input", required=True)
+    parser.add_argument("-o", "--output", required=True)
+    args = parser.parse_args()
+    if(args.stage == "rc"):
+        report = write_rc_only(args.input, phys.RC_FACTOR_ROOT, args.output)
+    else:
+        bc = json.load(open(phys.BC_EVENT_JSON))
+        report = write_bc_on_rc(args.input, bc["results"], args.output)
+    report["campaign"] = args.campaign
+    report["stage"] = args.stage
+    phys.write_json(os.path.join(os.path.dirname(args.output), "correction_report.json"), report)
+    print(args.campaign, args.stage, "histograms", report["written"], "problems", len(report["problems"]))
 
 
 if(__name__ == "__main__"):

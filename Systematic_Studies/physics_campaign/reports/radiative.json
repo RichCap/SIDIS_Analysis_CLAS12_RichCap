@@ -1,0 +1,17 @@
+{
+  "cross_section": {
+    "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/Running_EvGen_richcap/sidis/build/example/cross_section",
+    "path_status": "absent_on_disk"
+  },
+  "event_ratio_root": {
+    "path": null,
+    "path_status": "needs_configuration"
+  },
+  "note": "No radiative systematic value is calculated. The nominal correction remains the event-ratio division.",
+  "scan_root": {
+    "path": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/Running_EvGen_richcap/RC_Cross_Section_Scan_Outputs_Final.root",
+    "path_status": "verified"
+  },
+  "study_state": "pending",
+  "systematic": null
+}

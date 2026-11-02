@@ -1,7 +1,9 @@
 # Planning, comparison, and artifact helpers for the SIDIS physics-results workflow.
 # This module does not unfold, fit histograms, start EvGen, or submit jobs.
 
+import datetime
 import json
+import math
 import os
 import shutil
 import sys
@@ -20,14 +22,22 @@ UNFOLDED_DIR = os.path.join(
     "systematics_3d_complete_20261029",
     "unfolded",
 )
-SPLINE_NOMINAL_NAME = "Sys3D_nominal_only_20261030_AcceptanceWeightVariation_Spline.root"
+SPLINE_NOMINAL_NAME = "Sys3D_nominal_only_20261030_inherited_Spline.root"
 UNWEIGHTED_NOMINAL_NAME = "Sys3D_nominal_only_20261030_inherited_Unweighted.root"
 UNWEIGHTED_5D_NAME = "unfolded_5d_cpp_covariance.root"
 RC_FACTOR_ROOT = "/Users/richardcapobianco/Desktop/Work_Offline.nosync/Running_EvGen_richcap/Run_Large_Files_For_Iterative_Corrections/Comparison_With_Unfolding/build_EvGen_PerFile_Hists_Runtime_ifarm_rc/merged_outputs/RC_Factors_ifarm_rc.root"
 SPLINE_5D_PATH = os.path.join(ANALYSIS_ROOT, "SIDIS_Campaign", "systematics", "nominal_5d_spline_20261030", "Unfolded_5D_inherited_Spline.root")
 ITERATION_MISMATCH_BINS = [1, 5]
 ACCSPLINE_VARIATION_NAME = "Sys3D_nominal_only_20261030_inherited_AccSpline.root"
-BLOCKED_METHOD_BRANCHES = ["BayesMinus1", "BayesPlus1", "Acc015", "Acc025", "Phi12", "NoRho0"]
+ACC_VARIATION_NAME = "Sys3D_nominal_only_20261030_inherited_Acc.root"
+METHOD_BRANCH_SOURCES = {
+    "BayesMinus1": ("bayes_iteration", "BayesMinus1", "independent"),
+    "BayesPlus1": ("bayes_iteration", "BayesPlus1", "independent"),
+    "Acc015": ("acceptance_threshold", "Acc015", "independent"),
+    "Acc025": ("acceptance_threshold", "Acc025", "independent"),
+    "Phi12": ("phi_bins", "Phi12", "independent"),
+    "NoRho0": ("rho0_subtraction", "NoRho0", "independent"),
+}
 BRANCH_SUFFIXES = [
     "AcceptanceWeightVariation",
     "BayesMinus1",
@@ -82,6 +92,8 @@ BC_EVENT_ROOT = os.path.join(BC_DIR, "Sub_Bin_Contents_for_BC_Correction_with_Bi
 SPLINE_PREFIX = os.path.join(ANALYSIS_ROOT, "Prepare_Next_Iteration", "acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian")
 FIT_SCRIPT = os.path.join(ANALYSIS_ROOT, "Simple_RooUnfold_SelfContained.py")
 MOSAIC_SCRIPT = os.path.join(ANALYSIS_ROOT, "Full_Moment_Plots_Creation_From_JSON.py")
+PHI_SCRIPT = os.path.join(ANALYSIS_ROOT, "plot_consolidated_phi_h_figures.py")
+INJECTION_SPLINE_TXT = SPLINE_PREFIX + "_Compute_SplineWeight.txt"
 
 
 def file_fingerprint(path):
@@ -111,6 +123,17 @@ class PhysicsRegistry(Registry):
         os.makedirs(self.reg_dir, exist_ok=True)
         if(not os.path.isfile(self.state_path)):
             self.write_state({})
+
+    def find_completed(self, wanted):
+        found = None
+        for record in self.records():
+            if(record.get("status") not in ["completed", "completed_partial"]):
+                continue
+            if(record.get("validation") not in ["ok", "passed", True]):
+                continue
+            if(self.identity_matches(record, wanted)):
+                found = record
+        return found
 
     def find_reusable(self, wanted, force):
         if(force):
@@ -142,7 +165,7 @@ def split_unfolded_name(name):
         return None
     body = stem[len("Sys3D_"):]
     weight_tag = None
-    for suffix, tag in [("_AccSpline", "AccSpline"), ("_Unweighted", ""), ("_Spline", "Spline")]:
+    for suffix, tag in [("_AccSpline", "AccSpline"), ("_Unweighted", ""), ("_Acc", "Acc"), ("_Spline", "Spline")]:
         if(body.endswith(suffix)):
             weight_tag = tag
             head = body[:-len(suffix)]
@@ -215,6 +238,7 @@ def build_manifest(unfolded_dir=None):
     unweighted_path, unweighted_state = take(UNWEIGHTED_NOMINAL_NAME)
     spline_path, spline_state = take(SPLINE_NOMINAL_NAME)
     accspline_path, accspline_state = take(ACCSPLINE_VARIATION_NAME)
+    acc_path, acc_state = take(ACC_VARIATION_NAME)
     nominals = {
         "unweighted": entry("nominal", "unweighted", "nominal", "nominal", "", "Bayesian", unweighted_path, unweighted_state, None, "not_combined", True),
         "spline": entry("nominal", "spline", "nominal", "nominal", "Spline", "Bayesian", spline_path, spline_state, None, "not_combined", True),
@@ -228,19 +252,25 @@ def build_manifest(unfolded_dir=None):
         config_id = parsed["config_id"]
         if(name in [SPLINE_NOMINAL_NAME, UNWEIGHTED_NOMINAL_NAME, ACCSPLINE_VARIATION_NAME]):
             continue
-        if(branch in BLOCKED_METHOD_BRANCHES):
-            blocked_methods.append({
-                "file_name": name,
-                "path": path,
-                "weight_tag": tag,
-                "branch": branch,
-                "eligible": False,
-                "spline_path": None,
-                "unweighted_path": None,
-                "path_status": "verified",
-                "study_state": "blocked",
-                "reason": "Unfolded with AccSpline. No Spline or Unweighted file of this branch is available.",
-            })
+        if(branch in METHOD_BRANCH_SOURCES):
+            source_name, variation_name, combine = METHOD_BRANCH_SOURCES[branch]
+            if(tag == "Spline"):
+                campaign = "spline"
+            elif(tag == ""):
+                campaign = "unweighted"
+            else:
+                blocked_methods.append({
+                    "file_name": name,
+                    "path": path,
+                    "weight_tag": tag,
+                    "branch": branch,
+                    "eligible": False,
+                    "path_status": "verified",
+                    "study_state": "blocked",
+                    "reason": "This weight is not the Unweighted or Spline nominal for the branch.",
+                })
+                continue
+            variations.append(entry("method", campaign, source_name, variation_name, tag, "Bayesian", path, "verified", "nominals.%s" % campaign, combine, True))
             continue
         if(branch == "BinByBin"):
             campaign = "spline" if(tag == "Spline") else "unweighted" if(tag == "") else None
@@ -269,7 +299,7 @@ def build_manifest(unfolded_dir=None):
     ))
     variations.append(entry(
         "acceptance_reweighting", "unweighted", "acceptance_reweighting", "Acc", "Acc", "Bayesian",
-        None, "absent_on_disk", "nominals.unweighted", "independent", True,
+        acc_path, acc_state, "nominals.unweighted", "independent", acc_state == "verified",
     ))
     spline_files = {}
     for letter in ["A", "B", "C"]:
@@ -542,6 +572,138 @@ def dominance_flag(systematic, statistical, tolerance):
     return ratio, "fit_larger"
 
 
+def scan_fit_family(root_path, fit_key):
+    import ROOT
+    ROOT.gROOT.SetBatch(True)
+    needles = {
+        "Fit_Pars_from_5D_Bayesian": "(MultiDim_5D_Histo)_(Bayesian)_",
+        "Fit_Pars_from_3D_Bin": "(MultiDim_3D_Histo)_(Bin)_",
+        "Fit_Pars_from_3D_RC_Bayesian": "(MultiDim_3D_Histo)_(RC_Bayesian)_",
+        "Fit_Pars_from_3D_BC_RC_Bayesian": "(MultiDim_3D_Histo)_(BC_RC_Bayesian)_",
+        "Fit_Pars_from_3D_Bayesian": "(MultiDim_3D_Histo)_(Bayesian)_",
+    }
+    needle = needles.get(fit_key, "(MultiDim_3D_Histo)_(Bayesian)_")
+    handle = ROOT.TFile.Open(root_path, "READ")
+    rows = []
+    if((handle is None) or handle.IsZombie()):
+        return rows
+    for key in handle.GetListOfKeys():
+        name = key.GetName()
+        if(needle not in name):
+            continue
+        if(("Bin_All" in name) or ("z_pT_Bin_All" in name) or ("Q2_y_Bin_All" in name)):
+            continue
+        if(("Q2_y_Bin_" not in name) or ("z_pT_Bin_" not in name)):
+            continue
+        q2y = name.split("Q2_y_Bin_")[1].split(")")[0]
+        zpt = name.split("z_pT_Bin_")[1].split(")")[0]
+        if((not q2y.isdigit()) or (not zpt.isdigit())):
+            continue
+        hist = key.ReadObj()
+        rows.append({
+            "bin": "(Q2_y_Bin_%s)-(z_pT_Bin_%s)" % (q2y, zpt),
+            "q2y": int(q2y),
+            "zpt": int(zpt),
+            "integral": float(hist.Integral()),
+        })
+    handle.Close()
+    return rows
+
+
+def classify_fit_coverage(expected_rows, fitted_bins):
+    # expected_rows: bin, integral, q2y, zpt. Empty integrals are N/A and are not zeroes in an RMS.
+    fitted_set = set(fitted_bins)
+    na_rows = []
+    other_rows = []
+    fitted = []
+    for row in expected_rows:
+        record = {
+            "bin": row["bin"],
+            "q2y": row.get("q2y"),
+            "zpt": row.get("zpt"),
+            "integral": row.get("integral"),
+        }
+        if(float(row.get("integral", 0.0)) == 0.0):
+            record["reason"] = "empty_histogram"
+            record["status"] = "N/A"
+            na_rows.append(record)
+        elif(row["bin"] in fitted_set):
+            fitted.append(row["bin"])
+        else:
+            record["reason"] = "missing_from_json"
+            record["status"] = "other_failure"
+            other_rows.append(record)
+    n_fitted = len(fitted)
+    n_expected = len(expected_rows)
+    if(n_fitted == 0):
+        status = "failed"
+    elif((len(na_rows) + len(other_rows)) == 0):
+        status = "completed"
+    else:
+        status = "completed_partial"
+    return {
+        "status": status,
+        "expected": n_expected,
+        "fitted": n_fitted,
+        "na": len(na_rows),
+        "other_failure": len(other_rows),
+        "na_bins": na_rows,
+        "other_bins": other_rows,
+        "na_fraction": (float(len(na_rows)) / float(n_expected)) if(n_expected > 0) else None,
+    }
+
+
+def shifts_for_rms(values_by_bin, excluded_bins):
+    # Drop N/A and other missing bins. Do not replace them with zero.
+    shifts = []
+    excluded = set(excluded_bins)
+    for bin_name, value in values_by_bin.items():
+        if(bin_name in excluded):
+            continue
+        if(value is None):
+            continue
+        shifts.append(float(value))
+    return shifts
+
+
+def nominal_stage_products(output_dir, campaign):
+    return {
+        "acceptance": {
+            "family": "unfolded_ac",
+            "fit_key": "Fit_Pars_from_3D_Bayesian",
+            "root": None,
+            "fit": os.path.join(output_dir, "fits", campaign, "nominal", "nominal", "fit.json"),
+        },
+        "rc": {
+            "family": "unfolded_rc",
+            "fit_key": "Fit_Pars_from_3D_RC_Bayesian",
+            "root": os.path.join(output_dir, "corrected", campaign, "rc", "corrected.root"),
+            "fit": os.path.join(output_dir, "corrected", campaign, "rc", "fit.json"),
+        },
+        "bc": {
+            "family": "unfolded_bc",
+            "fit_key": "Fit_Pars_from_3D_BC_RC_Bayesian",
+            "root": os.path.join(output_dir, "corrected", campaign, "bc", "corrected.root"),
+            "fit": os.path.join(output_dir, "corrected", campaign, "bc", "fit.json"),
+        },
+    }
+
+
+def correction_fingerprint(stage, paths):
+    parts = [str(stage)]
+    for path in paths:
+        fingerprint = file_fingerprint(path)
+        parts.append("%s:%s" % (fingerprint["size"], fingerprint["mtime"]))
+    return "|".join(parts)
+
+
+def nominal_rc_ready(event_ratio_status, radiative_study_state):
+    # A pending alternative radiative study does not block the nominal RC file.
+    if(radiative_study_state == "pending"):
+        return event_ratio_status == "verified"
+    return event_ratio_status == "verified"
+
+
 def collect_bin_shifts(nominal_cells, variation_cells):
     # Returns per-bin parameter records. A bin missing on either side is reported and omitted from RMS.
     rows = []
@@ -728,23 +890,86 @@ def merge_normalized(stat_copy, sys_copy):
     return merged
 
 
-def mosaic_command(artifact, spline_overlay, spline_prefix, campaign):
+def missing_uncertainty_fields(artifact, suffix):
+    cells = artifact.get("cells")
+    if((cells is None) and os.path.isfile(str(artifact.get("path", "")))):
+        handle = open(artifact["path"])
+        payload = json.load(handle)
+        handle.close()
+        for key, value in payload.items():
+            if(isinstance(value, dict) and str(key).startswith("Fit_")):
+                cells = value
+                break
+    if(not isinstance(cells, dict)):
+        return ["unreadable"]
+    missing = []
+    for bin_name, cell in cells.items():
+        if(not isinstance(cell, dict)):
+            missing.append(bin_name)
+            continue
+        for field in FIT_FIELDS.values():
+            if((field + suffix) not in cell):
+                missing.append(bin_name)
+                break
+    return missing
+
+
+def mosaic_command(artifact, spline_overlay, spline_prefix, campaign, x_mode="z", uncertainty="statistical"):
     if(artifact.get("normalization_status") != "applied"):
         raise ValueError("mosaic requires normalization_status applied")
+    if(uncertainty not in ["statistical", "systematic"]):
+        raise ValueError("unknown uncertainty channel")
+    if(x_mode not in ["z", "pt", "pt2"]):
+        raise ValueError("unknown x mode")
+    if(uncertainty == "systematic"):
+        missing = missing_uncertainty_fields(artifact, "_SYS")
+        if(len(missing) > 0):
+            raise ValueError("systematic mosaic is missing _SYS entries")
+    err_suffix = "_ERR" if(uncertainty == "statistical") else "_SYS"
     cmd = [
         MOSAIC_SCRIPT,
         "--json_file", artifact["path"],
         "--formats", "pdf",
         "--y_pars", "Fit_Par_A", "Fit_Par_B", "Fit_Par_C",
-        "--err_suffix", "_ERR",
-        "--sys_err_suffix", "_SYS",
-        "--name", "sidis_mosaic_%s" % campaign,
+        "--err_suffix", err_suffix,
+        "--draw_with_log_A",
+        "--pad_label_mode", "bin_Q2y",
+        "--draw_legends",
+        "--title_text", "%s uncertainties" % uncertainty,
+        "--name", "sidis_mosaic_%s_%s_%s" % (campaign, x_mode, uncertainty),
     ]
+    if(x_mode == "pt2"):
+        cmd.extend(["--x_mode", "pt", "--pT2"])
+    else:
+        cmd.extend(["--x_mode", x_mode])
     if(spline_overlay):
         cmd.extend(["--spline_prefix", spline_prefix, "--dimension_mode", "4D_xB"])
     for token in cmd:
-        if(token in ["--apply_A_corr", "-cs", "-cs_A"]):
-            raise ValueError("mosaic must not apply A0 normalization")
+        if(token in ["--apply_A_corr", "-cs", "-cs_A", "--sys_err_suffix"]):
+            raise ValueError("mosaic must not apply A0 normalization or mix error channels")
+    return cmd
+
+
+def mosaic_command_set(artifact, spline_overlay, spline_prefix, campaign):
+    commands = []
+    for x_mode in ["z", "pt", "pt2"]:
+        for uncertainty in ["statistical", "systematic"]:
+            commands.append(mosaic_command(artifact, spline_overlay, spline_prefix, campaign, x_mode, uncertainty))
+    return commands
+
+
+def phi_figure_command(family, output_dir, root_path, fit_json, dry_run):
+    if(family not in ["unfolded_ac", "unfolded_rc", "unfolded_bc"]):
+        raise ValueError("family is outside the physics-results phi_h set")
+    cmd = [PHI_SCRIPT, "-f", family, "-o", output_dir]
+    if(family == "unfolded_ac"):
+        cmd.extend(["-u3d", root_path, "-fit", fit_json])
+    elif(family == "unfolded_rc"):
+        cmd.extend(["--root_unfolded_rc", root_path, "--fit_unfolded_rc", fit_json])
+    else:
+        cmd.extend(["--root_unfolded_bc", root_path, "--fit_unfolded_bc", fit_json])
+    if(dry_run):
+        cmd.append("-n")
     return cmd
 
 
@@ -793,7 +1018,25 @@ def bin_centering_report(event_meta, initial_path, later_path):
         "event_counts_match": counts_ok,
         "method": method,
         "iteration": iteration,
-        "sensitivity_blocked": len(sensitivity_rows()),
+        "subdivision": {
+            "campaign": "unweighted",
+            "combine": "independent",
+            "variables": 5,
+            "variations_each": 3,
+            "pooled": "rms_of_all_15",
+            "study_state": "awaiting_observable_shifts",
+            "systematic": None,
+            "spline_transfer": "user_decision",
+        },
+        "injection_spline": injection_spline_record(),
+        "updated_spline": {
+            "path": None,
+            "path_status": "needs_configuration",
+            "study_state": "blocked",
+            "reason": "No configuration names a spline file written after the weighted unfold and its refit.",
+        },
+        "evgen_bin_centering": {"implemented": False, "study_state": "deferred"},
+        "sensitivity_blocked": 0,
     }
 
 
@@ -824,8 +1067,54 @@ def weighted_line_fit(points):
     return {"slope": slope, "intercept": intercept}
 
 
+def sync_corrected_unfold_inputs(manifest):
+    # Pick up corrected same-weight files without replacing a nominal by AccSpline.
+    folder = UNFOLDED_DIR
+    spline_path = os.path.join(folder, SPLINE_NOMINAL_NAME)
+    if(os.path.isfile(spline_path)):
+        nominal = manifest["nominals"]["spline"]
+        nominal["path"] = spline_path
+        nominal["path_status"] = "verified"
+        nominal["weight_tag"] = "Spline"
+        nominal["fingerprint"] = file_fingerprint(spline_path)
+    acc_path = os.path.join(folder, ACC_VARIATION_NAME)
+    for row in manifest["variations"]:
+        if(row["campaign"] == "unweighted" and row["source"] == "acceptance_reweighting" and row["variation"] == "Acc"):
+            row["path"] = acc_path if(os.path.isfile(acc_path)) else None
+            row["path_status"] = path_state(acc_path, True)
+            row["weight_tag"] = "Acc"
+            row["enabled"] = os.path.isfile(acc_path)
+            row["fingerprint"] = file_fingerprint(row["path"])
+    present = set()
+    for row in manifest["variations"]:
+        present.add((row["campaign"], row["source"], str(row["variation"])))
+    if(os.path.isdir(folder)):
+        for name in sorted(os.listdir(folder)):
+            parsed = split_unfolded_name(name)
+            if(parsed is None):
+                continue
+            if(parsed["branch"] not in METHOD_BRANCH_SOURCES):
+                continue
+            tag = parsed["weight_tag"]
+            if(tag == "Spline"):
+                campaign = "spline"
+            elif(tag == ""):
+                campaign = "unweighted"
+            else:
+                continue
+            source_name, variation_name, combine = METHOD_BRANCH_SOURCES[parsed["branch"]]
+            key = (campaign, source_name, variation_name)
+            if(key in present):
+                continue
+            path = os.path.join(folder, name)
+            manifest["variations"].append(entry("method", campaign, source_name, variation_name, tag, "Bayesian", path, "verified", "nominals.%s" % campaign, combine, True))
+            present.add(key)
+    return manifest
+
+
 def patch_manifest(manifest):
-    # Update paths in an existing manifest. Do not rebuild the variation list.
+    # Update paths in an existing manifest. Do not rebuild the cut-variation list.
+    sync_corrected_unfold_inputs(manifest)
     five_path = os.path.join(UNFOLDED_DIR, UNWEIGHTED_5D_NAME)
     manifest["dimension"]["unweighted"] = {
         "path": five_path,
@@ -976,6 +1265,226 @@ def init_module_from_nominal_json(nominal_json, out_path):
     return write_init_module(cells, limits_table(), out_path)
 
 
+def rms_of_shifts(shifts):
+    count = len(shifts)
+    if(count == 0):
+        return None
+    total = 0.0
+    for value in shifts:
+        number = float(value)
+        total += number * number
+    return math.sqrt(total / float(count))
+
+
+def pooled_subdivision_rms(shifts_by_variable):
+    # One RMS over every variation. Equivalent to sqrt(mean of the five variable variances).
+    if(sorted(shifts_by_variable.keys()) != sorted(BC_SENSITIVITY.keys())):
+        return None
+    all_shifts = []
+    variable_rms = {}
+    for variable in BC_SENSITIVITY.keys():
+        shifts = list(shifts_by_variable[variable])
+        if(len(shifts) != 3):
+            return None
+        variable_rms[variable] = rms_of_shifts(shifts)
+        all_shifts.extend(shifts)
+    pooled = rms_of_shifts(all_shifts)
+    variance_mean = 0.0
+    for value in variable_rms.values():
+        variance_mean += float(value) * float(value)
+    from_variables = math.sqrt(variance_mean / float(len(variable_rms)))
+    if(abs(pooled - from_variables) > 1.0e-12):
+        raise ValueError("pooled subdivision RMS disagrees with the five-variable mean")
+    quadrature = math.sqrt(variance_mean)
+    return {"variable_rms": variable_rms, "pooled": pooled, "quadrature_of_five": quadrature, "count": len(all_shifts)}
+
+
+def event_style_bc_factor(sub_values, center_value):
+    # Same orientation as the nominal JSON: unweighted sub-bin mean divided by the center value.
+    if(len(sub_values) == 0):
+        return None
+    if(float(center_value) == 0.0):
+        return None
+    total = 0.0
+    for value in sub_values:
+        total += float(value)
+    return (total / float(len(sub_values))) / float(center_value)
+
+
+def modulation_value(parameter_a, parameter_b, parameter_c, phi_deg):
+    radians = float(phi_deg) * math.pi / 180.0
+    return float(parameter_a) * (1.0 + (float(parameter_b) * math.cos(radians)) + (float(parameter_c) * math.cos(2.0 * radians)))
+
+
+def injection_spline_record():
+    return {
+        "role": "original_injection",
+        "path": INJECTION_SPLINE_TXT,
+        "path_status": path_state(INJECTION_SPLINE_TXT, True),
+        "provenance": "jlab_work_paths.REL_SPLINE_DEFAULT and Campaign/local_orchestrator.py --spline_file",
+        "study_state": "verified" if(os.path.isfile(INJECTION_SPLINE_TXT)) else "blocked",
+    }
+
+
+def json_meta(path):
+    handle = open(path)
+    payload = json.load(handle)
+    handle.close()
+    meta = payload.get("meta", {})
+    return meta if(isinstance(meta, dict)) else {}
+
+
+def discover_bc_subdivisions(folder=None):
+    folder = BC_DIR if(folder in [None, ""]) else folder
+    groups = {}
+    for variable, counts in BC_SENSITIVITY.items():
+        rows = []
+        for count in counts:
+            name = "Sub_Bin_Contents_for_BC_Correction_with_Binned_sbatch_from_10_26_2026_sens_%s_%s.json" % (variable, count)
+            path = os.path.join(folder, name)
+            row = {
+                "variable": variable,
+                "count": int(count),
+                "path": path,
+                "path_status": path_state(path, True),
+                "others_at_one": False,
+                "studied_count_matches": False,
+                "study_state": "absent_on_disk",
+            }
+            if(os.path.isfile(path)):
+                meta = json_meta(path)
+                studied_key = "num_sub_bins_%s" % variable
+                studied_ok = int(meta.get(studied_key, -1)) == int(count)
+                others_ok = True
+                for other in BC_NOMINAL_COUNTS.keys():
+                    if(other == variable):
+                        continue
+                    if(int(meta.get("num_sub_bins_%s" % other, -1)) != 1):
+                        others_ok = False
+                row["path_status"] = "verified"
+                row["studied_count_matches"] = studied_ok
+                row["others_at_one"] = others_ok
+                row["study_state"] = "verified" if(studied_ok and others_ok) else "invalid"
+                row["comparison_basis"] = "The named variable changes. Every other subdivision count is 1, which is not the nominal 3,3,3,3,5 grid."
+            rows.append(row)
+        groups[variable] = rows
+    return groups
+
+
+def safe_report_token(value):
+    text = "nominal" if(value in [None, ""]) else str(value)
+    cleaned = []
+    for character in text:
+        if(character.isalnum() or character in ["_", "-", "."]):
+            cleaned.append(character)
+        else:
+            cleaned.append("_")
+    token = "".join(cleaned).strip("_")
+    return "nominal" if(token == "") else token
+
+
+def agent_report_path(output_dir, run_id, stage, campaign, source_or_shard, label):
+    return os.path.join(
+        output_dir, "reports", "agents",
+        safe_report_token(run_id), safe_report_token(stage), safe_report_token(campaign),
+        safe_report_token(source_or_shard), safe_report_token(label) + ".md",
+    )
+
+
+def agent_report_text(run_id, stage, campaign, source_or_shard, label, body):
+    header = [
+        "# Agent record",
+        "- run_id: %s" % run_id,
+        "- stage: %s" % stage,
+        "- campaign: %s" % campaign,
+        "- source_or_shard: %s" % source_or_shard,
+        "- label: %s" % label,
+        "",
+        str(body).rstrip(),
+        "",
+    ]
+    return "\n".join(header)
+
+
+def write_agent_report(output_dir, run_id, stage, campaign, source_or_shard, label, body):
+    path = agent_report_path(output_dir, run_id, stage, campaign, source_or_shard, label)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    text = agent_report_text(run_id, stage, campaign, source_or_shard, label, body)
+    if(os.path.isfile(path)):
+        existing = open(path).read()
+        if(("run_id: %s" % run_id) not in existing):
+            raise ValueError("agent report path belongs to a different run")
+    temporary = path + ".partial"
+    handle = open(temporary, "w")
+    handle.write(text)
+    handle.close()
+    os.replace(temporary, path)
+    return path
+
+
+def parse_agent_report(path):
+    handle = open(path)
+    lines = handle.read().splitlines()
+    handle.close()
+    record = {"path": path, "mtime": os.path.getmtime(path)}
+    for line in lines:
+        if(not line.startswith("- ")):
+            continue
+        if(": " not in line):
+            continue
+        key, value = line[2:].split(": ", 1)
+        if(key in ["run_id", "stage", "campaign", "source_or_shard", "label"]):
+            record[key] = value
+    record["body"] = "\n".join(lines)
+    return record
+
+
+def load_agent_reports(output_dir, run_id):
+    root = os.path.join(output_dir, "reports", "agents", safe_report_token(run_id))
+    if(not os.path.isdir(root)):
+        return {"records": [], "collisions": [], "missing_tree": root}
+    found = {}
+    collisions = []
+    for dirpath, _dirnames, filenames in os.walk(root):
+        for name in filenames:
+            if(not name.endswith(".md")):
+                continue
+            record = parse_agent_report(os.path.join(dirpath, name))
+            identity = (
+                record.get("run_id"), record.get("stage"), record.get("campaign"),
+                record.get("source_or_shard"), record.get("label"),
+            )
+            if(None in identity):
+                collisions.append({"path": record["path"], "reason": "missing identity"})
+                continue
+            previous = found.get(identity)
+            if(previous is None):
+                found[identity] = record
+            elif(record["mtime"] >= previous["mtime"]):
+                collisions.append({"path": previous["path"], "kept": record["path"]})
+                found[identity] = record
+            else:
+                collisions.append({"path": record["path"], "kept": previous["path"]})
+    records = [found[key] for key in sorted(found.keys())]
+    return {"records": records, "collisions": collisions, "missing_tree": None}
+
+
+def refinement_note_ok(note):
+    required = ["scope", "start_mode", "error_source", "changed", "left_bins", "unresolved"]
+    if(not isinstance(note, dict)):
+        return False
+    for key in required:
+        if(key not in note):
+            return False
+        if(str(note[key]).strip() == ""):
+            return False
+    return True
+
+
+def new_run_id():
+    return datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+
+
 def write_work_plan(manifest, output_dir, max_concurrent):
     nominal_jobs = []
     variation_jobs = []
@@ -985,13 +1494,26 @@ def write_work_plan(manifest, output_dir, max_concurrent):
                 nominal_jobs.append(job)
             else:
                 variation_jobs.append(job)
+    path = os.path.join(output_dir, "work_plan.json")
+    run_id = new_run_id()
+    if(os.path.isfile(path)):
+        handle = open(path)
+        previous = json.load(handle)
+        handle.close()
+        if(previous.get("run_id") not in [None, ""]):
+            run_id = previous["run_id"]
     plan = {
+        "run_id": run_id,
         "max_concurrent": int(max_concurrent),
         "nominal_shards": shard_jobs(nominal_jobs, max_concurrent),
         "variation_shards": shard_jobs(variation_jobs, max_concurrent),
-        "deferred_nonblocking": ["radiative_systematic", "bin_centering_method", "bin_centering_iteration", "bin_centering_sensitivity"],
+        "deferred_nonblocking": [
+            "radiative_systematic",
+            "bin_centering_method",
+            "bin_centering_iteration",
+            "bin_centering_subdivision_until_observable_shifts",
+        ],
     }
-    path = os.path.join(output_dir, "work_plan.json")
     write_json(path, plan)
     return path
 

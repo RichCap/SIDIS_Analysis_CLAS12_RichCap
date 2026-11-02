@@ -1248,10 +1248,16 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                         print(f"\n{color.Error}ERROR in Fitting_Phi_Function() for 'Special' arguement...\n{color.END_B}Traceback:\n{str(traceback.format_exc())}{color.END}\n")
                 else:
                     print(f"\n\n\n{color.RED}Fitting_Phi_Function Not Special{color.END}\n\n\n")
+                saved_ignore_level = int(ROOT.gErrorIgnoreLevel)
+                ROOT.gErrorIgnoreLevel = int(ROOT.kError)
                 Histo_To_Fit.Fit(Fitting_Function, "QRB")
+                ROOT.gErrorIgnoreLevel = saved_ignore_level
             else:
                 # print(f"{color.RED}Error in A_Unfold, B_Unfold, C_Unfold = {A_Unfold}, {B_Unfold}, {C_Unfold}{color.END}")
+                saved_ignore_level = int(ROOT.gErrorIgnoreLevel)
+                ROOT.gErrorIgnoreLevel = int(ROOT.kError)
                 Histo_To_Fit.Fit(Fitting_Function, "QR")
+                ROOT.gErrorIgnoreLevel = saved_ignore_level
 
             A_Unfold = Fitting_Function.GetParameter(0)
             B_Unfold = Fitting_Function.GetParameter(1)
@@ -1276,8 +1282,11 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
                 Fitting_Function.SetParameter(2, C_Unfold)
                 Fitting_Function.SetParLimits(2, C_Unfold - Fitting_Function.GetParError(2), C_Unfold + Fitting_Function.GetParError(2))
 
-            # Re-Fitting the plots
+            # Re-Fitting the plots. Warning() inside TH1::Fit re-enters CPyCppyy and can segfault, so this call stays at error level.
+            saved_ignore_level = int(ROOT.gErrorIgnoreLevel)
+            ROOT.gErrorIgnoreLevel = int(ROOT.kError)
             Histo_To_Fit.Fit(Fitting_Function, "QRB")
+            ROOT.gErrorIgnoreLevel = saved_ignore_level
 
             A_Unfold       = Fitting_Function.GetParameter(0)
             B_Unfold       = Fitting_Function.GetParameter(1)
@@ -3883,6 +3892,9 @@ def Create_Fits_and_Apply_RC_and_BC(args, List_of_All_Histos_For_Unfolding):
                         if(histogram_correction_family(Histo_Name_General) != requested_family):
                             continue
                         args._fit_corrections_seen = True
+                    if(Histo_Original.Integral() == 0):
+                        print(f"{color.RED}Skipping empty histogram: {List_of_All_Histos_For_Unfolding_ii}{color.END}")
+                        continue
                     print(f"Fitting for: {color.BOLD}{List_of_All_Histos_For_Unfolding_ii}{color.END} (Histo Num {ii:>5.0f})")
                     Histo_Name_Rad_Cor          = str(Histo_Name_General.replace("(Bin)", "(RC_Bin)")).replace("Bayesian", "RC_Bayesian")
                     RC_RooUnfolded_TTree_Histos = Histo_Original.Clone(Histo_Name_Rad_Cor)
