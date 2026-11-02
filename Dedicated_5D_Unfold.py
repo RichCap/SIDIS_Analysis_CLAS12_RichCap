@@ -795,7 +795,7 @@ def Validate_And_Record_5D_Dimensions(args, detected, MC_REC_1D):
 ################################################################################################################################################################################################################################################
 ##==========##==========##        5D-Multidimensional Rebuild Function            ##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
-def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Title="Default", skip_map=None):
+def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Title="Default", skip_map=None, display_gen_on_x=False):
     Num__Bins, Min_Range, Max_Range = Find_Bins_From_Histo_Name(Standard_Name)
     if(Increment is None):
         m_inc = SLICE_INCREMENT_RE.search(Standard_Name)
@@ -823,7 +823,12 @@ def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Titl
     rec_bins = skip_map.n_kept if(skip_map is not None) else Num__Bins
     rec_min = 0.5 if(skip_map is not None) else Min_Range
     rec_max = (rec_bins + 0.5) if(skip_map is not None) else Max_Range
-    Rebuilt_5D_Matrix = ROOT.TH2D(str(Standard_Name), str(Histo_Title), rec_bins, rec_min, rec_max, Num__Bins, Min_Range, Max_Range)
+    # display_gen_on_x builds only the PDF histogram (GEN on X, reduced REC on Y).
+    # The default keeps X = reconstructed and Y = generated, which is the object unfolding uses.
+    if(display_gen_on_x):
+        Rebuilt_5D_Matrix = ROOT.TH2D(str(Standard_Name) + "_display", str(Histo_Title), Num__Bins, Min_Range, Max_Range, rec_bins, rec_min, rec_max)
+    else:
+        Rebuilt_5D_Matrix = ROOT.TH2D(str(Standard_Name), str(Histo_Title), rec_bins, rec_min, rec_max, Num__Bins, Min_Range, Max_Range)
     X_Bin_5D = 0
     for slice_num in range(1, Num_Slices + 1):
         Histo_Add = List_of_Sliced_Histos[Slicing_Name.replace("SLICE-NUM", str(slice_num))]
@@ -836,8 +841,14 @@ def Rebuild_Matrix_5D(List_of_Sliced_Histos, Standard_Name, Increment=None, Titl
                     continue
                 dest_x = skip_map.reduced_index(X_Bin_5D)
             for y_bin in range(0, Histo_Add.GetNbinsY() + 1):
-                Rebuilt_5D_Matrix.SetBinContent(dest_x, y_bin, Histo_Add.GetBinContent(x_bin, y_bin))
-                Rebuilt_5D_Matrix.SetBinError(dest_x,   y_bin, Histo_Add.GetBinError(x_bin,   y_bin))
+                content = Histo_Add.GetBinContent(x_bin, y_bin)
+                error = Histo_Add.GetBinError(x_bin, y_bin)
+                if(display_gen_on_x):
+                    Rebuilt_5D_Matrix.SetBinContent(y_bin, dest_x, content)
+                    Rebuilt_5D_Matrix.SetBinError(y_bin, dest_x, error)
+                else:
+                    Rebuilt_5D_Matrix.SetBinContent(dest_x, y_bin, content)
+                    Rebuilt_5D_Matrix.SetBinError(dest_x, y_bin, error)
     print(f"\n{color.BGREEN}Finished running Rebuild_Matrix_5D(...){color.END}\n")
     return Rebuilt_5D_Matrix
 
@@ -1160,9 +1171,10 @@ def main_start():
     weight_tag = getattr(args, "weight_tag", "")
     if((weight_tag not in ["", None]) and (f"_W{weight_tag}" not in str(args.root))):
         args.root = str(args.root).replace(".root", f"_W{weight_tag}.root")
-    output_parent = os.path.dirname(os.path.abspath(str(args.root)))
-    if(output_parent not in ["", None]):
-        os.makedirs(output_parent, exist_ok=True)
+    if(not args.matrix_pdf):
+        output_parent = os.path.dirname(os.path.abspath(str(args.root)))
+        if(output_parent not in ["", None]):
+            os.makedirs(output_parent, exist_ok=True)
     args.pass_version = "Pass 2"
     args.closure = False
     args.sim = args.sim or False
@@ -1223,13 +1235,16 @@ def Load_And_Rebuild_5D_Response_Matrix(input_file, args):
     return Response_2D, detected
 
 
-def Save_Rebuilt_Matrix_As_Pdf(Response_2D, pdf_path, args):
+def Save_Rebuilt_Matrix_As_Pdf(Response_2D, pdf_path, args, gen_on_x=False):
     if(args.test):
         print(f"{color.PINK}Would be saving matrix PDF to: {color.BCYAN}{pdf_path}{color.END}")
         Response_2D.SetDirectory(0)
         # ROOT.Delete(Response_2D)
         return 0
     print(f"{color.BBLUE}Saving matrix PDF to: {color.BGREEN}{pdf_path}{color.END}")
+    pdf_parent = os.path.dirname(os.path.abspath(pdf_path))
+    if(pdf_parent not in [""]):
+        os.makedirs(pdf_parent, exist_ok=True)
     canvas = ROOT.TCanvas("Rebuilt_5D_Response_Matrix", "Rebuilt 5D Response Matrix", 1300, 725)
     canvas.SetRightMargin(0.15)
     canvas.SetLeftMargin(0.15)
@@ -1242,8 +1257,12 @@ def Save_Rebuilt_Matrix_As_Pdf(Response_2D, pdf_path, args):
     ROOT.gStyle.SetStatH(0.200)
     Response_2D.SetDirectory(0)
     Response_2D.SetTitle("5D Response Matrix of Q^{2}-y-z-P_{T}-#phi_{h} Bins")
-    Response_2D.GetXaxis().SetTitle("Q^{2}-y-z-P_{T}-#phi_{h} - REC Bins")
-    Response_2D.GetYaxis().SetTitle("Q^{2}-y-z-P_{T}-#phi_{h} - GEN Bins")
+    if(gen_on_x):
+        Response_2D.GetXaxis().SetTitle("Q^{2}-y-z-P_{T}-#phi_{h} - GEN Bins")
+        Response_2D.GetYaxis().SetTitle("Q^{2}-y-z-P_{T}-#phi_{h} - REC Bins")
+    else:
+        Response_2D.GetXaxis().SetTitle("Q^{2}-y-z-P_{T}-#phi_{h} - REC Bins")
+        Response_2D.GetYaxis().SetTitle("Q^{2}-y-z-P_{T}-#phi_{h} - GEN Bins")
     Response_2D.Draw("colz")
     if(args.logz):
         canvas.SetLogz(True)
@@ -1256,15 +1275,115 @@ def Save_Rebuilt_Matrix_As_Pdf(Response_2D, pdf_path, args):
     return 1
 
 
+def Prepare_5D_Matrix_For_Pdf(input_file, args):
+    # Same histogram loading, rho0 subtraction, and reconstructed-bin selection as main_5D_unfold.
+    # Stops before Unfold_Function. The returned histogram is the display copy only.
+    detected = Detect_5D_Matrix_Config(input_file, args)
+    if(detected is None):
+        Crash_Report(args, crash_message="Could not find a 5D response matrix slice-1 entry in the input file.")
+    out_print_main_mdf = detected["out_print_main_mdf"]
+    out_print_main_mdf_base = detected["out_print_main_mdf_base"]
+    out_print_main_mdf_1D = detected["out_print_main_mdf_1D"]
+    Histo_List = detected["Histo_List"]
+    out_print_main_rdf = out_print_main_mdf_base.replace("(Data-Type='mdf')", "(Data-Type='rdf')")
+    out_print_main_gdf = out_print_main_mdf_base.replace("(Data-Type='mdf')", "(Data-Type='gdf')")
+    for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        out_print_main_rdf = out_print_main_rdf.replace(tag_str, "")
+    weight_tag = getattr(args, "weight_tag", "")
+    if(weight_tag in ["Acc"]):
+        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+            out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
+    elif(weight_tag in ["AccJSON"]):
+        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+            out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
+        out_print_main_gdf = f"{out_print_main_gdf}_(JSON)"
+    elif(weight_tag in ["AccSpline"]):
+        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+            out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
+        out_print_main_gdf = f"{out_print_main_gdf}_(Spline)"
+    elif(weight_tag in ["", None]):
+        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+            out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
+    out_print_main_gdf = out_print_main_gdf.replace("cut_Complete_EDIS", "no_cut")
+    for sector_cut_remove in range(1, 7):
+        out_print_main_gdf = out_print_main_gdf.replace(f"cut_Complete_SIDIS_eS{sector_cut_remove}o", "no_cut")
+    out_print_main_gdf = out_print_main_gdf.replace("cut_Complete_SIDIS", "no_cut")
+    out_print_main_gdf = out_print_main_gdf.replace("cut_Complete", "no_cut")
+    if(not args.sim):
+        out_print_main_rdf = out_print_main_rdf.replace("smear", "")
+    out_print_main_gdf = out_print_main_gdf.replace("smear", "")
+    out_print_main_rdf = Apply_Matrix_1D_Replacements(out_print_main_rdf)
+    out_print_main_gdf = Apply_Matrix_1D_Replacements(out_print_main_gdf)
+    if(out_print_main_mdf_1D not in input_file.GetListOfKeys()):
+        Crash_Report(args, crash_message=f"Missing mdf 1D histogram: {out_print_main_mdf_1D}")
+    MC_REC_1D = input_file.Get(out_print_main_mdf_1D)
+    Validate_And_Record_5D_Dimensions(args, detected, MC_REC_1D)
+    if(args.sim):
+        out_print_main_rdf = out_print_main_mdf_1D
+    if(out_print_main_rdf not in input_file.GetListOfKeys()):
+        Crash_Report(args, crash_message=f"Missing rdf 1D histogram: {out_print_main_rdf}")
+    if(out_print_main_gdf not in input_file.GetListOfKeys()):
+        Crash_Report(args, crash_message=f"Missing gdf 1D histogram: {out_print_main_gdf}")
+    print(f"\n{color.BGREEN}(5D) Matrix PDF inputs: {detected['out_print_main']}{color.END}\n")
+    ExREAL_1D = input_file.Get(out_print_main_rdf)
+    MC_GEN_1D = input_file.Get(out_print_main_gdf)
+    out_print_main_bdf_1D = Apply_Background_1D_Replacements(out_print_main_mdf_1D)
+    if((out_print_main_bdf_1D in input_file.GetListOfKeys()) and ("Background" in str(out_print_main_bdf_1D))):
+        MC_BGS_1D = input_file.Get(out_print_main_bdf_1D)
+    else:
+        MC_BGS_1D = "None"
+        print(f"{color.Error}\nERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
+        raise TypeError("Missing (5D) Background Histogram")
+    if(f"{out_print_main_rdf}_({args.background_source})" in input_file.GetListOfKeys()):
+        print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
+        LundrhoHist_rdf = input_file.Get(f"{out_print_main_rdf}_({args.background_source})")
+        ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
+    elif(f"{out_print_main_mdf_1D}_({args.background_source})" in input_file.GetListOfKeys()):
+        print(f"{color.BGREEN}Subtracting the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
+        LundrhoHist_rdf = input_file.Get(f"{out_print_main_mdf_1D}_({args.background_source})")
+        ExREAL_1D_wExclusive_Background, ExREAL_1D = subtract_bkg_with_zero_floor(ExREAL_1D, LundrhoHist_rdf)
+    elif(args.background_source not in ["None"]):
+        ExREAL_1D_wExclusive_Background = None
+        print(f"{color.Error}Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D' histogram{color.END}")
+    else:
+        ExREAL_1D_wExclusive_Background = None
+    skip_map_5d = None
+    if(not getattr(args, "old_binning", False)):
+        bdf_in = None if(MC_BGS_1D in ["None", None]) else MC_BGS_1D
+        skip_map_5d = build_rec_skip_map(ExREAL_1D, MC_REC_1D, MC_GEN_1D, bdf_in, args.Min_Allowed_Acceptance_Cut)
+        for line in skip_map_5d.report_lines():
+            if(line.startswith("skipped original indices:") and (len(line) > 500)):
+                print(f"skipped original indices: {len(skip_map_5d.skipped)} indices (list omitted from the log)")
+            else:
+                print(line)
+    else:
+        print("old_binning is set; matrix PDF refuses to drop the reconstructed-bin selection")
+        Crash_Report(args, crash_message="--matrix_pdf requires the nominal reconstructed-bin selection (--old_binning must stay off).")
+    Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=Histo_List, Standard_Name=out_print_main_mdf_base, Increment=args.increment_5d, skip_map=skip_map_5d, display_gen_on_x=True)
+    if(Response_2D in ["ERROR"]):
+        Crash_Report(args, crash_message="Rebuild_Matrix_5D returned ERROR")
+    print(f"display axis X (GEN) bins: {Response_2D.GetNbinsX()}")
+    print(f"display axis Y (REC) bins: {Response_2D.GetNbinsY()}")
+    print(f"table before-cut count: 10882")
+    print(f"table after-cut count: 9851")
+    print(f"unfolded-file num_bins storage product: 10850 = 25 x 434")
+    Histo_List.clear()
+    detected["Histo_List"] = {}
+    del ExREAL_1D_wExclusive_Background
+    return Response_2D, detected, skip_map_5d
+
+
 def main_5D_matrix_pdf(args):
     input_file = ROOT.TFile.Open(args.single_file_input, "READ")
     if(not input_file or input_file.IsZombie()):
         Crash_Report(args, crash_message=f"Could not open input ROOT file: {args.single_file_input}")
     print(f"The total number of histograms in '{color.BBLUE}{args.single_file_input}{color.END}' is {color.BOLD}{len(input_file.GetListOfKeys())}{color.END}")
-    Response_2D, detected = Load_And_Rebuild_5D_Response_Matrix(input_file, args)
+    print("Matrix PDF mode does not call Unfold_Function.")
+    Response_2D, detected, skip_map_5d = Prepare_5D_Matrix_For_Pdf(input_file, args)
     args.timer.time_elapsed()
-    saved_count = Save_Rebuilt_Matrix_As_Pdf(Response_2D, args.pdf_name, args)
+    saved_count = Save_Rebuilt_Matrix_As_Pdf(Response_2D, args.pdf_name, args, gen_on_x=True)
     detected["Histo_List"] = {}
+    del skip_map_5d
     input_file.Close()
     return saved_count
 
