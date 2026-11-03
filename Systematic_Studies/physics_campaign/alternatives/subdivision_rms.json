@@ -1,0 +1,12 @@
+{
+  "bins": 452,
+  "missing": 0,
+  "n": 15,
+  "definition": "per bin, sqrt(mean of 15 squared shifts from the nominal event BC fit). Unweighted only.",
+  "median_relative_A": 0.022203534959306562,
+  "median_B": 0.0064785670048911614,
+  "median_C": 0.004786833472790933,
+  "mean_relative_A": 0.04042002471410997,
+  "mean_B": 0.009241836811635309,
+  "mean_C": 0.00631335906059405
+}

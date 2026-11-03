@@ -1,0 +1,57 @@
+{
+  "note": "Initial remake. RMS is sqrt(mean of (alternative-nominal)^2) over 452 bins. Not in the quadrature.",
+  "unweighted": {
+    "nominal_median_chi2_ndf": 1.4846542199034467,
+    "nominal_chi2_ndf_gt5": 1,
+    "families": {
+      "sf0": {
+        "bins": 452,
+        "median_chi2_ndf": 1.4789389191057989,
+        "chi2_ndf_gt5": 2,
+        "rms_dA": 277.09967311727166,
+        "rms_dB": 0.0064087743234720485,
+        "rms_dC": 0.005596064380500126
+      },
+      "sf2": {
+        "bins": 452,
+        "median_chi2_ndf": 1.4948501859837353,
+        "chi2_ndf_gt5": 2,
+        "rms_dA": 380.4549346484726,
+        "rms_dB": 0.018608531071747137,
+        "rms_dC": 0.010614401469146039
+      }
+    },
+    "sf0_versus_sf2": {
+      "rms_dA": 487.636886285888,
+      "rms_dB": 0.019411434784140286,
+      "rms_dC": 0.009212087082804106
+    }
+  },
+  "spline": {
+    "nominal_median_chi2_ndf": 1.5104541608472262,
+    "nominal_chi2_ndf_gt5": 3,
+    "families": {
+      "sf0": {
+        "bins": 452,
+        "median_chi2_ndf": 1.5371781521455232,
+        "chi2_ndf_gt5": 5,
+        "rms_dA": 300.1743532191341,
+        "rms_dB": 0.011971554798453344,
+        "rms_dC": 0.00777585926513419
+      },
+      "sf2": {
+        "bins": 452,
+        "median_chi2_ndf": 1.5423300105225757,
+        "chi2_ndf_gt5": 7,
+        "rms_dA": 412.6957414310274,
+        "rms_dB": 0.021208559705632325,
+        "rms_dC": 0.01207035131937973
+      }
+    },
+    "sf0_versus_sf2": {
+      "rms_dA": 491.4893854019759,
+      "rms_dB": 0.01962963702808991,
+      "rms_dC": 0.009297732343252851
+    }
+  }
+}

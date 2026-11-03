@@ -1,0 +1,128 @@
+start free_mb=158 swapouts=1030765
+WRITE rc unweighted sf0
+unweighted fixed_rc histograms 452 problems 0
+WRITE_OK rc unweighted sf0
+FIT_START unweighted rc sf0 free_mb=224
+FIT_PID 63150 unweighted rc sf0 running=1
+FIT_EXIT unweighted rc sf0 code=0
+WRITE rc unweighted sf2
+unweighted fixed_rc histograms 452 problems 0
+WRITE_OK rc unweighted sf2
+FIT_START unweighted rc sf2 free_mb=233
+FIT_PID 63199 unweighted rc sf2 running=1
+FIT_EXIT unweighted rc sf2 code=0
+WRITE rc spline sf0
+spline fixed_rc histograms 452 problems 0
+WRITE_OK rc spline sf0
+FIT_START spline rc sf0 free_mb=359
+FIT_PID 63235 spline rc sf0 running=1
+FIT_EXIT spline rc sf0 code=0
+WRITE rc spline sf2
+spline fixed_rc histograms 452 problems 0
+WRITE_OK rc spline sf2
+FIT_START spline rc sf2 free_mb=409
+FIT_PID 63306 spline rc sf2 running=1
+FIT_EXIT spline rc sf2 code=0
+WRITE sub unweighted q2_3
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted q2_3
+FIT_START unweighted sub q2_3 free_mb=337
+FIT_PID 63379 unweighted sub q2_3 running=1
+FIT_EXIT unweighted sub q2_3 code=0
+WRITE sub unweighted q2_5
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted q2_5
+FIT_START unweighted sub q2_5 free_mb=364
+FIT_PID 63434 unweighted sub q2_5 running=1
+FIT_EXIT unweighted sub q2_5 code=0
+WRITE sub unweighted q2_7
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted q2_7
+FIT_START unweighted sub q2_7 free_mb=315
+FIT_PID 63525 unweighted sub q2_7 running=1
+FIT_EXIT unweighted sub q2_7 code=0
+WRITE sub unweighted y_3
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted y_3
+FIT_START unweighted sub y_3 free_mb=364
+FIT_PID 63575 unweighted sub y_3 running=1
+FIT_EXIT unweighted sub y_3 code=0
+WRITE sub unweighted y_5
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted y_5
+FIT_START unweighted sub y_5 free_mb=414
+FIT_PID 63641 unweighted sub y_5 running=1
+FIT_EXIT unweighted sub y_5 code=0
+WRITE sub unweighted y_7
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted y_7
+FIT_START unweighted sub y_7 free_mb=402
+FIT_PID 63702 unweighted sub y_7 running=1
+FIT_EXIT unweighted sub y_7 code=0
+WRITE sub unweighted z_3
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted z_3
+FIT_START unweighted sub z_3 free_mb=437
+FIT_PID 63767 unweighted sub z_3 running=1
+FIT_EXIT unweighted sub z_3 code=0
+WRITE sub unweighted z_5
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted z_5
+FIT_START unweighted sub z_5 free_mb=625
+FIT_PID 63826 unweighted sub z_5 running=1
+FIT_EXIT unweighted sub z_5 code=0
+WRITE sub unweighted z_7
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted z_7
+FIT_START unweighted sub z_7 free_mb=599
+FIT_PID 63889 unweighted sub z_7 running=1
+FIT_EXIT unweighted sub z_7 code=0
+WRITE sub unweighted pt_3
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted pt_3
+FIT_START unweighted sub pt_3 free_mb=617
+FIT_PID 63986 unweighted sub pt_3 running=1
+FIT_EXIT unweighted sub pt_3 code=0
+WRITE sub unweighted pt_5
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted pt_5
+FIT_START unweighted sub pt_5 free_mb=634
+FIT_PID 64025 unweighted sub pt_5 running=1
+FIT_EXIT unweighted sub pt_5 code=0
+WRITE sub unweighted pt_7
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted pt_7
+FIT_START unweighted sub pt_7 free_mb=531
+FIT_PID 64085 unweighted sub pt_7 running=1
+FIT_EXIT unweighted sub pt_7 code=0
+WRITE sub unweighted phi_5
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted phi_5
+FIT_START unweighted sub phi_5 free_mb=504
+FIT_PID 64133 unweighted sub phi_5 running=1
+FIT_EXIT unweighted sub phi_5 code=0
+WRITE sub unweighted phi_7
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted phi_7
+FIT_START unweighted sub phi_7 free_mb=526
+FIT_PID 64193 unweighted sub phi_7 running=1
+FIT_EXIT unweighted sub phi_7 code=0
+WRITE sub unweighted phi_9
+unweighted subdivision_bc histograms 452 problems 0
+WRITE_OK sub unweighted phi_9
+FIT_START unweighted sub phi_9 free_mb=490
+FIT_PID 64253 unweighted sub phi_9 running=1
+FIT_EXIT unweighted sub phi_9 code=0
+WRITE bcs unweighted spline
+unweighted fixed_bc histograms 452 problems 0
+WRITE_OK bcs unweighted spline
+FIT_START unweighted bcs spline free_mb=282
+FIT_PID 64313 unweighted bcs spline running=1
+FIT_EXIT unweighted bcs spline code=0
+WRITE bcs spline spline
+spline fixed_bc histograms 452 problems 0
+WRITE_OK bcs spline spline
+FIT_START spline bcs spline free_mb=328
+FIT_PID 64404 spline bcs spline running=1
+FIT_EXIT spline bcs spline code=0
+QUEUE_DONE

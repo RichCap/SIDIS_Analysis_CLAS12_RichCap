@@ -1,0 +1,39 @@
+{
+  "definition": "phi systematic on the 15-degree amplitude is abs(A_Phi12/2 - A_nominal). Other sources unchanged. New total is sqrt(old_total^2 - old_phi^2 + new_phi^2). budgets.json was not replaced.",
+  "campaigns": {
+    "unweighted": {
+      "bins": 452,
+      "missing": 0,
+      "rms_old_phi": 19503.892547284962,
+      "rms_new_phi": 136.04441238562237,
+      "rms_old_total": 19613.998094316506,
+      "rms_new_total": 2079.808844570703,
+      "max_new_phi": 1275.234173747922,
+      "bin_1_1": {
+        "A_nom": 25240.041182909637,
+        "A_phi12": 49713.279517931165,
+        "old_phi": 24473.238335021528,
+        "new_phi": 383.40142394405484,
+        "old_total": 24592.223476057294,
+        "new_total": 2446.4377256449006
+      }
+    },
+    "spline": {
+      "bins": 452,
+      "missing": 0,
+      "rms_old_phi": 19666.94110192259,
+      "rms_new_phi": 157.44514160804917,
+      "rms_old_total": 19775.510350618253,
+      "rms_new_total": 2075.337633623378,
+      "max_new_phi": 1489.579151475944,
+      "bin_1_1": {
+        "A_nom": 23145.39187209243,
+        "A_phi12": 46293.87076520143,
+        "old_phi": 23148.478893108997,
+        "new_phi": 1.5435105082833616,
+        "old_total": 23373.956422134084,
+        "new_total": 3238.790845598885
+      }
+    }
+  }
+}
