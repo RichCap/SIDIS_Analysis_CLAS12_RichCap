@@ -1,0 +1,23 @@
+{
+  "note": "Descriptive RMS of world minus current unweighted B and C. Repeated matches to one bin are correlated. Not a chi-squared. Hall C rows are a refit, not the collaboration moment table.",
+  "sources": {
+    "HallC_2510.03562(Sage refit of sighad.txt)": {
+      "n": 259,
+      "unique_bins": 42,
+      "rms_dB": 2.68310726558644,
+      "rms_dC": 1.1734829141346688
+    },
+    "Harrison_CLAS6_E1F_thesis": {
+      "n": 29,
+      "unique_bins": 17,
+      "rms_dB": 0.061825084349516744,
+      "rms_dC": 0.03763616601013044
+    },
+    "Osipenko_CLAS6_0809.1153": {
+      "n": 24,
+      "unique_bins": 18,
+      "rms_dB": 0.11129307299410975,
+      "rms_dC": 0.03976364334775493
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "widths_GeV2": {
+    "kT2": 0.25,
+    "pT2": 0.2
+  },
+  "nbins": 452,
+  "source": "Anselmino et al. PRD 71 (2005) 074006 widths; Barone et al. PRD 91 (2015) eqs. 26 and 29 with the lepton prefactors of eqs. 38 and 39",
+  "note": "cos 2phi Cahn term is the kinematic formula. Barone et al. 2015 set it to zero in their fit."
+}
