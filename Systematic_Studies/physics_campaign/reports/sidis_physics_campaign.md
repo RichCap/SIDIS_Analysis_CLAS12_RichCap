@@ -1770,3 +1770,445 @@ PDF count: `672`. Every file is listed. A slide deck uses a subset.
 - [Unfolded_AC_All_Q2y.pdf](../phi_figures/unweighted/rho0_subtraction/NoRho0/Unfolded_AC_All_Q2y.pdf). Phi_h canvas. An N/A pad is a missing histogram or fit, not a zero.
 
 Artifact directory: `/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign`.
+
+## Thesis review provenance, 2026-11-03
+
+These 25 tasks finished in workflow `sidis-thesis-review` (`wf_01a1a071be4178138c637d95910cf1a6`). Each box in `SIDIS_Thesis_Completion_Progress.md` is checked only after the section file, the named objects, and the stated comparison were on disk. The provenance passes did not edit thesis section files and did not rerun fits, unfolding, or EvGen. Two dependent tasks, `summary` and `theory`, finished after that list. The conclusions task finished after those two. The compile task finished after conclusions. All four are recorded at the end of this section. `summary` and `theory` edited only `Systematic_Uncertainties.tex` and `Comparisons_to_Theory_Models.tex`. `conclusions` edited only `Final_Conclusions.tex`. `compile` edited only the outline sentence in `Introduction/Introduction.tex` and wrote `main.pdf`.
+
+The nominal result those sections quote is the spline-weighted 3D measurement after the first physics injection. Unweighted and Spline stay separate. Neither is the quoted result. A missing number is omitted. It is not entered as zero. Radiative alternatives, spline bin centering, and sectors stay tabulated and out of the sum.
+
+### Shared files, objects, and the fit equation
+
+Acceptance-level spline comparisons read `physics_campaign/comparisons.csv` (`campaign=spline`, 1356 rows when one variation is complete: 452 bins times `A`, `B`, and `C`, `status=completed`). Columns used are `source`, `variation`, `bin`, `parameter`, `nominal`, `variation_value`, `signed_difference`, `absolute_difference`, and `status`.
+
+The spline nominal acceptance fit is `fits/spline/nominal/nominal/fit.json`, key `Fit_Pars_from_3D_Bayesian`, and `fits/spline/nominal/nominal/fit_copy.root`. Each bin stores `Fit_Par_A`, `Fit_Par_A_ERR`, `Fit_Par_B`, `Fit_Par_B_ERR`, `Fit_Par_C`, `Fit_Par_C_ERR`, `Chi2`, and `NDF`. The fitted histogram is the `TH1D`
+
+`(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_*)_(z_pT_Bin_*)_(MultiDim_z_pT_Bin_Y_bin_phi_t)`.
+
+The same file also holds `(1D)_(Bayesian)_`, `(1D)_(rdf)_`, `(1D)_(mdf)_`, and `(1D)_(rdf_wExclusive_Background)_` copies, plus `(MultiDim_3D_Histo)_(rdf)_` and `(MultiDim_3D_Histo)_(mdf)_`. The unfolded input named by the campaign is `Sys3D_nominal_only_20261030_inherited_Spline.root`. Each variation has its own `fits/spline/<source>/<variation>/fit.json` and `fit_copy.root`.
+
+The fit equation, labeled `eq:ReleaseFitForm` in `Cosine_Moment_Extractions.tex`, is
+
+\[A\left(1+B\cos\phi_h+C\cos 2\phi_h\right).\]
+
+\(A_0\) is \(A\) after `eq:NormalizedA`, with \(\Delta P_T^2\) from `eq:DeltaPT2` in place of \(\Delta P_T\). \(B\) is \(A_{UU}^{\cos\phi_h}\) and \(C\) is \(A_{UU}^{\cos 2\phi_h}\). They are not rescaled.
+
+Fully corrected spline moments use `corrected/spline/corrected.root`, histogram
+
+`(MultiDim_3D_Histo)_(BC_RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_*)_(z_pT_Bin_*)_(MultiDim_z_pT_Bin_Y_bin_phi_t)`,
+
+`corrected/spline/bc/fit.json` key `Fit_Pars_from_3D_BC_RC_Bayesian`, and `corrected/spline/normalized_bc.json`. The matching unweighted objects are `corrected/unweighted/bc/fit.json` and `corrected/unweighted/normalized_bc.json`.
+
+### cosine
+
+Agent `01a1a071-be7a-7593-8537-341f170654b8`. File `Results/Results_SubSections/Cosine_Moment_Extractions.tex`. Equation `eq:ReleaseFitForm`. Figures, all under `Results/Moment_Images/normalized_bc_final/`:
+
+- `sidis_mosaic_spline_z_systematic_3D_BayesianUnfold_BC_RC_z_Amplitude.pdf` (`fig:Moments_Spline_z_A_sys`)
+- `sidis_mosaic_spline_z_systematic_3D_BayesianUnfold_BC_RC_z_CosPhiMoment.pdf` (`fig:Moments_Spline_z_B_sys`)
+- `sidis_mosaic_spline_z_systematic_3D_BayesianUnfold_BC_RC_z_Cos2PhiMoment.pdf` (`fig:Moments_Spline_z_C_sys`)
+- `sidis_mosaic_spline_pt_systematic_3D_BayesianUnfold_BC_RC_pT_Amplitude.pdf` (`fig:Moments_Spline_pT_A_sys`)
+- `sidis_mosaic_spline_pt_systematic_3D_BayesianUnfold_BC_RC_pT_CosPhiMoment.pdf` (`fig:Moments_Spline_pT_B_sys`)
+- `sidis_mosaic_spline_pt_systematic_3D_BayesianUnfold_BC_RC_pT_Cos2PhiMoment.pdf` (`fig:Moments_Spline_pT_C_sys`)
+
+Check: only those six systematic figures remain. Points carry the systematic uncertainty. No connecting lines and no spline overlay.
+
+### kt2
+
+Agent `01a1a071-be7a-7593-8537-342a35726674`. `Results/Results.tex` comments out the `Closure_Tests.tex` input and inputs `Results/Results_SubSections/Transverse_Momentum_Extraction.tex`. `Closure_Tests.tex` itself was not rewritten.
+
+Equations: `eq:KT2FitFunction` is the same \(A(1+B\cos\phi_h+C\cos 2\phi_h)\); `eq:LnA0Line` is \(\ln A_0=a P_T^2+b\), with \(P_T^2\) the square of the \(P_T\) midpoint; `eq:kT2Definition` is \(\langle k_T^2\rangle=-1/a\) and \(\sigma(\langle k_T^2\rangle)=\sigma_a/a^2\). The weight on \(\ln A_0\) is \(\sigma_{A_0}/A_0\) from the acceptance-level systematic on normalized \(A_0\).
+
+Input moments are the spline `Fit_Pars_from_3D_BC_RC_Bayesian` values after \(A_0\) normalization. Table `tab:MeanKT2`. Figures `fig:LnA0_Q2y_01`–`fig:LnA0_Q2y_17` and `fig:kT2_Q2y_01`–`fig:kT2_Q2y_17` point at the 17 fit PDFs and 17 summary PDFs in `physics_campaign/kt2/spline/run_20261102_152727/fits/` and `.../summary/`.
+
+Check: 452 positive \(A_0\) values, 91 lines, every slope negative. 80 lines have \(|a|<2\sigma_a\). The other 11 have \(2.00<|a|/\sigma_a\le 2.57\). No single \(\langle k_T^2\rangle\) is quoted. \(Q^2\)–\(y\) bin 15 at \(z=0.555\) has \(\mathrm{NDF}=0\); \(\chi^2/\mathrm{NDF}\) is left undefined.
+
+### sampling
+
+Agent `01a1a071-be7a-7593-8537-344be2c4ef1e`. File `Sys_Sampling_Fraction.tex`, label `sys-sf-band`. Equation \(\mu(p)-n\sigma(p)\le\mathrm{SF}_{\mathrm{tot}}\le\mu(p)+n\sigma(p)\), with \(n=4.0\) and \(n=3.0\). Source `ecband_el`, variations `loose` and `tight`. Objects `Fit_Pars_from_3D_Bayesian` in `fits/spline/ecband_el/{loose,tight}/`.
+
+Check: both alternatives fit in all 452 bins. All 2712 signed \(A\), \(B\), and \(C\) shifts match the stored fits. Mean absolute changes \(1.897\times 10^{-4}\), \(1.239\times 10^{-3}\), and \(1.054\times 10^{-3}\). Extrema are in the two low-\(P_T\) bins of \(Q^2\)–\(y\) bin 1. RC and BC were not rebuilt.
+
+### pcal-energy
+
+Agent `01a1a071-be7a-7593-8537-345639c4f065`. File `Sys_PCal_Energy_Momentum.tex`, label `sys-pcal-ep`, table `tab:PCalThresholdImpact`. Equation \(\mathrm{SF}_{\mathrm{PCAL}}>t\), with \(t=0.045\) and \(t=0.065\) against the nominal \(0.05\). Source `ecthr_el`, variations `loose` and `tight`.
+
+Check: both alternatives fit in all 452 bins. All 2712 signed shifts and 1356 source RMS values match the campaign tables. Mean RMS 31.30, 0.001508, and 0.001193. Minima 2.147, \(2.240\times 10^{-7}\), and \(4.664\times 10^{-12}\). Maxima 1071, 0.08018, and 0.04798.
+
+### vertex
+
+Agent `01a1a094-02a9-7cb0-9cfc-b5afe96bd6b8`. File `Sys_Electron_Vertex.tex`, label `sys-vz-el`. Windows \(-9.5\,\mathrm{cm}<v_z<+3.5\,\mathrm{cm}\) and \(-7\,\mathrm{cm}<v_z<+1\,\mathrm{cm}\). Source `dcv_el`, variations `loose` and `tight`.
+
+Check: both windows fit in all 452 bins. All 2712 signed shifts match `comparisons.csv` and the fit files.
+
+### pcal-volume
+
+Agent `01a1a094-02aa-7392-9e81-dd8f134dacdd`. File `Sys_PCal_Volume.tex`, label `sys-pcal-vol`, table `tab:PCalVolumeImpact`. Source `pcalvol`, variations `loose` and `tight`.
+
+Check: no retained bin unfitted. Mean RMS over 452 bins is 335.75 in the \(A_0\) amplitude, 0.002830 in \(A_{UU}^{\cos\phi_h}\), and 0.002515 in \(A_{UU}^{\cos 2\phi_h}\). \(A_0\) minimum is \(Q^2\)–\(y\) 17, \(z\)–\(P_T\) 3; maximum is bins 4 and 34. Cosine maxima share bins 1 and 8. Cosine minima are bins 16 and 16, and 2 and 21.
+
+### chi2
+
+Agent `01a1a094-02aa-7392-9e81-dda846b08197`. File `Sys_Chi2_PID_Pion.tex`, label `sys-chi2pid`. The stricter pion \(\chi^2_{\mathrm{PID}}\) keeps the piecewise exponential in momentum with a common coefficient \(\mathcal{C}\). Source `chi2_strict_pip`.
+
+Check: all 452 bins fit. Mean absolute changes \(1.106\times 10^{-2}\), \(1.590\times 10^{-2}\), and \(6.882\times 10^{-3}\). Every shift matches the stored comparison.
+
+### vertex-sep
+
+Agent `01a1a094-02aa-7392-9e81-ddbc920f2c1f`. File `Sys_Vertex_Separation.tex`, label `sys-dvz`, table `tab:VertexSeparationImpact`. Nominal \(|\Delta v_z|\le 20\,\mathrm{cm}\). Alternatives \(|\Delta v_z|\le 22\,\mathrm{cm}\) and \(|\Delta v_z|\le 18\,\mathrm{cm}\). Source `dvz_pip`, variations `loose` and `tight`.
+
+Check: all 452 bins match `comparisons.csv` and the source RMS. No retained bin is unfitted.
+
+### dc-fiducial
+
+Agent `01a1a09a-6c98-7821-9dd6-c80e897bc7d5`. File `Sys_Electron_DC_Fiducial.tex`, labels `sys-dcfid-el` and `sys-dcfid-pip`. Electron edges move R1 and R2 together (3.5 cm loose, 6.5 cm tight) and R3 (8.5 cm loose, 11.5 cm tight). Pion edges are the separate R1/R2/R3 pair. Sources `dcfid_el` and `dcfid_pip`, each `loose` and `tight`.
+
+Check: all 452 bins fit. Electron loose and tight agree bin by bin. Every signed shift matches the campaign differences.
+
+### pcal-dead
+
+Agent `01a1a09a-6c99-7503-aa23-f8c035579ea8`. File `Sys_PCal_Dead_Channels.tex`, label `sys-pcal-knockout`, table `tab:PCalDeadChannelImpact`. Source `no_valerii_knockout`.
+
+Check: all 1356 acceptance-level shifts match the fits and `comparisons.csv`. Mean absolute impacts 93.46, 0.001759, and 0.001528. Extrema are in \(Q^2\)–\(y\) bins 3, 1, 3, and 2. All 452 retained bins were fit.
+
+### sector-pcal
+
+Agent `01a1a09a-6c99-7503-aa23-f8e8218dcacd`. File `Sys_Sector_PCal.tex`, label `sys-sector-pcal`, table `tab:SectorPCalImpact`. Source `no_sector_pcal`.
+
+Check: all 1356 \(A\), \(B\), and \(C\) shifts in 452 bins match. No bin unfitted. Mean absolute impacts 162.22, 0.001905, and 0.001825. Extrema are in \((Q^2\)–\(y,\,z\)–\(P_T)\) bins (3,1), (1,22), (4,7), (1,8), and (8,30).
+
+### dc-refine
+
+Agent `01a1a09a-6c9a-7631-9caf-83aa894ded87`. File `Sys_Electron_DC_Refinement.tex`, label `sys-dcfid-ref-el`. Equation \(|y_{\mathrm{rot}}|<a_\ell(x_{\mathrm{rot}}+b_\ell+\delta_\ell)\), with \((\delta_{\mathrm{R1}},\delta_{\mathrm{R2}},\delta_{\mathrm{R3}})=(+0.6,+1.2,+1.8)\,\mathrm{cm}\) and the opposite signs. Source `dcfidref_el`, variations `loose` and `tight`.
+
+Check: all 452 bins fit. Mean absolute changes \(7.250\times 10^{-4}\), \(3.052\times 10^{-3}\), and \(2.677\times 10^{-3}\). Signed extrema are in \(Q^2\)–\(y\) bins 1 and 16. Every shift matches `comparisons.csv`.
+
+### pion-dc
+
+Agent `01a1a0a2-1f6e-7c92-b0d2-d31743147501`. File `Sys_Custom_Pion_DC.tex`, label `sys-pip-testdc`. Source `no_pip_testdc`.
+
+Check: all 452 bins fit. Each of the 1356 differences matches `comparisons.csv`, including the reported absolute minimum, maximum, and lower median. Mean absolute changes \(1.726\times 10^{-3}\), \(1.205\times 10^{-2}\), and \(1.022\times 10^{-2}\).
+
+### sector
+
+Agent `01a1a0a2-1f6e-7c92-b0d2-d325fa28929d`. File `Sys_Sector_Dependence.tex`, label `sys-sector`, tables `tab:SectorCoverage` and `tab:SectorDependence`. Sources `electron_sector` (`eS1o`–`eS6o`) and `pion_sector` (`pipS1o`–`pipS6o`). `comparisons.csv` marks empty bins `missing`: 189 electron and 186 pion, matching 34, 32, 30, 31, 31, 31 and 31, 31, 31, 32, 32, 29.
+
+Check: 2523 electron fits and 2526 pion fits are present before the extra omissions. 36 electron and 37 pion fits have no remaining degrees of freedom (73). One further electron fit, sector 2, \(Q^2\)–\(y\) 8, \(z\)–\(P_T\) 30, has \(B=1.190\times 10^5\) and is omitted. Means use the remaining 2486 and 2489 fits. All four \(A_0\) extrema are in \(Q^2\)–\(y\) bin 1, \(z\)–\(P_T\) bin 29. Empty and undetermined fits are not stored as zero. The twelve restrictions are not added in quadrature.
+
+### phi-binning
+
+Agent `01a1a0a2-1f6e-7c92-b0d2-d3422e135008`. File `Sys_Phi_h_Binning.tex`, label `sys-phih-bins`. Source `phi_bins`, variation `Phi12`, against `fits/spline/nominal/nominal/fit.json`.
+
+Equation: the signed \(A_0\) change is \(A/2-A_{\mathrm{nominal}}\), then `eq:NormalizedA` with \(\Delta\phi_h=15^\circ\). \(B\) and \(C\) are not divided by two and are not rescaled. The width-normalized yield RMS 157.445 is the spline entry in `reports/phi_bins_width_normalized.json`.
+
+Check: all 452 bins fit. Mean absolute changes \(6.330\times 10^{-4}\), \(5.971\times 10^{-3}\), and \(5.219\times 10^{-3}\). Extrema are in \((Q^2\)–\(y,\,z\)–\(P_T)\) bins (1,22)/(1,15), (1,22)/(1,3), and (1,22)/(8,24).
+
+### smearing
+
+Agent `01a1a0a2-1f6e-7c92-b0d2-d35e66963dec`. File `Sys_Momentum_Smearing.tex`, label `sys-smear`. Source `noSmear`. The comparison is acceptance-level. Histograms that still carry `SMEAR=Smear` are not treated as the removed-smearing result unless the fit file is the `noSmear` variation.
+
+Check: all 452 bins fit. Every signed \(A\), \(B\), and \(C\) shift matches `comparisons.csv`. \(A_0\) uses the stored normalization. Mean absolute changes \(4.375\times 10^{-4}\), \(3.063\times 10^{-3}\), and \(1.960\times 10^{-3}\). Extrema are in bins (6,27), (1,8), (5,3), and (1,4).
+
+### rho0
+
+Agent `01a1a0b0-ca39-7e31-96d4-7dd8370be481`. File `Sys_Exclusive_Rho0.tex`, label `sys-rho0`. Source `rho0_subtraction`, variation `NoRho0`.
+
+Check: all 452 bins fit. Mean absolute changes \(3.463\times 10^{-3}\) for \(A_0\) (all 452 positive; 2.628% of the amplitude), \(9.030\times 10^{-3}\) for \(A_{UU}^{\cos\phi_h}\), and \(4.046\times 10^{-3}\) for \(A_{UU}^{\cos 2\phi_h}\). Every signed shift matches the campaign fits.
+
+### acceptance-method
+
+Agent `01a1a0b0-ca3a-7c40-a21c-51e1c07da3f5`. File `Sys_Acceptance_Method.tex`, label `sys-acc-method`.
+
+Bin-by-bin uses `fits/spline/correction_method/BinByBin/fit.json`, key `Fit_Pars_from_1D_Bin`, against spline `Fit_Pars_from_3D_Bayesian`. The same file also contains `Fit_Pars_from_1D_RC_Bin` and `Fit_Pars_from_1D_BC_RC_Bin`; the quoted shifts are the acceptance-level comparison, and RC and BC were not rebuilt. Mean \(|\Delta A_0|\) is \(6.348\times 10^{-3}\) over all 452 bins.
+
+Unweighted 5D uses `fits/unweighted/dimension/5D/fit.json`, key `Fit_Pars_from_5D_Bayesian`, and `fit_copy.root`, against the unweighted 3D acceptance fit. `comparisons.csv` source `dimension`, variation `5D`, has `iteration_mismatch=True` on the 61 bins in \(Q^2\)–\(y\) 1 and 5 (29 and 32). Those 61 are kept. The other 391 share \(k=5\). Spline-weighted 5D is absent and is not filled in. Every signed shift matches `comparisons.csv`.
+
+### acceptance-threshold
+
+Agent `01a1a0b0-ca3a-7c40-a21c-5205b62d975c`. File `Sys_Acceptance_Threshold.tex`, label `sys-acc-threshold`. Source `acceptance_threshold`, variations `Acc015` and `Acc025`, against the nominal threshold 0.020.
+
+Check: both alternatives fit in all 452 bins. All 2712 signed changes match the campaign fits exactly. Mean absolute changes \(1.731\times 10^{-4}\), \(1.934\times 10^{-3}\), and \(1.515\times 10^{-3}\). Signed extrema are in \(Q^2\)–\(y\) bin 1, \(z\)–\(P_T\) bins 22 and 8.
+
+### bayes
+
+Agent `01a1a0b0-ca3a-7c40-a21c-521c137368c6`. File `Sys_Bayesian_Iterations.tex`, label `sys-bayes-iter`. Source `bayes_iteration`, variations `BayesMinus1` and `BayesPlus1`. Nominal unfolding is \(k=6\) in \(Q^2\)–\(y\) bins 1 and 5 and \(k=5\) elsewhere.
+
+Check: both alternatives fit in all 452 bins. All 2712 signed differences match `comparisons.csv`. The \(A_0\) scale reproduces the published smearing shifts.
+
+### radiative
+
+Agent `01a1a0b7-1e9f-7a01-a07a-09ea6cdb6484`. File `Sys_Radiative_Model.tex`, label `sys-rc-model`, table `tab:RCFixedPointRMS`.
+
+Nominal \(RC_i\) is the radiated-to-Born event ratio. The alternatives replace it by \(\sigma_{\mathrm{tot}}/\sigma_B\) at the bin center. Prokudin is `alternatives/spline/rc_sf0/`. Electroproduction is `alternatives/spline/rc_sf2/`. Both files use key `Fit_Pars_from_3D_RC_Bayesian` and `histograms.root`. They are compared with the common event-ratio fit before bin centering. The electroproduction structure functions are \(F_{UU,T}\) from the injected amplitude, with the cosine functions \(B F_{UU,T}/\sqrt{2\varepsilon(1+\varepsilon)}\) and \(C F_{UU,T}/\varepsilon\). The amplitude in that conversion divides by \(\Delta Q^2\Delta y\Delta z\Delta P_T\Delta\phi_h\) and the luminosity, uses \(\Delta P_T\) rather than \(\Delta P_T^2\), and omits the virtual-photon flux, so it is not \(A_0\).
+
+Check: both alternatives fit in all 452 bins. Mean absolute changes over both alternatives are \(2.588\times 10^{-3}\), \(8.031\times 10^{-3}\), and \(3.348\times 10^{-3}\). The eight bins whose event-ratio cosine was adjusted later, (3,16), (3,29), (4,33), (10,11), (11,20), (13,4), (14,5), and (15,15), are excluded from the model shift and are not set to zero. Both alternatives stay out of the combined sum.
+
+### bin-centering
+
+Agent `01a1a0b7-1e9f-7a01-a07a-09f73b82a463`. File `Sys_Iterative_Bin_Centering.tex`, labels `sys-bc-iter` and `sys-bc-kin`, tables `tab:BCSubdivisionRMS` and `tab:BCSubdivisionImpact`.
+
+\(BC_i\) remains the sub-bin mean divided by the center sub-bin. The fifteen sampling shifts are the unweighted subdivision fits under `alternatives/unweighted/`. In each bin the term is the square root of the mean of the 15 squared shifts. The pooled RMS is that quantity over 452 bins and equals the square root of the mean of the five variable variances. It is not a median and not a quadrature of the five variables.
+
+Check: 6780 shifts, every retained bin fit. Pooled values are \(A_0\) 5.669% and \(5.883\times 10^{-3}\), \(A_{UU}^{\cos\phi_h}\) 0.01334, and \(A_{UU}^{\cos 2\phi_h}\) 0.009403. The injected-modulation replacement is `alternatives/spline/bcs_spline/fit.json`, key `Fit_Pars_from_3D_BC_RC_Bayesian`, RMS 6.665%, 0.01641, and 0.01112. It stays out of the sum. The one-update comparison has no assigned shift and is not entered as zero.
+
+### modulation
+
+Agent `01a1a0b7-1e9f-7a01-a07a-0a17f9ea1759`. File `Sys_Modulation_Spline.tex`, label `sys-mod-spline`.
+
+The injected weight is \(A(1+B\cos\phi_h+C\cos 2\phi_h)\). \(A\) is interpolated in \(\ln A\) with a thin-plate kernel and exponentiated. \(B\) and \(C\) use a Gaussian kernel. The kernel scale is 0.75, with smoothing. Coordinates are \((x_B,y,z,P_T)\). The quoted shift is the fully corrected spline moment minus the fully corrected no-weight moment, using `Fit_Pars_from_3D_BC_RC_Bayesian` on both campaigns. The acceptance-level cross rows (`campaign=cross`, `source=unweighted_versus_spline`, 1356 completed rows) were checked and were not substituted.
+
+Check: all 452 bins fit on both extractions. Mean absolute changes \(5.561\times 10^{-3}\) (2.957% of the nominal amplitude), \(1.452\times 10^{-2}\), and \(8.883\times 10^{-3}\). Extrema are in bins (1,15)/(4,32), (1,1)/(1,20), and (2,29)/(16,8).
+
+Figures, redrawn as points with statistical uncertainties and radial-basis curves rather than joined points:
+
+- `Results/Moment_Images/normalized_bc_final/sidis_mosaic_spline_z_statistical_3D_BayesianUnfold_BC_RC_z_Amplitude.pdf` (`fig:ModSplineStat_z_A`)
+- `..._z_CosPhiMoment.pdf` (`fig:ModSplineStat_z_B`)
+- `..._z_Cos2PhiMoment.pdf` (`fig:ModSplineStat_z_C`)
+- `..._pT_Amplitude.pdf` (`fig:ModSplineStat_pT_A`)
+- `..._pT_CosPhiMoment.pdf` (`fig:ModSplineStat_pT_B`)
+- `..._pT_Cos2PhiMoment.pdf` (`fig:ModSplineStat_pT_C`)
+
+### acceptance-reweight
+
+Agent `01a1a0b7-1e9f-7a01-a07a-0a24dd8c9b64`. File `Sys_Acceptance_Reweighting.tex`, label `sys-acc-reweight`, figure `fig:AccRatios_WithPhysics`.
+
+The variation file is `Sys3D_nominal_only_20261030_inherited_AccSpline.root`. Fits are `fits/spline/acceptance_reweighting/AccSpline/fit.json` and `fits/spline/nominal/nominal/fit.json`, both `Fit_Pars_from_3D_Bayesian`. RC and BC were not rebuilt. \(A_0\) uses `Cross_Section_Normalization` with \(\Delta(P_T^2)\), \(\Delta\phi_h=15^\circ\), and the corrected charge. That scale reproduces `corrected/spline/normalized_bc.json` on the checked bins.
+
+Check: `comparisons.csv` has 1356 completed spline `acceptance_reweighting`/`AccSpline` rows and matches both fit files with maximum absolute difference 0. No retained bin is unfit. \(A_0\) mean \(|\Delta|=2.79869781235\times 10^{-3}\) (quoted \(2.799\times 10^{-3}\)), mean \(|\Delta A|/|A|=1.677625\%\) (quoted 1.678%). Minimum \(-1.65660276571\times 10^{-2}\) at \(Q^2\)–\(y\) 5, \(z\)–\(P_T\) 31. Maximum \(+2.21238660321\times 10^{-2}\) at \(Q^2\)–\(y\) 10, \(z\)–\(P_T\) 32. Signs: 359 positive, 93 negative. \(\cos\phi_h\) mean \(|\Delta|=0.0965183870909\), minimum \(-0.0109084991152\) at (4,29), maximum \(+0.312878145617\) at (17,28); 449 positive, 3 negative. \(\cos 2\phi_h\) mean \(|\Delta|=0.0275853485142\), minimum \(-0.0842133980309\) at (3,29), maximum \(+0.0445479808985\) at (1,8); 22 positive, 430 negative. Each extremum is unique.
+
+Figure file `Results/Systematic_Images/Acceptance_Ratios_WithPhysics.pdf`. Source ROOT `Histo_Files_ROOT/DataFrames/HPP_Files_Output/generated_acceptance_weights_Final_Thesis_withSpline.root`. Data objects `norm_elPhi_vs_pipPhi_rdf`, `norm_elth_vs_pipth_rdf`, and `norm_el_vs_pip_rdf`. MC denominators `norm_elPhi_vs_pipPhi_mdf`, `norm_elth_vs_pipth_mdf`, and `norm_el_vs_pip_mdf`. Ratios `elPhi_vs_pipPhi` (`ratio_elPhi_vs_pipPhi`), `elth_vs_pipth` (`ratio_elth_vs_pipth`), and `el_vs_pip` (`ratio_el_vs_pip`). Each ratio is unit-normalized data divided by unit-normalized MC, then scaled to integral 1 (maximum bin difference 0). Drawn content is that histogram times \(n_x n_y\). Ratio maxima 796.753, 47.970, and 22.348. The bottom row matches the PDF. The no-spline figure was removed from the section and was not redrawn.
+
+### world
+
+Agent `01a1a0ca-4f67-7a41-9a6d-b352d28c8b0f`. File `Conclusions/Conclusions_SubSections/Comparisons_to_World_Data.tex`. Figure `Conclusions/Comparison_Images/World_Moments_vs_PT.pdf`, label `fig:WorldMomentsVsPT`. Table `tab:WorldOverlap` remains. The earlier scatter `Harrison_Osipenko_B_vs_Current.pdf` is not the section figure.
+
+Nominal points are spline \(B\) and \(C\) from `Fit_Pars_from_3D_BC_RC_Bayesian`. \(A_0\) is not compared. Osipenko ratios become the moments through
+
+\[
+A_{UU}^{\cos\phi_h}=\frac{H_3}{H_2+\varepsilon H_1}\,2(2-y)\sqrt{\kappa/\zeta},
+\qquad
+A_{UU}^{\cos 2\phi_h}=\frac{H_4}{H_2+\varepsilon H_1}\,2\kappa,
+\]
+
+with \(\gamma=2Mx_B/\sqrt{Q^2}\), \(\kappa=1/(1+\gamma^2)\), and \(\zeta=1-y-\gamma^2 y^2/4\), evaluated at the published average point. Their \(\varepsilon\) is not the photon polarization of `Eq1-9`.
+
+Check: Harrison e1-f (29 points, 17 bins) and Osipenko 5.75 GeV (24 points, 18 bins; the \(\cos 2\phi_h\) column uses 23 points) only. Hall C refit is not plotted. HERMES cosine moments are not invented. COMPASS is not overlaid. No chi-squared is quoted for repeated matches to one bin. One \(\cos 2\phi_h\) point, the highest \(P_T\) of one \(z\) interval in the first window, is omitted because that coefficient is not determined. Median absolute differences in `tab:WorldOverlap` are 0.037 and 0.037 (Harrison) and 0.105 and 0.024 (Osipenko). In the drawn windows, \(A_{UU}^{\cos\phi_h}\) is near zero at low \(P_T\) and becomes negative as \(P_T\) increases. Harrison's points have the same sign and a shallower slope. \(A_{UU}^{\cos 2\phi_h}\) stays small here, while Harrison's points change sign with \(P_T\). No first multidimensional or same-energy claim.
+
+### summary
+
+Agent `01a1a0e1-dce9-7bc2-93b1-e2905c7a7ef2`. File `Results/Results_SubSections/Systematic_Uncertainties.tex`, table `tab:SystematicUncertainties`. The comparison uses `dominance_flag` in `Systematic_Studies/sidis_physics_lib.py` with tolerance \(1.0\times 10^{-9}\). For each observable the ratio is the root-mean-square of that source over determined bins, divided by the root-mean-square of the nominal fit uncertainty. A ratio above 1 is `>`, below 1 is `<`, and equality within the tolerance is `=`. No row is equal. The fit uncertainties are `Fit_Par_A_ERR`, `Fit_Par_B_ERR`, and `Fit_Par_C_ERR` on `corrected/spline/normalized_bc.json`, key `Fit_Pars_from_3D_BC_RC_Bayesian`. Their root-mean-squares over 452 bins are \(2.48658668826\times 10^{-3}\), \(1.55531526385\times 10^{-2}\), and \(1.19476870655\times 10^{-2}\).
+
+The \(A_0\) scale in a bin is `Fit_Par_A` from `corrected/spline/bc/fit.json` divided by `Fit_Par_A` from `corrected/spline/normalized_bc.json`, both under `Fit_Pars_from_3D_BC_RC_Bayesian`. Acceptance-level \(A\) shifts are divided by that factor. \(B\) and \(C\) are not. `tab:PCalVolumeImpact` and `tab:VertexSeparationImpact`, the tables numbered 6.4 and 6.5, quote the unnormalized amplitude. Those numbers were not copied.
+
+Acceptance-level comparisons use `Fit_Pars_from_3D_Bayesian` against `fits/spline/nominal/nominal/fit.json`, except where a row names another key. Two alternatives in one bin enter as the root-mean-square of the two shifts, with \(N=2\) inside the square root. The tabulated value is then the root-mean-square of those bin contributions. A bin with no determined shift is omitted and is not stored as zero.
+
+| Row | Files and key | In the sum | Bins | \(\Delta A_0\) | \(\Delta A_{UU}^{\cos\phi_h}\) | \(\Delta A_{UU}^{\cos 2\phi_h}\) | Versus fit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Sampling fraction | `fits/spline/ecband_el/{loose,tight}/fit.json` | yes | 452 | \(1.08836980012\times 10^{-3}\) | \(5.82145530785\times 10^{-3}\) | \(4.59577966739\times 10^{-3}\) | `< < <` |
+| PCAL \(E/p\) | `fits/spline/ecthr_el/{loose,tight}/fit.json` | yes | 452 | \(6.88636653594\times 10^{-4}\) | \(5.57033877172\times 10^{-3}\) | \(4.35066435990\times 10^{-3}\) | `< < <` |
+| Electron \(v_z\) | `fits/spline/dcv_el/{loose,tight}/fit.json` | yes | 452 | \(2.49995310561\times 10^{-3}\) | \(7.07005816363\times 10^{-3}\) | \(5.57122680333\times 10^{-3}\) | `> < <` |
+| PCAL volume | `fits/spline/pcalvol/{loose,tight}/fit.json` | yes | 452 | \(7.38024914569\times 10^{-3}\) | \(7.71822970597\times 10^{-3}\) | \(6.12761302022\times 10^{-3}\) | `> < <` |
+| Pion \(\chi^2_{\mathrm{PID}}\) | `fits/spline/chi2_strict_pip/chi2_strict_pip/fit.json` | yes | 452 | \(1.61529390277\times 10^{-2}\) | \(2.27605289873\times 10^{-2}\) | \(1.15917377041\times 10^{-2}\) | `> > <` |
+| \(\|\Delta v_z\|\) | `fits/spline/dvz_pip/{loose,tight}/fit.json` | yes | 452 | \(1.77255617402\times 10^{-3}\) | \(6.24675914135\times 10^{-3}\) | \(5.10549877196\times 10^{-3}\) | `< < <` |
+| Electron DC edges | `fits/spline/dcfid_el/{loose,tight}/fit.json` | yes | 452 | \(5.88807665273\times 10^{-4}\) | \(5.47866981289\times 10^{-3}\) | \(4.15723901499\times 10^{-3}\) | `< < <` |
+| \(\pi^{+}\) DC edges | `fits/spline/dcfid_pip/{loose,tight}/fit.json` | yes | 452 | \(1.85212338533\times 10^{-3}\) | \(7.78481890204\times 10^{-3}\) | \(5.97720028333\times 10^{-3}\) | `< < <` |
+| PCAL dead channels | `fits/spline/no_valerii_knockout/no_valerii_knockout/fit.json` | yes | 452 | \(1.72030962316\times 10^{-3}\) | \(5.73019824759\times 10^{-3}\) | \(4.71250405958\times 10^{-3}\) | `< < <` |
+| Sector PCAL | `fits/spline/no_sector_pcal/no_sector_pcal/fit.json` | yes | 452 | \(3.13798878969\times 10^{-3}\) | \(6.34380876096\times 10^{-3}\) | \(5.07489488489\times 10^{-3}\) | `> < <` |
+| Electron DC refinement | `fits/spline/dcfidref_el/{loose,tight}/fit.json` | yes | 452 | \(2.03919266400\times 10^{-3}\) | \(7.73849591500\times 10^{-3}\) | \(6.09959627200\times 10^{-3}\) | `< < <` |
+| Additional \(\pi^{+}\) DC | `fits/spline/no_pip_testdc/no_pip_testdc/fit.json` | yes | 452 | \(3.91040725000\times 10^{-3}\) | \(2.74361291400\times 10^{-2}\) | \(2.08869229800\times 10^{-2}\) | `> > >` |
+| Sector dependence | `fits/spline/electron_sector/eS1o`–`eS6o` and `fits/spline/pion_sector/pipS1o`–`pipS6o` | no | 419 | \(3.47128885224\times 10^{-2}\) | \(1.39256988087\times 10^{-1}\) | \(7.71894964640\times 10^{-2}\) | `> > >` |
+| \(\phi_h\) binning | `fits/spline/phi_bins/Phi12/fit.json`; signed \(A\) shift is \(A/2-A_{\mathrm{nominal}}\) before the \(A_0\) scale | yes | 452 | \(2.58266540500\times 10^{-3}\) | \(1.18775475500\times 10^{-2}\) | \(8.88402779500\times 10^{-3}\) | `> < <` |
+| MC momentum smearing | `fits/spline/noSmear/noSmear/fit.json` | yes | 452 | \(9.81819676600\times 10^{-4}\) | \(6.73756767000\times 10^{-3}\) | \(4.74375599300\times 10^{-3}\) | `< < <` |
+| Exclusive \(\rho^0\) | `fits/spline/rho0_subtraction/NoRho0/fit.json` | yes | 452 | \(4.64151188900\times 10^{-3}\) | \(1.20788283500\times 10^{-2}\) | \(7.27270917500\times 10^{-3}\) | `> < <` |
+| Acceptance method | `fits/spline/correction_method/BinByBin/fit.json`, key `Fit_Pars_from_3D_Bin` | yes | 452 | \(1.52632959900\times 10^{-2}\) | \(1.63811415000\times 10^{-2}\) | \(1.06114487900\times 10^{-2}\) | `> > <` |
+| Acceptance threshold | `fits/spline/acceptance_threshold/{Acc015,Acc025}/fit.json` | yes | 452 | \(1.11868690122\times 10^{-3}\) | \(7.21870589235\times 10^{-3}\) | \(5.35908731651\times 10^{-3}\) | `< < <` |
+| Bayesian iterations | `fits/spline/bayes_iteration/{BayesMinus1,BayesPlus1}/fit.json` | yes | 452 | \(1.65038068935\times 10^{-3}\) | \(6.77443560205\times 10^{-3}\) | \(5.28293432067\times 10^{-3}\) | `< < <` |
+| RC model | `alternatives/spline/rc_sf0/fit.json` and `alternatives/spline/rc_sf2/fit.json`, key `Fit_Pars_from_3D_RC_Bayesian`, against `corrected/spline/rc/fit_before_guide.json` | no | 452 | \(4.26757271576\times 10^{-3}\) | \(1.28256966223\times 10^{-2}\) | \(6.46958420623\times 10^{-3}\) | `> < <` |
+| Physics injection | spline minus unweighted `Fit_Pars_from_3D_BC_RC_Bayesian`; \(A_0\) already from the two `normalized_bc.json` files, \(B\) and \(C\) from the two `bc/fit.json` files | no | 452 | \(1.18773968718\times 10^{-2}\) | \(2.11422913640\times 10^{-2}\) | \(1.22636165285\times 10^{-2}\) | `> > >` |
+| Acceptance reweighting | `fits/spline/acceptance_reweighting/AccSpline/fit.json` | yes | 452 | \(4.86247292079\times 10^{-3}\) | \(1.09708945018\times 10^{-1}\) | \(3.19277101805\times 10^{-2}\) | `> > >` |
+
+The iterative and kinematic bin-centering rows, labels `sys-bc-iter` and `sys-bc-kin`, are blank. No one-update shift and no subdivision shift is assigned, and neither is entered as zero.
+
+Sector fits with \(\mathrm{NDF}<1\) are omitted. One further electron fit, `eS2o` at \(Q^2\)–\(y\) bin 8 and \(z\)–\(P_T\) bin 30, is omitted. The sector root-mean-square uses the 419 bins that still have a shift. The acceptance-method row does not use `Fit_Pars_from_1D_Bin`, and the unweighted 5D comparison is not a shift of this measurement. The radiative baseline is the event-ratio fit before the later cosine guide, not `corrected/spline/rc/fit.json`. All 452 bins remain in that comparison. None is set to zero.
+
+The combined row is the root-mean-square, over 452 bins, of the per-bin quadrature of the 19 sources marked in the sum. It is \(2.55388707686\times 10^{-2}\), \(1.20177487296\times 10^{-1}\), and \(4.67594142784\times 10^{-2}\). All three are larger than the fit uncertainty. Radiative alternatives, both bin-centering comparisons, the sector restrictions, and the injected-modulation comparison stay out of that sum.
+
+### theory
+
+Agent `01a1a0e1-dce9-7bc2-93b1-e2a4c4d0b253`. File `Conclusions/Conclusions_SubSections/Comparisons_to_Theory_Models.tex`. Tables `tab:CahnGaussian` and `tab:BoerMuldersBastami`. No \(A_0\) comparison. `Results.tex` and `Transverse_Momentum_Extraction.tex` were not edited. The measured \(\langle k_T^2\rangle\) is not a quark width and is not substituted for \(\langle k_\perp^2\rangle\) or \(\langle P_T^2\rangle\).
+
+Moments are `Fit_Par_B`, `Fit_Par_B_SYS`, `Fit_Par_C`, and `Fit_Par_C_SYS` from `corrected/spline/normalized_bc.json`, key `Fit_Pars_from_3D_BC_RC_Bayesian`. Bin centers are the 452 rows with `used=1` in `physics_campaign/kt2/spline/run_20261102_152727/kt2_points.tsv`. The Bjorken \(x\) used for the collinear grids is \(Q^2/(2ME y)\), with \(M=0.938272\,\mathrm{GeV}\) and \(E=10.6\,\mathrm{GeV}\). At \(Q^2\)–\(y\) bin 1 and \(z\)–\(P_T\) bin 1 that gives \(x=0.158001\), \(z=0.555\), and \(P_T=0.135\,\mathrm{GeV}\).
+
+The published-width Cahn ratio is Barone et al., Phys. Rev. D91 (2015) 074019, eq. (26),
+
+\[
+\frac{F_{UU}^{\cos\phi_h}}{F_{UU}}=-2\frac{P_T}{Q}\frac{z\langle k_\perp^2\rangle}{\langle P_T^2\rangle},
+\]
+
+with \(\langle P_T^2\rangle=\langle p_\perp^2\rangle+z^2\langle k_\perp^2\rangle\), \(\langle k_\perp^2\rangle=0.25\,\mathrm{GeV}^2\), and \(\langle p_\perp^2\rangle=0.20\,\mathrm{GeV}^2\). \(A_{UU}^{\cos\phi_h}\) multiplies that ratio by \(2(2-y)\sqrt{1-y}/[1+(1-y)^2]\). The kinematic \(\cos 2\phi_h\) term is their eq. (29), \(2(P_T^2/Q^2)(z^2\langle k_\perp^2\rangle^2/\langle P_T^2\rangle^2)\), times \(2(1-y)/[1+(1-y)^2]\). Barone et al. set that term to zero in the fit they publish. The Wandzura–Wilczek \(f_\perp\) estimate of Bastami et al. reduces to the same \(\cos\phi_h\) ratio and is not drawn as a second curve.
+
+The Boer–Mulders–Collins term is Bastami et al., JHEP 06 (2019) 007, eq. (5.9a), only. Collinear inputs are MSTW 2008 LO, `EvGen_sidis_fork/sidis/share/sidis/sf_set/prokudin/mstw2008lo.00.dat`, and DSS LO \(\pi^{+}\), LHAPDF set `dsspipLO` in `EvGen_sidis_fork/sidis/share/sidis/sf_set/stf`, both at \(Q^2=2.4\,\mathrm{GeV}^2\). Boer–Mulders parameters are Bastami Table 4 and Collins parameters are Bastami Table 3. Only \(u\) and \(d\) Boer–Mulders functions are nonzero. The ratio is multiplied by the same \(\cos 2\phi_h\) lepton factor. Nucleon and pion masses cancel: repeating the ratio at twice each mass changes no bin by more than \(10^{-9}\) relative. GRV98 and Kretzer are not on disk, so the Barone, Prokudin, and Ma 2008 sum is not evaluated. The Barone et al. 2015 fit is not recomputed. The full Balitsky–Prokudin asymmetry, including the \(F_{UU,L}\) denominator and the NNLP piece \(F_{UU}^{\cos 2\phi_h,\mathrm{NNLP}}=-(P_T/Q)F_{UU}^{\cos\phi_h}\), is not drawn.
+
+Check: 452 bins, no missing Boer–Mulders value, and every Boer–Mulders value negative. Median Cahn \(A_{UU}^{\cos\phi_h}\) is \(-0.216961890660\); median of the measurement is \(-0.081220013228\); root-mean-square of measurement minus Cahn is \(0.182614107478\). Median kinematic Cahn \(A_{UU}^{\cos 2\phi_h}\) is \(0.006687434678\); median of the measurement is \(-0.004871686379\); root-mean-square difference is \(0.033427224584\). Median Boer–Mulders term is \(-0.006459882814\); root-mean-square of measurement minus that term is \(0.036544986670\). At bin (1,1) the measurement is \(-0.083297092822\) and \(0.030549762389\), the Cahn terms are \(-0.119125112809\) and \(0.002288160329\), and the Boer–Mulders term is \(-0.002502403576\).
+
+Figures, written as non-empty PDFs. The drawn ROOT objects are one `TCanvas` named `theory_canvas` (1100 by 860, five by four pads), a `TH2D` frame on each filled pad, a `TGraphErrors` for the measurement (`Fit_Par_*_SYS` as the vertical error and zero horizontal error, marker only), and a `TGraph` for each curve. No moment histogram is the source, and the points are not connected.
+
+- `Conclusions/Comparison_Images/Theory_CosPhi_vs_z.pdf` (`fig:TheoryCosPhiZ`), 63002 bytes
+- `Conclusions/Comparison_Images/Theory_CosPhi_vs_pT.pdf` (`fig:TheoryCosPhiPT`), 62104 bytes
+- `Conclusions/Comparison_Images/Theory_Cos2Phi_vs_z.pdf` (`fig:TheoryCos2PhiZ`), 64002 bytes
+- `Conclusions/Comparison_Images/Theory_Cos2Phi_vs_pT.pdf` (`fig:TheoryCos2PhiPT`), 63442 bytes
+
+The \(\cos\phi_h\) figures draw the published-width Cahn term only. The \(\cos 2\phi_h\) figures draw that kinematic Cahn term as a solid curve and the Boer–Mulders–Collins term as a dashed curve. Neither curve is the full moment.
+
+Those four PDFs were redrawn on 2026-11-03 onto the stepped Q²–y pad map used for the nominal moment figures. Bin 1 is the lower-right pad and bin 17 is the upper row. The previous five-column files are kept in `Conclusions/Comparison_Images/archive_wrap_20261103/`. The filenames are unchanged. Points are the spline-weighted measurement with `Fit_Par_*_SYS` as the vertical error and are not connected. One color in a panel is one \(P_T\) bin versus \(z\), or one \(z\) bin versus \(P_T\). The script is `physics_campaign/redraw_theory_figures_stepped.py`. The recomputed Cahn values match the digits above. The recomputed Boer–Mulders term is negative in all 452 bins; at bin (1,1) it is \(-0.002505\), the median is \(-0.006471\), and the root-mean-square difference from the measurement is \(0.036555\). Those still round to the quoted \(-0.0025\), \(-0.0065\), and \(0.037\). Doubling the nucleon and pion masses, with \(M_{\mathrm{BM}}\) and \(M_C\) held fixed, leaves the ratio unchanged.
+
+### conclusions
+
+Agent `01a1a0fa-ef28-7122-86f2-b1e9bfea2625`, label `conclusions`, phase Conclude. Finished 2026-11-03 05:41. Edited only `Conclusions/Conclusions_SubSections/Final_Conclusions.tex`. `Conclusions/Conclusions.tex` already contains `\input{Conclusions/Conclusions_SubSections/Final_Conclusions}` under `\section{Final Conclusions}` and was not edited. No new ROOT file, fit, or figure was written.
+
+The sentence that neither extraction is the quoted result is gone. The nominal result is the spline-weighted 3D measurement after the first physics injection. The fit written in the section is the same form as `eq:ReleaseFitForm`,
+
+\[A\left(1+B\cos\phi_h+C\cos 2\phi_h\right).\]
+
+\(A_0\) is \(A\) after `eq:NormalizedA`. \(B\) is \(A_{UU}^{\cos\phi_h}\) and \(C\) is \(A_{UU}^{\cos 2\phi_h}\). They are not rescaled. The width limit uses `eq:kT2Definition`, \(\langle k_T^2\rangle=-1/a\). The beam-energy comparison cites `eq:Cosphi_Moment` and `eq:Cos2phi_Moment`. No new equation label was added.
+
+Moments are `Fit_Par_B` and `Fit_Par_C` in `corrected/spline/normalized_bc.json`, key `Fit_Pars_from_3D_BC_RC_Bayesian`, 452 bins. The fully corrected histogram, not redrawn here, remains
+
+`(MultiDim_3D_Histo)_(BC_RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_*)_(z_pT_Bin_*)_(MultiDim_z_pT_Bin_Y_bin_phi_t)`
+
+in `corrected/spline/corrected.root`, with the fit in `corrected/spline/bc/fit.json` under the same key. The unfolded input remains `Sys3D_nominal_only_20261030_inherited_Spline.root`.
+
+Check: median `Fit_Par_B` is \(-0.081220013228\), quoted \(-0.081\). Median `Fit_Par_C` is \(-0.004871686379\), quoted \(-0.0049\). Both match `tab:CahnGaussian`. The combined row of `tab:SystematicUncertainties` is \(0.02554\), \(0.1202\), and \(0.04676\). The sector row, kept out of that assignment, is \(0.03471\), \(0.1393\), and \(0.07719\). Those six numbers match `Systematic_Uncertainties.tex`. The \(\langle k_T^2\rangle\) span \(0.159\) to \(0.303\,\mathrm{GeV}^2\), the 80 of 91 slopes compatible with zero, the bound \(|a|/\sigma_a\le 2.57\), the relative uncertainties \(0.39\) to \(0.50\), \(\chi^2/\mathrm{NDF}\le 0.0169\), and \(\sigma_{A_0}/A_0\) from \(0.896\) to \(1.204\) match `Transverse_Momentum_Extraction.tex` and `tab:MeanKT2`. No single width is quoted. Harrison and Osipenko median absolute differences \(0.037\), \(0.037\), \(0.105\), and \(0.024\), and the depolarization-divided values \(0.011\), \(0.029\), \(0.072\), and \(0.048\), match `Comparisons_to_World_Data.tex`. Cahn medians \(-0.217\) and \(0.0067\), root-mean-square differences \(0.183\) and \(0.033\), and the Boer–Mulders median \(-0.0065\) with root-mean-square difference \(0.037\) match the theory section. The measured \(\langle k_T^2\rangle\) is not used as a quark width.
+
+Figures cited, not redrawn: `fig:Moments_Spline_z_A_sys` through `fig:Moments_Spline_pT_C_sys` under `Results/Moment_Images/normalized_bc_final/`, and `fig:WorldMomentsVsPT` at `Conclusions/Comparison_Images/World_Moments_vs_PT.pdf`. Theory curves stay `fig:TheoryCosPhiZ`, `fig:TheoryCosPhiPT`, `fig:TheoryCos2PhiZ`, and `fig:TheoryCos2PhiPT`.
+
+The section does not say mosaic or provisional. It does not claim a first measurement. Hall C multiplicities are not refit and are not shown as moments. No HERMES cosine moment is quoted. COMPASS is named as outside these bins. The 2008 sum, the 2015 fit, and a separation into Cahn and Boer–Mulders pieces are named and not evaluated. Radiative alternatives, both bin-centering comparisons, the sector restrictions, and the comparison that omits the injected modulation stay out of the assigned uncertainty. The one-update bin-centering shift is not assigned and is not entered as zero.
+
+### compile
+
+Agent `01a1a102-8e7b-74c1-9006-05431790d39a`, label `compile`, phase Compile. Finished 2026-11-03 05:49. Command, from the thesis directory:
+
+`/opt/homebrew/bin/tectonic --keep-logs -p main.tex`
+
+The process exited 0. No new ROOT file, fit, histogram, or equation was written. `Closure_Tests.tex` was not deleted. Its input in `Results/Results.tex` stays commented, and the live section there is `Transverse_Momentum_Extraction.tex`. The fit equation on the pages remains `eq:ReleaseFitForm`, \(A(1+B\cos\phi_h+C\cos 2\phi_h)\). \(A_0\) remains `eq:NormalizedA`. No scientific number was changed to silence a warning.
+
+The only source edit is `Introduction/Introduction.tex`, section `sec:Thesis_Outline`. The sentence that Chapter 6 presents closure tests was replaced by the statement that `\Cref{Results}` presents the extracted results and the evaluation of systematic uncertainties. That sentence is on page 19 of the PDF.
+
+Products:
+
+- `Actual_Thesis_LaTeX_Projects/LaTeX_GitHub/Richard_Capobianco_PhD_Thesis/main.pdf`. PDF 1.5, 385 pages, letter, 175,699,429 bytes, written 05:49. Producer xdvipdfmx (0.1). Creator LaTeX with hyperref. Creation time 2026-11-03 05:48:04 EST.
+- `main.log` in the same directory, 140,134 bytes, same write time. It ends `Output written on main.xdv (385 pages, 1651872 bytes)`. `main.xdv` is not kept. No undefined reference, no `LaTeX Error`, and no emergency stop. The only multiply-defined label is `fig:MM_FullCor_el` (and its `hyperref` cref twin).
+
+Page check, from `pdftotext -layout` of that PDF. Zero hits for `closure test`, `Closure Tests`, `Unfolding MC`, `Fitting Edge Cuts`, `Data, reconstructed MC, and generated MC`, `EvGen radiated and Born`, and `provisional`. The contents list 6.1 Cosine Moment Extractions, 6.2 Transverse-Momentum Extraction, and 6.3 Systematic Uncertainties. There is no closure-test section between them. The four-stage Chapter 6 moment gallery captions are gone. Body sentences that still say radiative-correction factor or bin-centering factor are the method text in Chapters 5 and 6, not gallery captions.
+
+Removed per-bin galleries, absent from the contents and from the appendix pages: data, reconstructed, and generated \(\phi_h\); acceptance-corrected unfolding with the dedicated exclusive \(\rho^0\) subtraction; EvGen radiated versus Born; radiative-correction factor plots; bin-centering sub-bins and bin-centering factors; bin-centering-corrected \(\phi_h\) with the dedicated exclusive \(\rho^0\) subtraction.
+
+Retained and still on the pages: `fig:Moments_Spline_z_A_sys` through `fig:Moments_Spline_pT_C_sys` under `Results/Moment_Images/normalized_bc_final/`; appendix A.1.1 acceptance-corrected \(\phi_h\) without \(\rho^0\) (Figure A.1 and the following bins); A.2 campaign acceptance canvases; A.3 radiatively corrected \(\phi_h\) with and without \(\rho^0\); A.4.1 bin-centering-corrected \(\phi_h\) without \(\rho^0\). `Timeline.tex` stays commented out of `main.tex`, so its closure-test line is not a page.
+
+### targeted corrections, 3 November 2026 afternoon
+
+This pass did not rerun the nominal fits, the radiative grids, or the systematic campaign. The 05:49 conclusions paragraph that quotes 80 of 91 slopes and \(\langle k_T^2\rangle\) from \(0.159\) to \(0.303\,\mathrm{GeV}^2\) describes `kt2/spline/run_20261102_152727` and is superseded here.
+
+Appendix C. `Appendix_Sections/Bin_Borders_Q2_y_z_pT_Bins.tex`, label `tab:BinBorders`. Source `corrected/spline/normalized_bc.json`, key `Fit_Pars_from_3D_BC_RC_Bayesian`. 546 data rows: 452 filled and 94 skipped. Every skipped measurement cell is empty, and no JSON key is missing from the table. All 4068 printed numbers (three observables, value, fit uncertainty, and systematic uncertainty) agree with the JSON to at most half a unit in the last printed digit. \(A_0\) is not divided again. \(B\) and \(C\) are not rescaled.
+
+Bin centering. `tab:SystematicUncertainties` keeps the one-update and fifteen-variation cells blank. The spline event-factor versus raw-amplitude comparison remains \(6.582\times 10^{-3}\), \(0.01641\), and \(0.01112\), outside the combined row. The combined row remains \(0.02554\), \(0.1202\), and \(0.04676\).
+
+Width extraction. New directory `kt2/spline/run_20261103_stattotal/kt2_results.tsv`. The central line is analytic weighted least squares of \(\ln A_0\) with weights \(1/(\mathrm{Fit\_Par\_A\_ERR}/A_0)^2\). No \(\chi^2\) rescaling. The same coefficients propagate `Fit_Par_A_SYS`. No covariance is stored. \(\delta a_{\mathrm{total}}=\sqrt{\delta a_{\mathrm{stat}}^2+\delta a_{\mathrm{sys,uncorr}}^2}\). The coherent same-sign systematic shift of the slope runs from \(0.00141\) to \(0.364\,\mathrm{GeV}^{-2}\). A refit that uses only `Fit_Par_A_SYS` reproduces `run_20261103_finalsys/kt2_results.tsv` with maximum absolute difference 0, and that run stays a diagnostic. Old run `run_20261102_152727` is unchanged. 91 lines. Every slope is negative. Every interval \([a-\delta a_{\mathrm{total}}, a+\delta a_{\mathrm{total}}]\) excludes zero. Central \(\langle k_T^2\rangle=-1/a\) runs from \(0.15994\) to \(0.30370\,\mathrm{GeV}^2\). The quoted interval is the image of the two endpoints. One line, \(Q^2\)–\(y\) bin 15, \(z=0.555\), has \(|a|<2\delta a_{\mathrm{total}}\) (\(-4.609\pm 0.322\) statistical, total \(2.455\)), so the two-standard-deviation interval includes zero and does not bound the width. Figures `Results/Moment_Images/lnA0_vs_PT2_all_Q2y.pdf` and `kT2_vs_z_all_Q2y.pdf`. The systematic-only versions are kept as `*_sysonly_20261103.pdf`.
+
+Injection figures. Points are `corrected/unweighted/bc/fit.json`, key `Fit_Pars_from_3D_BC_RC_Bayesian`, statistical `Fit_Par_*_ERR`. Bin (1,1) amplitude \(23929.385\) is the training value of the stored spline. Curves are `Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Fit_Par_{A,B,C}.pkl`: thin-plate \(\ln A\), Gaussian \(B\) and \(C\), epsilon \(0.75\). Six PDFs under `Results/Moment_Images/injection_unweighted/`. The amplitude panels are the raw fit amplitude, not \(A_0\).
+
+Radiative \(\phi_h\) canvas. `plot_consolidated_phi_h_figures.py -f unfolded_rc` with `corrected/unweighted/rc/fit.json` (`Fit_Pars_from_3D_RC_Bayesian`, 452 bins) and `Sys3D_nominal_only_20261030_inherited_Unweighted.root`. Output `Analysis_Procedures/Unfolding_Images/Unfolded_RC_All_Q2y.pdf`, 452 pads drawn, 0 missing, no PRELIMINARY text. The per-bin file `Unfolded_RC_Q2_y_Bin_1.pdf` is not included.
+
+Appendix. In `Additional_Phi_h_Figures.tex`, the acceptance-corrected without-\(\rho^0\) gallery and the systematic canvases from sampling fraction through acceptance reweighting are commented. The radiatively corrected and bin-centering sections were already commented, including both with- and without-subtraction subsections. Nominal acceptance canvases remain. Source PDFs were not deleted.
+
+
+### bin-centering families, 3 November 2026 evening
+
+The afternoon statement that the kinematic and one-update cells stay blank, and that the spline-factor row stays outside the sum, is superseded here.
+
+Spline-model family. Nominal event-based factors versus two stored models, each applied to `corrected/spline/rc/corrected.root` and refit. Initial model: `alternatives/spline/bcs_spline` from the rawA cache. RMS versus the nominal spline fit, after the per-bin \(A_0/A\) scale, is \(6.582417\times 10^{-3}\), \(0.0164149\), \(0.0111226\) (452 bins). Second model: `Prepare_Next_Iteration/acc020_3D_BC_RC_Aep_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt`. Factors are the unweighted mean of the stored weight at the 405 sub-bin midpoints divided by the center sub-bin weight. The evaluator matches `correct.py` on the rawA cache for \(Q^2\)–\(y\) 1, \(z\)–\(P_T\) 1, \(\phi_h\) 10 to \(1.2\times 10^{-12}\). The \(A_{ep}\) amplitude was trained on the unweighted fit divided by bin area and luminosity, not on the spline-weighted measurement. No stored RBF of the iteration-1 fit parameters was found. Its RMS is \(7.82426\times 10^{-3}\), \(0.0156376\), \(0.0111679\). The family contribution in a bin is the RMS of the two shifts. The RMS of that contribution is \(7.23005\times 10^{-3}\), \(0.0160310\), \(0.0111453\).
+
+Kinematic family. The fifteen `sens_{phi,pt,q2,y,z}_*.json` files were applied to the same spline RC histograms and refit under `alternatives/spline/sub_*`. 452 fits each. The pooled RMS of the 6780 absolute shifts is \(5.99615\times 10^{-3}\), \(0.0172420\), \(0.0113442\). These numbers are not the unweighted \(5.669\
+### Sector-fit exclusions, 6 November 2026
+
+User-selected particle-sector comparisons were removed from the sector-dependence systematic. The stored nominal and variation fits were not rerun. `budgets/rerun_20261104/budget.json`, `normalized_bc_before_bc_families_20261103.json`, `kt2/spline/run_20261104_quad/`, and `corrected/unweighted/normalized_bc.json` were left in place.
+
+Exclusion list: `physics_campaign/budgets/sector_fit_exclusions_20261106.json`. 494 entries and 108 distinct kinematic bins. Electron sectors are `eS1o`–`eS6o` and pion sectors are `pipS1o`–`pipS6o`. A listed comparison is unavailable for all three observables and is not entered as zero. The existing unusable-fit rule remains: NDF below 1, a non-finite coefficient, `|B|>10`, `|C|>10`, or `|A|<1`.
+
+Accounting: 419 newly excluded usable comparisons, 72 requested entries that were already unavailable under the fit-quality rule, and 3 requested entries with no stored measurement bin: `eS1o` `(Q2_y_Bin_8)-(z_pT_Bin_35)`, `pipS1o` `(Q2_y_Bin_1)-(z_pT_Bin_21)`, and `pipS2o` `(Q2_y_Bin_12)-(z_pT_Bin_32)`. 419 + 72 + 3 = 494. Fit-quality omissions remain 449. Usable sector comparisons that remain: 4,556. Bins with no usable sector comparison: 44, previously 33. Those bins stay in the measurement. Only the sector term is omitted from their quadrature.
+
+The no-exclusion recomputation matches `rerun_20261104/budget.json` with maximum absolute difference 0 on every combined per-bin total and at most `6.939e-17` on the across-bin source RMS values. The new budget reuses those non-sector per-bin maps: 31,188 values (23 sources, 452 bins, three observables), maximum absolute difference 0. Central values and `Fit_Par_*_ERR` in the spline normalized file are unchanged. 303 systematic fields changed. The unweighted normalized file was not written.
+
+Across-bin RMS, old then new:
+
+- Sector: A₀ 0.0347128885224 → 0.0123737605443; cosφ_h 0.139256988087 → 0.0564015464937; cos2φ_h 0.077189496464 → 0.0390075035859. The sector average is over 408 bins.
+- Combined: A₀ 0.043925554105 → 0.030832607042; cosφ_h 0.183141283229 → 0.135777436034; cos2φ_h 0.0901820850949 → 0.0631114821993.
+
+New budget: `physics_campaign/budgets/rerun_20261106_sector_exclusions/budget.json`. Summary: `sector_update_summary.json`. Live systematics: `corrected/spline/normalized_bc.json`, archived first as `normalized_bc_before_sector_exclusions_20261106.json`.
+
+Width fit: `kt2/spline/run_20261106_quad`, `--uncertainty_source quadrature --already_normalized`. 91 rows, one slope whose two-standard-deviation interval includes zero (`Q²–y` bin 15, `z = 0.555`). Printed central widths run from 0.161 to 0.304 GeV², previously 0.160 to 0.303. The largest absolute change in a central width is 0.032. `run_20261104_quad` is unchanged.
+
+Commands:
+
+```
+python Systematic_Studies/rebuild_final_systematic_budget.py
+python Systematic_Studies/report_systematic_comparisons.py
+python .grok/skills/extract-sidis-kt2/scripts/extract_sidis_kt2.py --json_file Systematic_Studies/physics_campaign/corrected/spline/normalized_bc.json --out Systematic_Studies/physics_campaign/kt2/spline/run_20261106_quad --uncertainty_source quadrature --already_normalized
+python Systematic_Studies/physics_campaign/redraw_theory_figures_stepped.py
+python Full_Moment_Plots_Creation_From_JSON.py -srm
+```
+
+The six spline systematic moment mosaics were redrawn with `--err_suffix _SYS` for `z` and `P_T`. `SetLineScalePS(1)` remains the setting used by `-srm`.
+
+Thesis compile: `/opt/homebrew/bin/tectonic --keep-logs -p main.tex` from the thesis directory. `main.pdf` is 1552 pages.
+
+### Pion-sector bin 12-23 correction, 6 November 2026
+
+The exclusion list had `pipS2o` at `(Q2_y_Bin_12)-(z_pT_Bin_32)`. That bin is not stored, so the entry did not remove `(Q2_y_Bin_12)-(z_pT_Bin_23)`. `pipS1o` already listed 12-23. The `pipS2o` entry is now `(Q2_y_Bin_12)-(z_pT_Bin_23)` for all three observables. `budgets/rerun_20261104/budget.json`, `budgets/rerun_20261106_sector_exclusions/budget.json`, `normalized_bc_before_sector_exclusions_20261106.json`, `normalized_bc_before_bc_families_20261103.json`, `kt2/spline/run_20261104_quad/`, `kt2/spline/run_20261106_quad/`, and `corrected/unweighted/normalized_bc.json` were left in place.
+
+Accounting: 494 requested entries and 107 distinct kinematic bins. 420 newly excluded usable comparisons, 72 requested entries already unavailable under the fit-quality rule, and 2 requested entries with no stored bin: `eS1o` `(Q2_y_Bin_8)-(z_pT_Bin_35)` and `pipS1o` `(Q2_y_Bin_1)-(z_pT_Bin_21)`. 420 + 72 + 2 = 494. Fit-quality omissions remain 449. Usable sector comparisons that remain: 4,555. Bins with no usable sector comparison: 45, including `(Q2_y_Bin_12)-(z_pT_Bin_23)`. Those bins stay in the measurement. Only the sector term is omitted from their quadrature.
+
+The no-exclusion recomputation still matches `rerun_20261104`. Rebuilding the previous exclusion list matches `rerun_20261106_sector_exclusions` with maximum absolute difference 0 on the combined per-bin totals. The new sector map differs from that budget only at `(Q2_y_Bin_12)-(z_pT_Bin_23)`. Non-sector per-bin contributions were reused: 31,188 values, maximum absolute difference 0. Central values and `Fit_Par_*_ERR` are unchanged. The live spline file was archived as `corrected/spline/normalized_bc_before_pips2o_12_23_20261106.json` before `Fit_Par_{A,B,C}_SYS` was replaced. The bin-border table changed 3 systematic cells, the A, B, and C entries of bin 12-23.
+
+Across-bin RMS, immediate previous budget then this one:
+
+- Sector, over 408 bins then 407: A₀ 0.0123737605443 → 0.0119005154423; cosφ_h 0.0564015464937 → 0.0499624348765; cos2φ_h 0.0390075035859 → 0.0354697717412.
+- Combined: A₀ 0.0308326070420 → 0.0306588799720; cosφ_h 0.135777436034 → 0.133460745488; cos2φ_h 0.0631114821993 → 0.0611755154946.
+
+Table 6.1 prints the new sector row as 0.01190, 0.04996, 0.03547 and the combined row as 0.03066, 0.1335, 0.06118. Each source Alternative cell ends with \(N_v = n\), the number of defined variations. The caption states that this is not the number remaining usable in one bin. The combined row has no \(N_v\).
+
+Width fit: `kt2/spline/run_20261106_quad_12_23`, `--uncertainty_source quadrature --already_normalized`. 91 rows, ok=91, poor=0, failed=0, one slope whose two-standard-deviation interval includes zero (`Q²–y` 15, `z = 0.555`), unchanged. Printed central widths still run from 0.161 to 0.304 GeV². One row changed at three printed digits: `Q²–y` 12, `z = 0.300`, slope −4.946±1.082 → −4.795±1.036 and width 0.202±0.044 → 0.209±0.045. The largest absolute change is 0.151 in the slope and 0.00637 GeV² in the width. `run_20261106_quad` is unchanged. The world comparison was not redrawn. Theory medians are unchanged (B −0.081220013228, C −0.004871686379); the systematic bars were redrawn.
+
+Nominal mosaics use `--thesis_title`, `--points_only`, `--pad_label_mode bin_center`, `--err_suffix _SYS`, and `--draw_with_log_A`. The heading is the observable versus z or \(P_T\), with a smaller “Fully corrected” line. Markers and error bars are drawn without lines between successive points. Each panel is labeled with its \(Q^2\)–\(y\) bin number and the \(Q^2\) and \(y\) bin centers. The 144 source-RMS mosaics use the same panel labels, logarithmic y-axes, and the subsection title on the second line. Shared log ranges, with a factor 1.5 at each end of the positive plotted values: A₀ absolute 1.753e-15 to 0.130; A₀ relative 4.622e-12 to 42.87; cosφ_h absolute 5.803e-14 to 0.469; cosφ_h relative 2.732e-11 to 6.655e10; cos2φ_h absolute 1.422e-13 to 0.197; cos2φ_h relative 1.965e-10 to 1.525e12. `SetLineScalePS(1)` is unchanged. Thesis copies are the A₀ relative mosaic and the two absolute cosine mosaics, 72 PDFs.
+
+Commands, from `SIDIS_Analysis_CLAS12_RichCap` unless noted:
+
+```
+python Systematic_Studies/rebuild_final_systematic_budget.py
+python Systematic_Studies/report_systematic_comparisons.py
+python Full_Moment_Plots_Creation_From_JSON.py --json_file Systematic_Studies/physics_campaign/corrected/spline/normalized_bc.json --formats pdf --y_pars Fit_Par_A Fit_Par_B Fit_Par_C --err_suffix _SYS --draw_legends --draw_with_log_A --pad_label_mode bin_center --points_only --thesis_title --name sidis_mosaic_spline_z_systematic --x_mode z
+python Full_Moment_Plots_Creation_From_JSON.py --json_file Systematic_Studies/physics_campaign/corrected/spline/normalized_bc.json --formats pdf --y_pars Fit_Par_A Fit_Par_B Fit_Par_C --err_suffix _SYS --draw_legends --draw_with_log_A --pad_label_mode bin_center --points_only --thesis_title --name sidis_mosaic_spline_pt_systematic --x_mode pt
+python Full_Moment_Plots_Creation_From_JSON.py -srm
+python .grok/skills/extract-sidis-kt2/scripts/extract_sidis_kt2.py --json_file Systematic_Studies/physics_campaign/corrected/spline/normalized_bc.json --out Systematic_Studies/physics_campaign/kt2/spline/run_20261106_quad_12_23 --uncertainty_source quadrature --already_normalized
+python -c "import redraw_width_and_world; redraw_width_and_world.draw_width()"
+python Systematic_Studies/physics_campaign/redraw_theory_figures_stepped.py
+```
+
+The two mosaic commands were run in `Results/Moment_Images/normalized_bc_final/`. The width redraw was run from `Systematic_Studies` and did not call `draw_world()`.
+
+Thesis compile: `/opt/homebrew/bin/tectonic --keep-logs -p main.tex` from the thesis directory. Exit 0. `main.pdf` is 1552 pages. No LaTeX Error. Pre-existing PDF version warnings remain.
+
+### Presentation pass, 7 November 2026
+
+No budget or width refit. RMS mosaics are linear again. Each of the six groups shares one range: the upper limit is 1.10 times the largest finite value, and the lower limit is one minor tick below zero (`SetNdivisions(505)`). Zeros are drawn. Titles, `bin_center` labels, colors, markers, layout, and the 2800×3200 canvas stay. `ROOT.gStyle.SetLineScalePS(0.9)` is used for these PDFs and for the six fully corrected result mosaics.
+
+The result mosaics add `--draw_x_stagger` (`-dxs`), default off everywhere else. At each nominal \(z\) or \(P_T\) in a panel, the points drawn there are ordered by series. The earlier middle point stays on the nominal \(x\); the others step by 0.0045 in that coordinate, from negative through zero to positive. Markers and error bars move together. Stored coordinates and fits are unchanged. \(A_0\) remains logarithmic.
+
+Commands, from `SIDIS_Analysis_CLAS12_RichCap` unless noted:
+
+```
+python Full_Moment_Plots_Creation_From_JSON.py --json_file Systematic_Studies/physics_campaign/corrected/spline/normalized_bc.json --formats pdf --y_pars Fit_Par_A Fit_Par_B Fit_Par_C --err_suffix _SYS --draw_legends --draw_with_log_A --pad_label_mode bin_center --points_only --thesis_title --draw_x_stagger --name sidis_mosaic_spline_z_systematic --x_mode z
+python Full_Moment_Plots_Creation_From_JSON.py --json_file Systematic_Studies/physics_campaign/corrected/spline/normalized_bc.json --formats pdf --y_pars Fit_Par_A Fit_Par_B Fit_Par_C --err_suffix _SYS --draw_legends --draw_with_log_A --pad_label_mode bin_center --points_only --thesis_title --draw_x_stagger --name sidis_mosaic_spline_pt_systematic --x_mode pt
+python Full_Moment_Plots_Creation_From_JSON.py -srm
+```
+
+The two result commands were run in `Results/Moment_Images/normalized_bc_final/`. Thesis compile again: `/opt/homebrew/bin/tectonic --keep-logs -p main.tex`. Exit 0. `main.pdf` is 1552 pages.

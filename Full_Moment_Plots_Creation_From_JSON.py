@@ -317,9 +317,9 @@ def parse_args():
                    help="Used to select a single z/pT row/column when plotting individual lines in the Q2-y bin plots.\nVersus z, the integer is the pT column (1 = lowest pT; filename tag _pTcolN).\nVersus pT, the integer is the z row (1 = highest z; filename tag _zrowN).\nUnset plots every series.\n")
 
     p.add_argument("-k", "--pad_label_mode",
-                   choices=["none", "bin", "bin_Q2", "bin_Q2y", "Q2y_only"],
+                   choices=["none", "bin", "bin_Q2", "bin_Q2y", "bin_center", "Q2y_only"],
                    default="Q2y_only",
-                   help="Per-pad label: none, bin only, bin+Q2 range, bin+Q2+y ranges, or just the Q2+y ranges.\n")
+                   help="Per-pad label: none, bin only, bin+Q2 range, bin+Q2+y ranges, bin plus Q2 and y centers, or just the Q2+y ranges.\n")
 
     p.add_argument("-sb", "--single_bin",
                    action="store_true",
@@ -340,6 +340,24 @@ def parse_args():
                    action="store_true",
                    help="Draw a faint diagonal 'PRELIMINARY' watermark on single-bin outputs.\n")
 
+    p.add_argument("-yt", "--y_title",
+                   default=None,
+                   help="Optional displayed y-axis and canvas title. Does not change the plotted values.\n")
+    p.add_argument("-po", "--points_only",
+                   action="store_true",
+                   help="Draw data as markers and error bars, without connecting lines.\n")
+    p.add_argument("-ttf", "--thesis_title",
+                   action="store_true",
+                   help="Thesis heading: the observable versus the horizontal variable, with a smaller Fully corrected line.\n")
+    p.add_argument("-dxs", "--draw_x_stagger",
+                   action="store_true",
+                   help="Offset overlapping markers horizontally around each nominal x position. Display only.\n")
+    p.add_argument("-nsb", "--no_spline_bin_scale",
+                   action="store_true",
+                   help="Do not divide a Fit_Par_A spline curve by the bin-dependent A0 scale.\n")
+    p.add_argument("-lna", "--plot_ln_A",
+                   action="store_true",
+                   help="Plot ln(A) with uncertainty sigma_A/A, and evaluate a log-space spline without the exponential.\n")
     p.add_argument("-cs", "-cs_A", "--apply_A_corr",
                    action="store_true",
                    help=f"Apply Cross Section Normalization to the 'Fit_Par_A' measurements.\n{color.Error}WARNING: Do not run with the '_(Normalized)' Fit Sets{color.END}.\n")
@@ -407,7 +425,11 @@ def parse_args():
     p.add_argument("-pres", "--presentation",
                    action="store_true", 
                    help="For 'presentation mode' settings that were premade as of the last presentation (manually editted on 9/27/2026).\n")
-    
+
+    p.add_argument("-srm", "--systematic_rms",
+                   action="store_true",
+                   help="Draw per-source systematic RMS mosaics for A0, cos phi_h, and cos 2phi_h, then exit.\n")
+
     return p.parse_args()
 
 # ------------------------------------------------------------
@@ -415,6 +437,22 @@ def parse_args():
 # ------------------------------------------------------------
 def use_log_y_for_par(args, y_par):
     return bool(getattr(args, "draw_with_log_A", False)) and (str(y_par) == "Fit_Par_A")
+
+def data_graph_draw_option(args, include_error_caps=False):
+    if(getattr(args, "points_only", False)):
+        return "P E1 SAME"
+    if(args.x_error_bars):
+        return "P E1 SAME"
+    if(include_error_caps):
+        return "P E1 L SAME"
+    return "P L SAME"
+
+def displayed_amplitude(args, y_par, yval, yerr):
+    if((getattr(args, "plot_ln_A", False)) and (str(y_par) == "Fit_Par_A")):
+        if((not np.isfinite(yval)) or (float(yval) <= 0.0) or (not np.isfinite(yerr))):
+            return None, None
+        return float(np.log(float(yval))), float(yerr) / float(yval)
+    return float(yval), float(yerr)
 
 def ensure_positive_y_range_for_log(ymin, ymax):
     # ROOT log y-axes require ymin > 0. Adjust only when needed for log scale.
@@ -664,10 +702,13 @@ def compute_global_y_range(args, grouped, fit_dict, y_par, include_errors=True):
             if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
                 if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
                     continue
-                _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+                _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=a0_norm_args(args))
                 if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
                     yv = yv/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
                     ye = ye/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
+            yv, ye = displayed_amplitude(args, y_par, yv, ye)
+            if(yv is None):
+                continue
             lo = yv - abs(ye) if(include_errors) else yv
             hi = yv + abs(ye) if(include_errors) else yv
             if((ymin is None) or (lo < ymin)):
@@ -705,10 +746,13 @@ def build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par):
         if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
             if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
                 continue
-            _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+            _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=a0_norm_args(args))
             if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
                 yval = yval/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
                 yerr = yerr/(Bin_Width_Area_Scale*Luminosity*Photon_Flux)
+        yval, yerr = displayed_amplitude(args, y_par, yval, yerr)
+        if(yval is None):
+            continue
         if(args.x_mode == "z"):
             series_id = str(inf["pT_group"])
             scolor    = inf["pT_color"]
@@ -777,12 +821,60 @@ def load_spline_models(args, fit_set):
                 spline_obj = spline_obj["spline"]
         if(spline_obj is None):
             continue
-        if(log_space):
+        if((log_space) and (not getattr(args, "plot_ln_A", False))):
             spline_obj = ExpRBFWrapper(spline_obj)
+        elif((getattr(args, "plot_ln_A", False)) and (str(y_par) == "Fit_Par_A") and (not log_space)):
+            print(f"{color.Error}WARNING:{color.END_R} --plot_ln_A was set, but the loaded {y_par} spline is not a log-space fit.{color.END}")
         spline_models[y_par] = spline_obj
         if(args.verbose):
             print(f"{color.GREEN}[INFO] Loaded {args.dimension_mode} spline for {y_par}: {pkl_file}{color.END}")
     return spline_models
+
+def a0_norm_args(args):
+    # The stored A0 uses Delta(P_T^2). The plotted x axis stays whatever --x_mode requested.
+    if(getattr(args, "pT2", False)):
+        return args
+    clone = argparse.Namespace(**vars(args))
+    clone.pT2 = True
+    return clone
+
+def normalization_scale_for_bin(args, q2y_bin, zpt_bin):
+    # Same A0 scale as the measured points: bin area, luminosity, and virtual-photon flux.
+    _, bin_area, luminosity, photon_flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=a0_norm_args(args))
+    if((bin_area in [0, 0.0, None, "0", "None"]) or (luminosity in [0, 0.0, None, "0", "None"]) or (photon_flux in [0, 0.0, None, "0", "None"])):
+        return None
+    scale = float(bin_area) * float(luminosity) * float(photon_flux)
+    if(scale == 0.0):
+        return None
+    return scale
+
+def bin_key_containing_x(args, info_map, pts, x_value):
+    # Piecewise bin of a spline sample. Gaps use the nearest measured point.
+    containing = []
+    for xx, yy, ey, key_str in pts:
+        inf = info_map.get(key_str)
+        if(inf is None):
+            continue
+        if(str(args.x_mode).lower() == "z"):
+            lo = float(inf["z_range"][1])
+            hi = float(inf["z_range"][2])
+        else:
+            lo = transverse_displayed_edge(inf["pTrange"][1], args)
+            hi = transverse_displayed_edge(inf["pTrange"][2], args)
+        if((float(x_value) >= lo) and (float(x_value) <= hi)):
+            containing.append(key_str)
+    if(len(containing) == 1):
+        return containing[0]
+    if(len(containing) > 1):
+        return min(containing, key=lambda key_str: abs(plotted_x_value(args, info_map[key_str]) - float(x_value)))
+    best_key = None
+    best_dist = None
+    for xx, yy, ey, key_str in pts:
+        dist = abs(float(xx) - float(x_value))
+        if((best_key is None) or (dist < best_dist)):
+            best_key = key_str
+            best_dist = dist
+    return best_key
 
 def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
     if(y_par not in spline_models):
@@ -845,8 +937,19 @@ def build_spline_graph(args, spline_models, info_map, sid, series_map, y_par):
         return None
 
     gr_spline = ROOT.TGraph(len(x_grid))
+    scale_curve = bool(getattr(args, "apply_A_corr", False)) and (str(y_par) == "Fit_Par_A") and (not getattr(args, "no_spline_bin_scale", False)) and (not getattr(args, "plot_ln_A", False))
     for ip, (xx, yy) in enumerate(zip(x_grid, y_grid)):
-        gr_spline.SetPoint(ip, float(xx), float(yy))
+        y_draw = float(yy)
+        if(scale_curve):
+            key_str = bin_key_containing_x(args, info_map, pts, xx)
+            if(key_str is None):
+                return None
+            q2y_bin, zpt_bin = parse_inner_key(key_str)
+            scale = normalization_scale_for_bin(args, q2y_bin, zpt_bin)
+            if(scale is None):
+                return None
+            y_draw = y_draw / scale
+        gr_spline.SetPoint(ip, float(xx), y_draw)
 
     gr_spline.SetLineColorAlpha(int(series_map[sid]["color"]), 0.45)
     gr_spline.SetLineWidth(2)
@@ -1068,8 +1171,8 @@ def Get_Default_Y_Title(y_par, fit_set, apply_A_corr=False):
     # y_title_map = {"Fit_Par_A": "Amplitude", "Fit_Par_B": "Cos(#phi) Moment", "Fit_Par_C": "Cos(2#phi) Moment"}
     y_title_map = {"Fit_Par_A": "A_{0}", "Fit_Par_B": "A_{UU}^{cos #scale[1.05]{#phi}}", "Fit_Par_C": "A_{UU}^{cos 2#scale[1.05]{#phi}}"}
     base = y_title_map.get(str(y_par), str(y_par))
-    # if((apply_A_corr) and (str(y_par) == "Fit_Par_A")):
-    #     return "Normalized A"
+    if((apply_A_corr) and (str(y_par) == "Fit_Par_A")):
+        return "Normalized A_{0}"
     if(("(Normalized)" in str(fit_set)) and (str(y_par) in y_title_map)):
         base = f"{base} from the Cross Section Fits"
     return base
@@ -1210,7 +1313,13 @@ def build_global_title(args, fit_set, y_par):
     # x_label = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
     x_label = x_axis_symbol(args)
     y_label = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
+    if((getattr(args, "plot_ln_A", False)) and (str(y_par) == "Fit_Par_A")):
+        y_label = "ln(A)"
+    if(getattr(args, "y_title", None) not in [None, ""]):
+        y_label = str(args.y_title)
     line1 = f"{y_label} vs {x_label}"
+    if(getattr(args, "thesis_title", False)):
+        return "%s\nFully corrected" % line1
     line2 = f"{fit_label}"
     if(str(args.title_text).strip() != ""):
         line1 = f"{args.title_text} {line1}"
@@ -1224,8 +1333,21 @@ def draw_global_title(args, canvas, title_text):
     tex.SetNDC(True)
     tex.SetTextAlign(23)
     tex.SetTextFont(42)
+    if(not hasattr(canvas, "_keepalive")):
+        canvas._keepalive = []
+    if((getattr(args, "thesis_title", False)) and ("\n" in str(title_text))):
+        line1, line2 = str(title_text).split("\n", 1)
+        size1 = float(args.title_size) * 1.35
+        size2 = float(args.title_size) * 0.78
+        tex.SetTextSize(size1)
+        canvas._keepalive.append(tex.DrawLatex(float(args.title_x), float(args.title_y), line1))
+        tex.SetTextSize(size2)
+        canvas._keepalive.append(tex.DrawLatex(float(args.title_x), float(args.title_y) - 1.45 * size1, line2))
+        canvas._keepalive.append(tex)
+        return
     tex.SetTextSize(float(args.title_size))
-    tex.DrawLatex(float(args.title_x), float(args.title_y), str(title_text))
+    canvas._keepalive.append(tex.DrawLatex(float(args.title_x), float(args.title_y), str(title_text)))
+    canvas._keepalive.append(tex)
 
 def draw_pad_label(args, q2y_bin, q2y_ranges):
     if(args.pad_label_mode == "none"):
@@ -1242,6 +1364,12 @@ def draw_pad_label(args, q2y_bin, q2y_ranges):
     Q2max = float(q2y_ranges[q2y_bin]["Q2range"][2])
     ymin = float(q2y_ranges[q2y_bin]["y_range"][1])
     ymax = float(q2y_ranges[q2y_bin]["y_range"][2])
+    if(args.pad_label_mode == "bin_center"):
+        Q2_center = (Q2min + Q2max) / 2.0
+        y_center  = (ymin + ymax) / 2.0
+        lab.DrawLatex(x0, y0, "Q^{2}-y bin %d" % int(q2y_bin))
+        lab.DrawLatex(x0, y0 - line_step, "Q^{2} = %.2f, y = %.2f" % (Q2_center, y_center))
+        return
     if((args.pad_label_mode == "Q2y_only") or (getattr(args, "presentation", False))):
         if("BC" not in str(args.fit_set)):
             lab.DrawLatex(x0, y0, f"{Q2min:.2f} < Q^{{2}} < {Q2max:.2f}")
@@ -1264,6 +1392,28 @@ def draw_pad_label(args, q2y_bin, q2y_ranges):
         return
     lab.DrawLatex(x0, y0 - 2.0*line_step, f"{ymin:.2f} < y < {ymax:.2f}")
 
+def stagger_display_x(args, series_map, sid_list):
+    # Display offsets only. The nominal coordinate stays in the point list.
+    drawn = {}
+    if(not getattr(args, "draw_x_stagger", False)):
+        return drawn
+    by_x = {}
+    series_rank = {}
+    for ii, sid in enumerate(sid_list):
+        series_rank[sid] = ii
+        for ip, (xx, yy, ey, key_str) in enumerate(series_map[sid]["points"]):
+            by_x.setdefault(round(float(xx), 6), []).append((sid, ip, float(xx)))
+    # Data-coordinate step, tuned on the thesis-scale z and P_T pages.
+    step = 0.0045
+    for x_key in by_x:
+        members = by_x[x_key]
+        members.sort(key=lambda item: series_rank[item[0]])
+        n_pts = len(members)
+        zero_rank = (n_pts - 1) // 2
+        for rank, (sid, ip, xx) in enumerate(members):
+            drawn[(sid, ip)] = float(xx) + (rank - zero_rank) * step
+    return drawn
+
 def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x_range, y_range, spline_models={}, y_axis_title_override=None, canvas_name_suffix="", title_space_override=None, force_log_y=False):
     mapping, max_cols, nrows = build_layout_map(args)
     cname = f"c_mosaic_{y_par}{canvas_name_suffix}"
@@ -1285,12 +1435,18 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
         title_space = float(title_space_override)
     else:
         title_space = 0.090 if(args.title_mode != "none") else 0.00
+        if(getattr(args, "thesis_title", False)):
+            title_space = 0.115
     # x_axis_title = "z" if(str(args.x_mode).lower() == "z") else "P_{T}"
     x_axis_title = x_axis_symbol(args)
     if(y_axis_title_override is not None):
         y_axis_title = str(y_axis_title_override)
+    elif(getattr(args, "y_title", None) not in [None, ""]):
+        y_axis_title = str(args.y_title)
     else:
         y_axis_title = Get_Default_Y_Title(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
+        if((getattr(args, "plot_ln_A", False)) and (str(y_par) == "Fit_Par_A")):
+            y_axis_title = "ln(A)"
         y_axis_title = y_axis_title.replace("from the Cross Section Fits", "")
 
     # -------------------------------------------------------------------------
@@ -1412,6 +1568,7 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
 
         series_map = build_series_for_q2y(args, grouped, fit_dict, info_map, q2y_bin, y_par)
         sid_list = sorted(list(series_map.keys()), key=lambda ss: int(ss) if(re.fullmatch(r"\d+", ss)) else ss)
+        x_draw = stagger_display_x(args, series_map, sid_list)
 
         for sid in sid_list:
             # Shaded range band first (behind spline + data)
@@ -1423,7 +1580,7 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
 
             gr_spline = build_spline_graph(args, spline_models, info_map, sid, series_map, y_par)
             if(gr_spline is not None):
-                gr_spline.Draw("P L SAME")
+                gr_spline.Draw("L SAME")
                 c1._keepalive.append(gr_spline)
 
             pts = series_map[sid]["points"]
@@ -1431,7 +1588,7 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
             if((sys_errors is not None) and (len(sys_errors) == len(pts)) and (any(value is not None for value in sys_errors))):
                 gr_sys = ROOT.TGraphErrors(len(pts))
                 for ip, (xx, yy, ey, key_str) in enumerate(pts):
-                    gr_sys.SetPoint(ip, float(xx), float(yy))
+                    gr_sys.SetPoint(ip, x_draw.get((sid, ip), float(xx)), float(yy))
                     sys_err = 0.0 if(sys_errors[ip] is None) else float(sys_errors[ip])
                     gr_sys.SetPointError(ip, 0.0, sys_err)
                 gr_sys.SetLineColorAlpha(int(series_map[sid]["color"]), 0.35)
@@ -1442,7 +1599,7 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
                 c1._keepalive.append(gr_sys)
             gr  = ROOT.TGraphErrors(len(pts))
             for ip, (xx, yy, ey, key_str) in enumerate(pts):
-                gr.SetPoint(ip, float(xx), float(yy))
+                gr.SetPoint(ip, x_draw.get((sid, ip), float(xx)), float(yy))
                 xerr = 0.0
                 if(args.x_error_bars):
                     if(str(args.x_mode).lower() == "z"):
@@ -1453,9 +1610,7 @@ def draw_mosaic(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_par, x
                     xerr = 0.5 * float(args.x_error_fraction) * float(xw)
                 gr.SetPointError(ip, float(xerr), float(ey))
             style_graph(gr, series_map[sid]["color"], series_map[sid]["marker"], line_width=2 if("pdf" not in str(args.formats)) else 1)
-            draw_opt = "P L SAME"
-            if(args.x_error_bars):
-                draw_opt = "P E1 SAME"
+            draw_opt = data_graph_draw_option(args)
             gr.Draw(draw_opt)
             c1._keepalive.append(gr)
 
@@ -1655,7 +1810,15 @@ def Draw_SingleBin_Q2yText(q2y_bin, q2y_ranges, args=None):
     y0 = min(0.90, 0.98 - float(tm))
     # step = 0.028
     # lab.SetTextSize(0.022)
-    # Same choices as --pad_label_mode / draw_pad_label: bin, bin_Q2, bin_Q2y, Q2y_only.
+    # Same choices as --pad_label_mode / draw_pad_label: bin, bin_Q2, bin_Q2y, bin_center, Q2y_only.
+    if(mode == "bin_center"):
+        Q2_center = (Q2min + Q2max)/2
+        y_center  = (yminv + ymaxv)/2
+        step = 0.028
+        lab.SetTextSize(0.022)
+        lab.DrawLatex(x0, y0, "Q^{2}-y bin %d" % int(q2y_bin))
+        lab.DrawLatex(x0, y0 - step, "Q^{2} = %.2f, y = %.2f" % (Q2_center, y_center))
+        return
     if((mode == "Q2y_only") or (getattr(args, "presentation", False))):
         # y0 += step
         if("BC" not in str(args.fit_set)):
@@ -1841,7 +2004,7 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
 
         gr_spline = build_spline_graph(args, spline_models, info_map, sid, series_map, y_par)
         if(gr_spline is not None):
-            gr_spline.Draw("P L SAME")
+            gr_spline.Draw("L SAME")
             c1._keepalive.append(gr_spline)
 
         gr  = ROOT.TGraphErrors(len(pts))
@@ -1860,9 +2023,7 @@ def draw_single_bin(args, grouped, fit_dict, info_map, q2y_ranges, fit_set, y_pa
         # gr.SetMarkerSize(0.5)
         # gr.SetLineWidth(1)
 
-        draw_opt = "P E1 L SAME"
-        if(args.x_error_bars):
-            draw_opt = "P E1 SAME"
+        draw_opt = data_graph_draw_option(args, include_error_caps=True)
         gr.Draw(draw_opt)
         c1._keepalive.append(gr)
         graphs_by_sid[sid] = gr
@@ -1953,6 +2114,8 @@ def Build_Output_Filename(args, fit_set, y_par):
     x_tag   = x_file_tag(args)
     sel_tag = row_or_column_filename_tag(args)
     y_tag   = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
+    if((getattr(args, "plot_ln_A", False)) and (str(y_par) == "Fit_Par_A")):
+        y_tag = "LnA"
     filename = f"{stem}_{fs_tag}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
@@ -1964,6 +2127,8 @@ def Build_SingleBin_Output_Filename(args, fit_set, y_par, q2y_bin):
     x_tag   = x_file_tag(args)
     sel_tag = row_or_column_filename_tag(args)
     y_tag   = Get_Default_Y_FileTag(y_par, fit_set, apply_A_corr=getattr(args, "apply_A_corr", False))
+    if((getattr(args, "plot_ln_A", False)) and (str(y_par) == "Fit_Par_A")):
+        y_tag = "LnA"
     filename = f"{stem}_SingleBin_Q2yBin{int(q2y_bin)}_{fs_tag}_{x_tag}{sel_tag}_{y_tag}.{args.formats}"
     Validate_Output_Filename(filename)
     return filename
@@ -2485,7 +2650,7 @@ def get_entry_value_error(args, fit_dict, key_str, y_par, q2y_bin, zpt_bin):
     if((getattr(args, "apply_A_corr", False)) and (str(y_par) == "Fit_Par_A")):
         if(f"Q2-y={q2y_bin}, z-pT={zpt_bin}" not in Full_Bin_Definition_Array):
             return None
-        _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=args)
+        _, Bin_Width_Area_Scale, Luminosity, Photon_Flux = Cross_Section_Normalization(Histo=None, Q2_y_Bin=q2y_bin, z_pT_Bin=zpt_bin, args_in=a0_norm_args(args))
         if((Bin_Width_Area_Scale not in [0, 0.0, None, "0", "None"]) and (Luminosity not in [0, 0.0, None, "0", "None"]) and (Photon_Flux not in [0, 0.0, None, "0", "None"]) and ((float(Bin_Width_Area_Scale)*float(Luminosity)*float(Photon_Flux)) != 0.0)):
             yval = yval / (Bin_Width_Area_Scale * Luminosity * Photon_Flux)
             yerr = yerr / (Bin_Width_Area_Scale * Luminosity * Photon_Flux)
@@ -2867,9 +3032,7 @@ def draw_mosaic_comparison_overlay(args, sources, y_par, x_range, y_range, y_axi
                     gr.SetPointError(ip, float(xerr), float(ey))
                 style_graph(gr, colr, mark, line_width=2 if("pdf" not in str(args.formats)) else 1)
                 gr.SetLineStyle(int(lsty))
-                draw_opt = "P L SAME"
-                if(args.x_error_bars):
-                    draw_opt = "P E1 SAME"
+                draw_opt = data_graph_draw_option(args)
                 gr.Draw(draw_opt)
                 c1._keepalive.append(gr)
 
@@ -3349,17 +3512,281 @@ def run_diag_bin_widths(args):
     print("\n".join(lines))
     print(f"{color.GREEN}[INFO] Wrote bin-width diagnostics in the current directory.{color.END}")
 
+def systematic_rms_existing_line_scale():
+    # Calls already on this drawing path, excluding the export line added for -srm.
+    names = [
+        os.path.abspath(__file__),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "MyCommonAnalysisFunction_richcap.py"),
+    ]
+    found = []
+    for path in names:
+        with open(path) as handle:
+            for line_number, line in enumerate(handle, start=1):
+                if("systematic RMS PDF export" in line):
+                    continue
+                code = line.split("#", 1)[0].strip()
+                if(not code.startswith("ROOT.gStyle.SetLineScalePS(")):
+                    continue
+                found.append("%s:%d: %s" % (os.path.basename(path), line_number, line.strip()))
+    return found
+
+def apply_pdf_line_scale():
+    ROOT.gStyle.SetLineScalePS(0.9)  # systematic RMS PDF export
+
+def draw_systematic_rms_mosaics(args):
+    # Per-source absolute and relative RMS mosaics. Does not refit or rewrite the budget.
+    existing_scale = systematic_rms_existing_line_scale()
+    if(len(existing_scale) > 0):
+        print("PDF line scale: existing ROOT.gStyle.SetLineScalePS call(s) on this drawing path:")
+        for row in existing_scale:
+            print(row)
+        raise SystemExit("Existing SetLineScalePS call(s) need a decision before these PDFs are written.")
+    print("PDF line scale: no ROOT.gStyle.SetLineScalePS call in Full_Moment_Plots_Creation_From_JSON.py or MyCommonAnalysisFunction_richcap.py. Applying ROOT.gStyle.SetLineScalePS(0.9).")
+    apply_pdf_line_scale()
+
+    studies_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Systematic_Studies")
+    if(studies_dir not in sys.path):
+        sys.path.insert(0, studies_dir)
+    import report_systematic_comparisons as systematic_report
+
+    args.x_mode            = "z"
+    args.formats           = "pdf"
+    args.draw_legends      = True
+    args.draw_with_log_A   = False
+    args.points_only       = False
+    args.draw_x_stagger    = False
+    args.thesis_title      = False
+    args.pad_label_mode    = "bin_center"
+    args.spline_prefix     = None
+    args.show_spline_range = False
+
+    source_titles = {
+        "sampling_fraction":       "Electron Sampling-Fraction Selection",
+        "pcal_ep":                 "PCal Energy-to-Momentum Threshold",
+        "electron_vz":             "Electron Vertex Selection",
+        "pcal_volume":             "PCal Fiducial Volume",
+        "chi2_pid":                "Pion #chi^{2}_{PID} Selection",
+        "vertex_separation":       "Electron--Pion Vertex Separation",
+        "electron_dc_edges":       "DC Fiducial Edges, electron",
+        "pion_dc_edges":           "DC Fiducial Edges, #pi^{+}",
+        "pcal_dead":               "PCal Dead-Channel Exclusion",
+        "sector_pcal":             "Sector-Dependent PCal Fiducial Selection",
+        "electron_dc_refinement":  "Electron DC Fiducial Refinement",
+        "pion_dc_extra":           "Additional #pi^{+} DC Fiducial",
+        "sector":                  "Sector Dependence",
+        "phi_binning":             "Azimuthal #phi_{h} Binning",
+        "momentum_smearing":       "Momentum Smearing Impact",
+        "exclusive_rho0":          "Exclusive #rho^{0} Subtraction",
+        "acceptance_method":       "Acceptance-Correction Method",
+        "acceptance_threshold":    "Reconstructed-Bin Acceptance Threshold",
+        "bayes_iterations":        "Bayesian Unfolding Iterations",
+        "rc_model":                "Radiative-Correction Model Dependence",
+        "bc_sampling":             "Bin-Centering Kinematic Sampling",
+        "spline_bc":               "Spline-Based Bin-Centering Correction",
+        "physics_injection":       "Iterative Physics Injections",
+        "acceptance_reweighting":  "Detector-Acceptance Reweighting",
+    }
+    observables = (
+        ("A", "A0",      "A_{0}"),
+        ("B", "cosphi",  "A_{UU}^{cos#phi_{h}}"),
+        ("C", "cos2phi", "A_{UU}^{cos2#phi_{h}}"),
+    )
+
+    print("Loading per-bin systematic RMS contributions.")
+    sources, nominal_bc, _scale, _path_unw_bc = systematic_report.build_sources()
+    retained, _skipped = systematic_report.read_border_rows(systematic_report.BORDER_PATH)
+    per_source = systematic_report.evaluate(sources, retained)
+    if(len(per_source) != 24):
+        raise SystemExit("Expected 24 systematic sources, found %d." % len(per_source))
+    archive_path = os.path.join(systematic_report.CAMP, "corrected/spline/normalized_bc_before_bc_families_20261103.json")
+    archive = systematic_report.load_json(archive_path)["Fit_Pars_from_3D_BC_RC_Bayesian"]
+
+    reference = {}
+    for key in retained:
+        q2y_bin, zpt_bin = systematic_report.parse_bin_key(key)
+        if(skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpt_bin, BINNING_METHOD="_Y_bin", Common_z_pT_Range_Q=False)):
+            continue
+        reference[key] = {
+            "Fit_Par_A":     1.0,
+            "Fit_Par_A_ERR": 1.0,
+            "Fit_Par_B":     0.0,
+            "Fit_Par_B_ERR": 1.0,
+            "Fit_Par_C":     0.0,
+            "Fit_Par_C_ERR": 1.0,
+        }
+    grouped    = group_by_q2y(reference)
+    info_map   = build_info_map(args, reference)
+    q2y_ranges = build_q2y_ranges(grouped, info_map)
+    for q2y_bin in range(1, int(args.q2y_count) + 1):
+        if(q2y_bin in q2y_ranges):
+            continue
+        extra = {}
+        for zpt_bin in range(1, 80):
+            if(skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpt_bin, BINNING_METHOD="_Y_bin", Common_z_pT_Range_Q=False)):
+                continue
+            Construct_JSON_Info(Q2_y_Bin=str(q2y_bin), z_pT_Bin=str(zpt_bin), return_info=extra)
+            if(len(extra) > 0):
+                extra_key = list(extra.keys())[0]
+                q2y_ranges[q2y_bin] = {"Q2range": extra[extra_key]["Q2range"], "y_range": extra[extra_key]["y_range"]}
+                break
+        if(q2y_bin not in q2y_ranges):
+            raise SystemExit("No kinematic range for Q2-y bin %d." % q2y_bin)
+
+    xmin, xmax = compute_global_x_range(args, grouped, info_map)
+    xspan = xmax - xmin
+    if(xspan > 0.0):
+        xmax = xmax + 0.30 * xspan
+    else:
+        xmax = xmax + 1.0
+
+    group_limits = {}
+    payloads     = []
+    for block in per_source:
+        source    = block["source"]
+        source_id = source["id"]
+        if(source_id not in source_titles):
+            raise SystemExit("No display title for systematic source %s." % source_id)
+        for letter, obs_tag, symbol in observables:
+            for kind in ("absolute", "relative"):
+                fit_dict = {}
+                for key in retained:
+                    rms_value = block["rms"][key][letter]
+                    if((rms_value is None) or (not np.isfinite(float(rms_value)))):
+                        continue
+                    rms_value = float(rms_value)
+                    if(kind == "absolute"):
+                        plotted = rms_value
+                    else:
+                        if(letter == "A"):
+                            cell  = archive.get(key)
+                            field = "Fit_Par_A"
+                        else:
+                            cell  = nominal_bc.get(key)
+                            field = "Fit_Par_%s" % letter
+                        if((not isinstance(cell, dict)) or (field not in cell)):
+                            continue
+                        nominal = float(cell[field])
+                        if((not np.isfinite(nominal)) or (nominal == 0.0)):
+                            continue
+                        plotted = 100.0 * rms_value / abs(nominal)
+                    if(not np.isfinite(plotted)):
+                        continue
+                    q2y_bin, zpt_bin = systematic_report.parse_bin_key(key)
+                    if(skip_condition_z_pT_bins(Q2_Y_BIN=q2y_bin, Z_PT_BIN=zpt_bin, BINNING_METHOD="_Y_bin", Common_z_pT_Range_Q=False)):
+                        continue
+                    limits = group_limits.get((letter, kind))
+                    if(limits is None):
+                        group_limits[(letter, kind)] = [plotted, plotted]
+                    else:
+                        if(plotted < limits[0]):
+                            limits[0] = plotted
+                        if(plotted > limits[1]):
+                            limits[1] = plotted
+                    fit_dict[key] = {
+                        "Fit_Par_A":     1.0,
+                        "Fit_Par_A_ERR": 1.0,
+                        "Fit_Par_B":     0.0,
+                        "Fit_Par_B_ERR": 1.0,
+                        "Fit_Par_C":     0.0,
+                        "Fit_Par_C_ERR": 1.0,
+                        "Sys_RMS":       plotted,
+                        "Sys_RMS_ERR":   0.0,
+                    }
+                payloads.append({
+                    "source_id":    source_id,
+                    "source_title": source_titles[source_id],
+                    "letter":       letter,
+                    "obs_tag":      obs_tag,
+                    "symbol":       symbol,
+                    "kind":         kind,
+                    "fit_dict":     fit_dict,
+                })
+
+    out_dir = os.path.join(systematic_report.CAMP, "systematic_rms_mosaics")
+    os.makedirs(out_dir, exist_ok=True)
+    print("Output directory: %s" % out_dir)
+    y_ranges = {}
+    for letter, obs_tag, symbol in observables:
+        for kind in ("absolute", "relative"):
+            limits = group_limits.get((letter, kind))
+            top = 0.0 if(limits is None) else float(limits[1])
+            if((not np.isfinite(top)) or (top <= 0.0)):
+                y_top = 1.0
+            else:
+                y_top = 1.10 * top
+            # One minor division below zero, using the same 5-by-5 tick choice as SetNdivisions(505).
+            raw = y_top / 5.0
+            exponent = int(np.floor(np.log10(raw)))
+            base = raw / (10.0 ** exponent)
+            if(base <= 1.0):
+                nice = 1.0
+            elif(base <= 2.0):
+                nice = 2.0
+            elif(base <= 5.0):
+                nice = 5.0
+            else:
+                nice = 10.0
+            minor = nice * (10.0 ** exponent) / 5.0
+            y_range = (-minor, y_top)
+            y_ranges[(letter, kind)] = y_range
+            print("Linear Y range %s %s: %.8g to %.8g (maximum %.8g)" % (obs_tag, kind, y_range[0], y_range[1], top))
+
+    # Mosaic pads have no top margin, so a 10^N axis factor is pulled into the pad.
+    ROOT.TGaxis.SetExponentOffset(0.0, -0.08, "y")
+    written = []
+    for payload in payloads:
+        letter = payload["letter"]
+        kind   = payload["kind"]
+        y_range = y_ranges[(letter, kind)]
+        if(kind == "absolute"):
+            quantity = "#Delta_{RMS}(%s)" % payload["symbol"]
+        else:
+            quantity = "Percent RMS difference of %s" % payload["symbol"]
+        args.y_title       = quantity
+        args.fit_set_label = payload["source_title"]
+        args.title_text    = ""
+        args.thesis_title  = False
+        suffix   = "_%s_%s_%s" % (payload["source_id"], payload["obs_tag"], kind)
+        out_name = "%s_%s_%s_rms.pdf" % (payload["source_id"], payload["obs_tag"], kind)
+        out_path = os.path.join(out_dir, out_name)
+        if(args.test):
+            print("[TEST] %s points %d y %s" % (out_name, len(payload["fit_dict"]), y_range))
+            continue
+        canv = draw_mosaic(args, grouped, payload["fit_dict"], info_map, q2y_ranges, "Fit_Pars_from_3D_BC_RC_Bayesian", "Sys_RMS", (xmin, xmax), y_range, spline_models={}, y_axis_title_override=quantity, canvas_name_suffix=suffix, force_log_y=False)
+        title_text = build_global_title(args, "Fit_Pars_from_3D_BC_RC_Bayesian", "Sys_RMS")
+        draw_global_title(args, canv, title_text)
+        canv.Update()
+        canv.SaveAs(out_path)
+        canv.Close()
+        if((not os.path.isfile(out_path)) or (os.path.getsize(out_path) < 1000)):
+            raise SystemExit("PDF was not written: %s" % out_path)
+        written.append(out_path)
+        print("Wrote %s (%d bins)" % (out_name, len(payload["fit_dict"])))
+
+    print("SYSTEMATIC_RMS_MOSAICS_DONE count %d" % len(written))
+    print("PDF line scale applied: 0.9")
+    print("Output directory: %s" % out_dir)
+
 def main():
     args = parse_args()
     if(getattr(args, "diag_bin_widths", False)):
         run_diag_bin_widths(args)
         return
+    if(getattr(args, "systematic_rms", False)):
+        args.formats = "pdf"
     print(f"\n{color.BBLUE}Beginning to run 'Full_Moment_Plots_Creation_From_JSON.py'{color.END}\n")
     args.timer = RuntimeTimer()
     args.timer.start()
     args.x_mode = str(args.x_mode).lower()
     if("pdf" in args.formats):
         args.frame_line_width = max([1, args.frame_line_width - 2])
+    if(getattr(args, "thesis_title", False)):
+        apply_pdf_line_scale()
+    if(getattr(args, "systematic_rms", False)):
+        draw_systematic_rms_mosaics(args)
+        print(f"\n{color.BBLUE}Finished running 'Full_Moment_Plots_Creation_From_JSON.py'{color.END}\n")
+        args.timer.stop()
+        return
 
     # Multi json/fit_set without -cm would silently use source[0] only
     _jsons = normalize_json_file_list(args)
@@ -3566,8 +3993,12 @@ def main():
                 canv._keepalive = []
             canv._keepalive.append(g_data)
             canv._keepalive.append(g_sp)
-            leg_src.AddEntry(g_data, "Data", "lp")
-            leg_src.AddEntry(g_sp, "Spline fit", "lp")
+            if(getattr(args, "points_only", False)):
+                leg_src.AddEntry(g_data, "Data", "p")
+                leg_src.AddEntry(g_sp, "Spline fit", "l")
+            else:
+                leg_src.AddEntry(g_data, "Data", "lp")
+                leg_src.AddEntry(g_sp, "Spline fit", "lp")
             leg_src.Draw()
             canv._keepalive.append(leg_src)
         canv.Update()

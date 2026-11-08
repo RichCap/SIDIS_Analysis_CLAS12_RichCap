@@ -45,10 +45,17 @@ def parse_args():
     p.add_argument("-f", "--fit_set",
                    default="Fit_Pars_from_3D_BC_RC_Bayesian",
                    help="Top-level JSON key to use.\n")
+    p.add_argument("-yp", "--y_pars",
+                   nargs="+",
+                   default=["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"],
+                   help="Parameters to fit. The default fits A, B, and C.\n")
     
     p.add_argument("-cs", "-cs_A", "--apply_A_corr",
                    action="store_true",
                    help=f"Apply Cross Section Normalization to the 'Fit_Par_A' measurements.\n{color.Error}WARNING: Do not run with the '_(Normalized)' Fit Sets{color.END}.\n")
+    p.add_argument("-pt2", "--pT2",
+                   action="store_true",
+                   help="With --apply_A_corr, use Delta(P_T^2) in the bin area. The default remains Delta(P_T).\n")
     p.add_argument("-opf", "--omit_photon_flux",
                    action="store_true",
                    help="With --apply_A_corr, divide Fit_Par_A by bin area and luminosity only. Do not divide by the virtual-photon flux. EvGen's measured_F_UUT expects that electroproduction amplitude.\n")
@@ -1115,7 +1122,7 @@ def main():
     info_map = build_info_map(fit_dict)
     if((args.verbose) or (args.email)):
         Update_Email(args, update_message=f"{color.CYAN}[INFO] Using fit_set: {fit_set}\n[INFO] Total measurement points: {len(fit_dict)}\n[INFO] Dimension mode: {args.dimension_mode}{color.END}", verbose_override=False, no_time=True)
-    y_pars = ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]
+    y_pars = [str(item) for item in args.y_pars]
     if(not args.generate_spline_code_only):
         for y_par in y_pars:
             # points, values, stds = build_data(fit_dict, info_map, y_par, args.err_suffix, args.dimension_mode)

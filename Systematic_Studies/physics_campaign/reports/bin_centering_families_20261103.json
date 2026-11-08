@@ -1,0 +1,115 @@
+{
+  "nominal_fit": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/corrected/spline/bc/fit.json",
+  "normalized": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/corrected/spline/normalized_bc.json",
+  "A_scale": "nominal A0 / nominal raw A, applied to every alternative amplitude",
+  "B_C_scale": "none",
+  "spline_models": {
+    "initial_rawA": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/alternatives/spline/bcs_spline/fit.json",
+    "final_Aep": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/alternatives/spline/bcs_aep/fit.json",
+    "combination": "rms of the two shifts in each bin, then rms over bins"
+  },
+  "kinematic_variations": [
+    "sub_phi_5",
+    "sub_phi_7",
+    "sub_phi_9",
+    "sub_pt_3",
+    "sub_pt_5",
+    "sub_pt_7",
+    "sub_q2_3",
+    "sub_q2_5",
+    "sub_q2_7",
+    "sub_y_3",
+    "sub_y_5",
+    "sub_y_7",
+    "sub_z_3",
+    "sub_z_5",
+    "sub_z_7"
+  ],
+  "kinematic_combination": "rms of the 15 shifts in each bin, then rms over bins",
+  "initial_rawA": {
+    "A": {
+      "rms": 0.006582417253965152,
+      "n": 452
+    },
+    "B": {
+      "rms": 0.01641493284623921,
+      "n": 452
+    },
+    "C": {
+      "rms": 0.011122622931807076,
+      "n": 452
+    }
+  },
+  "final_Aep": {
+    "A": {
+      "rms": 0.007824262016955687,
+      "n": 452
+    },
+    "B": {
+      "rms": 0.015637601512146427,
+      "n": 452
+    },
+    "C": {
+      "rms": 0.011167857530962604,
+      "n": 452
+    }
+  },
+  "spline_family": {
+    "A": {
+      "rms": 0.007230051625516709,
+      "n": 452
+    },
+    "B": {
+      "rms": 0.016030979405501508,
+      "n": 452
+    },
+    "C": {
+      "rms": 0.01114526318027167,
+      "n": 452
+    }
+  },
+  "kinematic_family": {
+    "A": {
+      "rms": 0.0059961489232069785,
+      "n": 452
+    },
+    "B": {
+      "rms": 0.017242026573046843,
+      "n": 452
+    },
+    "C": {
+      "rms": 0.011344245974691263,
+      "n": 452
+    }
+  },
+  "combined_with_both_families": {
+    "A": {
+      "rms": 0.027211419818734553,
+      "n": 452
+    },
+    "B": {
+      "rms": 0.12246186440637147,
+      "n": 452
+    },
+    "C": {
+      "rms": 0.049389792789069874,
+      "n": 452
+    }
+  },
+  "fit_uncertainty_rms": {
+    "A": {
+      "rms": 0.0024865866882566594,
+      "n": 452
+    },
+    "B": {
+      "rms": 0.01555315263853887,
+      "n": 452
+    },
+    "C": {
+      "rms": 0.011947687065493602,
+      "n": 452
+    }
+  },
+  "updated_bins": 452,
+  "archive": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/corrected/spline/normalized_bc_before_bc_families_20261103.json"
+}
