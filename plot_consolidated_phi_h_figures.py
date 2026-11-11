@@ -8,6 +8,7 @@ import csv
 import json
 import math
 import os
+import shutil
 import sys
 
 import ROOT
@@ -38,6 +39,9 @@ FIT_AC = os.path.join(ANALYSIS, "Systematic_Studies/physics_campaign/fits/unweig
 FIT_BC = os.path.join(ANALYSIS, "Systematic_Studies/physics_campaign/corrected/unweighted/fit.json")
 NORHO_DIR = os.path.join(ANALYSIS, "SIDIS_Campaign/systematics/systematics_3d_complete_20261029/unfolded")
 NORHO_REJECTED = os.path.join(NORHO_DIR, "Sys3D_nominal_only_20261030_NoRho0_AccSpline.root")
+DEFAULT_PID_NOMINAL = os.path.join(NORHO_DIR, "Sys3D_nominal_only_20261030_inherited_Spline.root")
+DEFAULT_PID_VARIATION = os.path.join(NORHO_DIR, "Sys3D_chi2_strict_pip_inherited_Spline.root")
+DEFAULT_PID_OUT = os.path.join(ANALYSIS, "Systematic_Studies/physics_campaign/pid_background_signal")
 
 FAMILIES = [
     "data_rec_gen",
@@ -129,6 +133,10 @@ def parse_args():
     parser.add_argument("-mmroot", "--missing_mass_root", default="", help="1D ROOT file for the missing-mass study.")
     parser.add_argument("-mmo", "--missing_mass_output", default="", help="Output directory for the missing-mass study.")
     parser.add_argument("-mmcsv", "--missing_mass_csv", default="", help="Classification CSV for the consolidated mosaics.")
+    parser.add_argument("-pbs", "--pid_background_signal", action="store_true", help="Draw the MC background-to-signal ratios. Default off, and the phi_h families are not drawn.")
+    parser.add_argument("-pbso", "--pid_background_output", default="", help="Output directory for the background-to-signal ratios.")
+    parser.add_argument("-pbsn", "--pid_background_nominal", default="", help="Nominal spline ROOT file for the background-to-signal ratios.")
+    parser.add_argument("-pbsv", "--pid_background_variation", default="", help="Stricter pion PID spline ROOT file for the background-to-signal ratios.")
     return parser.parse_args()
 
 
@@ -1769,6 +1777,303 @@ def draw_thesis_mm_mosaics(args):
     ROOT.gStyle.SetPadGridY(1)
 
 
+def background_signal_ratio(signal, background, name):
+    # Background and signal are disjoint. A phi_h bin with no signal stays outside the frame.
+    ratio = signal.Clone(name)
+    ratio.Reset()
+    ratio.SetDirectory(0)
+    for ibin in range(1, signal.GetNbinsX() + 1):
+        signal_yield = signal.GetBinContent(ibin)
+        background_yield = background.GetBinContent(ibin)
+        if(signal_yield <= 0.0):
+            ratio.SetBinContent(ibin, -1.0)
+            ratio.SetBinError(ibin, 0.0)
+            continue
+        value = background_yield / signal_yield
+        signal_error = signal.GetBinError(ibin)
+        background_error = background.GetBinError(ibin)
+        error = math.sqrt((background_error / signal_yield) ** 2 + (value * signal_error / signal_yield) ** 2)
+        ratio.SetBinContent(ibin, value)
+        ratio.SetBinError(ibin, error)
+    return ratio
+
+
+def ratio_bulk_values(ratio, signal, fraction):
+    peak = signal.GetMaximum()
+    floor = fraction * peak if(peak > 0.0) else 0.0
+    values = []
+    for ibin in range(1, signal.GetNbinsX() + 1):
+        if(signal.GetBinContent(ibin) <= floor):
+            continue
+        content = ratio.GetBinContent(ibin)
+        if(content < 0.0):
+            continue
+        values.append(content)
+    return values
+
+
+def removal_percent(nominal_yield, strict_yield):
+    if(nominal_yield <= 0.0):
+        return None
+    return 100.0 * (1.0 - (strict_yield / nominal_yield))
+
+
+def integrated_bs_percent(background_yield, signal_yield):
+    if(signal_yield <= 0.0):
+        return None
+    return 100.0 * (background_yield / signal_yield)
+
+
+def format_removed(value):
+    if(value is None):
+        return "undefined"
+    return "%.1f%%" % value
+
+
+def format_bs(value):
+    if(value is None):
+        return "undefined"
+    return "%.2f%%" % value
+
+
+def draw_ratio_annotation(pad, q2y, zpt, stats, alive):
+    # The bin identifier is scaled on its own. The S, B, and B/S size stays 0.16.
+    pad.cd()
+    title = ROOT.TPaveText(0.01, 0.955, 0.99, 0.998, "NDC")
+    title.SetBorderSize(0)
+    title.SetFillStyle(0)
+    title.SetTextFont(42)
+    title.SetTextAlign(22)
+    title.SetTextSize(0.048)
+    title.AddText("Q^{2}-y %s, z-P_{T} %s" % (q2y, zpt))
+    title.Draw()
+    alive.append(title)
+    label = ROOT.TPaveText(0.02, 1.0 - pad.GetTopMargin() + 0.012, 0.98, 0.948, "NDC")
+    label.SetBorderSize(0)
+    label.SetFillStyle(0)
+    label.SetTextFont(42)
+    label.SetTextAlign(22)
+    label.SetTextSize(0.16)
+    label.AddText("S %s   B %s" % (format_removed(stats["signal_removed_percent"]), format_removed(stats["background_removed_percent"])))
+    label.AddText("B/S %s#rightarrow%s" % (format_bs(stats["bs_nominal_percent"]), format_bs(stats["bs_strict_percent"])))
+    label.Draw()
+    alive.append(label)
+
+
+def draw_ratio_pad(pad, hists, colors, markers, ymax, alive, q2y, zpt, stats):
+    global CLONE_I
+    pad.cd()
+    ROOT.gStyle.SetOptTitle(0)
+    room_for_labels(pad, 0.46)
+    first = True
+    for hist, color, marker in zip(hists, colors, markers):
+        CLONE_I += 1
+        shown = hist.Clone("%s_pad_%d" % (hist.GetName(), CLONE_I))
+        shown.SetDirectory(0)
+        style_hist(shown, color, marker)
+        shown.SetMarkerSize(0.40)
+        shown.GetYaxis().SetLabelSize(0.065)
+        shown.GetXaxis().SetLabelSize(0.065)
+        shown.SetMinimum(0.0)
+        shown.SetMaximum(ymax)
+        shown.GetYaxis().SetRangeUser(0.0, ymax)
+        shown.GetYaxis().SetNdivisions(505)
+        shown.GetYaxis().SetDecimals(True)
+        shown.GetYaxis().SetLabelOffset(0.002)
+        shown.GetXaxis().SetLabelOffset(0.002)
+        shown.SetTitle("")
+        shown.Draw("HIST E0" if(first) else "HIST E0 SAME")
+        first = False
+        alive.append(shown)
+    draw_ratio_annotation(pad, q2y, zpt, stats, alive)
+    pad.Modified()
+
+
+def fill_ratio_grid(grid, q2y, rows_by_zpt, ymax, alive):
+    drawn = []
+    for zpt, row in rows_by_zpt.items():
+        if(row["q2y"] != q2y):
+            continue
+        pad = grid.cd(zpt)
+        if(row["ratios"] is None):
+            mark_na_pad(pad, q2y, zpt, "empty", alive)
+            continue
+        draw_ratio_pad(pad, row["ratios"], [ROOT.kBlue, ROOT.kRed], [20, 21], ymax, alive, q2y, zpt, row["stats"])
+        drawn = row["ratios"]
+    return drawn
+
+
+def draw_pid_background_signal(args):
+    nominal_path = first_set(args.pid_background_nominal, DEFAULT_PID_NOMINAL)
+    variation_path = first_set(args.pid_background_variation, DEFAULT_PID_VARIATION)
+    output = first_set(args.pid_background_output, DEFAULT_PID_OUT)
+    os.makedirs(output, exist_ok=True)
+    nominal = open_root(nominal_path)
+    variation = open_root(variation_path)
+    q2y_bins = q2y_list(args.q2y_bins)
+    rows = {}
+    bulk_values = []
+    relative_errors = []
+    summary_bins = []
+    for q2y in q2y_bins:
+        kept, ncols, nrows = retained_bins(q2y)
+        for zpt in kept:
+            signal_nominal = take(nominal, phi_3d_name("mdf", q2y, zpt))
+            background_nominal = take(nominal, phi_3d_name("Background", q2y, zpt))
+            signal_variation = take(variation, phi_3d_name("mdf", q2y, zpt))
+            background_variation = take(variation, phi_3d_name("Background", q2y, zpt))
+            key = (q2y, zpt)
+            if((signal_nominal is None) or (background_nominal is None) or (signal_variation is None) or (background_variation is None)):
+                rows[key] = {"q2y": q2y, "zpt": zpt, "ratios": None, "cols": ncols, "rows": nrows}
+                continue
+            ratio_nominal = background_signal_ratio(signal_nominal, background_nominal, "ratio_nominal_%s_%s" % (q2y, zpt))
+            ratio_variation = background_signal_ratio(signal_variation, background_variation, "ratio_variation_%s_%s" % (q2y, zpt))
+            style_hist(ratio_nominal, ROOT.kBlue, 20)
+            style_hist(ratio_variation, ROOT.kRed, 21)
+            ratio_nominal.SetMarkerSize(0.45)
+            ratio_variation.SetMarkerSize(0.45)
+            rows[key] = {"q2y": q2y, "zpt": zpt, "ratios": [ratio_nominal, ratio_variation], "cols": ncols, "rows": nrows, "signal_nominal": signal_nominal, "signal_variation": signal_variation, "background_nominal": background_nominal, "background_variation": background_variation}
+            bulk_values.extend(ratio_bulk_values(ratio_nominal, signal_nominal, 0.001))
+            bulk_values.extend(ratio_bulk_values(ratio_variation, signal_variation, 0.001))
+            for ratio, signal in [(ratio_nominal, signal_nominal), (ratio_variation, signal_variation)]:
+                peak = signal.GetMaximum()
+                floor = 0.001 * peak if(peak > 0.0) else 0.0
+                for ibin in range(1, signal.GetNbinsX() + 1):
+                    if(signal.GetBinContent(ibin) <= floor):
+                        continue
+                    content = ratio.GetBinContent(ibin)
+                    if(content <= 0.0):
+                        continue
+                    relative_errors.append(ratio.GetBinError(ibin) / content)
+            signal_sum_nominal = signal_nominal.Integral()
+            signal_sum_variation = signal_variation.Integral()
+            background_sum_nominal = background_nominal.Integral()
+            background_sum_variation = background_variation.Integral()
+            stats = {
+                "signal_removed_percent": removal_percent(signal_sum_nominal, signal_sum_variation),
+                "background_removed_percent": removal_percent(background_sum_nominal, background_sum_variation),
+                "bs_nominal_percent": integrated_bs_percent(background_sum_nominal, signal_sum_nominal),
+                "bs_strict_percent": integrated_bs_percent(background_sum_variation, signal_sum_variation),
+            }
+            rows[key]["stats"] = stats
+            summary_bins.append({
+                "q2y": q2y,
+                "zpt": zpt,
+                "signal_nominal": signal_sum_nominal,
+                "signal_variation": signal_sum_variation,
+                "background_nominal": background_sum_nominal,
+                "background_variation": background_sum_variation,
+                "ratio_nominal": (background_sum_nominal / signal_sum_nominal) if(signal_sum_nominal > 0.0) else None,
+                "ratio_variation": (background_sum_variation / signal_sum_variation) if(signal_sum_variation > 0.0) else None,
+                "signal_removed_percent": stats["signal_removed_percent"],
+                "background_removed_percent": stats["background_removed_percent"],
+                "bs_nominal_percent": stats["bs_nominal_percent"],
+                "bs_strict_percent": stats["bs_strict_percent"],
+            })
+    if(len(bulk_values) == 0):
+        raise RuntimeError("no background-to-signal ratios were built")
+    bulk_values.sort()
+    # The upper edge follows the populated phi_h bins. A few edge bins sit above it.
+    robust = bulk_values[int(0.99 * (len(bulk_values) - 1))]
+    ymax = 1.50 * robust
+    n_above = sum(1 for value in bulk_values if(value > ymax))
+    print("pid ratio pads %s bulk_p99 %.6g bulk_max %.6g ymax %.6g above %s of %s" % (len(summary_bins), robust, bulk_values[-1], ymax, n_above, len(bulk_values)))
+    if(len(relative_errors) > 0):
+        relative_errors.sort()
+        print("pid ratio relative_error median %.6g p90 %.6g" % (relative_errors[len(relative_errors) // 2], relative_errors[int(0.9 * len(relative_errors))]))
+    alive = []
+    canvas, host = make_host("pid_background_signal", "", alive)
+    legend_hists = None
+    for q2y in q2y_bins:
+        cell = host.cd(Q2Y_PAD[q2y])
+        sample = rows[next(key for key in rows if(key[0] == q2y))]
+        left, grid = open_q2y_cell(cell, q2y, sample["cols"], sample["rows"], alive, False)
+        drawn = fill_ratio_grid(grid, q2y, {zpt: row for (qbin, zpt), row in rows.items() if(qbin == q2y)}, ymax, alive)
+        if((legend_hists is None) and (len(drawn) > 0)):
+            legend_hists = drawn
+    if(legend_hists is not None):
+        draw_global_legend(host, [("Nominal selection", legend_hists[0], "points"), ("Stricter #chi^{2}_{PID} selection", legend_hists[1], "points")], alive)
+    combined = os.path.join(output, "background_signal_ratio_all_Q2y.pdf")
+    canvas.Modified()
+    canvas.Update()
+    save_one_page(canvas, combined)
+    print("pid ratio combined %s" % combined)
+    canvas.Clear()
+    alive.clear()
+    for q2y in q2y_bins:
+        page_alive = []
+        page = Canvas_Create("pid_background_signal_%s" % q2y, 1, 1, 4200, 4800, 0.0)
+        page.SetGrid(0, 0)
+        page_alive.append(page)
+        cell = page.cd(1)
+        cell.SetPad(0.005, 0.015, 0.995, 0.940)
+        sample = rows[next(key for key in rows if(key[0] == q2y))]
+        left, grid = open_q2y_cell(cell, q2y, sample["cols"], sample["rows"], page_alive, False)
+        drawn = fill_ratio_grid(grid, q2y, {zpt: row for (qbin, zpt), row in rows.items() if(qbin == q2y)}, ymax, page_alive)
+        if(len(drawn) > 0):
+            page.cd()
+            legend_nominal = ROOT.TLegend(0.04, 0.948, 0.46, 0.992)
+            legend_variation = ROOT.TLegend(0.52, 0.948, 0.96, 0.992)
+            for legend, entry, label in [(legend_nominal, drawn[0], "Nominal selection"), (legend_variation, drawn[1], "Stricter #chi^{2}_{PID} selection")]:
+                legend.SetBorderSize(0)
+                legend.SetFillStyle(0)
+                legend.SetTextFont(42)
+                legend.SetTextSize(0.026)
+                legend.AddEntry(entry, label, "lep")
+                legend.Draw()
+                page_alive.append(legend)
+        destination = os.path.join(output, "background_signal_ratio_Q2y_%02d.pdf" % q2y)
+        page.Modified()
+        page.Update()
+        save_one_page(page, destination)
+        print("pid ratio q2y %s %s" % (q2y, destination))
+        page.Clear()
+        page_alive.clear()
+    thesis_path = os.path.join(THESIS, "Results/Systematic_Images/PID_Background_to_Signal_Ratio.pdf")
+    shutil.copyfile(combined, thesis_path)
+    print("pid ratio thesis figure %s" % thesis_path)
+    signal_sum = sum(row["signal_nominal"] for row in summary_bins)
+    signal_strict = sum(row["signal_variation"] for row in summary_bins)
+    background_sum = sum(row["background_nominal"] for row in summary_bins)
+    background_strict = sum(row["background_variation"] for row in summary_bins)
+    n_down = 0
+    n_up = 0
+    n_flat = 0
+    for row in summary_bins:
+        nominal_ratio = row["ratio_nominal"]
+        strict_ratio = row["ratio_variation"]
+        if((nominal_ratio is None) or (strict_ratio is None)):
+            continue
+        delta = strict_ratio - nominal_ratio
+        if(abs(delta) <= 1.0e-6):
+            n_flat += 1
+        elif(delta < 0.0):
+            n_down += 1
+        else:
+            n_up += 1
+    n_compared = n_down + n_up + n_flat
+    aggregate = {
+        "n_bins": len(summary_bins),
+        "n_compared": n_compared,
+        "signal_removed_percent": removal_percent(signal_sum, signal_strict),
+        "background_removed_percent": removal_percent(background_sum, background_strict),
+        "bs_nominal_percent": integrated_bs_percent(background_sum, signal_sum),
+        "bs_strict_percent": integrated_bs_percent(background_strict, signal_strict),
+        "n_bs_decreased": n_down,
+        "n_bs_increased": n_up,
+        "n_bs_unchanged": n_flat,
+        "fraction_bs_decreased": (float(n_down) / float(n_compared)) if(n_compared > 0) else None,
+        "fraction_bs_increased": (float(n_up) / float(n_compared)) if(n_compared > 0) else None,
+        "fraction_bs_unchanged": (float(n_flat) / float(n_compared)) if(n_compared > 0) else None,
+    }
+    aggregate["background_minus_signal_removed_percentage_points"] = aggregate["background_removed_percent"] - aggregate["signal_removed_percent"]
+    print("pid ratio aggregate signal_removed %.4f background_removed %.4f excess_pp %.4f bs %.4f -> %.4f down %s up %s flat %s" % (aggregate["signal_removed_percent"], aggregate["background_removed_percent"], aggregate["background_minus_signal_removed_percentage_points"], aggregate["bs_nominal_percent"], aggregate["bs_strict_percent"], n_down, n_up, n_flat))
+    summary_path = os.path.join(output, "background_signal_ratio_summary.json")
+    with open(summary_path, "w") as handle:
+        json.dump({"ymax": ymax, "bulk_max": max(bulk_values), "n_above_frame": n_above, "n_bulk_points": len(bulk_values), "nominal": nominal_path, "variation": variation_path, "aggregate": aggregate, "bins": summary_bins}, handle, indent=2)
+    print("pid ratio summary %s" % summary_path)
+
+
 def selected_families(args):
     if(len(args.family) > 0):
         return list(args.family)
@@ -1784,6 +2089,11 @@ def main():
         return
     if(args.missing_mass_study):
         run_missing_mass_study(args)
+        for handle in OPEN_FILES.values():
+            handle.Close()
+        return
+    if(args.pid_background_signal):
+        draw_pid_background_signal(args)
         for handle in OPEN_FILES.values():
             handle.Close()
         return
