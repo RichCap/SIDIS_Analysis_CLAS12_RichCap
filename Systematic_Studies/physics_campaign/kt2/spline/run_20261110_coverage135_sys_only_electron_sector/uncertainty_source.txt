@@ -1,0 +1,7 @@
+uncertainty_source=systematic
+uncertainty_campaign=coverage135_electron_sector
+already_normalized=True
+The selected error is the only point uncertainty. systematic uses Fit_Par_A_SYS and does not read Fit_Par_A_ERR.
+On ln A0 the uncertainty is that error divided by A0.
+kappa is a fit parameter. kt2_err is its unscaled SQN parabolic error. No slope error is propagated into it.
+This is not a cross-bin systematic covariance.

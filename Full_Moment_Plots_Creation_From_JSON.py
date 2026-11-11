@@ -429,6 +429,18 @@ def parse_args():
     p.add_argument("-srm", "--systematic_rms",
                    action="store_true",
                    help="Draw per-source systematic RMS mosaics for A0, cos phi_h, and cos 2phi_h, then exit.\n")
+    p.add_argument("-rb", "--rms_budget",
+                   default=None,
+                   help="Directory with per_bin_source_shares.json. When set, the RMS mosaics use those stored contributions.\n")
+    p.add_argument("-rs", "--rms_source",
+                   default="",
+                   help="Draw only this source id. Empty draws every source.\n")
+    p.add_argument("-ry", "--rms_y_ranges",
+                   default="",
+                   help="Fixed frames as obs_kind:ymin:ymax entries separated by commas, for example A0:relative:-2:27.9.\n")
+    p.add_argument("-ro", "--rms_output_dir",
+                   default="",
+                   help="Write the RMS PDFs in this directory instead of the campaign mosaic directory.\n")
 
     return p.parse_args()
 
@@ -3593,9 +3605,27 @@ def draw_systematic_rms_mosaics(args):
     )
 
     print("Loading per-bin systematic RMS contributions.")
-    sources, nominal_bc, _scale, _path_unw_bc = systematic_report.build_sources()
-    retained, _skipped = systematic_report.read_border_rows(systematic_report.BORDER_PATH)
-    per_source = systematic_report.evaluate(sources, retained)
+    budget_dir = getattr(args, "rms_budget", None)
+    if(budget_dir):
+        share_path = os.path.join(budget_dir, "per_bin_source_shares.json")
+        shares = systematic_report.load_json(share_path)
+        nominal_path = os.path.join(systematic_report.CAMP, "corrected/spline/bc/fit.json")
+        nominal_bc = systematic_report.load_json(nominal_path)["Fit_Pars_from_3D_BC_RC_Bayesian"]
+        retained = list(shares["per_bin"].keys())
+        per_source = []
+        for source_id in source_titles:
+            rms_values = {}
+            for key, block in shares["per_bin"].items():
+                rms_values[key] = {}
+                for letter, _obs_tag, _symbol in observables:
+                    contribution = block[letter]["contributions"].get(source_id)
+                    rms_values[key][letter] = contribution
+            per_source.append({"source": {"id": source_id}, "rms": rms_values})
+        print("RMS mosaics read stored contributions from %s" % share_path)
+    else:
+        sources, nominal_bc, _scale, _path_unw_bc = systematic_report.build_sources()
+        retained, _skipped = systematic_report.read_border_rows(systematic_report.BORDER_PATH)
+        per_source = systematic_report.evaluate(sources, retained)
     if(len(per_source) != 24):
         raise SystemExit("Expected 24 systematic sources, found %d." % len(per_source))
     archive_path = os.path.join(systematic_report.CAMP, "corrected/spline/normalized_bc_before_bc_families_20261103.json")
@@ -3702,7 +3732,13 @@ def draw_systematic_rms_mosaics(args):
                     "fit_dict":     fit_dict,
                 })
 
-    out_dir = os.path.join(systematic_report.CAMP, "systematic_rms_mosaics")
+    output_override = getattr(args, "rms_output_dir", "") or ""
+    if(output_override != ""):
+        out_dir = output_override
+    elif(budget_dir):
+        out_dir = os.path.join(systematic_report.CAMP, "systematic_rms_mosaics_coverage135")
+    else:
+        out_dir = os.path.join(systematic_report.CAMP, "systematic_rms_mosaics")
     os.makedirs(out_dir, exist_ok=True)
     print("Output directory: %s" % out_dir)
     y_ranges = {}
@@ -3730,14 +3766,33 @@ def draw_systematic_rms_mosaics(args):
             y_range = (-minor, y_top)
             y_ranges[(letter, kind)] = y_range
             print("Linear Y range %s %s: %.8g to %.8g (maximum %.8g)" % (obs_tag, kind, y_range[0], y_range[1], top))
+    fixed_ranges = getattr(args, "rms_y_ranges", "") or ""
+    if(fixed_ranges != ""):
+        letter_by_tag = {"A0": "A", "cosphi": "B", "cos2phi": "C"}
+        for piece in fixed_ranges.split(","):
+            obs_tag, kind, ymin_text, ymax_text = piece.split(":")
+            y_ranges[(letter_by_tag[obs_tag], kind)] = (float(ymin_text), float(ymax_text))
+            print("Fixed Y range %s %s: %.8g to %.8g" % (obs_tag, kind, float(ymin_text), float(ymax_text)))
 
     # Mosaic pads have no top margin, so a 10^N axis factor is pulled into the pad.
     ROOT.TGaxis.SetExponentOffset(0.0, -0.08, "y")
     written = []
+    rms_source = getattr(args, "rms_source", "") or ""
+    thesis_sector_kinds = set([("A", "relative"), ("B", "absolute"), ("C", "absolute")])
     for payload in payloads:
         letter = payload["letter"]
         kind   = payload["kind"]
+        if((rms_source != "") and (payload["source_id"] != rms_source)):
+            continue
+        if((rms_source == "sector") and ((letter, kind) not in thesis_sector_kinds)):
+            continue
         y_range = y_ranges[(letter, kind)]
+        largest = 0.0
+        for cell in payload["fit_dict"].values():
+            largest = max(largest, float(cell["Sys_RMS"]))
+        if(largest > y_range[1]):
+            raise SystemExit("RMS point %.8g exceeds the frame %.8g for %s %s %s" % (
+                largest, y_range[1], payload["source_id"], payload["obs_tag"], kind))
         if(kind == "absolute"):
             quantity = "#Delta_{RMS}(%s)" % payload["symbol"]
         else:

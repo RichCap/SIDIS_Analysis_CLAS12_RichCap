@@ -1,0 +1,178 @@
+[
+  {
+    "label": "Electron in only sector 4",
+    "nominal_histogram": "(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+    "variation_histogram": "(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+    "missing_deg": 135.0,
+    "empty_runs": [
+      [
+        0.0,
+        60.0
+      ],
+      [
+        165.0,
+        180.0
+      ],
+      [
+        300.0,
+        360.0
+      ]
+    ],
+    "periodic_edge_gap": true,
+    "fit_low": 60.0,
+    "fit_high": 300.0,
+    "nominal_fit_low": 15.0,
+    "nominal_fit_high": 345.0,
+    "chi2": 14.22318321810807,
+    "ndf": 12.0,
+    "nominal_chi2": 24.704433080657957,
+    "nominal_ndf": 19.0,
+    "variation": {
+      "A": [
+        25232.475747920857,
+        981.4000413292924
+      ],
+      "B": [
+        0.08231813717823894,
+        0.06153930830475002
+      ],
+      "C": [
+        0.043826216607524324,
+        0.03238672827281096
+      ]
+    },
+    "nominal": {
+      "A": [
+        24760.461397735307,
+        167.02780105883176
+      ],
+      "B": [
+        -0.017667086362848805,
+        0.012926156574509476
+      ],
+      "C": [
+        -0.007108845924200262,
+        0.004408432193740625
+      ]
+    },
+    "curve_low": 25685.73225936766,
+    "curve_middle": 24261.229295629404,
+    "curve_high": 25685.73225936766
+  },
+  {
+    "label": "#pi^{+} in only sector 4",
+    "nominal_histogram": "(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+    "variation_histogram": "(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+    "missing_deg": 135.0,
+    "empty_runs": [
+      [
+        0.0,
+        30.0
+      ],
+      [
+        135.0,
+        210.0
+      ],
+      [
+        330.0,
+        360.0
+      ]
+    ],
+    "periodic_edge_gap": true,
+    "fit_low": 30.0,
+    "fit_high": 330.0,
+    "nominal_fit_low": 0.0,
+    "nominal_fit_high": 360.0,
+    "chi2": 28.938278628365453,
+    "ndf": 12.0,
+    "nominal_chi2": 31.957371200164555,
+    "nominal_ndf": 21.0,
+    "variation": {
+      "A": [
+        24827.441136538182,
+        551.2443132455446
+      ],
+      "B": [
+        0.015423412674717292,
+        0.01046819695381369
+      ],
+      "C": [
+        -0.10258438766139417,
+        0.03323248469479823
+      ]
+    },
+    "nominal": {
+      "A": [
+        24944.135480968725,
+        133.07565406629692
+      ],
+      "B": [
+        -0.04268718149764013,
+        0.007775334352939537
+      ],
+      "C": [
+        -0.0040057682265354074,
+        0.00273676974048792
+      ]
+    },
+    "curve_low": 23922.61408370872,
+    "curve_middle": 21897.609420041023,
+    "curve_high": 23922.614083708722
+  },
+  {
+    "label": "#pi^{+} in only sector 5",
+    "nominal_histogram": "(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_9)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+    "variation_histogram": "(MultiDim_3D_Histo)_(Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_9)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+    "missing_deg": 135.0,
+    "empty_runs": [
+      [
+        0.0,
+        75.0
+      ],
+      [
+        300.0,
+        360.0
+      ]
+    ],
+    "periodic_edge_gap": true,
+    "fit_low": 75.0,
+    "fit_high": 300.0,
+    "nominal_fit_low": 45.0,
+    "nominal_fit_high": 315.0,
+    "chi2": 16.136370112651186,
+    "ndf": 12.0,
+    "nominal_chi2": 16.32133425447595,
+    "nominal_ndf": 15.0,
+    "variation": {
+      "A": [
+        20487.671571529412,
+        812.2809117999623
+      ],
+      "B": [
+        0.11833694946200432,
+        0.08420687053213959
+      ],
+      "C": [
+        0.062328966831359585,
+        0.045700582303339614
+      ]
+    },
+    "nominal": {
+      "A": [
+        17001.11239558797,
+        201.26651793195379
+      ],
+      "B": [
+        -0.08879512118415998,
+        0.019481983906984468
+      ],
+      "C": [
+        -0.022288553649535074,
+        0.01646216813781063
+      ]
+    },
+    "curve_low": 19977.837158672835,
+    "curve_middle": 19317.428029825292,
+    "curve_high": 21023.836207776745
+  }
+]

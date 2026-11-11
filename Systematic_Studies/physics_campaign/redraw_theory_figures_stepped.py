@@ -175,8 +175,8 @@ def boer_mulders(mstw, dss, cache, x, y, z, pT, mass_scale=1.0):
     return structure * lepton_cos_2phi(y)
 
 
-def load_bins():
-    with open(JSON_PATH) as handle:
+def load_bins(json_path):
+    with open(json_path) as handle:
         payload = json.load(handle)
     fit_dict = payload[FIT_KEY]
     info_map = {}
@@ -254,7 +254,7 @@ def require_close(name, value, target, tol):
     print("%s = %.12g" % (name, value))
 
 
-def check_rows(rows):
+def check_rows(rows, check_measured=True):
     if(len(rows) != 452):
         raise SystemExit("expected 452 bins, found %d" % len(rows))
     bin11 = None
@@ -272,11 +272,18 @@ def check_rows(rows):
     require_close("median Cahn phi", median([row["cahn_phi"] for row in rows]), -0.216961890660, 2.0e-6)
     require_close("median Cahn 2phi", median([row["cahn_2phi"] for row in rows]), 0.006687434678, 2.0e-6)
     require_close("median BM", median([row["bm"] for row in rows]), -0.006459882814, 2.0e-5)
-    require_close("median B", median([row["B"] for row in rows]), -0.081220013228, 2.0e-9)
-    require_close("median C", median([row["C"] for row in rows]), -0.004871686379, 2.0e-9)
-    require_close("rms phi", rms([row["B"] - row["cahn_phi"] for row in rows]), 0.182614107478, 2.0e-6)
-    require_close("rms 2phi", rms([row["C"] - row["cahn_2phi"] for row in rows]), 0.033427224584, 2.0e-6)
-    require_close("rms BM", rms([row["C"] - row["bm"] for row in rows]), 0.036544986670, 2.0e-5)
+    measured = [
+        ("median B", median([row["B"] for row in rows]), -0.081220013228, 2.0e-9),
+        ("median C", median([row["C"] for row in rows]), -0.004871686379, 2.0e-9),
+        ("rms phi", rms([row["B"] - row["cahn_phi"] for row in rows]), 0.182614107478, 2.0e-6),
+        ("rms 2phi", rms([row["C"] - row["cahn_2phi"] for row in rows]), 0.033427224584, 2.0e-6),
+        ("rms BM", rms([row["C"] - row["bm"] for row in rows]), 0.036544986670, 2.0e-5),
+    ]
+    for name, value, target, tol in measured:
+        if(check_measured):
+            require_close(name, value, target, tol)
+        else:
+            print("%s = %.12g" % (name, value))
     relative = abs(bin11["bm_double_mass"] - bin11["bm"]) / abs(bin11["bm"])
     print("mass-cancellation relative change at (1,1) = %.3e" % relative)
     if(relative > 1.0e-8):
@@ -578,23 +585,31 @@ def archive_current():
             print("archived %s" % destination)
 
 
-def main():
+def main(json_path, image_dir, do_archive, check_measured=True):
     lhapdf.pathsPrepend(DSS_DIR)
     dss  = lhapdf.mkPDF("dsspipLO", 0)
     mstw = load_mstw()
-    rows = load_bins()
+    rows = load_bins(json_path)
     fill_theory(rows, mstw, dss)
-    check_rows(rows)
-    archive_current()
+    check_rows(rows, check_measured)
+    if(do_archive):
+        archive_current()
+    os.makedirs(image_dir, exist_ok=True)
     y_phi = "A_{UU}^{cos #phi}"
     y_2phi = "A_{UU}^{cos 2#phi}"
     legend_phi = [("measurement", 20, 0), ("Cahn, published widths", 1, 1)]
     legend_2phi = [("measurement", 20, 0), ("kinematic Cahn", 1, 1), ("Boer-Mulders term", 1, 7)]
-    draw_one(rows, "z",  "B", [("cahn_phi", 1)], os.path.join(IMAGE_DIR, "Theory_CosPhi_vs_z.pdf"), y_phi, legend_phi)
-    draw_one(rows, "pT", "B", [("cahn_phi", 1)], os.path.join(IMAGE_DIR, "Theory_CosPhi_vs_pT.pdf"), y_phi, legend_phi)
-    draw_one(rows, "z",  "C", [("cahn_2phi", 1), ("bm", 7)], os.path.join(IMAGE_DIR, "Theory_Cos2Phi_vs_z.pdf"), y_2phi, legend_2phi)
-    draw_one(rows, "pT", "C", [("cahn_2phi", 1), ("bm", 7)], os.path.join(IMAGE_DIR, "Theory_Cos2Phi_vs_pT.pdf"), y_2phi, legend_2phi)
+    draw_one(rows, "z",  "B", [("cahn_phi", 1)], os.path.join(image_dir, "Theory_CosPhi_vs_z.pdf"), y_phi, legend_phi)
+    draw_one(rows, "pT", "B", [("cahn_phi", 1)], os.path.join(image_dir, "Theory_CosPhi_vs_pT.pdf"), y_phi, legend_phi)
+    draw_one(rows, "z",  "C", [("cahn_2phi", 1), ("bm", 7)], os.path.join(image_dir, "Theory_Cos2Phi_vs_z.pdf"), y_2phi, legend_2phi)
+    draw_one(rows, "pT", "C", [("cahn_2phi", 1), ("bm", 7)], os.path.join(image_dir, "Theory_Cos2Phi_vs_pT.pdf"), y_2phi, legend_2phi)
 
 
 if(__name__ == "__main__"):
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Redraw the four theory comparison figures.")
+    parser.add_argument("-j", "--json_file", default=JSON_PATH)
+    parser.add_argument("-d", "--image_dir", default=IMAGE_DIR)
+    parser.add_argument("-sm", "--skip_measured_regression", action="store_true", help="Keep the theory-curve checks and draw the current measured centrals. The older measured-median targets stay in force unless this is set.")
+    args = parser.parse_args()
+    main(args.json_file, args.image_dir, os.path.abspath(args.image_dir) == os.path.abspath(IMAGE_DIR), not args.skip_measured_regression)

@@ -1,0 +1,33 @@
+\subsection{Sector Dependence}
+\label{sys-sector}
+
+\linenumbers
+
+The systematic uncertainty associated with sector dependence was evaluated by restricting either the electron or the $\pi^{+}$ to a single CLAS12 sector. The nominal selection allows both particles in all six sectors. The $N_{v}=12$ variations select each electron sector in turn while leaving the pion sector unrestricted, and then select each pion sector while leaving the electron sector unrestricted. These restrictions test the sensitivity of the measurements to sector-dependent detector effects.
+
+Restricting one particle to a single sector can leave part of the $\phi_h$ distribution empty. Coverage losses are concentrated in this source. \Cref{tab:CoverageSector} lists the sector comparisons omitted by the coverage requirement. A rejected comparison provides no accepted sector estimate. The nominal measurement remains. Every sector comparison that fails the automatic fit-quality requirement is already among those coverage exclusions, so that requirement removes no further sector comparison. Three comparisons pass both the coverage requirement and the fit-quality requirement and remain manual exclusions: electron sector~4 in $Q^{2}$--$y$ bin~15 and $z$--$P_{T}$ bin~22, pion sector~4 in $Q^{2}$--$y$ bin~15 and $z$--$P_{T}$ bin~21, and pion sector~5 in $Q^{2}$--$y$ bin~9 and $z$--$P_{T}$ bin~9. \Cref{fig:SectorCoverageExceptions} shows them. The sector contribution uses the $2{,}923$ comparisons that remain. Two manual identifiers, electron sector~1 at $(8,\,35)$ and pion sector~1 at $(1,\,21)$, lie outside the $452$ retained bins and are not part of this count.
+
+\input{Results/Results_SubSections/Uncertainties_SubSections/Coverage135/Coverage_Sector}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{Results/Systematic_Images/Sector_Coverage_Exceptions.pdf}
+    \caption{Manual sector exclusions that pass the inclusive $135^{\circ}$ missing-coverage boundary. Each fitted curve is displayed only between the first and last populated bins of its own histogram. That limit is a display restriction, not a refit. Electron sector~4 has a gap across the periodic boundary and a separate internal gap. Pion sector~4 has its largest gap inside the $\phi_h$ axis. Pion sector~5 has one gap across the periodic boundary.}
+    \label{fig:SectorCoverageExceptions}
+\end{figure}
+
+The total empty width does not locate the missing bins. For the electron restricted to sector~4, the empty bins form a $120^{\circ}$ gap from $300^{\circ}$ through $360^{\circ}/0^{\circ}$ to $60^{\circ}$, together with a separate $15^{\circ}$ gap at $165^{\circ}$--$180^{\circ}$. The stored variation curve is higher at both ends of the populated window than at its center, and the coefficient uncertainties are several times the nominal uncertainties. For the $\pi^{+}$ restricted to sector~4, the largest empty interval is internal, $135^{\circ}$--$210^{\circ}$, with shorter gaps at the two axis edges. The $\cos 2\phi_h$ uncertainty is much larger than nominal, while the $\cos\phi_h$ uncertainty is only modestly larger. For the $\pi^{+}$ restricted to sector~5, the full $135^{\circ}$ is one gap from $300^{\circ}$ to $75^{\circ}$. The variation $\cos\phi_h$ coefficient has the opposite sign from the nominal coefficient, and its uncertainty is several times larger. All three remain excluded by the manual decision.
+
+One hundred seventy-six retained bins have no usable sector comparison after the coverage exclusions in \Cref{tab:CoverageSector} and the manual exclusions described above. In those bins the combined uncertainty contains the other sources that could be evaluated. Where usable sector comparisons remain, they determine that bin's sector contribution.
+
+% Redundant unavailable-comparison table retained on disk; coverage exclusions are listed above.
+% \input{Results/Results_SubSections/Uncertainties_SubSections/Coverage135/Sector_Unavailable}
+
+The resulting sector-dependence uncertainties, summarized across the retained kinematic bins in \Cref{tab:SystematicUncertainties}, are $0.01101$ for $A_{0}$, $0.04546$ for $A_{UU}^{\cos\phi_h}$, and $0.03382$ for $A_{UU}^{\cos 2\phi_h}$. This source is included in the combined systematic uncertainty.
+
+For the electron-sector restrictions that remain, the shifts range from $-0.04494$ in sector~4 to $+0.05442$ in sector~1 for $A_{0}$, from $-0.1828$ in sector~1 to $+0.2089$ in sector~3 for $A_{UU}^{\cos\phi_h}$, and from $-0.1322$ in sector~5 to $+0.1204$ in sector~3 for $A_{UU}^{\cos 2\phi_h}$. For the $\pi^{+}$-sector restrictions that remain, the shifts range from $-0.07279$ in sector~6 to $+0.1054$ in sector~1 for $A_{0}$, from $-0.3243$ in sector~6 to $+0.2384$ in sector~2 for $A_{UU}^{\cos\phi_h}$, and from $-0.1540$ in sector~6 to $+0.1298$ in sector~4 for $A_{UU}^{\cos 2\phi_h}$. Each extreme represents an individual sector restriction in a single kinematic bin.
+
+The sector-dependence contribution is larger than the corresponding fit uncertainty for all three quantities, as indicated in \Cref{tab:SystematicUncertainties}. The geometry of the CLAS12 sectors influences the detector acceptance and can produce angular structure in reconstructed distributions even when the generated distribution is flat. The observed impact is therefore consistent with the sensitivity of both $A_{0}$ and the angular modulations to the sector-dependent acceptance.
+
+\Cref{fig:SysRMSSectorDependenceA0,fig:SysRMSSectorDependenceCosPhi,fig:SysRMSSectorDependenceCos2Phi}, in \Cref{app:SystematicRMSFigures}, show the per-bin relative RMS of $A_{0}$, as a percentage of the nominal $|A_{0}|$, and the absolute RMS of $A_{UU}^{\cos\phi_h}$ and $A_{UU}^{\cos 2\phi_h}$.
+

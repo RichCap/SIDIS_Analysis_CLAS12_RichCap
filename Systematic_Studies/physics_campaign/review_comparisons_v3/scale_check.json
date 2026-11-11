@@ -1,0 +1,6 @@
+{
+  "jobs": 61,
+  "unweighted_scale_bins_rebuilt": 452,
+  "spline_injection_baseline_max_relative_gap": 4.458103376603781e-09,
+  "note": "Unweighted scales are normalized A0 divided by the retained unweighted BC raw A. Spline scales from the version-two manifest already match the retained spline raw A and normalized A0."
+}

@@ -1133,18 +1133,18 @@ def Fitting_Phi_Function(Histo_To_Fit, Method="FIT", Fitting="default", Special=
         fit_range_upper = 360
         # Number of bins in the histogram
         n_bins = Histo_To_Fit.GetNbinsX()
-        
-        # Find the lower fit range (first non-empty bin)
-        for bin_lower in range(1, n_bins // 2 + 1):  # Search from the start to the center
+
+        # First nonempty bin through the last nonempty bin. Empty bins between them stay in the fit.
+        # The earlier half-histogram search left the default 0-360 range when every filled bin was past the center.
+        for bin_lower in range(1, n_bins + 1):
             if(Histo_To_Fit.GetBinContent(bin_lower) != 0):
                 fit_range_lower = Histo_To_Fit.GetXaxis().GetBinLowEdge(bin_lower)
-                break  # Stop the loop once the first non-empty bin is found
+                break
 
-        # Find the upper fit range (last non-empty bin)
-        for bin_upper in range(n_bins, n_bins // 2, -1):  # Search from the end towards the center
+        for bin_upper in range(n_bins, 0, -1):
             if(Histo_To_Fit.GetBinContent(bin_upper) != 0):
                 fit_range_upper = Histo_To_Fit.GetXaxis().GetBinUpEdge(bin_upper)
-                break  # Stop the loop once the last non-empty bin is found
+                break
         
         Fitting_Function.SetRange(fit_range_lower, fit_range_upper)
         

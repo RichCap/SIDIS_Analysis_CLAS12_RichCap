@@ -141,7 +141,53 @@ def fit_width_range(results, base_low, base_high):
     return base_low, base_high
 
 
-def draw_width(results_path=None, points_path=None, output_path=None, note=""):
+def ordinary_result(row):
+    status = row["status"]
+    if(("unsuccessful" in status) or ("unreliable_covariance" in status) or ("insufficient_points" in status)):
+        return False
+    if((row["kt2"] == "") or (row["kt2_err"] == "")):
+        return False
+    return True
+
+
+def shared_ln_range(points, results):
+    by_q2y = {}
+    for row in results:
+        by_q2y.setdefault(int(row["q2y_bin"]), []).append(row)
+    point_map = {}
+    for row in points:
+        if(row["used"] != "1"):
+            continue
+        point_map.setdefault(int(row["q2y_bin"]), {}).setdefault(round(float(row["z"]), 3), []).append(row)
+    y_values = []
+    for q2y_bin, series in point_map.items():
+        for z_value, raw_points in series.items():
+            pts = sorted(raw_points, key=lambda item: float(item["pT2"]))
+            for point in pts:
+                y_value = math.log(float(point["A"]))
+                y_error = float(point["ln_rel_err"])
+                y_values.append(y_value - y_error)
+                y_values.append(y_value + y_error)
+            fit = None
+            for row in by_q2y.get(q2y_bin, []):
+                if(abs(float(row["z"]) - z_value) < 0.002):
+                    fit = row
+            if((fit is not None) and ordinary_result(fit) and (fit["a"] != "") and (fit["b"] != "")):
+                x_lo = float(pts[0]["pT2"])
+                x_hi = float(pts[-1]["pT2"])
+                y_values.append(float(fit["a"]) * x_lo + float(fit["b"]))
+                y_values.append(float(fit["a"]) * x_hi + float(fit["b"]))
+    if(len(y_values) == 0):
+        raise SystemExit("no ln A0 values to scale")
+    y_low = min(y_values)
+    y_high = max(y_values)
+    span = y_high - y_low
+    if(span < 0.2):
+        span = 0.2
+    return y_low - 0.08 * span, y_high + 0.22 * span, y_low, y_high
+
+
+def draw_width(results_path=None, points_path=None, output_path=None, ln_output_path=None, note="", write_width=True):
     results = read_tsv(WIDTH if(results_path is None) else results_path)
     points = read_tsv(POINTS if(points_path is None) else points_path)
     by_q2y = {}
@@ -152,13 +198,17 @@ def draw_width(results_path=None, points_path=None, output_path=None, note=""):
         if(row["used"] != "1"):
             continue
         point_map.setdefault(int(row["q2y_bin"]), {}).setdefault(round(float(row["z"]), 3), []).append(row)
+    ln_ymin, ln_ymax, ln_data_low, ln_data_high = shared_ln_range(points, results)
+    if((ln_data_low < ln_ymin) or (ln_data_high > ln_ymax)):
+        raise SystemExit("ln A0 content is outside the shared range")
     ln_canvas = new_canvas("lnA0", 1500, 1900)
-    width_canvas = new_canvas("width", 2800, 3200)
+    width_canvas = new_canvas("width", 2800, 3200) if(write_width) else None
+    plotted = [row for row in results if(ordinary_result(row))]
     if(note == ""):
-        width_ymin, width_ymax = shared_width_range(results)
+        width_ymin, width_ymax = shared_width_range(plotted)
         title_space = 0.055
     else:
-        width_ymin, width_ymax = fit_width_range(results, QUADRATURE_WIDTH_RANGE[0], QUADRATURE_WIDTH_RANGE[1])
+        width_ymin, width_ymax = fit_width_range(plotted, QUADRATURE_WIDTH_RANGE[0], QUADRATURE_WIDTH_RANGE[1])
         title_space = 0.090
     mapping, max_cols, nrows = layout_map()
     for q2y_bin in range(1, 18):
@@ -183,19 +233,11 @@ def draw_width(results_path=None, points_path=None, output_path=None, note=""):
         ln_canvas.keep.append(ln_pad)
         if(len(z_values) > 0):
             x_values = []
-            y_values = []
             for z_value in z_values:
                 for point in series[z_value]:
-                    y_value = math.log(float(point["A"]))
-                    y_error = float(point["ln_rel_err"])
                     x_values.append(float(point["pT2"]))
-                    y_values.append(y_value - y_error)
-                    y_values.append(y_value + y_error)
             x_high = max(x_values) * 1.12
-            y_span = max(y_values) - min(y_values)
-            if(y_span < 0.2):
-                y_span = 0.2
-            ln_frame = ln_pad.DrawFrame(0.0, min(y_values) - 0.08 * y_span, x_high, max(y_values) + 0.22 * y_span)
+            ln_frame = ln_pad.DrawFrame(0.0, ln_ymin, x_high, ln_ymax)
             style_frame(ln_frame, "P_{T}^{2} [GeV^{2}]", "ln A_{0}", is_left, is_bottom)
             ln_canvas.keep.append(ln_frame)
             legend = ROOT.TLegend(0.46, 0.50, 0.96, 0.88)
@@ -223,7 +265,7 @@ def draw_width(results_path=None, points_path=None, output_path=None, note=""):
                 for row in by_q2y.get(q2y_bin, []):
                     if(abs(float(row["z"]) - z_value) < 0.002):
                         fit = row
-                if(fit is not None):
+                if((fit is not None) and ordinary_result(fit) and (fit["a"] != "") and (fit["b"] != "")):
                     y_lo = float(fit["a"]) * x_lo + float(fit["b"])
                     y_hi = float(fit["a"]) * x_hi + float(fit["b"])
                     segment = ROOT.TGraph(2)
@@ -237,6 +279,8 @@ def draw_width(results_path=None, points_path=None, output_path=None, note=""):
             legend.Draw()
             ln_canvas.keep.append(legend)
         draw_bin_label(ln_canvas, q2y_bin)
+        if(not write_width):
+            continue
         width_canvas.cd()
         wy0 = (float(row_index) / float(nrows)) * (1.0 - title_space)
         wy1 = (float(row_index + 1) / float(nrows)) * (1.0 - title_space)
@@ -249,7 +293,7 @@ def draw_width(results_path=None, points_path=None, output_path=None, note=""):
         width_pad.Draw()
         width_pad.cd()
         width_canvas.keep.append(width_pad)
-        fits = sorted(by_q2y.get(q2y_bin, []), key=lambda item: float(item["z"]))
+        fits = sorted([row for row in by_q2y.get(q2y_bin, []) if(ordinary_result(row))], key=lambda item: float(item["z"]))
         if(len(fits) > 0):
             z_axis = [float(fit["z"]) for fit in fits]
             width_frame = width_pad.DrawFrame(min(z_axis) - 0.04, width_ymin, max(z_axis) + 0.06, width_ymax)
@@ -269,37 +313,42 @@ def draw_width(results_path=None, points_path=None, output_path=None, note=""):
             graph.Draw("P")
             width_canvas.keep.append(graph)
             for fit in fits:
-                if("slope_consistent_with_zero" not in fit["status"]):
+                if("large_relative_uncertainty" not in fit["status"]):
                     continue
                 mark = ROOT.TMarker(float(fit["z"]), float(fit["kt2"]), 29)
                 mark.SetMarkerColor(ROOT.kRed + 1)
-                mark.SetMarkerSize(1.8)
+                mark.SetMarkerSize(2.8)
                 mark.Draw()
                 width_canvas.keep.append(mark)
-                print("unbounded width mark Q2-y %d z %s value %s err %s" % (q2y_bin, fit["z"], fit["kt2"], fit["kt2_err"]))
+                print("large relative uncertainty Q2-y %d z %s value %s err %s" % (q2y_bin, fit["z"], fit["kt2"], fit["kt2_err"]))
             draw_width_panel_label(width_canvas, q2y_bin, fits[0])
         width_canvas.cd()
-    width_canvas.cd()
-    page_title = ROOT.TLatex()
-    page_title.SetNDC(True)
-    page_title.SetTextAlign(23)
-    page_title.SetTextFont(42)
-    page_title.SetTextSize(0.028)
-    page_title.DrawLatex(0.50, 0.985, "#kappa_{T}^{2}(z) vs z")
-    width_canvas.keep.append(page_title)
-    if(note != ""):
-        page_note = ROOT.TLatex()
-        page_note.SetNDC(True)
-        page_note.SetTextAlign(23)
-        page_note.SetTextFont(42)
-        page_note.SetTextSize(0.022)
-        page_note.DrawLatex(0.50, 0.952, note)
-        width_canvas.keep.append(page_note)
-    if(output_path is None):
-        output_path = os.path.join(MOMENT, "kT2_vs_z_all_Q2y.pdf")
-    width_canvas.SaveAs(output_path)
-    print("shared width range", width_ymin, width_ymax)
-    print("wrote", output_path)
+    if(write_width):
+        width_canvas.cd()
+        page_title = ROOT.TLatex()
+        page_title.SetNDC(True)
+        page_title.SetTextAlign(23)
+        page_title.SetTextFont(42)
+        page_title.SetTextSize(0.028)
+        page_title.DrawLatex(0.50, 0.985, "#kappa_{T}^{2}(z) vs z")
+        width_canvas.keep.append(page_title)
+        if(note != ""):
+            page_note = ROOT.TLatex()
+            page_note.SetNDC(True)
+            page_note.SetTextAlign(23)
+            page_note.SetTextFont(42)
+            page_note.SetTextSize(0.022)
+            page_note.DrawLatex(0.50, 0.952, note)
+            width_canvas.keep.append(page_note)
+        if(output_path is None):
+            output_path = os.path.join(MOMENT, "kT2_vs_z_all_Q2y.pdf")
+        width_canvas.SaveAs(output_path)
+        print("shared width range", width_ymin, width_ymax)
+        print("wrote", output_path)
+    if(ln_output_path is not None):
+        ln_canvas.SaveAs(ln_output_path)
+        print("wrote", ln_output_path)
+    print("shared ln range", ln_ymin, ln_ymax)
 
 
 def published_rows(overlap, q2y_bin):

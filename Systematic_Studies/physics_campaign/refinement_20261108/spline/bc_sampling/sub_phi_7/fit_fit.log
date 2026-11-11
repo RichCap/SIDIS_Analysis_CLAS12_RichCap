@@ -1,0 +1,136 @@
+
+
+[1m[92m[43m
+
+    Will be Fitting Plots    
+[0m
+
+
+
+[1m[94mSmear option selected is: Smear[0m
+
+
+[91mRunning Bin 'All' for Q2-y Bins by default (will skip at end)[0m
+
+
+Running for Q2-xB/Q2-y Bins: '1 3 4 5 6 10 11 13 14 15', '0'
+[1m
+Starting RG-A SIDIS Analysis
+[0m
+
+Started running on [1m11-8-2026[0m at [1m07:29 p.m.[0m
+
+
+[91m[1mUsing Existing TTree [0m[1m(File is: [4m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/bc_sampling/sub_phi_7/fit_copy.root[0m[1m)[91m[1m instead of Creating New Unfolded Histograms[0m
+
+[1m[94mRecovered: [1m[92m2712[0m[1m[94m items[0m
+
+
+Current Time: [1m07:29 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[94mNormal Unfolding Fits Already Included? -> [91m[1mFalse[0m
+[1mNot running RC... Did not check for RC fits.[0m
+[1mNot running BC... Did not check for BC fits.[0m
+
+[1m[94mMaking the fits...[0m
+
+
+[91m[1mRequested correction family 'BC_RC_Bayesian' was not found for this dimension and Q2-y selection. No fits were made and no corrected histograms were created.[0m
+
+
+[1m[94mFit/Added [0m[1m0[1m[94m Histograms[0m[94m
+Adding to Main List...[0m
+
+[1m[92mLength of Main List of Histograms (After adding Fits): [0m[1m2712[0m
+
+
+Current Time: [1m07:29 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+
+
+Counting Total Number of/Saving collected histograms...
+[1mNo fitted objects to write for this correction-family selection.[0m
+[1mNot updating JSON: correction family 'BC_RC_Bayesian' was not in this run.[0m
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Simple_RooUnfold_SelfContained.py' script has finished running.
+Started running on [1m11-8-2026[0m at [1m07:29 p.m.[0m
+
+Input File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/bc_sampling/sub_phi_7/fit_copy.root
+Output File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/bc_sampling/sub_phi_7/fit_copy.root
+
+
+
+Arguments:
+--unfolding_3D (3D Unfolding Only)                  --> True
+--unfolding_5D (Ran 5D Unfolding Fits)              --> False
+--run_sectors                                       --> False
+--sectors_to_unfold                                 --> None
+--allow_other_variables (for unfolding)             --> False
+--simulation (unfolding synthetic data)             --> False
+--modulation (data unfolded with modulated MC)      --> False
+--closure  (modulated MC unfolded with itself)      --> False
+--weighed_acceptance (use acceptance weights only)  --> False
+--test                                              --> False
+--verbose                                           --> False
+--weight_tag                                        --> ''
+--fit                                               --> True
+--remake_fit                                        --> True
+--CrossSection_Norm                                 --> False
+--tag_proton                                        --> False
+--cut_proton                                        --> False
+--Common_Int_Bins                                   --> False
+--bayes_iterations                                  --> None
+--Num_Toys                                          --> 500
+--error_mode                                        --> 'covariance'
+--old_binning                                       --> False
+--no_post_unfold_acc_cut                            --> False
+--bin_by_bin_only                                   --> False
+--Unfold_Methods                                    --> ['Bayesian']
+--title                                             --> None
+--EvGen                                             --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.02
+--Use_TTree                                         --> True
+--Apply_RC                                          --> False
+--Apply_BC                                          --> False
+--Add_Uncertainties                                 --> False
+--fit_error_source                                  --> 'histogram'
+--fit_corrections                                   --> 'BC_RC_Bayesian'
+--save_json                                         --> True
+--json_name                                         --> '/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/bc_sampling/sub_phi_7/fit.json'
+--old_json                                          --> False
+--background_source                                 --> 'rho0_new'
+--unfold_exclusive_rho0                             --> False
+--use_spline_init                                   --> False
+--fit_init_file                                     --> '/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/bc_sampling/sub_phi_7/refine_init.py'
+--data_root                                         --> 'work'
+--pass_version                                      --> 'Pass 2'
+--smearing_options                                  --> 'smear'
+--Q2_y_Bin_List                                     --> ['1 3 4 5 6 10 11 13 14 15', '0']
+--Run_5D_Unfold                                     --> False
+--run_sec_unfold                                    --> False
+
+
+The time that this code finished is [1m07:29 p.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+    
+    

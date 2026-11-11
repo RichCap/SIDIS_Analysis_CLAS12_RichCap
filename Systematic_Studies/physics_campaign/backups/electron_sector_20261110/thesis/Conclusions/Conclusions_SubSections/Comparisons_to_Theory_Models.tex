@@ -1,0 +1,78 @@
+Published expressions and parameter choices are evaluated at the centers of the measured bins to compare individual Cahn and Boer--Mulders--Collins contributions with the measured cosine moments. The calculations use the $\gamma=0$ kinematic prefactors of the cited models and set $F_{UU,L}=0$. These comparisons employ low-transverse-momentum approximations, whose reliability decreases as transverse momenta approach the hard scale. The displayed contributions do not constitute complete predictions for the measured moments.
+
+The Cahn contribution is evaluated in the Gaussian model of Anselmino et al., using $\langle k_{\perp}^{2}\rangle = 0.25\,\mathrm{GeV}^{2}$ and $\langle p_{\perp}^{2}\rangle = 0.20\,\mathrm{GeV}^{2}$.~\cite{Anselmino:2005nn} These phenomenological widths were estimated from earlier SIDIS data and are assumed to be independent of quark flavor. They are kept fixed here rather than fitted to the present measurement. The corresponding structure-function ratio is given by Barone et al. as
+\begin{equation}
+    \frac{F_{UU}^{\cos\phi_h}}{F_{UU}} = -2\frac{P_T}{Q}\frac{z\langle k_{\perp}^{2}\rangle}{\langle P_T^{2}\rangle},
+    \label{eq:CahnGaussianRatio}
+\end{equation}
+with $\langle P_T^{2}\rangle = \langle p_{\perp}^{2}\rangle + z^{2}\langle k_{\perp}^{2}\rangle$.~\cite{Barone:2015cgh} The moment $A_{UU}^{\cos\phi_h}$ multiplies \Cref{eq:CahnGaussianRatio} by $2(2-y)\sqrt{1-y}/[1+(1-y)^{2}]$. Parton distributions cancel for flavor-independent widths. This calculation uses the published quark and fragmentation widths given above. The effective Gaussian width $\kappa_T^{2}(z)$ extracted from $A_0$ in \Cref{Transverse Momentum Extraction} characterizes their combined broadening and does not separately determine these two inputs.
+
+\Crefrange{fig:TheoryCosPhiZ}{fig:TheoryCosPhiPT} show the published-width term with the measurement. For these fixed Gaussian widths, the calculated $A_{UU}^{\cos\phi_h}$ is more negative overall than the measured central values: its median is $-0.217$, while the median of the measurement is $-0.082$. The root-mean-square difference is $0.183$. At the center of $Q^{2}$--$y$ bin 1 and $z$--$P_T$ bin 1 the calculation gives $-0.119$, against $-0.083$ in the measurement.
+
+The same Gaussian integral produces an $\mathcal{O}(1/Q^{2})$ $\cos 2\phi_h$ term, $2(P_T^{2}/Q^{2})(z^{2}\langle k_{\perp}^{2}\rangle^{2}/\langle P_T^{2}\rangle^{2})$, multiplied by $2(1-y)/[1+(1-y)^{2}]$. Its median is $0.0067$, and the root-mean-square difference from the measurement is $0.033$. Barone et al. set that term to zero in the fit they publish.~\cite{Barone:2015cgh} The solid curves in \Crefrange{fig:TheoryCos2PhiZ}{fig:TheoryCos2PhiPT} are this kinematic term with the published widths, not that fit.
+
+\begin{table}[ht]
+    \centering
+    \caption{Published-width Gaussian Cahn moments at the $452$ bin centers, using $\langle k_{\perp}^{2}\rangle = 0.25\,\mathrm{GeV}^{2}$ and $\langle p_{\perp}^{2}\rangle = 0.20\,\mathrm{GeV}^{2}$. The $\cos 2\phi_h$ column is the kinematic term. Barone et al.\ set that term to zero in their fit. The differences are the spline-weighted measurement minus this calculation. The measured $\kappa_T^{2}(z)$ is not used.}
+    \label{tab:CahnGaussian}
+    \begin{tabular}{lcc}
+        \toprule
+        Quantity & $A_{UU}^{\cos\phi_h}$ & $A_{UU}^{\cos 2\phi_h}$ \\
+        \midrule
+        Median of the calculation & $-0.217$ & $0.0067$ \\
+        Median of the measurement & $-0.082$ & $-0.0050$ \\
+        RMS of measurement minus calculation & $0.183$ & $0.033$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The Wandzura--Wilczek $\cos\phi_h$ estimate of Bastami et al., with their choice $x f_{\perp}^{(1)} = \langle k_{\perp}^{2}\rangle f_{1}/(2 M^{2})$ and the same two widths, reduces to \Cref{eq:CahnGaussianRatio}.~\cite{Bastami:2018xqd} It is the same published-width curve, not a second prediction.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\linewidth]{Conclusions/Comparison_Images/Theory_CosPhi_vs_z.pdf}
+    \caption{Published-width Cahn term for $A_{UU}^{\cos\phi_h}$ versus $z$. The points are the spline-weighted measurement after the acceptance, radiative, and bin-centering corrections. The vertical bars are the systematic uncertainties. Within a panel, one color is one $P_T$. The curves use $\langle k_{\perp}^{2}\rangle = 0.25\,\mathrm{GeV}^{2}$ and $\langle p_{\perp}^{2}\rangle = 0.20\,\mathrm{GeV}^{2}$. The measured $\kappa_T^{2}(z)$ is not used.}
+    \label{fig:TheoryCosPhiZ}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\linewidth]{Conclusions/Comparison_Images/Theory_CosPhi_vs_pT.pdf}
+    \caption{Published-width Cahn term for $A_{UU}^{\cos\phi_h}$ versus $P_T$. The points are the spline-weighted measurement after the acceptance, radiative, and bin-centering corrections. The vertical bars are the systematic uncertainties. Within a panel, one color is one $z$. The curves use $\langle k_{\perp}^{2}\rangle = 0.25\,\mathrm{GeV}^{2}$ and $\langle p_{\perp}^{2}\rangle = 0.20\,\mathrm{GeV}^{2}$. The measured $\kappa_T^{2}(z)$ is not used.}
+    \label{fig:TheoryCosPhiPT}
+\end{figure}
+
+The Boer--Mulders--Collins term evaluated here is eq.~(5.9a) of Bastami et al. (see ~\cite{Bastami:2018xqd}), not the sum plotted by Barone, Prokudin, and Ma and not the fit of Barone et al. The collinear inputs are MSTW 2008 LO and the DSS LO $\pi^{+}$ fragmentation functions, both taken at $Q^{2} = 2.4\,\mathrm{GeV}^{2}$ as in that paper. The Boer--Mulders parameters are Table~4 of Bastami et al., and the Collins parameters are their Table~3. Only the $u$ and $d$ Boer--Mulders functions are nonzero in that table. For $\pi^{+}$, the $u$ Collins function is the favored one and the $d$ Collins function is the disfavored one. The unpolarized denominator is their Gaussian $F_{UU}$. The moment $A_{UU}^{\cos 2\phi_h}$ multiplies $F_{UU}^{\cos 2\phi_h}/F_{UU}$ by $2(1-y)/[1+(1-y)^{2}]$.
+
+\Cref{tab:BoerMuldersBastami} gives the Boer--Mulders--Collins term. It is negative in all $452$ bins. Its median is $-0.0065$, while the median of the measurement is $-0.0050$, and the root-mean-square difference is $0.037$. At the center of $Q^{2}$--$y$ bin 1 and $z$--$P_T$ bin 1 the term is $-0.0025$, against $0.031$ in the measurement. The kinematic Cahn term at that center is $0.0023$. Bastami et al.\ state that this Boer--Mulders-only curve does not describe the HERMES and COMPASS asymmetries. The dashed curves in \Crefrange{fig:TheoryCos2PhiZ}{fig:TheoryCos2PhiPT} are this term only.
+
+The kinematic Cahn and Boer--Mulders--Collins curves are shown as separate contributions. Their opposite signs illustrate the possibility of partial cancellation, but this comparison does not establish that such cancellation occurs in the data. A small measured moment alone does not distinguish individually small contributions from cancellation between larger contributions.
+
+\begin{table}[ht]
+    \centering
+    \caption{Boer--Mulders--Collins contribution to $A_{UU}^{\cos 2\phi_h}$ at the $452$ bin centers, from Bastami et al.\ eq.~(5.9a) with MSTW 2008 LO and DSS LO $\pi^{+}$ at $Q^{2} = 2.4\,\mathrm{GeV}^{2}$. The differences are the spline-weighted measurement minus this term. This is not the full asymmetry.}
+    \label{tab:BoerMuldersBastami}
+    \begin{tabular}{lc}
+        \toprule
+        Quantity & $A_{UU}^{\cos 2\phi_h}$ \\
+        \midrule
+        Median of the term & $-0.0065$ \\
+        Median of the measurement & $-0.0050$ \\
+        RMS of measurement minus term & $0.037$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.97\linewidth]{Conclusions/Comparison_Images/Theory_Cos2Phi_vs_z.pdf}
+    \caption{Kinematic Cahn term and Boer--Mulders--Collins term for $A_{UU}^{\cos 2\phi_h}$ versus $z$. The points are the spline-weighted measurement after the acceptance, radiative, and bin-centering corrections. The vertical bars are the systematic uncertainties. Within a panel, one color is one $P_T$. The solid curves are the kinematic Cahn term with the published widths $\langle k_{\perp}^{2}\rangle = 0.25\,\mathrm{GeV}^{2}$ and $\langle p_{\perp}^{2}\rangle = 0.20\,\mathrm{GeV}^{2}$, not the fit of Barone et al. The dashed curves are the Boer--Mulders--Collins term only. Neither curve is the full moment, and neither uses the measured $\kappa_T^{2}(z)$.}
+    \label{fig:TheoryCos2PhiZ}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.97\linewidth]{Conclusions/Comparison_Images/Theory_Cos2Phi_vs_pT.pdf}
+    \caption{Kinematic Cahn term and Boer--Mulders--Collins term for $A_{UU}^{\cos 2\phi_h}$ versus $P_T$. The points are the spline-weighted measurement after the acceptance, radiative, and bin-centering corrections. The vertical bars are the systematic uncertainties. Within a panel, one color is one $z$. The solid curves are the kinematic Cahn term with the published widths, not the fit of Barone et al. The dashed curves are the Boer--Mulders--Collins term only. Neither curve is the full moment, and neither uses the measured $\kappa_T^{2}(z)$.}
+    \label{fig:TheoryCos2PhiPT}
+\end{figure}

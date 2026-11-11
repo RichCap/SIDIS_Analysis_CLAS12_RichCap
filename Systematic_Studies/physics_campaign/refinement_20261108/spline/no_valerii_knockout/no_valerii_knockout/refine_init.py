@@ -1,0 +1,58 @@
+# Run-local guide for spline no_valerii_knockout. The shared Phi_h files are not edited.
+# start=auto chose the manual baseline. The 3D spline B windows selected by these histograms have median width 0.0153 and 428 of 452 are narrower than 0.05, and the C windows have median width 0.0070 with 445 of 452 narrower than 0.05, so they can pin a fit.
+# Pass 1 used that baseline on all 452 histograms. It improved 5 and made 23 worse. The manual window, or the second-pass half-width around a bad start, pulled bins off this histogram's cosine.
+# Pass 2 puts those misses on each histogram's own unconstrained cosine, opens only the limits that excluded that cosine, and turns off the second-pass half-width when it is narrower than the parameter error. --use_spline_init is not used.
+# Pass 3 opens (1, 12) and (9, 32). Their stored B errors are tighter than the free cosine, and chi-squared is still about 1.4 above that cosine. The second-pass half-width is turned off.
+import importlib.util
+manual_path = "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Phi_h_Fit_Parameters_Initialize.py"
+spec = importlib.util.spec_from_file_location("manual_phi_init", manual_path)
+manual_phi_init = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(manual_phi_init)
+special_fit_parameters_set = dict(manual_phi_init.special_fit_parameters_set)
+
+# Pass 2. Starts are this histogram's unconstrained cosine. Limits keep that cosine off the first-pass boundary.
+special_fit_parameters_set[("1", "4")] = {"B_initial": -0.23340017, "B_limits": [-0.38340017, -0.08340017], "C_initial": 0.02538752, "C_limits": [-0.12461248, 0.17538752], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("1", "8")] = {"B_initial": -0.12292516, "B_limits": [-0.27292516, 0.02707484], "C_initial": -0.03996887, "C_limits": [-0.18996887, 0.11003113], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("1", "17")] = {"B_initial": -0.08404915, "B_limits": [-0.23404915, 0.06595085], "C_initial": -0.02193217, "C_limits": [-0.17193217, 0.12806783], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("1", "19")] = {"B_initial": -0.25001432, "B_limits": [-0.40001432, -0.10001432], "C_initial": 0.04870164, "C_limits": [-0.10129836, 0.19870164], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("1", "22")] = {"B_initial": -0.02086378, "B_limits": [-0.17086378, 0.12913622], "C_initial": 0.03412188, "C_limits": [-0.11587812, 0.18412188], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("2", "7")] = {"B_initial": -0.04762915, "B_limits": [-0.19762915, 0.10237085], "C_initial": 0.01798764, "C_limits": [-0.13201236, 0.16798764], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("2", "14")] = {"B_initial": -0.02737711, "B_limits": [-0.17737711, 0.12262289], "C_initial": 0.03509424, "C_limits": [-0.11490576, 0.18509424], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("2", "29")] = {"B_initial": -0.24270705, "B_limits": [-0.39270705, -0.09270705], "C_initial": 0.07470479, "C_limits": [-0.07529521, 0.22470479], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("3", "3")] = {"B_initial": -0.17184857, "B_limits": [-0.32184857, -0.02184857], "C_initial": 0.01265682, "C_limits": [-0.13734318, 0.16265682], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("3", "16")] = {"B_initial": -0.18364383, "B_limits": [-0.33364383, -0.03364383], "C_initial": -0.00800249, "C_limits": [-0.15800249, 0.14199751], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("3", "24")] = {"B_initial": -0.24807139, "B_limits": [-0.39807139, -0.09807139], "C_initial": 0.05741836, "C_limits": [-0.09258164, 0.20741836], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("3", "29")] = {"B_initial": -0.27990732, "B_limits": [-0.42990732, -0.12990732], "C_initial": 0.09171340, "C_limits": [-0.05828660, 0.24171340], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("4", "29")] = {"B_initial": -0.23765664, "B_limits": [-0.38765664, -0.08765664], "C_initial": 0.02384561, "C_limits": [-0.12615439, 0.17384561], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("4", "33")] = {"B_initial": -0.11007322, "B_limits": [-0.26007322, 0.03992678], "C_initial": -0.09104332, "C_limits": [-0.24104332, 0.05895668], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("4", "34")] = {"B_initial": -0.15950561, "B_limits": [-0.30950561, -0.00950561], "C_initial": 0.00178375, "C_limits": [-0.14821625, 0.15178375], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("5", "3")] = {"B_initial": -0.19222580, "B_limits": [-0.34222580, -0.04222580], "C_initial": 0.02698122, "C_limits": [-0.12301878, 0.17698122], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("5", "7")] = {"B_initial": -0.04113420, "B_limits": [-0.19113420, 0.10886580], "C_initial": 0.02150787, "C_limits": [-0.12849213, 0.17150787], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("5", "31")] = {"B_initial": 0.00688383, "B_limits": [-0.14311617, 0.15688383], "C_initial": 0.04223851, "C_limits": [-0.10776149, 0.19223851], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("6", "1")] = {"B_initial": -0.05756644, "B_limits": [-0.20756644, 0.09243356], "C_initial": 0.01209347, "C_limits": [-0.13790653, 0.16209347], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("6", "2")] = {"B_initial": -0.13660388, "B_limits": [-0.28660388, 0.01339612], "C_initial": 0.03196796, "C_limits": [-0.11803204, 0.18196796], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("7", "10")] = {"B_initial": -0.16746944, "B_limits": [-0.31746944, -0.01746944], "C_initial": 0.01675911, "C_limits": [-0.13324089, 0.16675911], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("7", "11")] = {"B_initial": -0.25863972, "B_limits": [-0.40863972, -0.10863972], "C_initial": 0.02537214, "C_limits": [-0.12462786, 0.17537214], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("7", "16")] = {"B_initial": -0.19092069, "B_limits": [-0.34092069, -0.04092069], "C_initial": -0.01616555, "C_limits": [-0.16616555, 0.13383445], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("7", "21")] = {"B_initial": -0.09700910, "B_limits": [-0.24700910, 0.05299090], "C_initial": -0.01238340, "C_limits": [-0.16238340, 0.13761660], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("7", "35")] = {"B_initial": -0.26399374, "B_limits": [-0.41399374, -0.11399374], "C_initial": 0.08181759, "C_limits": [-0.06818241, 0.23181759], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("9", "4")] = {"B_initial": -0.21780779, "B_limits": [-0.36780779, -0.06780779], "C_initial": -0.00644219, "C_limits": [-0.15644219, 0.14355781], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("9", "7")] = {"B_initial": -0.42646791, "B_limits": [-0.57646791, -0.27646791], "C_initial": 0.10851876, "C_limits": [-0.04148124, 0.25851876], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("10", "8")] = {"B_initial": -0.10529613, "B_limits": [-0.25529613, 0.04470387], "C_initial": -0.00722212, "C_limits": [-0.15722212, 0.14277788], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("10", "11")] = {"B_initial": -0.26884808, "B_limits": [-0.41884808, -0.11884808], "C_initial": 0.00956527, "C_limits": [-0.14043473, 0.15956527], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("11", "3")] = {"B_initial": -0.13196987, "B_limits": [-0.28196987, 0.01803013], "C_initial": 0.00447919, "C_limits": [-0.14552081, 0.15447919], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("11", "20")] = {"B_initial": -0.27771617, "B_limits": [-0.42771617, -0.12771617], "C_initial": 0.09349318, "C_limits": [-0.05650682, 0.24349318], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("12", "24")] = {"B_initial": -0.13330620, "B_limits": [-0.28330620, 0.01669380], "C_initial": 0.00787051, "C_limits": [-0.14212949, 0.15787051], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("13", "4")] = {"B_initial": -0.27077694, "B_limits": [-0.42077694, -0.12077694], "C_initial": -0.03331152, "C_limits": [-0.18331152, 0.11668848], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("13", "9")] = {"B_initial": -0.19959888, "B_limits": [-0.34959888, -0.04959888], "C_initial": -0.00087977, "C_limits": [-0.15087977, 0.14912023], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("13", "10")] = {"B_initial": -0.30455977, "B_limits": [-0.45455977, -0.15455977], "C_initial": 0.10226517, "C_limits": [-0.04773483, 0.25226517], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("14", "5")] = {"B_initial": -0.30210388, "B_limits": [-0.45210388, -0.15210388], "C_initial": -0.02684246, "C_limits": [-0.17684246, 0.12315754], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("15", "15")] = {"B_initial": -0.30574203, "B_limits": [-0.45574203, -0.15574203], "C_initial": 0.05745512, "C_limits": [-0.09254488, 0.20745512], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("15", "24")] = {"B_initial": -0.21155010, "B_limits": [-0.36155010, -0.06155010], "C_initial": 0.05044660, "C_limits": [-0.09955340, 0.20044660], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("16", "12")] = {"B_initial": -0.36264158, "B_limits": [-0.51264158, -0.21264158], "C_initial": 0.10556958, "C_limits": [-0.04443042, 0.25556958], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("16", "16")] = {"B_initial": -0.17797349, "B_limits": [-0.32797349, -0.02797349], "C_initial": -0.01243435, "C_limits": [-0.16243435, 0.13756565], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("17", "2")] = {"B_initial": -0.06313306, "B_limits": [-0.21313306, 0.08686694], "C_initial": -0.00451360, "C_limits": [-0.15451360, 0.14548640], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+
+# Pass 3. The half-width second pass still sat above this histogram's cosine.
+special_fit_parameters_set[("1", "12")] = {"B_initial": -0.24983000, "B_limits": [-0.39983000, -0.09983000], "C_initial": 0.04628000, "C_limits": [-0.10372000, 0.19628000], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("9", "32")] = {"B_initial": -0.17173000, "B_limits": [-0.32173000, -0.02173000], "C_initial": 0.00314000, "C_limits": [-0.14686000, 0.15314000], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}

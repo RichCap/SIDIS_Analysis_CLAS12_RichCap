@@ -1,0 +1,534 @@
+{
+  "1,1": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.49182381,
+    "B_limits": [
+      -0.95,
+      0.71709752
+    ],
+    "C_initial": -0.24941601,
+    "C_limits": [
+      -0.87149936,
+      0.37266733
+    ]
+  },
+  "1,15": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": 0.15572695,
+    "B_limits": [
+      -0.24826527,
+      0.55971917
+    ],
+    "C_initial": 0.10118226,
+    "C_limits": [
+      -0.14585485,
+      0.34821937
+    ]
+  },
+  "1,16": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": 0.07532708,
+    "B_limits": [
+      -0.07467292,
+      0.22532708
+    ],
+    "C_initial": 0.01050406,
+    "C_limits": [
+      -0.13949594,
+      0.16050406
+    ]
+  },
+  "1,22": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.30790631,
+    "B_limits": [
+      -0.95,
+      0.41480533
+    ],
+    "C_initial": -0.10636607,
+    "C_limits": [
+      -0.49309818,
+      0.28036605
+    ]
+  },
+  "1,24": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.11538721,
+    "B_limits": [
+      -0.26538721,
+      0.03461279
+    ],
+    "C_initial": -0.03791352,
+    "C_limits": [
+      -0.18791352,
+      0.11208648
+    ]
+  },
+  "1,4": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": 0.14340901,
+    "B_limits": [
+      -0.26414692,
+      0.55096494
+    ],
+    "C_initial": 0.20870802,
+    "C_limits": [
+      0.02393655,
+      0.3934795
+    ]
+  },
+  "1,5": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.12777825,
+    "B_limits": [
+      -0.29936276,
+      0.04380626
+    ],
+    "C_initial": 0.01686379,
+    "C_limits": [
+      -0.13313621,
+      0.16686379
+    ]
+  },
+  "1,8": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.35652006,
+    "B_limits": [
+      -0.95,
+      0.43536223
+    ],
+    "C_initial": -0.23163349,
+    "C_limits": [
+      -0.68521579,
+      0.22194881
+    ]
+  },
+  "10,14": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.07123659,
+    "B_limits": [
+      -0.22123659,
+      0.07876341
+    ],
+    "C_initial": 0.03265237,
+    "C_limits": [
+      -0.11734763,
+      0.18265237
+    ]
+  },
+  "10,31": {
+    "Allow_Multiple_Fits": false,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": 0.00113185,
+    "B_limits": [
+      -0.14886815,
+      0.15113185
+    ],
+    "C_initial": 0.07646414,
+    "C_limits": [
+      -0.07495584,
+      0.22788412
+    ]
+  },
+  "11,20": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.08516834,
+    "B_limits": [
+      -0.39081358,
+      0.22047691
+    ],
+    "C_initial": -0.05323926,
+    "C_limits": [
+      -0.25961779,
+      0.15313927
+    ]
+  },
+  "13,14": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.13329283,
+    "B_limits": [
+      -0.28329283,
+      0.01670717
+    ],
+    "C_initial": 0.02693579,
+    "C_limits": [
+      -0.12306421,
+      0.17693579
+    ]
+  },
+  "13,4": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.22374626,
+    "B_limits": [
+      -0.43558739,
+      -0.01190513
+    ],
+    "C_initial": -0.01559756,
+    "C_limits": [
+      -0.16559756,
+      0.13440244
+    ]
+  },
+  "14,9": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.20196956,
+    "B_limits": [
+      -0.35196956,
+      -0.05196956
+    ],
+    "C_initial": 0.00526186,
+    "C_limits": [
+      -0.14473814,
+      0.15526186
+    ]
+  },
+  "15,13": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.13329809,
+    "B_limits": [
+      -0.28329809,
+      0.01670191
+    ],
+    "C_initial": -0.065377,
+    "C_limits": [
+      -0.215377,
+      0.084623
+    ]
+  },
+  "15,24": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": 0.34816353,
+    "B_limits": [
+      -0.42783625,
+      0.95
+    ],
+    "C_initial": -0.6324186,
+    "C_limits": [
+      -0.95,
+      0.51889617
+    ]
+  },
+  "15,9": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.25897708,
+    "B_limits": [
+      -0.4541046,
+      -0.06384956
+    ],
+    "C_initial": -0.04222233,
+    "C_limits": [
+      -0.20211963,
+      0.11767497
+    ]
+  },
+  "16,13": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.04191543,
+    "B_limits": [
+      -0.19191543,
+      0.10808457
+    ],
+    "C_initial": 0.01993024,
+    "C_limits": [
+      -0.13006976,
+      0.16993024
+    ]
+  },
+  "2,14": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.17832552,
+    "B_limits": [
+      -0.51240749,
+      0.15575646
+    ],
+    "C_initial": -0.01497095,
+    "C_limits": [
+      -0.21113766,
+      0.18119576
+    ]
+  },
+  "2,29": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.1982829,
+    "B_limits": [
+      -0.3482829,
+      -0.0482829
+    ],
+    "C_initial": 0.05846496,
+    "C_limits": [
+      -0.09153504,
+      0.20846496
+    ]
+  },
+  "2,6": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.36422755,
+    "B_limits": [
+      -0.59839676,
+      -0.13005833
+    ],
+    "C_initial": 0.02302217,
+    "C_limits": [
+      -0.16446094,
+      0.21050529
+    ]
+  },
+  "2,7": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.07048096,
+    "B_limits": [
+      -0.26384088,
+      0.12287896
+    ],
+    "C_initial": -0.01178986,
+    "C_limits": [
+      -0.16299017,
+      0.13941045
+    ]
+  },
+  "5,13": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": 0.08354534,
+    "B_limits": [
+      -0.17142079,
+      0.33851147
+    ],
+    "C_initial": 0.09935853,
+    "C_limits": [
+      -0.0708004,
+      0.26951746
+    ]
+  },
+  "5,15": {
+    "Allow_Multiple_Fits": false,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.00446619,
+    "B_limits": [
+      -0.17924135,
+      0.17030897
+    ],
+    "C_initial": 0.09662049,
+    "C_limits": [
+      -0.05337951,
+      0.24662049
+    ]
+  },
+  "5,3": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.36593273,
+    "B_limits": [
+      -0.90983223,
+      0.17796676
+    ],
+    "C_initial": -0.02802028,
+    "C_limits": [
+      -0.32813638,
+      0.27209582
+    ]
+  },
+  "5,31": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": 0.09008243,
+    "B_limits": [
+      -0.47382302,
+      0.65398787
+    ],
+    "C_initial": 0.07117847,
+    "C_limits": [
+      -0.23559904,
+      0.37795598
+    ]
+  },
+  "5,5": {
+    "Allow_Multiple_Fits": false,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.01535285,
+    "B_limits": [
+      -0.66032581,
+      0.62962012
+    ],
+    "C_initial": 0.08630253,
+    "C_limits": [
+      -0.21618108,
+      0.38878613
+    ]
+  },
+  "5,7": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": 0.08315077,
+    "B_limits": [
+      -0.31311248,
+      0.47941402
+    ],
+    "C_initial": 0.0957958,
+    "C_limits": [
+      -0.15198844,
+      0.34358004
+    ]
+  },
+  "6,22": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.17639627,
+    "B_limits": [
+      -0.32639627,
+      -0.02639627
+    ],
+    "C_initial": -0.08964217,
+    "C_limits": [
+      -0.23964217,
+      0.06035783
+    ]
+  },
+  "6,27": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.06656084,
+    "B_limits": [
+      -0.21656084,
+      0.08343916
+    ],
+    "C_initial": -0.08146551,
+    "C_limits": [
+      -0.23146551,
+      0.06853449
+    ]
+  },
+  "7,15": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.09630515,
+    "B_limits": [
+      -0.24630515,
+      0.05369485
+    ],
+    "C_initial": -0.00294981,
+    "C_limits": [
+      -0.15294981,
+      0.14705019
+    ]
+  },
+  "7,22": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": false,
+    "B_initial": -0.11903027,
+    "B_limits": [
+      -0.26903027,
+      0.03096973
+    ],
+    "C_initial": -0.01870651,
+    "C_limits": [
+      -0.16870651,
+      0.13129349
+    ]
+  },
+  "7,3": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": 0.57696774,
+    "B_limits": [
+      -0.62149821,
+      0.95
+    ],
+    "C_initial": 0.35170566,
+    "C_limits": [
+      -0.0667482,
+      0.77015952
+    ]
+  },
+  "8,28": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.26514458,
+    "B_limits": [
+      -0.89723976,
+      0.36695059
+    ],
+    "C_initial": -0.14782599,
+    "C_limits": [
+      -0.60786338,
+      0.31221139
+    ]
+  },
+  "9,11": {
+    "Allow_Multiple_Fits": false,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.01130163,
+    "B_limits": [
+      -0.16264653,
+      0.14004328
+    ],
+    "C_initial": 0.08593328,
+    "C_limits": [
+      -0.06406672,
+      0.23593328
+    ]
+  },
+  "9,3": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.2932872,
+    "B_limits": [
+      -0.68890485,
+      0.10233046
+    ],
+    "C_initial": -0.06363014,
+    "C_limits": [
+      -0.29521079,
+      0.1679505
+    ]
+  },
+  "9,6": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.18162587,
+    "B_limits": [
+      -0.34869741,
+      -0.01455433
+    ],
+    "C_initial": 0.05284473,
+    "C_limits": [
+      -0.09715527,
+      0.20284473
+    ]
+  },
+  "9,7": {
+    "Allow_Multiple_Fits": true,
+    "Allow_Multiple_Fits_C": true,
+    "B_initial": -0.3680759,
+    "B_limits": [
+      -0.5180759,
+      -0.2180759
+    ],
+    "C_initial": 0.09800924,
+    "C_limits": [
+      -0.05199076,
+      0.24800924
+    ]
+  }
+}

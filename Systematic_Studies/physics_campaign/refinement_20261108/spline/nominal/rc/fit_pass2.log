@@ -1,0 +1,364 @@
+
+
+[1m[92m[43m
+
+    Will be Fitting Plots    
+[0m
+
+
+
+[1m[94mSmear option selected is: Smear[0m
+
+
+[91mRunning Bin 'All' for Q2-y Bins by default (will skip at end)[0m
+
+
+Running for Q2-xB/Q2-y Bins: '1', '3', '4', '10', '11', '13', '14', '15', '0'
+[1m
+Starting RG-A SIDIS Analysis
+[0m
+
+Started running on [1m11-8-2026[0m at [1m05:59 p.m.[0m
+
+
+[91m[1mUsing Existing TTree [0m[1m(File is: [4m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/nominal/rc/corrected.root[0m[1m)[91m[1m instead of Creating New Unfolded Histograms[0m
+
+[1m[94mRecovered: [1m[92m2712[0m[1m[94m items[0m
+
+
+Current Time: [1m05:59 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[94mNormal Unfolding Fits Already Included? -> [91m[1mFalse[0m
+[1mNot running RC... Did not check for RC fits.[0m
+[1mNot running BC... Did not check for BC fits.[0m
+
+[1m[94mMaking the fits...[0m
+
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     0)
+[92mLoaded special_fit_parameters_set from /Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/nominal/rc/refine_init.py[0m
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     1)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     2)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     3)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_5)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     4)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     5)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     6)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     7)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     8)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num     9)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    10)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    11)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    12)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    13)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    14)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    15)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    16)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    17)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    18)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    19)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    20)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    21)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    22)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    23)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    24)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    25)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_30)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    26)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_31)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    27)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_32)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num    28)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1620)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1621)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1622)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1623)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_5)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1624)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1625)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1626)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1627)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1628)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1629)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1630)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1631)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1632)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1633)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1634)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1635)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1636)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1637)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1638)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1639)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1640)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1641)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1642)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1643)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1644)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_27)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1645)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_28)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1646)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1647)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_31)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1648)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_32)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1649)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_33)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1650)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_10)_(z_pT_Bin_34)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1651)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1652)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1653)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1654)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1655)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1656)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1657)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1658)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1659)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1660)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1661)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1662)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1663)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1664)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1665)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1666)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1667)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1668)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1669)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1670)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1671)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1672)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1673)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_11)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1674)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1675)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1676)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1677)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1678)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_5)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1679)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1680)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1681)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1682)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1683)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1684)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1685)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1686)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1687)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1688)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1689)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1690)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1691)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1692)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1693)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1694)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1695)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1696)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1697)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1698)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_27)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1699)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_13)_(z_pT_Bin_28)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1700)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1701)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1702)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1703)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1704)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_5)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1705)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1706)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1707)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1708)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1709)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1710)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1711)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1712)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1713)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1714)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1715)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1716)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1717)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1718)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1719)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1720)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1721)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1722)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1723)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1724)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_27)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1725)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_28)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1726)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1727)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_31)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1728)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_32)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1729)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_33)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1730)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_14)_(z_pT_Bin_34)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1731)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1732)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1733)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1734)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1735)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1736)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1737)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1738)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1739)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1740)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1741)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1742)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1743)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1744)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1745)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1746)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1747)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1748)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1749)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_15)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1750)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1751)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1752)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1753)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1754)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_5)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1755)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1756)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1757)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1758)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1759)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1760)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1761)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1762)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1763)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1764)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1765)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1766)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1767)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1768)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1769)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1770)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1771)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1772)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1773)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1774)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1775)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_27)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1776)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_28)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1777)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_3)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1778)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1779)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1780)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1781)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1782)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1783)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1784)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1785)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1786)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1787)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1788)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1789)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_21)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1790)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1791)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1792)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1793)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1794)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_27)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1795)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_28)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1796)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1797)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_31)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1798)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_32)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1799)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_33)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1800)
+Fitting for: [1m(MultiDim_3D_Histo)_(RC_Bayesian)_(SMEAR=Smear)_(Q2_y_Bin_4)_(z_pT_Bin_34)_(MultiDim_z_pT_Bin_Y_bin_phi_t)[0m (Histo Num  1801)
+
+[1m[94mFit/Added [0m[1m211[1m[94m Histograms[0m[94m
+Adding to Main List...[0m
+
+[1m[92mLength of Main List of Histograms (After adding Fits): [0m[1m2712[0m
+
+
+Current Time: [1m05:59 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 19 Second(s).
+
+
+
+Counting Total Number of/Saving collected histograms...
+[1m[94mSaving to: [1m[92m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/nominal/rc/corrected.root[0m
+[1m[94mWriting only this pass's fitted objects ([0m[1m1266[1m[94m).[0m
+
+[1m[96mDone Saving![0m
+
+Final Count = 2712
+
+
+Current Time: [1m05:59 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 20 Second(s).
+
+
+[1m[94mSaved Fit Parameters JSON as [1m[92m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/nominal/rc/fit.json[1m[94m (total entries now = 2)[0m
+
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 20 Second(s). 
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Simple_RooUnfold_SelfContained.py' script has finished running.
+Started running on [1m11-8-2026[0m at [1m05:59 p.m.[0m
+
+Input File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/nominal/rc/corrected.root
+Output File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/nominal/rc/corrected.root
+
+
+[1m[96mDone Saving JSON File.[0m
+Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 20 Second(s). 
+
+Arguments:
+--unfolding_3D (3D Unfolding Only)                  --> True
+--unfolding_5D (Ran 5D Unfolding Fits)              --> False
+--run_sectors                                       --> False
+--sectors_to_unfold                                 --> None
+--allow_other_variables (for unfolding)             --> False
+--simulation (unfolding synthetic data)             --> False
+--modulation (data unfolded with modulated MC)      --> False
+--closure  (modulated MC unfolded with itself)      --> False
+--weighed_acceptance (use acceptance weights only)  --> False
+--test                                              --> False
+--verbose                                           --> False
+--weight_tag                                        --> ''
+--fit                                               --> True
+--remake_fit                                        --> True
+--CrossSection_Norm                                 --> False
+--tag_proton                                        --> False
+--cut_proton                                        --> False
+--Common_Int_Bins                                   --> False
+--bayes_iterations                                  --> None
+--Num_Toys                                          --> 500
+--error_mode                                        --> 'covariance'
+--old_binning                                       --> False
+--no_post_unfold_acc_cut                            --> False
+--bin_by_bin_only                                   --> False
+--Unfold_Methods                                    --> ['Bayesian']
+--title                                             --> None
+--EvGen                                             --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.02
+--Use_TTree                                         --> True
+--Apply_RC                                          --> False
+--Apply_BC                                          --> False
+--Add_Uncertainties                                 --> False
+--fit_error_source                                  --> 'histogram'
+--fit_corrections                                   --> 'RC_Bayesian'
+--save_json                                         --> True
+--json_name                                         --> '/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/nominal/rc/fit.json'
+--old_json                                          --> False
+--background_source                                 --> 'rho0_new'
+--unfold_exclusive_rho0                             --> False
+--use_spline_init                                   --> False
+--fit_init_file                                     --> '/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/refinement_20261108/spline/nominal/rc/refine_init.py'
+--data_root                                         --> 'work'
+--pass_version                                      --> 'Pass 2'
+--smearing_options                                  --> 'smear'
+--Q2_y_Bin_List                                     --> ['1', '3', '4', '10', '11', '13', '14', '15', '0']
+--Run_5D_Unfold                                     --> False
+--run_sec_unfold                                    --> False
+--_fit_corrections_seen                             --> True
+
+
+The time that this code finished is [1m05:59 p.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 20 Second(s).
+Saved 2712 Histograms...
+Rate = 135.60 Histograms/Seconds
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+    
+    

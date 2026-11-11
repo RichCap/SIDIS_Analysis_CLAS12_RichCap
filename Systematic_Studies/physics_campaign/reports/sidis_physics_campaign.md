@@ -2212,3 +2212,21 @@ python Full_Moment_Plots_Creation_From_JSON.py -srm
 ```
 
 The two result commands were run in `Results/Moment_Images/normalized_bc_final/`. Thesis compile again: `/opt/homebrew/bin/tectonic --keep-logs -p main.tex`. Exit 0. `main.pdf` is 1552 pages.
+
+### Refinement propagation, 8 November 2026
+
+Refits already in `physics_campaign/refinement_20261108` were accepted and were not run again. The budget is `budgets/rerun_refinement_20261108/budget.json`. Per-bin source contributions, shares, and ranks are `budgets/rerun_refinement_20261108/per_bin_source_shares.json`. `budgets/rerun_20261104`, `budgets/rerun_20261106_sector_exclusions`, and `budgets/rerun_20261106_sector_12_23` were not overwritten. The unweighted normalized file was not rewritten. No RMS mosaics and no physics-injection figures were regenerated.
+
+The A0 scale is the archived spline A0 divided by the pre-refinement spline BC raw A, applied once. B and C are not scaled. Using the refined raw A in that denominator would move the scale by up to 4.2% and would freeze every normalized A0 at the archive, so that denominator was not used. The 5D pair still uses the unweighted normalized A0 over the pre-refinement unweighted BC raw A. Those two scales differ by at most 2.7e-16.
+
+Physics injection is the refined spline BC result minus the refined unweighted BC result. A is scaled once with the historical scale on each side. B and C are unscaled. The original rebuild script instead subtracts the stored unweighted normalized A0, which does not move when the accepted unweighted BC refit changes the raw amplitude. That frozen-file subtraction differs from the refined-BC subtraction by up to 0.02085 in A0. The stored unweighted file was left unchanged. This run did not adopt the frozen-file subtraction.
+
+The RC baseline is the refined event-yield RC, not `corrected/spline/rc/fit_before_guide.json`. The historical match to `rerun_20261104` was not used as a gate, because the refined inputs are not those fits.
+
+`source_fit_fingerprint` in `corrected/spline/normalized_bc.json` still matches `corrected/spline/bc/fit.json`. That file was not replaced. The normalized central values that changed come from `refinement_20261108/spline/nominal/bc/fit.json`. The loader rejects a fingerprint that does not match the untouched BC file, so the pointer was left in place. The material change is `(Q2_y_Bin_1)-(z_pT_Bin_8)`: A0 0.25580 to 0.24543, B -0.04499 to -0.11602, and C 3.35e-8 to -0.05166. Fifteen other parameter updates are smaller than 1e-6. Fit errors were not copied into `Fit_Par_*_SYS`.
+
+Sector accounting is unchanged: 375 missing stored fits, 74 present but unusable, 420 usable comparisons excluded, 72 requested entries already unavailable, 2 unmatched stored bins, 4,555 comparisons kept, and 45 bins with no usable sector comparison. Excluded pairs stay omitted. Missing comparisons stay missing.
+
+Combined RMS is A0 0.03137, cos phi_h 0.1341, and cos 2phi_h 0.06021. Table 6.1 gives each source RMS and its share of the summed squared per-bin source RMS values. A bin share uses only the sources present in that bin. The combined row remains the root-mean-square of the per-bin quadratures. The previous normalized file is `corrected/spline/normalized_bc_before_refinement_20261108.json`.
+
+Width extraction is `kt2/spline/run_20261108_quad_refinement`, quadrature uncertainties, already normalized. 91 rows, one slope whose two-standard-deviation interval includes zero (`Q2-y` 15, `z = 0.555`). Printed central widths still run from 0.161 to 0.304 GeV^2. Sixty-six rows change at three printed digits. `Results/Moment_Images/kT2_vs_z_all_Q2y.pdf` was redrawn with `draw_width` only. The six nominal moment PDFs were redrawn from the updated normalized file with systematic vertical bars, the existing thesis title, bin-center labels, points only, and horizontal stagger.

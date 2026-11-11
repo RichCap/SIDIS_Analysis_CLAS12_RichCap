@@ -1,0 +1,54 @@
+# Run-local BC_RC guide for spline bcs_spline. The shared Phi_h files are not edited.
+# start=auto chose the universal spline file. A BC_RC histogram selects ("q","z","3D","BC"), then ("q","z","BC"), then ("q","z").
+# For these 452 histograms that is 447 untagged, 3 legacy BC, and 2 3D BC keys.
+# Numeric B windows have median width 0.17 and 5 of 147 are narrower than 0.05. Numeric C windows have median width 0.10 and 10 of 147 are narrower than 0.05.
+# 305 selected keys have no numeric B window. Those windows are not tight, so this is not the manual baseline.
+# --use_spline_init is not passed.
+import importlib.util
+spline_path = "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/Phi_h_Fit_Parameters_from_Spline.py"
+spec = importlib.util.spec_from_file_location("spline_phi_init", spline_path)
+spline_phi_init = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(spline_phi_init)
+special_fit_parameters_set = dict(spline_phi_init.special_fit_parameters_set)
+
+# Pass 2: open only histograms whose own cosine lowers chi-squared by more than 0.5 versus pass 1.
+# Starts are that cosine, not the nominal BC parameters. (15,24) already improved on the spline 3D BC key and is not overridden.
+special_fit_parameters_set[("1", "4", "3D", "BC")] = {"B_initial": -0.18171914, "B_limits": [-0.38171914, 0.01828086], "C_initial": 0.02406436, "C_limits": [-0.17593564, 0.22406436], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("1", "5", "3D", "BC")] = {"B_initial": -0.18531792, "B_limits": [-0.38531792, 0.01468208], "C_initial": -0.01417290, "C_limits": [-0.21417290, 0.18582710], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("1", "8", "3D", "BC")] = {"B_initial": -0.10490393, "B_limits": [-0.30490393, 0.09509607], "C_initial": -0.04430169, "C_limits": [-0.24430169, 0.15569831], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("1", "9", "3D", "BC")] = {"B_initial": 0.00572311, "B_limits": [-0.19427689, 0.20572311], "C_initial": -0.01749362, "C_limits": [-0.21749362, 0.18250638], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("1", "10", "3D", "BC")] = {"B_initial": -0.04764617, "B_limits": [-0.24764617, 0.15235383], "C_initial": -0.01147912, "C_limits": [-0.21147912, 0.18852088], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("1", "16", "3D", "BC")] = {"B_initial": 0.01394962, "B_limits": [-0.18605038, 0.21394962], "C_initial": -0.00444106, "C_limits": [-0.20444106, 0.19555894], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("1", "17", "3D", "BC")] = {"B_initial": -0.03482249, "B_limits": [-0.23482249, 0.16517751], "C_initial": -0.02758289, "C_limits": [-0.22758289, 0.17241711], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("1", "22", "3D", "BC")] = {"B_initial": -0.00323815, "B_limits": [-0.20323815, 0.19676185], "C_initial": 0.03063777, "C_limits": [-0.16936223, 0.23063777], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("2", "7", "3D", "BC")] = {"B_initial": -0.02576662, "B_limits": [-0.22576662, 0.17423338], "C_initial": 0.02007444, "C_limits": [-0.17992556, 0.22007444], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("2", "14", "3D", "BC")] = {"B_initial": 0.01395667, "B_limits": [-0.18604333, 0.21395667], "C_initial": 0.03301707, "C_limits": [-0.16698293, 0.23301707], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("2", "29", "3D", "BC")] = {"B_initial": -0.14556927, "B_limits": [-0.34556927, 0.05443073], "C_initial": 0.05520533, "C_limits": [-0.14479467, 0.25520533], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("3", "3", "3D", "BC")] = {"B_initial": -0.13845179, "B_limits": [-0.33845179, 0.06154821], "C_initial": 0.01247491, "C_limits": [-0.18752509, 0.21247491], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("3", "16", "3D", "BC")] = {"B_initial": -0.12143501, "B_limits": [-0.32143501, 0.07856499], "C_initial": -0.01630492, "C_limits": [-0.21630492, 0.18369508], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("3", "24", "3D", "BC")] = {"B_initial": -0.14690014, "B_limits": [-0.34690014, 0.05309986], "C_initial": 0.04050317, "C_limits": [-0.15949683, 0.24050317], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("3", "29", "3D", "BC")] = {"B_initial": -0.20214702, "B_limits": [-0.40214702, -0.00214702], "C_initial": 0.07953106, "C_limits": [-0.12046894, 0.27953106], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("4", "29", "3D", "BC")] = {"B_initial": -0.17179231, "B_limits": [-0.37179231, 0.02820769], "C_initial": 0.01667457, "C_limits": [-0.18332543, 0.21667457], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("4", "33", "3D", "BC")] = {"B_initial": -0.06748914, "B_limits": [-0.26748914, 0.13251086], "C_initial": -0.09569032, "C_limits": [-0.29569032, 0.10430968], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("4", "34", "3D", "BC")] = {"B_initial": -0.10453751, "B_limits": [-0.30453751, 0.09546249], "C_initial": -0.00781150, "C_limits": [-0.20781150, 0.19218850], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("5", "6", "3D", "BC")] = {"B_initial": -0.23401142, "B_limits": [-0.43401142, -0.03401142], "C_initial": 0.03996291, "C_limits": [-0.16003709, 0.23996291], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("5", "7", "3D", "BC")] = {"B_initial": -0.02562034, "B_limits": [-0.22562034, 0.17437966], "C_initial": 0.01759845, "C_limits": [-0.18240155, 0.21759845], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("5", "9", "3D", "BC")] = {"B_initial": -0.05746884, "B_limits": [-0.25746884, 0.14253116], "C_initial": 0.01076027, "C_limits": [-0.18923973, 0.21076027], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("5", "15", "3D", "BC")] = {"B_initial": -0.06204418, "B_limits": [-0.26204418, 0.13795582], "C_initial": 0.01539303, "C_limits": [-0.18460697, 0.21539303], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("5", "31", "3D", "BC")] = {"B_initial": 0.02502410, "B_limits": [-0.17497590, 0.22502410], "C_initial": 0.03780312, "C_limits": [-0.16219688, 0.23780312], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("6", "1", "3D", "BC")] = {"B_initial": -0.04583432, "B_limits": [-0.24583432, 0.15416568], "C_initial": 0.01483335, "C_limits": [-0.18516665, 0.21483335], "Allow_Multiple_Fits": False, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("6", "2", "3D", "BC")] = {"B_initial": -0.10744537, "B_limits": [-0.30744537, 0.09255463], "C_initial": 0.03268360, "C_limits": [-0.16731640, 0.23268360], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("7", "21", "3D", "BC")] = {"B_initial": -0.05497814, "B_limits": [-0.25497814, 0.14502186], "C_initial": -0.01811887, "C_limits": [-0.21811887, 0.18188113], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("7", "35", "3D", "BC")] = {"B_initial": -0.19990844, "B_limits": [-0.39990844, 0.00009156], "C_initial": 0.07447481, "C_limits": [-0.12552519, 0.27447481], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("9", "4", "3D", "BC")] = {"B_initial": -0.17453714, "B_limits": [-0.37453714, 0.02546286], "C_initial": -0.00565918, "C_limits": [-0.20565918, 0.19434082], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("9", "7", "3D", "BC")] = {"B_initial": -0.33404936, "B_limits": [-0.53404936, -0.13404936], "C_initial": 0.08133195, "C_limits": [-0.11866805, 0.28133195], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("10", "5", "3D", "BC")] = {"B_initial": -0.22766458, "B_limits": [-0.42766458, -0.02766458], "C_initial": -0.03007357, "C_limits": [-0.23007357, 0.16992643], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("10", "8", "3D", "BC")] = {"B_initial": -0.07427041, "B_limits": [-0.27427041, 0.12572959], "C_initial": -0.01010613, "C_limits": [-0.21010613, 0.18989387], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("10", "11", "3D", "BC")] = {"B_initial": -0.19574379, "B_limits": [-0.39574379, 0.00425621], "C_initial": -0.00489939, "C_limits": [-0.20489939, 0.19510061], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("11", "3", "3D", "BC")] = {"B_initial": -0.09253743, "B_limits": [-0.29253743, 0.10746257], "C_initial": 0.00082082, "C_limits": [-0.19917918, 0.20082082], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("11", "10", "3D", "BC")] = {"B_initial": -0.22001131, "B_limits": [-0.42001131, -0.02001131], "C_initial": 0.00476797, "C_limits": [-0.19523203, 0.20476797], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("11", "20", "3D", "BC")] = {"B_initial": -0.20853041, "B_limits": [-0.40853041, -0.00853041], "C_initial": 0.08197981, "C_limits": [-0.11802019, 0.28197981], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}
+special_fit_parameters_set[("13", "4", "3D", "BC")] = {"B_initial": -0.21812172, "B_limits": [-0.41812172, -0.01812172], "C_initial": -0.03760215, "C_limits": [-0.23760215, 0.16239785], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("14", "5", "3D", "BC")] = {"B_initial": -0.24687142, "B_limits": [-0.44687142, -0.04687142], "C_initial": -0.03629605, "C_limits": [-0.23629605, 0.16370395], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("15", "15", "3D", "BC")] = {"B_initial": -0.24619281, "B_limits": [-0.44619281, -0.04619281], "C_initial": 0.04321788, "C_limits": [-0.15678212, 0.24321788], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": False}
+special_fit_parameters_set[("16", "12", "3D", "BC")] = {"B_initial": -0.28474724, "B_limits": [-0.48474724, -0.08474724], "C_initial": 0.08601739, "C_limits": [-0.11398261, 0.28601739], "Allow_Multiple_Fits": True, "Allow_Multiple_Fits_C": True}

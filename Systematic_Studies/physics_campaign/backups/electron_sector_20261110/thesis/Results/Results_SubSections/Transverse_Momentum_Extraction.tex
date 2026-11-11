@@ -1,0 +1,240 @@
+The transverse-momentum dependence of $A_{0}$ provides an extraction of an effective Gaussian width over the fitted range in each $Q^{2}$--$y$ and $z$ bin. In the Gaussian approximation of \cite{Anselmino:2005nn}, that width contains contributions from both the parton's transverse momentum and the transverse momentum generated in fragmentation:
+\begin{equation}
+    \kappa_T^{2}(z) = z^{2}\langle k_{\perp}^{2}\rangle + \langle p_{\perp}^{2}\rangle
+\end{equation}
+Here, $k_{\perp}$ denotes the parton's intrinsic transverse momentum, and $p_{\perp}$ denotes the hadron's transverse momentum relative to the fragmenting parton. $\kappa_T^{2}(z)$ is the effective Gaussian width, written without an average over $P_T$. Measuring it versus $z$ shows how the transverse broadening of the pion distribution changes with the hadron energy fraction.
+
+At fixed $Q^{2}$, $y$, and $z$, $A_{0}$ is parameterized by a Gaussian in transverse momentum, giving an exponential dependence on $P_T^{2}$:
+\begin{equation}
+    A_{0}(P_T^{2}) = C_{0}\exp\!\left[-P_T^{2}/\kappa_T^{2}(z)\right]
+    \label{eq:A0Gaussian}
+\end{equation}
+Taking the natural logarithm gives
+\begin{equation}
+    \ln A_{0} = b - P_T^{2}/\kappa_T^{2}(z)
+    \label{eq:LnA0Line}
+\end{equation}
+The fit parameters are $b$ and $\kappa_T^{2}(z)$. This is the same Gaussian model as a straight line in $P_T^{2}$,
+\begin{equation}
+    \kappa_T^{2}(z)=-\frac{1}{a}
+    \label{eq:kT2Definition}
+\end{equation}
+where $a$ is the equivalent slope. The fit does not assign $a$ a separate uncertainty.
+
+The uncertainties on the fitted points, and the weights of the fit, use only the systematic uncertainties on $A_{0}$. On $\ln A_{0}$ that uncertainty is the systematic uncertainty divided by $A_{0}$. The uncertainty printed with $\kappa_T^{2}(z)$ is the uncertainty returned by this fit. The extracted widths are listed in \Cref{tab:MeanKT2}. A dagger marks a fit whose uncertainty is at least half the absolute value of the width. That marker records a large relative fit uncertainty. It does not mean the fit failed. \Cref{fig:LnA0_all} shows the logarithmic fits, and \Cref{fig:kT2_all} shows the extracted widths versus $z$ in each $Q^{2}$--$y$ bin. The widths tend to increase with $z$ in most bins.
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{6pt}
+\begin{longtable}{|r|r|c|}
+\hline
+$Q^{2}$--$y$ & $z$ & $\kappa_T^{2}(z)\pm\delta\kappa_T^{2}(z)$ \\
+\hline
+\endfirsthead
+\hline
+$Q^{2}$--$y$ & $z$ & $\kappa_T^{2}(z)\pm\delta\kappa_T^{2}(z)$ \\
+\hline
+\endhead
+\multicolumn{3}{r}{\emph{Continued on the next page}}\\
+\endfoot
+\caption{Effective Gaussian widths $\kappa_T^{2}(z)$ in $\mathrm{GeV}^{2}$. Each value and its uncertainty come from the weighted fit of \Cref{eq:LnA0Line}. The point uncertainties and the weights use only the systematic uncertainty on $A_{0}$. A dagger marks a fit whose uncertainty is at least half the absolute value of the width.}
+\label{tab:MeanKT2}\\
+\endlastfoot
+1 & 0.175 & $0.192\pm0.024$ \\
+\hline
+1 & 0.210 & $0.184\pm0.018$ \\
+\hline
+1 & 0.260 & $0.190\pm0.013$ \\
+\hline
+1 & 0.345 & $0.208\pm0.010$ \\
+\hline
+1 & 0.555 & $0.284\pm0.029$ \\
+\hline
+2 & 0.210 & $0.181\pm0.018$ \\
+\hline
+2 & 0.245 & $0.189\pm0.013$ \\
+\hline
+2 & 0.285 & $0.198\pm0.012$ \\
+\hline
+2 & 0.345 & $0.207\pm0.008$ \\
+\hline
+2 & 0.440 & $0.240\pm0.012$ \\
+\hline
+2 & 0.625 & $0.271\pm0.023$ \\
+\hline
+3 & 0.250 & $0.228\pm0.027$ \\
+\hline
+3 & 0.305 & $0.202\pm0.010$ \\
+\hline
+3 & 0.370 & $0.225\pm0.012$ \\
+\hline
+3 & 0.485 & $0.248\pm0.018$ \\
+\hline
+3 & 0.640 & $0.256\pm0.032$ \\
+\hline
+4 & 0.295 & $0.229\pm0.042$ \\
+\hline
+4 & 0.355 & $0.222\pm0.022$ \\
+\hline
+4 & 0.405 & $0.223\pm0.020$ \\
+\hline
+4 & 0.465 & $0.213\pm0.019$ \\
+\hline
+4 & 0.545 & $0.208\pm0.034$ \\
+\hline
+5 & 0.180 & $0.187\pm0.018$ \\
+\hline
+5 & 0.220 & $0.192\pm0.014$ \\
+\hline
+5 & 0.270 & $0.201\pm0.012$ \\
+\hline
+5 & 0.340 & $0.215\pm0.008$ \\
+\hline
+5 & 0.435 & $0.241\pm0.012$ \\
+\hline
+5 & 0.605 & $0.304\pm0.028$ \\
+\hline
+6 & 0.205 & $0.197\pm0.028$ \\
+\hline
+6 & 0.255 & $0.212\pm0.015$ \\
+\hline
+6 & 0.315 & $0.218\pm0.011$ \\
+\hline
+6 & 0.400 & $0.231\pm0.009$ \\
+\hline
+6 & 0.585 & $0.266\pm0.028$ \\
+\hline
+7 & 0.245 & $0.211\pm0.017$ \\
+\hline
+7 & 0.290 & $0.222\pm0.015$ \\
+\hline
+7 & 0.340 & $0.210\pm0.008$ \\
+\hline
+7 & 0.410 & $0.226\pm0.008$ \\
+\hline
+7 & 0.515 & $0.246\pm0.012$ \\
+\hline
+7 & 0.635 & $0.245\pm0.051$ \\
+\hline
+8 & 0.300 & $0.245\pm0.033$ \\
+\hline
+8 & 0.345 & $0.218\pm0.019$ \\
+\hline
+8 & 0.375 & $0.210\pm0.017$ \\
+\hline
+8 & 0.415 & $0.217\pm0.017$ \\
+\hline
+8 & 0.465 & $0.224\pm0.030$ \\
+\hline
+8 & 0.525 & $0.188\pm0.044$ \\
+\hline
+9 & 0.180 & $0.192\pm0.031$ \\
+\hline
+9 & 0.220 & $0.190\pm0.016$ \\
+\hline
+9 & 0.270 & $0.202\pm0.010$ \\
+\hline
+9 & 0.360 & $0.219\pm0.011$ \\
+\hline
+9 & 0.560 & $0.289\pm0.027$ \\
+\hline
+10 & 0.210 & $0.185\pm0.016$ \\
+\hline
+10 & 0.245 & $0.196\pm0.014$ \\
+\hline
+10 & 0.290 & $0.209\pm0.013$ \\
+\hline
+10 & 0.360 & $0.216\pm0.009$ \\
+\hline
+10 & 0.450 & $0.244\pm0.011$ \\
+\hline
+10 & 0.610 & $0.266\pm0.023$ \\
+\hline
+11 & 0.245 & $0.209\pm0.026$ \\
+\hline
+11 & 0.295 & $0.215\pm0.015$ \\
+\hline
+11 & 0.355 & $0.220\pm0.012$ \\
+\hline
+11 & 0.455 & $0.238\pm0.018$ \\
+\hline
+11 & 0.605 & $0.243\pm0.044$ \\
+\hline
+12 & 0.300 & $0.232\pm0.035$ \\
+\hline
+12 & 0.350 & $0.209\pm0.026$ \\
+\hline
+12 & 0.400 & $0.212\pm0.020$ \\
+\hline
+12 & 0.470 & $0.214\pm0.042$ \\
+\hline
+13 & 0.180 & $0.202\pm0.037$ \\
+\hline
+13 & 0.220 & $0.197\pm0.020$ \\
+\hline
+13 & 0.265 & $0.222\pm0.022$ \\
+\hline
+13 & 0.320 & $0.208\pm0.013$ \\
+\hline
+13 & 0.405 & $0.232\pm0.019$ \\
+\hline
+13 & 0.590 & $0.288\pm0.050$ \\
+\hline
+14 & 0.210 & $0.191\pm0.023$ \\
+\hline
+14 & 0.250 & $0.196\pm0.014$ \\
+\hline
+14 & 0.295 & $0.210\pm0.017$ \\
+\hline
+14 & 0.355 & $0.205\pm0.010$ \\
+\hline
+14 & 0.445 & $0.226\pm0.014$ \\
+\hline
+14 & 0.605 & $0.258\pm0.044$ \\
+\hline
+15 & 0.245 & $0.184\pm0.033$ \\
+\hline
+15 & 0.295 & $0.203\pm0.035$ \\
+\hline
+15 & 0.360 & $0.185\pm0.016$ \\
+\hline
+15 & 0.445 & $0.211\pm0.039$ \\
+\hline
+15 & 0.555 & $0.217\pm0.173$ $^{\dagger}$ \\
+\hline
+16 & 0.180 & $0.188\pm0.050$ \\
+\hline
+16 & 0.220 & $0.186\pm0.028$ \\
+\hline
+16 & 0.275 & $0.192\pm0.020$ \\
+\hline
+16 & 0.365 & $0.200\pm0.015$ \\
+\hline
+16 & 0.545 & $0.236\pm0.029$ \\
+\hline
+17 & 0.210 & $0.160\pm0.035$ \\
+\hline
+17 & 0.255 & $0.175\pm0.027$ \\
+\hline
+17 & 0.310 & $0.175\pm0.017$ \\
+\hline
+17 & 0.390 & $0.191\pm0.023$ \\
+\hline
+17 & 0.530 & $0.200\pm0.087$ \\
+\hline
+\end{longtable}
+\endgroup
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.98\linewidth]{Results/Moment_Images/lnA0_vs_PT2_all_Q2y.pdf}
+    \caption{$\ln A_{0}$ versus $P_T^{2}$ in all 17 $Q^{2}$--$y$ bins. Each color represents a $z$ interval. The vertical bars are the $A_{0}$ systematic uncertainty divided by $A_{0}$. The lines are the fits of \Cref{eq:LnA0Line}.}
+    \label{fig:LnA0_all}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.94\linewidth]{Results/Moment_Images/kT2_vs_z_all_Q2y.pdf}
+    \caption{Effective Gaussian width $\kappa_T^{2}(z)$ versus $z$ in all 17 $Q^{2}$--$y$ bins. The vertical bars are the fit uncertainties from the systematic-only extraction. The vertical scale is common to every panel. A star marks the point whose fit uncertainty is at least half the absolute value of the width.}
+    \label{fig:kT2_all}
+\end{figure}

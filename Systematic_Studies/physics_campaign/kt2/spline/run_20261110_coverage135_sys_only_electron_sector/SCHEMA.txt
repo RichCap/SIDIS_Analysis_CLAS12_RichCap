@@ -1,0 +1,74 @@
+kt2_results.tsv has one row for each attempted (Q2, y, z) extraction.
+Blank numeric fields mean the quantity is undefined for that row.
+Units: Q2 in GeV^2, P_T in GeV, P_T^2 and <k_T^2> in GeV^2. A0 is the fully corrected cross section after one P_T^2 normalization.
+
+The fit is ln A0 = b - P_T^2 / kappa, with kappa = <k_T^2> free.
+ROOT option SQN. kt2_err is GetParError of kappa. It is not scaled by sqrt(chi2/ndf) and it is not a Minos error.
+a = -1/kappa is stored as a central value only. a_err is blank. No sigma_a/a^2 term is added to kt2_err.
+cov_bk is Cov(b, kappa).
+unsuccessful: minimizer status is not 0, IsValid is false, or kappa is not finite. Those rows are not ordinary measurements.
+unreliable_covariance: status 0 and finite kappa, but CovMatrixStatus is not 3 or kt2_err is not finite. Not an ordinary measurement.
+large_relative_uncertainty: |kt2_err| >= |kt2| / 2 on an otherwise accurate fit. This flags a large fit uncertainty. It does not mean the width is undetermined.
+negative_width: kappa < 0. The row stays eligible when the other quality checks pass.
+linear_kt2 = -1/a from the same weights. linear_abs_diff = |kt2 - linear_kt2|.
+Agreement requires linear_abs_diff <= max(1.0e-06, 1.0e-05 * max(|kt2|, |linear_kt2|)).
+linear_disagreement means that test failed. The linear uncertainty is not reported.
+poor: chi2/ndf > 2.0. log_uncertainty_large: at least one used point has sigma_A/A > 0.5.
+ln_c0_err = b_err. c0 = exp(b). c0_err = exp(b) * b_err. That intercept transformation is not added to kt2_err.
+
+kt2_results.tsv columns:
+  q2y_bin
+  q2
+  q2_min
+  q2_max
+  y
+  y_min
+  y_max
+  z_row
+  z
+  z_min
+  z_max
+  n_points
+  n_excluded
+  excluded_zpt
+  a
+  a_err
+  b
+  b_err
+  inv_kt2
+  inv_kt2_err
+  kt2
+  kt2_err
+  ln_c0
+  ln_c0_err
+  c0
+  c0_err
+  chi2
+  ndf
+  chi2_ndf
+  cov_bk
+  fit_status
+  cov_status
+  linear_kt2
+  linear_abs_diff
+  status
+
+kt2_points.tsv columns:
+  q2y_bin
+  q2
+  y
+  z_row
+  z
+  zpt_bin
+  pT
+  pT2
+  pT_min
+  pT_max
+  A
+  A_err
+  ln_rel_err
+  used
+  exclude_reason
+
+pT2 is the square of the P_T bin midpoint, not the midpoint of the squared borders.
+Normalization is applied once: A0 = Fit_Par_A / (bin area * luminosity * photon flux), with Delta(pT2) in the bin area.

@@ -1,0 +1,142 @@
+% Each systematic uncertainty is evaluated by repeating the moment extraction after one analysis choice is changed and the remaining procedure is held at its nominal definition. The effect is the resulting change in $A_{0}$, $A_{UU}^{\cos\phi_h}$, and $A_{UU}^{\cos 2\phi_h}$. \Cref{tab:SystematicUncertainties} lists the variations while the subsections below state, for each one, what was changed and what was held fixed.
+
+% In that table, each moment is a root-mean-square over the bins in which the comparison was determined. Where more than one alternative was fit, the contribution in a bin is the root-mean-square of those shifts, with the number of shifts inside the square root, and the tabulated value is the root-mean-square of those contributions. A bin or an alternative that was not determined is omitted and is not entered as zero. $A_{0}$ is the normalized amplitude of the nominal spline-weighted measurement. \Cref{tab:PCalVolumeImpact,tab:VertexSeparationImpact,tab:SectorPCalImpact} quote the raw fit amplitude $A$, not $A_{0}$; those values are not copied here. $A_{UU}^{\cos\phi_h}$ and $A_{UU}^{\cos 2\phi_h}$ are not rescaled.
+
+% %For the $\phi_h$ binning, the twelve-bin amplitude is divided by two before it is compared with the twenty-four-bin amplitude. The acceptance-method entry is only the bin-by-bin comparison: no one-dimensional shift is assigned, and the five-dimensional comparison is not a shift of this measurement. The one-update insertion of the per-bin fit into the bin-centering weight has not been evaluated and is not assigned. The kinematic sampling and the two stored spline models were evaluated on this spline-weighted measurement.
+
+Systematic uncertainties are evaluated by comparing the nominal results with results obtained from variations of the analysis. Each variation tests a source of systematic uncertainty by changing an analysis choice while keeping the remaining procedure at its nominal definition. The sources and their corresponding variations are listed in \Cref{tab:SystematicUncertainties} and will be discussed in the following subsections.
+
+For each cut variation, the response matrix and the MC background correction were recalculated using the corresponding varied selection. The exclusive $\rho^{0}$ subtraction and the injected spline weights were held fixed at their nominal definitions and were not redetermined for each cut variation.
+
+Every systematic variation is subject to the same adopted requirement of at least $225^{\circ}$ of total populated $\phi_h$ coverage on the full $0^{\circ}$--$360^{\circ}$ axis. The populated bins need not form one contiguous interval. Exactly $135^{\circ}$ of missing coverage passes, and more than $135^{\circ}$ fails. A distribution that fails does not provide an accepted moment extraction for that variation and kinematic bin. Its difference from the nominal result is therefore unavailable and is omitted from the systematic comparison. It is not entered as zero. The nominal measurement remains when that nominal distribution satisfies its own eligibility requirements.
+
+When a source has several variations, the uncertainty in a kinematic bin is evaluated from the comparisons that remain eligible there, using the root-mean-square in \Cref{eq:SystematicRMS}. The symbol \(N_{v}\) printed in \Cref{tab:SystematicUncertainties} is still the number of variations defined for the source. It is not the number that remain eligible in one bin. If no eligible comparison remains for a source in a nominal bin, that source is unavailable there. The reported combined systematic uncertainty includes the sources that could be evaluated. An unavailable contribution does not establish that the underlying effect is absent.
+
+Coverage-exclusion tables list those omitted comparisons. A bold number and colon name a $Q^{2}$--$y$ bin, and the $z$--$P_{T}$ list begins on that same line. Each following $Q^{2}$--$y$ group starts a new line. A dash is an inclusive range of consecutive $z$--$P_{T}$ bin numbers. None means that variation has no coverage exclusion.
+
+For each source $i$ and kinematic bin $b$, the per-bin systematic contribution is the root-mean-square of the comparisons that remain eligible in that bin:
+\begin{equation}
+    \Delta_{\mathrm{RMS}}^{i}(b) = \sqrt{\frac{\sum_{j \in E_{i}(b)} \Delta_{j}^{2}}{N_{E}^{i}(b)}}
+    \label{eq:SystematicRMS}
+\end{equation}
+where $E_{i}(b)$ is the set of variations of source $i$ that remain eligible in bin $b$, $\Delta_{j}$ is the difference between variation $j$ and the nominal result, and $N_{E}^{i}(b)$ is the number of variations in that set. The sum runs over $E_{i}(b)$. This calculation is performed separately for $A_{0}$, $A_{UU}^{\cos\phi_h}$, and $A_{UU}^{\cos 2\phi_h}$. If $E_{i}(b)$ is empty, the expression is not evaluated: the source is unavailable in that bin and is omitted. It is not entered as zero.
+
+The systematic contributions are combined in quadrature, treating the sources as uncorrelated for the purpose of constructing the uncertainty budget. This is an analysis assumption: variations such as the fiducial selections and sector dependence may probe overlapping detector effects. Correlations between sources have not been quantified and are not included in the combination.
+
+
+\Cref{tab:SystematicUncertainties} summarizes the nominal and varied analysis choices for each source, together with their effects on the three measured quantities. Each reported effect is the RMS of the per-bin systematic contributions across the kinematic bins where the comparison was determined. The final column compares each effect with the corresponding fit uncertainty: $>$ indicates that the systematic effect is larger, while $<$ indicates that the fit uncertainty is larger. The three symbols follow the order $A_{0}$, $A_{UU}^{\cos\phi_h}$, and $A_{UU}^{\cos 2\phi_h}$.
+
+% In each bin their contributions are separate root-mean-squares, and each family enters the combined row once. The final column has three marks, in the order `$A_{0}$', `$A_{UU}^{\cos\phi_h}$', and `$A_{UU}^{\cos 2\phi_h}$'. A mark of `$>$' means that root-mean-square is larger than the fit uncertainty on the nominal result while `$<$' means the fit uncertainty is larger. The combined row is the quadrature of the independent variations.
+
+\nolinenumbers
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{longtable}{|p{2.45cm}|p{3.20cm}|p{3.35cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.15cm}|}
+\hline
+\textbf{Source} & \textbf{Nominal} & \textbf{Alternative} & $\Delta A_{0}$ & $\Delta A_{UU}^{\cos\phi_h}$ & $\Delta A_{UU}^{\cos 2\phi_h}$ & \textbf{Versus fit} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Source} & \textbf{Nominal} & \textbf{Alternative} & $\Delta A_{0}$ & $\Delta A_{UU}^{\cos\phi_h}$ & $\Delta A_{UU}^{\cos 2\phi_h}$ & \textbf{Versus fit} \\
+\hline
+\endhead
+\hyperref[sys-sf-band]{Sampling fraction}& $\pm 3.5\sigma$& $\pm 4.0\sigma$ and $\pm 3.0\sigma$ (\(N_{v} = 2\)) & $2.877\times 10^{-4}$ {\scriptsize($0.014\%$)} & $3.516\times 10^{-3}$ {\scriptsize($0.34\%$)} & $2.828\times 10^{-3}$ {\scriptsize($0.43\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-pcal-ep]{PCAL $E/p$}& $>0.05$& $>0.045$ and $>0.065$ (\(N_{v} = 2\)) & $4.071\times 10^{-4}$ {\scriptsize($0.028\%$)} & $3.699\times 10^{-3}$ {\scriptsize($0.37\%$)} & $2.97\times 10^{-3}$ {\scriptsize($0.47\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-vz-el]{Electron $v_{z}$}& $-8<v_{z}<+2$~cm& Loose $-9.5<v_{z}<+3.5$~cm; tight $-7<v_{z}<+1$~cm (\(N_{v} = 2\)) & $1.853\times 10^{-3}$ {\scriptsize($0.59\%$)} & $4.162\times 10^{-3}$ {\scriptsize($0.47\%$)} & $3.338\times 10^{-3}$ {\scriptsize($0.60\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-pcal-vol]{PCAL volume}& $V,W>19$~cm, $U<395$~cm& Loose $14.5$, $399.5$~cm; tight $23.5$, $390.5$~cm (\(N_{v} = 2\)) & $7.189\times 10^{-3}$ {\scriptsize($8.85\%$)} & $5.254\times 10^{-3}$ {\scriptsize($0.75\%$)} & $4.535\times 10^{-3}$ {\scriptsize($1.10\%$)} & $>\,<\,<$ \\
+\hline
+% \hyperref[sys-chi2pid]{Pion $\chi^{2}_{\mathrm{PID}}$}& \Cref{eq:chi2pid_cut}, pion momentum& Stricter upper bound in pion momentum, including $p\ge 4.6$~GeV (\(N_{v} = 1\)) & $0.01586$ {\scriptsize($28.91\%$)} & $0.02058$ {\scriptsize($2.57\%$)} & $0.01026$ {\scriptsize($3.50\%$)} & $>\,>\,<$ \\
+% \hline
+\hyperref[sys-dvz]{$|\Delta v_{z}|$}& $\le 20$~cm& $22$~cm and $18$~cm (\(N_{v} = 2\)) & $8.859\times 10^{-4}$ {\scriptsize($0.13\%$)} & $3.86\times 10^{-3}$ {\scriptsize($0.41\%$)} & $2.827\times 10^{-3}$ {\scriptsize($0.43\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-dcfid-el]{Electron DC edges}& $5$, $5$, $10$~cm& $\pm 1.5$~cm in R1--R3 (\(N_{v} = 2\)) & $2.199\times 10^{-4}$ {\scriptsize($0.008\%$)} & $3.539\times 10^{-3}$ {\scriptsize($0.34\%$)} & $2.797\times 10^{-3}$ {\scriptsize($0.42\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-dcfid-pip]{$\pi^{+}$ DC edges}& $2.5$, $2.5$, $9$~cm& $\pm 1$~cm in R1--R3 (\(N_{v} = 2\)) & $5.645\times 10^{-4}$ {\scriptsize($0.055\%$)} & $5.00\times 10^{-3}$ {\scriptsize($0.68\%$)} & $3.592\times 10^{-3}$ {\scriptsize($0.69\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-pcal-knockout]{PCAL dead channels}& $(H_{x},H_{y})$ strips on& Strips removed (\(N_{v} = 1\)) & $1.581\times 10^{-3}$ {\scriptsize($0.43\%$)} & $3.497\times 10^{-3}$ {\scriptsize($0.33\%$)} & $2.771\times 10^{-3}$ {\scriptsize($0.41\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-sector-pcal]{Sector PCAL fiducial}& Localized $V$, $W$ vetoes on& Vetoes removed (\(N_{v} = 1\)) & $2.811\times 10^{-3}$ {\scriptsize($1.35\%$)} & $4.529\times 10^{-3}$ {\scriptsize($0.56\%$)} & $3.65\times 10^{-3}$ {\scriptsize($0.71\%$)} & $>\,<\,<$ \\
+\hline
+\hyperref[sys-dcfid-ref-el]{Electron DC refinement}& \Cref{eq:DC_extra_el}& Offsets $\pm 0.6$, $\pm 1.2$, $\pm 1.8$~cm (\(N_{v} = 2\)) & $1.448\times 10^{-3}$ {\scriptsize($0.36\%$)} & $5.171\times 10^{-3}$ {\scriptsize($0.73\%$)} & $4.099\times 10^{-3}$ {\scriptsize($0.90\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-pip-testdc]{Additional $\pi^{+}$ DC fiducial}& Polygonal boundaries on& Boundaries removed (\(N_{v} = 1\)) & $3.388\times 10^{-3}$ {\scriptsize($1.97\%$)} & $0.02681$ {\scriptsize($19.63\%$)} & $0.02059$ {\scriptsize($22.68\%$)} & $>\,>\,>$ \\
+\hline
+\hyperref[sys-sector]{Sector dependence}& All six sectors& One electron sector, or one $\pi^{+}$ sector (\(N_{v} = 12\)) & $0.01101$ {\scriptsize($12.66\%$)} & $0.04546$ {\scriptsize($34.46\%$)} & $0.03382$ {\scriptsize($37.38\%$)} & $>\,>\,>$ \\
+\hline
+\hyperref[sys-phih-bins]{$\phi_{h}$ binning}& 24 bins& 12 bins, adjacent pairs (\(N_{v} = 1\)) & $1.674\times 10^{-3}$ {\scriptsize($0.48\%$)} & $0.01048$ {\scriptsize($2.98\%$)} & $7.286\times 10^{-3}$ {\scriptsize($2.83\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-smear]{MC momentum smearing}& Smearing applied& Smearing removed (\(N_{v} = 1\)) & $7.357\times 10^{-4}$ {\scriptsize($0.093\%$)} & $4.498\times 10^{-3}$ {\scriptsize($0.55\%$)} & $3.443\times 10^{-3}$ {\scriptsize($0.63\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-rho0]{Exclusive $\rho^{0}$}& Subtraction on& Subtraction omitted (\(N_{v} = 1\)) & $4.591\times 10^{-3}$ {\scriptsize($3.61\%$)} & $0.0105$ {\scriptsize($3.01\%$)} & $6.479\times 10^{-3}$ {\scriptsize($2.25\%$)} & $>\,<\,<$ \\
+\hline
+\hyperref[sys-acc-method]{Acceptance method}& 3D unfolding& Physics-weighted bin-by-bin and unweighted 5D, one RMS (\(N_{v} = 2\)) & $0.01244$ {\scriptsize($26.49\%$)} & $0.01366$ {\scriptsize($5.09\%$)} & $8.725\times 10^{-3}$ {\scriptsize($4.07\%$)} & $>\,<\,<$ \\
+\hline
+\hyperref[sys-acc-threshold]{Acceptance threshold}& $0.020$& $0.015$ and $0.025$ (\(N_{v} = 2\)) & $3.986\times 10^{-4}$ {\scriptsize($0.027\%$)} & $4.993\times 10^{-3}$ {\scriptsize($0.68\%$)} & $3.834\times 10^{-3}$ {\scriptsize($0.79\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-bayes-iter]{Bayesian iterations}& $k=6$ in bins 1 and 5; $k=5$ otherwise& $k-1$ and $k+1$ (\(N_{v} = 2\)) & $7.89\times 10^{-4}$ {\scriptsize($0.11\%$)} & $3.987\times 10^{-3}$ {\scriptsize($0.43\%$)} & $2.971\times 10^{-3}$ {\scriptsize($0.47\%$)} & $<\,<\,<$ \\
+\hline
+\hyperref[sys-rc-model]{RC model}& Event-yield factors& Initial-model and first-iteration bin-center factors (\(N_{v} = 2\)) & $4.462\times 10^{-3}$ {\scriptsize($3.41\%$)} & $0.01449$ {\scriptsize($5.73\%$)} & $8.825\times 10^{-3}$ {\scriptsize($4.17\%$)} & $>\,<\,<$ \\
+\hline
+\hyperref[sys-bc-kin]{BC kinematics}& Joint $3{\times}3{\times}3{\times}3{\times}5$ grid& Fifteen single-variable subdivisions (\(N_{v} = 15\)) & $5.931\times 10^{-3}$ {\scriptsize($6.02\%$)} & $0.01327$ {\scriptsize($4.81\%$)} & $9.063\times 10^{-3}$ {\scriptsize($4.40\%$)} & $>\,<\,<$ \\
+\hline
+\hyperref[sys-bc-iter]{Spline BC}& Event-based factor& Initial injection spline (\(N_{v} = 1\)) & $6.309\times 10^{-3}$ {\scriptsize($6.81\%$)} & $0.01257$ {\scriptsize($4.31\%$)} & $9.539\times 10^{-3}$ {\scriptsize($4.87\%$)} & $>\,<\,<$ \\
+\hline
+\hyperref[sys-mod-spline]{Physics injection}& Injected measured modulation& Zeroth-order unweighted MC (\(N_{v} = 1\)) & $0.01246$ {\scriptsize($26.51\%$)} & $0.02211$ {\scriptsize($13.31\%$)} & $0.0132$ {\scriptsize($9.30\%$)} & $>\,>\,>$ \\
+\hline
+% \hyperref[sys-acc-reweight]{Acceptance reweighting}& Unweighted, or physics injection only& Same baseline plus acceptance weights (\(N_{v} = 1\)) & $4.979\times 10^{-3}$ {\scriptsize($2.89\%$)} & $0.1102$ {\scriptsize($74.83\%$)} & $0.03147$ {\scriptsize($33.38\%$)} & $>\,>\,>$ \\
+% \hline
+Combined& Quadrature sum& & $0.02417$ & $0.0605$ & $0.04322$ & $>\,>\,>$ \\
+\hline
+\caption{Root-mean-square change in each moment of the nominal measurements. The last column compares that root-mean-square with the fit uncertainty. \(N_{v}\) is the number of variations defined for that source. It is not the number of those variations that remain usable in one kinematic bin. The values in this table summarize the relative scale of the systematic contributions across kinematic bins. The analysis uses the uncertainties calculated separately for each bin. The parenthetical percentage is that source's share of the summed squared per-bin source RMS values. In each bin the share uses only the sources present in that bin. It is not a fraction of the combined row, and it does not mean that the source was determined in every bin.}
+\label{tab:SystematicUncertainties}
+\end{longtable}
+\endgroup
+
+% \nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Sampling_Fraction}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_PCal_Energy_Momentum}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Electron_Vertex}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_PCal_Volume}
+\nolinenumbers
+% \input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Chi2_PID_Pion}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Vertex_Separation}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Electron_DC_Fiducial}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_PCal_Dead_Channels}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Sector_PCal}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Electron_DC_Refinement}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Custom_Pion_DC}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Sector_Dependence}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Phi_h_Binning}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Momentum_Smearing}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Exclusive_Rho0}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Acceptance_Method}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Acceptance_Threshold}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Bayesian_Iterations}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Radiative_Model}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Iterative_Bin_Centering}
+\nolinenumbers
+\input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Modulation_Spline}
+\nolinenumbers
+% \input{Results/Results_SubSections/Uncertainties_SubSections/Sys_Acceptance_Reweighting}
