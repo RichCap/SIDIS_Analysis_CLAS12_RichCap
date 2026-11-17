@@ -1,0 +1,476 @@
+
+Started running on [1m11-11-2026[0m at [1m05:54 a.m.[0m
+[1mROOT version: 6.38.04[0m  ROOTSYS=/Users/richardcapobianco/opt/miniforge3/envs/updated_python
+libMatrix: /Users/richardcapobianco/opt/miniforge3/envs/updated_python/lib/libMatrix.so
+
+[1m[94mWill be saving results to [0m[1m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/validation_24bin/phi12_q2y1_WSpline_ColGenRatio.root[0m
+
+
+[1mStarting Simple 3D/1D Unfolding Analysis
+[0m
+The total number of histograms in '[1m[94m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root[0m' is [1m1326[0m
+[1m[94mSaving to: [1m[92m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/validation_24bin/phi12_q2y1_WSpline_ColGenRatio.root[0m
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.12914e-15, max migration-fraction change = 2.22045e-16, max matched/full efficiency change = 3.88578e-16, corrected generated-overflow MC fakes = 25471.1, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 350
+reduced reconstructed bins: 308
+skipped reconstructed bins: 42
+skipped original indices: 1,2,3,4,10,13,14,15,16,25,26,27,28,37,38,39,49,50,51,62,74,87,88,97,98,99,109,110,111,122,171,172,181,182,183,194,243,244,253,254,303,314
+	[96mUsing [1m[92mRooUnfold (Bayesian)[0m[96m method to unfold...[0m
+	Error mode: covariance
+[1mPerforming Unfolding with [4m6[0m[1m iteration(s)...[0m
+Using response matrix priors
+Priors:
+
+Vector (350)  is as follows
+
+     |        1  |
+------------------
+   0 |0 
+   1 |0.00526625 
+   2 |0.00271031 
+   3 |0.00269648 
+   4 |0.0026972 
+   5 |0.00273702 
+   6 |0.00280531 
+   7 |0.00285954 
+   8 |0.0028601 
+   9 |0.00280541 
+  10 |0.00273706 
+  11 |0.00269628 
+  12 |0.00269663 
+  13 |0.00271042 
+  14 |0.0025019 
+  15 |0.00252713 
+  16 |0.00258941 
+  17 |0.00269377 
+  18 |0.00281204 
+  19 |0.00289177 
+  20 |0.00289155 
+  21 |0.00281153 
+  22 |0.00269468 
+  23 |0.00258999 
+  24 |0.00252693 
+  25 |0.00250262 
+  26 |0.0023626 
+  27 |0.00242743 
+  28 |0.00254748 
+  29 |0.00269687 
+  30 |0.00283547 
+  31 |0.00291872 
+  32 |0.00291886 
+  33 |0.00283489 
+  34 |0.00269702 
+  35 |0.00254735 
+  36 |0.00242765 
+  37 |0.00236259 
+  38 |0.00223028 
+  39 |0.002336 
+  40 |0.00251254 
+  41 |0.00270734 
+  42 |0.00286828 
+  43 |0.0029584 
+  44 |0.00295819 
+  45 |0.00286835 
+  46 |0.00270721 
+  47 |0.00251261 
+  48 |0.00233595 
+  49 |0.00223119 
+  50 |0.00205291 
+  51 |0.00218959 
+  52 |0.00241588 
+  53 |0.00266017 
+  54 |0.00285701 
+  55 |0.00296411 
+  56 |0.0029644 
+  57 |0.00285662 
+  58 |0.00266015 
+  59 |0.00241607 
+  60 |0.00218955 
+  61 |0.0020531 
+  62 |0.00176922 
+  63 |0.00192325 
+  64 |0.00218382 
+  65 |0.00247923 
+  66 |0.0027278 
+  67 |0.00286921 
+  68 |0.00286892 
+  69 |0.00272699 
+  70 |0.00247877 
+  71 |0.00218411 
+  72 |0.00192294 
+  73 |0.00176905 
+  74 |0.00123181 
+  75 |0.00137036 
+  76 |0.00163178 
+  77 |0.00196009 
+  78 |0.00227877 
+  79 |0.00247383 
+  80 |0.00247423 
+  81 |0.00227903 
+  82 |0.0019632 
+  83 |0.001629 
+  84 |0.00137016 
+  85 |0.00123253 
+  86 |0.00336658 
+  87 |0.00333519 
+  88 |0.00329505 
+  89 |0.00326561 
+  90 |0.0032569 
+  91 |0.00325916 
+  92 |0.00325963 
+  93 |0.00325706 
+  94 |0.00326582 
+  95 |0.00329437 
+  96 |0.00333505 
+  97 |0.00336605 
+  98 |0.00301492 
+  99 |0.00303988 
+ 100 |0.00308016 
+ 101 |0.00312143 
+ 102 |0.00315285 
+ 103 |0.00316917 
+ 104 |0.00316886 
+ 105 |0.00315303 
+ 106 |0.00312181 
+ 107 |0.00308024 
+ 108 |0.00303971 
+ 109 |0.00301469 
+ 110 |0.00274159 
+ 111 |0.00280016 
+ 112 |0.00289343 
+ 113 |0.00298775 
+ 114 |0.00305864 
+ 115 |0.0030947 
+ 116 |0.00309445 
+ 117 |0.00305847 
+ 118 |0.00298763 
+ 119 |0.00289338 
+ 120 |0.0028003 
+ 121 |0.00274185 
+ 122 |0.00238005 
+ 123 |0.00245097 
+ 124 |0.00257468 
+ 125 |0.00271765 
+ 126 |0.00284192 
+ 127 |0.00291419 
+ 128 |0.00291412 
+ 129 |0.00284222 
+ 130 |0.0027175 
+ 131 |0.00257471 
+ 132 |0.00245142 
+ 133 |0.00238021 
+ 134 |0.00193283 
+ 135 |0.00199383 
+ 136 |0.002123 
+ 137 |0.00230609 
+ 138 |0.00249503 
+ 139 |0.00261743 
+ 140 |0.00261693 
+ 141 |0.00249528 
+ 142 |0.00230671 
+ 143 |0.00212269 
+ 144 |0.00199452 
+ 145 |0.00193251 
+ 146 |0.00144007 
+ 147 |0.00147791 
+ 148 |0.00159268 
+ 149 |0.00180503 
+ 150 |0.00205776 
+ 151 |0.00223247 
+ 152 |0.00223297 
+ 153 |0.002057 
+ 154 |0.00180436 
+ 155 |0.00159316 
+ 156 |0.00147803 
+ 157 |0.00144009 
+ 158 |0.000936826 
+ 159 |0.000943845 
+ 160 |0.00103876 
+ 161 |0.00127847 
+ 162 |0.00159913 
+ 163 |0.00183333 
+ 164 |0.00183309 
+ 165 |0.00159991 
+ 166 |0.00127938 
+ 167 |0.00103845 
+ 168 |0.000943814 
+ 169 |0.000937046 
+ 170 |0.00375418 
+ 171 |0.00374964 
+ 172 |0.00373632 
+ 173 |0.00370874 
+ 174 |0.00367539 
+ 175 |0.00365209 
+ 176 |0.00365206 
+ 177 |0.00367525 
+ 178 |0.00370895 
+ 179 |0.00373695 
+ 180 |0.00375035 
+ 181 |0.00375423 
+ 182 |0.00332511 
+ 183 |0.00338629 
+ 184 |0.00346457 
+ 185 |0.00351179 
+ 186 |0.00351533 
+ 187 |0.00350116 
+ 188 |0.00350139 
+ 189 |0.00351571 
+ 190 |0.00351199 
+ 191 |0.00346484 
+ 192 |0.00338615 
+ 193 |0.00332545 
+ 194 |0.00293897 
+ 195 |0.00302365 
+ 196 |0.00314808 
+ 197 |0.00325323 
+ 198 |0.00331111 
+ 199 |0.00333085 
+ 200 |0.00333082 
+ 201 |0.00331109 
+ 202 |0.00325291 
+ 203 |0.00314802 
+ 204 |0.0030244 
+ 205 |0.00293951 
+ 206 |0.00239145 
+ 207 |0.0024673 
+ 208 |0.00259927 
+ 209 |0.002751 
+ 210 |0.00288139 
+ 211 |0.00295651 
+ 212 |0.00295577 
+ 213 |0.00288125 
+ 214 |0.00275107 
+ 215 |0.00259966 
+ 216 |0.00246816 
+ 217 |0.0023917 
+ 218 |0.00178865 
+ 219 |0.0018328 
+ 220 |0.00194493 
+ 221 |0.00212459 
+ 222 |0.00232736 
+ 223 |0.00246292 
+ 224 |0.00246278 
+ 225 |0.00232773 
+ 226 |0.00212525 
+ 227 |0.00194398 
+ 228 |0.00183354 
+ 229 |0.00178849 
+ 230 |0.00126279 
+ 231 |0.00126986 
+ 232 |0.00134948 
+ 233 |0.00154801 
+ 234 |0.00181249 
+ 235 |0.00200421 
+ 236 |0.00200369 
+ 237 |0.00181251 
+ 238 |0.0015473 
+ 239 |0.0013488 
+ 240 |0.00127029 
+ 241 |0.00126222 
+ 242 |0.00412911 
+ 243 |0.00415074 
+ 244 |0.00416926 
+ 245 |0.00416403 
+ 246 |0.00413585 
+ 247 |0.00411096 
+ 248 |0.00411105 
+ 249 |0.00413637 
+ 250 |0.00416566 
+ 251 |0.00416958 
+ 252 |0.00415012 
+ 253 |0.00412924 
+ 254 |0.00364534 
+ 255 |0.00373917 
+ 256 |0.00385902 
+ 257 |0.00393409 
+ 258 |0.00394231 
+ 259 |0.00392334 
+ 260 |0.00392357 
+ 261 |0.00394271 
+ 262 |0.00393419 
+ 263 |0.00385937 
+ 264 |0.00373916 
+ 265 |0.00364478 
+ 266 |0.00314638 
+ 267 |0.00325519 
+ 268 |0.00341447 
+ 269 |0.00355032 
+ 270 |0.00362565 
+ 271 |0.00365179 
+ 272 |0.0036524 
+ 273 |0.00362626 
+ 274 |0.00355016 
+ 275 |0.00341445 
+ 276 |0.00325579 
+ 277 |0.00314644 
+ 278 |0.00244843 
+ 279 |0.00253035 
+ 280 |0.0026797 
+ 281 |0.00285641 
+ 282 |0.00301523 
+ 283 |0.00311026 
+ 284 |0.00310909 
+ 285 |0.00301517 
+ 286 |0.0028566 
+ 287 |0.002678 
+ 288 |0.00253019 
+ 289 |0.00244896 
+ 290 |0.00175148 
+ 291 |0.0017887 
+ 292 |0.00189694 
+ 293 |0.00209544 
+ 294 |0.00232796 
+ 295 |0.00248812 
+ 296 |0.00248872 
+ 297 |0.00232814 
+ 298 |0.00209467 
+ 299 |0.0018971 
+ 300 |0.00178929 
+ 301 |0.00175053 
+ 302 |0.00449622 
+ 303 |0.00453895 
+ 304 |0.00459095 
+ 305 |0.0046169 
+ 306 |0.00461108 
+ 307 |0.00459287 
+ 308 |0.00459418 
+ 309 |0.00461005 
+ 310 |0.00461775 
+ 311 |0.00459124 
+ 312 |0.00453895 
+ 313 |0.0044953 
+ 314 |0.0039549 
+ 315 |0.0040765 
+ 316 |0.00423989 
+ 317 |0.00435005 
+ 318 |0.0043795 
+ 319 |0.00436789 
+ 320 |0.00436807 
+ 321 |0.00437913 
+ 322 |0.00435043 
+ 323 |0.00423908 
+ 324 |0.00407643 
+ 325 |0.00395367 
+ 326 |0.00335 
+ 327 |0.00348069 
+ 328 |0.00367437 
+ 329 |0.00384779 
+ 330 |0.00395447 
+ 331 |0.00399791 
+ 332 |0.00399695 
+ 333 |0.00395423 
+ 334 |0.00384709 
+ 335 |0.00367459 
+ 336 |0.00347982 
+ 337 |0.00334945 
+ 338 |0.00253344 
+ 339 |0.00262498 
+ 340 |0.00279149 
+ 341 |0.00300163 
+ 342 |0.00319808 
+ 343 |0.00331763 
+ 344 |0.00331765 
+ 345 |0.00319795 
+ 346 |0.00300179 
+ 347 |0.00279123 
+ 348 |0.002625 
+ 349 |0.00253429 
+
+Now unfolding...
+Iteration : 0
+Chi^2 of change 119205
+Iteration : 1
+Chi^2 of change 6940.34
+Iteration : 2
+Chi^2 of change 1212
+Iteration : 3
+Chi^2 of change 286.298
+Iteration : 4
+Chi^2 of change 79.7506
+Iteration : 5
+Chi^2 of change 24.629
+Calculating covariances due to number of measured events
+Calculating covariances due to number of measured events
+[1m[96mFinished [92mRooUnfold (Bayesian)[0m[1m[96m Unfolding Procedure.
+[0m
+
+Current Time: [1m05:54 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+
+[1m[94mDone Saving...[0m
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Dedicated_5D_Unfold.py' script has finished running.
+Started running on [1m11-11-2026[0m at [1m05:54 a.m.[0m
+
+Input File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root
+Output File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/validation_24bin/phi12_q2y1_WSpline_ColGenRatio.root
+
+
+
+Detected 5D Configuration:
+	increment  = 0
+	num_bins   = 0
+	num_slices = 0
+
+Arguments:
+--test                                              --> False
+--no_smear                                          --> False
+--sim                                               --> False
+--mod                                               --> False
+--bayes_iterations                                  --> 6
+--Num_Toys                                          --> 500
+--bins                                              --> ['1']
+--verbose                                           --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.020000
+--background_source                                 --> 'rho0_new'
+--require_weighed                                   --> False
+--weight_tag                                        --> 'Spline'
+--closure_weight                                    --> ''
+--pseudo_data                                       --> ''
+--increment                                         --> None
+--num_bins                                          --> None
+--matrix_pdf                                        --> False
+--logz                                              --> False
+--recover_slices                                    --> False
+--data_root                                         --> 'work'
+--error_mode                                        --> 'covariance'
+--iteration_study                                   --> False
+--old_binning                                       --> False
+--no_post_unfold_acc_cut                            --> False
+--pass_version                                      --> 'Pass 2'
+--closure                                           --> False
+--smearing_options                                  --> 'smear'
+
+
+The time that this code finished is [1m05:54 a.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+
+    

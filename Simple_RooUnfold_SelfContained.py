@@ -27,6 +27,7 @@ _BOOT = os.path.abspath(os.path.dirname(__file__))
 if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 from jlab_work_paths import add_data_root_argument, apply_input_if_default, apply_output_if_default, bootstrap_from_file, is_bare_filename
+from spline_amplitude_correction import divide_spline_active, divide_spline_histogram, unweighted_spline_counterpart, output_root_with_weight, correction_metadata
 EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
@@ -78,6 +79,11 @@ def parse_args():
                    default="",
                    choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
                    help="Select which weighted histogram set to unfold (e.g. Acc, Spline, AccSpline). Empty = unweighted (default). Also auto-tags output ROOT/JSON names.\n")
+    p.add_argument('-sac', '--spline_amplitude_correction',
+                   type=str,
+                   default="auto",
+                   choices=["auto", "on", "off"],
+                   help="Divide Spline MC by its unweighted counterpart before unfolding. auto is on only for Spline. off keeps the original calculation.\n")
     p.add_argument('-sim', '--simulation',
                    action='store_true',
                    dest='sim',
@@ -2109,6 +2115,9 @@ def Save_Histos_To_ROOT(args, List_of_All_Histos_For_Unfolding, only_names=None)
             # safe_write(File_Name_Tlist, output_file)
             if(only_names is None):
                 safe_write(File_Name_Tlist, output_file)
+                correction_text = str(correction_metadata(getattr(args, "divide_spline_by_unweighted", False)))
+                correction_note = ROOT.TNamed(correction_text, correction_text)
+                safe_write(correction_note, output_file)
             for List_of_All_Histos_For_Unfolding_ii in List_of_All_Histos_For_Unfolding:
                 try:
                     if((only_names is not None) and (List_of_All_Histos_For_Unfolding_ii not in only_names)):
@@ -2272,11 +2281,31 @@ def Save_Fit_Pars_To_JSON(args, List_of_All_Histos_For_Unfolding, cor_type="Baye
     Update_Email(args, update_message=f"{color.BCYAN}Done Saving JSON File.{color.END}", verbose_override=True)
     return args, Fit_Pars_JSON
 
+def divide_loaded_spline(weighted, source_file, args):
+    if(not getattr(args, "divide_spline_by_unweighted", False)):
+        return weighted
+    name = str(weighted.GetName())
+    denom_name = unweighted_spline_counterpart(name)
+    if(denom_name == ""):
+        Crash_Report(args, crash_message="spline numerator does not end with _(Spline): %s" % name)
+    if((source_file in [None, "N/A"]) or (denom_name not in source_file.GetListOfKeys())):
+        Crash_Report(args, crash_message="missing unweighted counterpart\n\tnumerator = %s\n\tdenominator = %s" % (name, denom_name))
+    divided = divide_spline_histogram(weighted, source_file.Get(denom_name))
+    if(divided is None):
+        Crash_Report(args, crash_message="incompatible spline counterpart\n\tnumerator = %s\n\tdenominator = %s" % (name, denom_name))
+    return divided
+
 def strip_weight_tag_suffixes(name_in):
     # Remove known multi-weight and legacy _(Weighed) suffixes from histogram names
     name_out = str(name_in)
     for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
         name_out = name_out.replace(tag_str, "")
+    return name_out
+
+def unweighted_mc_background_name(signal_1d_name):
+    name_out = strip_weight_tag_suffixes(signal_1d_name)
+    name_out = name_out.replace("'Response_Matrix_1D'", "'Background_Response_Matrix_1D'")
+    name_out = name_out.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_1D'")
     return name_out
 
 def main_start():
@@ -2296,10 +2325,14 @@ def main_start():
                 print(f"{color.BYELLOW}Cleaned quotes from --{attr}: '{original}' → '{cleaned}'{color.END}")
                 setattr(args, attr, cleaned)
     # =========================================================================
-    # Auto-tag output ROOT (and thus JSON via MainFileName) when a weight set is selected
-    weight_tag = getattr(args, "weight_tag", "")
-    if((weight_tag not in ["", None]) and (f"_W{weight_tag}" not in str(args.root))):
-        args.root = str(args.root).replace(".root", f"_W{weight_tag}.root")
+    # Auto-tag output ROOT (and thus JSON via MainFileName) when a weight set is selected.
+    # Spline division adds _DivUnw so it cannot replace an undivided result.
+    try:
+        args.divide_spline_by_unweighted = divide_spline_active(getattr(args, "weight_tag", ""), getattr(args, "spline_amplitude_correction", "auto"))
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(2)
+    args.root = output_root_with_weight(args.root, getattr(args, "weight_tag", ""), args.divide_spline_by_unweighted)
     args.pass_version = "Pass 2"
     args.sim = args.sim or args.closure
     args.mod = args.mod and (not args.closure)
@@ -2564,6 +2597,11 @@ def main_unfold(args):
                         Slice_Num += 1
                     else:
                         break  # Exit the loop if the histogram does not exist
+                if(getattr(args, "divide_spline_by_unweighted", False)):
+                    divided_slices = {}
+                    for slice_name, slice_histo in Histo_List.items():
+                        divided_slices[slice_name] = divide_loaded_spline(slice_histo, mdf, args)
+                    Histo_List = divided_slices
                 out_print_main_rdf     = out_print_main.replace("DataFrame_Type", "rdf" if(not args.sim) else "mdf")
                 if(not args.closure):
                     out_print_main_rdf = strip_weight_tag_suffixes(out_print_main_rdf)
@@ -2632,8 +2670,8 @@ def main_unfold(args):
                 count += 1
                 print(f"\n{color.BGREEN}\n(5D) Unfolding: {out_print_main}){color.END}\n")
                 ExREAL_1D   = rdf.Get(out_print_main_rdf)
-                MC_REC_1D   = mdf.Get(out_print_main_mdf_1D)
-                MC_GEN_1D   = gdf.Get(out_print_main_gdf)
+                MC_REC_1D   = divide_loaded_spline(mdf.Get(out_print_main_mdf_1D), mdf, args)
+                MC_GEN_1D   = divide_loaded_spline(gdf.Get(out_print_main_gdf), gdf, args)
                 Response_2D = Rebuild_Matrix_5D(List_of_Sliced_Histos=Histo_List, Standard_Name=out_print_main_mdf, Increment=args.num_5D_increments_used_to_slice)
                 del Histo_List
                 if(tdf not in ["N/A"]):
@@ -2800,8 +2838,8 @@ def main_unfold(args):
                 count += 1
                 print(f"\n{color.BGREEN}(Sector) Unfolding: {out_print_main}{color.END}\n")
                 ExREAL_3D     = rdf.Get(out_print_main_rdf)
-                MC_REC_3D     = mdf.Get(out_print_main_mdf)
-                MC_GEN_3D     = gdf.Get(out_print_main_gdf)
+                MC_REC_3D     = divide_loaded_spline(mdf.Get(out_print_main_mdf), mdf, args)
+                MC_GEN_3D     = divide_loaded_spline(gdf.Get(out_print_main_gdf), gdf, args)
                 if(args.sim):
                     ExTRUE_3D = tdf.Get(out_print_main_tdf)
                 else:
@@ -3108,9 +3146,9 @@ def main_unfold(args):
                     ExREAL_1D_initial.SetDirectory(0)
                 else:
                     ExREAL_1D_initial = rdf.Get(out_print_main_rdf)
-                MC_REC_1D_initial     = mdf.Get(out_print_main_mdf_1D)
-                MC_GEN_1D_initial     = gdf.Get(out_print_main_gdf)
-                Response_2D_initial   = mdf.Get(out_print_main_mdf)
+                MC_REC_1D_initial     = divide_loaded_spline(mdf.Get(out_print_main_mdf_1D), mdf, args)
+                MC_GEN_1D_initial     = divide_loaded_spline(gdf.Get(out_print_main_gdf), gdf, args)
+                Response_2D_initial   = divide_loaded_spline(mdf.Get(out_print_main_mdf), mdf, args)
                 if((tdf not in ["N/A"]) and out_print_main_tdf):
                     ExTRUE_1D_initial = tdf.Get(out_print_main_tdf)
                 else:
@@ -3126,14 +3164,17 @@ def main_unfold(args):
                 Response_2D_initial.SetTitle(str(Response_2D_initial.GetTitle()).replace("with Proton Cuts", ""))
 
                 # Getting MC Background Histogram (bgs - stands for BackGroundSubtraction)
-                out_print_main_bdf_1D = out_print_main_mdf_1D.replace("'Response_Matrix_1D'",        "'Background_Response_Matrix_1D'")
-                out_print_main_bdf_1D = out_print_main_bdf_1D.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_1D'")
-                if(((out_print_main_bdf_1D in mdf.GetListOfKeys()) or (out_print_main_bdf_1D in rdf.GetListOfKeys())) and ("Background" in str(out_print_main_bdf_1D))):
-                    MC_BGS_1D_initial = mdf.Get(out_print_main_bdf_1D) if(not args.sim) else rdf.Get(out_print_main_bdf_1D)
+                # Fake/misidentified reconstructed events come from signal MC, but their untagged
+                # counterpart is the required input regardless of the selected signal weight tag.
+                # Untagging preserves legitimate production base weights while excluding Spline,
+                # JSON, and acceptance weights from the fake background itself.
+                out_print_main_bdf_1D = unweighted_mc_background_name(out_print_main_mdf_1D)
+                if((out_print_main_bdf_1D in mdf.GetListOfKeys()) and ("Background" in str(out_print_main_bdf_1D))):
+                    MC_BGS_1D_initial = mdf.Get(out_print_main_bdf_1D)
+                    print(f"{color.BGREEN}Using unweighted signal-MC fake background '{out_print_main_bdf_1D}'{color.END}")
                 else:
                     MC_BGS_1D_initial = "None"
-                    print(f"\n{color.Error}ERROR: Missing Background Histogram {color.END_R}(would be named: {color.END_B}{out_print_main_bdf_1D}{color.END_R}){color.END}")
-                    raise TypeError("Missing Background Histogram")
+                    Crash_Report(args, crash_message=f"Missing required unweighted signal-MC fake background: {out_print_main_bdf_1D}")
                 if(args.sim and (str(MC_BGS_1D_initial) not in ["None"])):
                     # When Unfolding Simulated Data with the background histogram, the background should still be included in the 'rdf' histograms
                     ExREAL_1D_initial.Add(MC_BGS_1D_initial)

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cctype>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -15,7 +16,10 @@
 #include <string>
 #include <vector>
 
+#include "TArrayD.h"
 #include "TFile.h"
+#include "TH1.h"
+#include "TH2.h"
 #include "TObject.h"
 #include "TDirectory.h"
 
@@ -258,6 +262,14 @@ struct UnfoldArgs {
     std::string background_source = "rho0_new";
     bool require_weighed = false;
     std::string weight_tag = "";
+    // auto divides only for Spline. on requires Spline. off keeps the original product.
+    std::string spline_amplitude_correction = "auto";
+    bool divide_spline_by_unweighted = false;
+    bool spline_divide_self_test = false;
+    // bayesian is RooUnfold. bin is the existing acceptance ratio on the same corrected MC.
+    std::string unfold_method = "bayesian";
+    bool skip_acceptance_mask = false;
+    std::string physical_bin_map = "";
     // Simple_Unfold only. Weighted pseudo-data on the nominal response. 9/26/2026
     std::string closure_weight = "";
     // Simple_Unfold only. Replace the measured histogram. Response and fakes stay as for data. 9/28/2026
@@ -319,6 +331,352 @@ inline std::string opt_value(int& i, int argc, char** argv, const std::string& a
     return argv[i];
 }
 
+inline bool DivideSplineActive(const std::string& mode, const std::string& weight_tag, std::string& error){
+    error.clear();
+    if((mode != "auto") && (mode != "on") && (mode != "off")){
+        error = "Invalid --spline_amplitude_correction: " + mode + " (expected auto|on|off)";
+        return false;
+    }
+    if(mode == "on"){
+        if(weight_tag != "Spline"){
+            error = "--spline_amplitude_correction on requires --weight_tag Spline";
+            return false;
+        }
+        return true;
+    }
+    if(mode == "off"){ return false; }
+    return weight_tag == "Spline";
+}
+
+inline void Apply_Weight_Output_Suffix(UnfoldArgs& args, bool generated_column_mode = false){
+    if(args.weight_tag.empty()){ return; }
+    const bool divide = args.divide_spline_by_unweighted && (args.weight_tag == "Spline");
+    const std::string weighted = "_W" + args.weight_tag;
+    const std::string correction_suffix = generated_column_mode ? "_ColGenRatio.root" : "_DivUnw.root";
+    const std::string suffix = divide ? (weighted + correction_suffix) : (weighted + ".root");
+    if((args.root.size() >= suffix.size()) && (args.root.compare(args.root.size() - suffix.size(), suffix.size(), suffix) == 0)){
+        return;
+    }
+    const std::string weighted_root = weighted + ".root";
+    if(divide && (args.root.size() >= weighted_root.size()) && (args.root.compare(args.root.size() - weighted_root.size(), weighted_root.size(), weighted_root) == 0)){
+        args.root.replace(args.root.size() - 5, 5, correction_suffix);
+        return;
+    }
+    if((args.root.size() >= 5) && (args.root.compare(args.root.size() - 5, 5, ".root") == 0)){
+        args.root.replace(args.root.size() - 5, 5, suffix);
+    }
+}
+
+inline const char* SplineAmplitudeCorrectionLabel(const UnfoldArgs& args, bool generated_column_mode = false){
+    if(args.divide_spline_by_unweighted && generated_column_mode){ return "spline_amplitude_correction=generated_column_target_ratio"; }
+    if(args.divide_spline_by_unweighted){ return "spline_amplitude_correction=divided_by_unweighted"; }
+    return "spline_amplitude_correction=off";
+}
+
+inline const char* AcceptanceMaskLabel(const UnfoldArgs& args){
+    if(args.skip_acceptance_mask){ return "acceptance_mask=not_applied"; }
+    if(args.divide_spline_by_unweighted && !args.old_binning){
+        return "acceptance_mask=preserved_original_spline_before_column_correction";
+    }
+    return "acceptance_mask=legacy";
+}
+
+inline const char* UnfoldMethodLabel(const UnfoldArgs& args){
+    if(args.unfold_method == "bin"){ return "unfold_method=bin_by_bin"; }
+    return "unfold_method=bayesian";
+}
+
+inline std::string UnweightedSplineCounterpart(const std::string& name){
+    const std::string suffix = "_(Spline)";
+    if((name.size() >= suffix.size()) && (name.compare(name.size() - suffix.size(), suffix.size(), suffix) == 0)){
+        return name.substr(0, name.size() - suffix.size());
+    }
+    return "";
+}
+
+inline bool AxisEdgesMatch(const TAxis* left, const TAxis* right){
+    if((left == nullptr) || (right == nullptr)){ return false; }
+    if(left->GetNbins() != right->GetNbins()){ return false; }
+    const TArrayD* left_edges = left->GetXbins();
+    const TArrayD* right_edges = right->GetXbins();
+    const int left_n = (left_edges == nullptr) ? 0 : left_edges->GetSize();
+    const int right_n = (right_edges == nullptr) ? 0 : right_edges->GetSize();
+    if((left_n > 0) || (right_n > 0)){
+        if(left_n != right_n){ return false; }
+        for(int edge = 0; edge < left_n; ++edge){
+            if(std::abs(left_edges->At(edge) - right_edges->At(edge)) > 1e-6){ return false; }
+        }
+        return true;
+    }
+    if(std::abs(left->GetXmin() - right->GetXmin()) > 1e-6){ return false; }
+    if(std::abs(left->GetXmax() - right->GetXmax()) > 1e-6){ return false; }
+    return true;
+}
+
+inline bool HistogramsMatchForDivide(const TH1* weighted, const TH1* unweighted){
+    if((weighted == nullptr) || (unweighted == nullptr)){ return false; }
+    if(std::string(weighted->ClassName()) != std::string(unweighted->ClassName())){ return false; }
+    if(!AxisEdgesMatch(weighted->GetXaxis(), unweighted->GetXaxis())){ return false; }
+    if(weighted->GetDimension() >= 2){
+        if(!AxisEdgesMatch(weighted->GetYaxis(), unweighted->GetYaxis())){ return false; }
+    }
+    if(weighted->GetDimension() >= 3){
+        if(!AxisEdgesMatch(weighted->GetZaxis(), unweighted->GetZaxis())){ return false; }
+    }
+    return true;
+}
+
+inline TH1* DivideSplineClone(TH1* weighted, TH1* unweighted, std::string& error){
+    error.clear();
+    if((weighted == nullptr) || (unweighted == nullptr)){
+        error = "missing histogram for spline division";
+        return nullptr;
+    }
+    const std::string weighted_name = weighted->GetName();
+    const std::string unweighted_name = unweighted->GetName();
+    if(!HistogramsMatchForDivide(weighted, unweighted)){
+        error = "incompatible spline counterpart\n\tnumerator = " + weighted_name + "\n\tdenominator = " + unweighted_name;
+        return nullptr;
+    }
+    TH1* clone = dynamic_cast<TH1*>(weighted->Clone((weighted_name + "_DivUnw").c_str()));
+    if(clone == nullptr){
+        error = "could not clone " + weighted_name;
+        return nullptr;
+    }
+    clone->SetDirectory(nullptr);
+    if(!clone->Divide(unweighted)){
+        error = "ROOT Divide failed\n\tnumerator = " + weighted_name + "\n\tdenominator = " + unweighted_name;
+        delete clone;
+        return nullptr;
+    }
+    return clone;
+}
+
+inline TH1* LoadSplineCounterpart(TFile* file, const std::string& weighted_name, std::string& error){
+    error.clear();
+    const std::string denom = UnweightedSplineCounterpart(weighted_name);
+    if(denom.empty()){
+        error = "spline numerator does not end with _(Spline): " + weighted_name;
+        return nullptr;
+    }
+    if(!key_in_file(file, denom)){
+        error = "missing unweighted counterpart\n\tnumerator = " + weighted_name + "\n\tdenominator = " + denom;
+        return nullptr;
+    }
+    TH1* histo = dynamic_cast<TH1*>(file->Get(denom.c_str()));
+    if(histo == nullptr){
+        error = "unweighted counterpart is not a histogram: " + denom;
+        return nullptr;
+    }
+    return histo;
+}
+
+struct SplineColumnDiagnostics {
+    double max_rec_projection_abs = 0.0;
+    double max_rec_projection_rel = 0.0;
+    double max_migration_fraction_change = 0.0;
+    double max_efficiency_change = 0.0;
+    double weighted_fake_overflow_sum = 0.0;
+    double unweighted_fake_overflow_sum = 0.0;
+    double corrected_fake_overflow_sum = 0.0;
+    int empty_generated_bins = 0;
+};
+
+// Histogram-level correction for the 3D response layout used before its RooUnfold axis flip:
+// X is generated and Y is reconstructed. For generated bin j, N_j is the unweighted full
+// generated population and W_j is its weighted sum. The target is T_j=W_j/N_j, while every
+// matched response entry receives the one common factor 1/N_j. This preserves both the
+// within-column migration fractions and matched/full efficiency. It is a binned mean-weight
+// correction, not an event-level removal of a weight that varies inside the generated bin.
+inline bool CorrectSplineGeneratedColumns3D(const TH2* weighted_response,
+                                            const TH2* unweighted_response,
+                                            const TH1* weighted_reconstructed,
+                                            const TH1* weighted_generated,
+                                            const TH1* unweighted_generated,
+                                            TH2*& corrected_response,
+                                            TH1*& rebuilt_reconstructed,
+                                            TH1*& target_generated,
+                                            std::string& error,
+                                            SplineColumnDiagnostics* diagnostics = nullptr){
+    corrected_response = nullptr;
+    rebuilt_reconstructed = nullptr;
+    target_generated = nullptr;
+    error.clear();
+    SplineColumnDiagnostics local;
+    if((weighted_response == nullptr) || (unweighted_response == nullptr) || (weighted_reconstructed == nullptr) ||
+       (weighted_generated == nullptr) || (unweighted_generated == nullptr)){
+        error = "missing histogram for the generated-column spline correction";
+        return false;
+    }
+    if((weighted_response->GetNbinsX() != weighted_generated->GetNbinsX()) ||
+       (weighted_response->GetNbinsY() != weighted_reconstructed->GetNbinsX()) ||
+       !AxisEdgesMatch(weighted_response->GetXaxis(), unweighted_response->GetXaxis()) ||
+       !AxisEdgesMatch(weighted_response->GetYaxis(), unweighted_response->GetYaxis()) ||
+       !AxisEdgesMatch(weighted_response->GetXaxis(), weighted_generated->GetXaxis()) ||
+       !AxisEdgesMatch(weighted_response->GetXaxis(), unweighted_generated->GetXaxis()) ||
+       !AxisEdgesMatch(weighted_response->GetYaxis(), weighted_reconstructed->GetXaxis())){
+        error = "incompatible axes for the generated-column spline correction";
+        return false;
+    }
+
+    // Refuse to erase a material unmatched/fake component hidden in the supplied reconstructed
+    // histogram. Tiny floating-point summation differences are expected for weighted inputs.
+    for(int rec_bin = 0; rec_bin <= weighted_response->GetNbinsY() + 1; ++rec_bin){
+        double projected = 0.0;
+        for(int gen_bin = 0; gen_bin <= weighted_response->GetNbinsX() + 1; ++gen_bin){
+            projected += weighted_response->GetBinContent(gen_bin, rec_bin);
+        }
+        const double supplied = weighted_reconstructed->GetBinContent(rec_bin);
+        const double abs_diff = std::abs(supplied - projected);
+        const double scale = std::max(1.0, std::max(std::abs(supplied), std::abs(projected)));
+        local.max_rec_projection_abs = std::max(local.max_rec_projection_abs, abs_diff);
+        local.max_rec_projection_rel = std::max(local.max_rec_projection_rel, abs_diff / scale);
+        if(abs_diff > (1e-9 * scale)){
+            error = "weighted reconstructed MC contains a material component outside the response projection at bin " +
+                    std::to_string(rec_bin);
+            return false;
+        }
+    }
+
+    corrected_response = dynamic_cast<TH2*>(weighted_response->Clone((std::string(weighted_response->GetName()) + "_ColGenRatio").c_str()));
+    rebuilt_reconstructed = dynamic_cast<TH1*>(weighted_reconstructed->Clone((std::string(weighted_reconstructed->GetName()) + "_FromCorrectedColumns").c_str()));
+    target_generated = dynamic_cast<TH1*>(weighted_generated->Clone((std::string(weighted_generated->GetName()) + "_MeanSplineTarget").c_str()));
+    if((corrected_response == nullptr) || (rebuilt_reconstructed == nullptr) || (target_generated == nullptr)){
+        error = "could not clone histograms for the generated-column spline correction";
+        delete corrected_response;
+        delete rebuilt_reconstructed;
+        delete target_generated;
+        corrected_response = nullptr;
+        rebuilt_reconstructed = nullptr;
+        target_generated = nullptr;
+        return false;
+    }
+    corrected_response->SetDirectory(nullptr);
+    rebuilt_reconstructed->SetDirectory(nullptr);
+    target_generated->SetDirectory(nullptr);
+    rebuilt_reconstructed->Reset("ICES");
+    target_generated->Reset("ICES");
+
+    // Bins 0..N are the bins copied by the existing 3D axis flip. Bin N+1 is the generated
+    // overflow that the flip intentionally leaves out, so RooUnfold infers it from reconstructed
+    // minus matrix projection as an MC fake component.
+    for(int gen_bin = 0; gen_bin <= weighted_response->GetNbinsX(); ++gen_bin){
+        const double unweighted_full = unweighted_generated->GetBinContent(gen_bin);
+        const double weighted_full = weighted_generated->GetBinContent(gen_bin);
+        double weighted_matched = 0.0;
+        for(int rec_bin = 0; rec_bin <= weighted_response->GetNbinsY() + 1; ++rec_bin){
+            weighted_matched += weighted_response->GetBinContent(gen_bin, rec_bin);
+        }
+        if(unweighted_full < 0.0){
+            error = "negative unweighted generated population at bin " + std::to_string(gen_bin);
+            delete corrected_response;
+            delete rebuilt_reconstructed;
+            delete target_generated;
+            corrected_response = nullptr;
+            rebuilt_reconstructed = nullptr;
+            target_generated = nullptr;
+            return false;
+        }
+        if(unweighted_full == 0.0){
+            ++local.empty_generated_bins;
+            if((std::abs(weighted_full) > 1e-12) || (std::abs(weighted_matched) > 1e-12)){
+                error = "nonzero weighted content with zero unweighted generated population at bin " + std::to_string(gen_bin);
+                delete corrected_response;
+                delete rebuilt_reconstructed;
+                delete target_generated;
+                corrected_response = nullptr;
+                rebuilt_reconstructed = nullptr;
+                target_generated = nullptr;
+                return false;
+            }
+            target_generated->SetBinContent(gen_bin, 0.0);
+            target_generated->SetBinError(gen_bin, 0.0);
+            for(int rec_bin = 0; rec_bin <= weighted_response->GetNbinsY() + 1; ++rec_bin){
+                corrected_response->SetBinContent(gen_bin, rec_bin, 0.0);
+                corrected_response->SetBinError(gen_bin, rec_bin, 0.0);
+            }
+            continue;
+        }
+
+        const double factor = 1.0 / unweighted_full;
+        const double target = weighted_full * factor;
+        target_generated->SetBinContent(gen_bin, target);
+        // The denominator is the population defining the sample mean, not an independent random
+        // histogram. Scale the stored weighted-sum uncertainty by the same fixed common factor.
+        target_generated->SetBinError(gen_bin, weighted_generated->GetBinError(gen_bin) * std::abs(factor));
+        double corrected_matched = 0.0;
+        for(int rec_bin = 0; rec_bin <= weighted_response->GetNbinsY() + 1; ++rec_bin){
+            const double before = weighted_response->GetBinContent(gen_bin, rec_bin);
+            const double after = before * factor;
+            corrected_response->SetBinContent(gen_bin, rec_bin, after);
+            corrected_response->SetBinError(gen_bin, rec_bin, weighted_response->GetBinError(gen_bin, rec_bin) * std::abs(factor));
+            corrected_matched += after;
+            if((weighted_matched != 0.0) && (corrected_matched != 0.0)){
+                const double before_fraction = before / weighted_matched;
+                const double after_fraction = after / (weighted_matched * factor);
+                local.max_migration_fraction_change = std::max(local.max_migration_fraction_change,
+                                                                 std::abs(before_fraction - after_fraction));
+            }
+        }
+        if((weighted_full != 0.0) && (target != 0.0)){
+            local.max_efficiency_change = std::max(local.max_efficiency_change,
+                                                    std::abs((weighted_matched / weighted_full) -
+                                                             (corrected_matched / target)));
+        }
+    }
+
+    const int fake_gen_bin = weighted_response->GetNbinsX() + 1;
+    for(int rec_bin = 0; rec_bin <= weighted_response->GetNbinsY() + 1; ++rec_bin){
+        local.weighted_fake_overflow_sum += weighted_response->GetBinContent(fake_gen_bin, rec_bin);
+        local.unweighted_fake_overflow_sum += unweighted_response->GetBinContent(fake_gen_bin, rec_bin);
+    }
+    if(local.unweighted_fake_overflow_sum < 0.0){
+        error = "negative unweighted generated-overflow fake population";
+        delete corrected_response;
+        delete rebuilt_reconstructed;
+        delete target_generated;
+        corrected_response = nullptr;
+        rebuilt_reconstructed = nullptr;
+        target_generated = nullptr;
+        return false;
+    }
+    if(local.unweighted_fake_overflow_sum == 0.0 && std::abs(local.weighted_fake_overflow_sum) > 1e-12){
+        error = "nonzero weighted generated-overflow fakes with zero unweighted fake population";
+        delete corrected_response;
+        delete rebuilt_reconstructed;
+        delete target_generated;
+        corrected_response = nullptr;
+        rebuilt_reconstructed = nullptr;
+        target_generated = nullptr;
+        return false;
+    }
+    const double fake_factor = (local.unweighted_fake_overflow_sum > 0.0)
+                                 ? (1.0 / local.unweighted_fake_overflow_sum) : 0.0;
+    for(int rec_bin = 0; rec_bin <= weighted_response->GetNbinsY() + 1; ++rec_bin){
+        const double corrected_fake = weighted_response->GetBinContent(fake_gen_bin, rec_bin) * fake_factor;
+        corrected_response->SetBinContent(fake_gen_bin, rec_bin, corrected_fake);
+        corrected_response->SetBinError(fake_gen_bin, rec_bin,
+                                        weighted_response->GetBinError(fake_gen_bin, rec_bin) * std::abs(fake_factor));
+        local.corrected_fake_overflow_sum += corrected_fake;
+    }
+    target_generated->SetBinContent(fake_gen_bin, 0.0);
+    target_generated->SetBinError(fake_gen_bin, 0.0);
+
+    for(int rec_bin = 0; rec_bin <= corrected_response->GetNbinsY() + 1; ++rec_bin){
+        double sum = 0.0;
+        double error2 = 0.0;
+        for(int gen_bin = 0; gen_bin <= corrected_response->GetNbinsX() + 1; ++gen_bin){
+            sum += corrected_response->GetBinContent(gen_bin, rec_bin);
+            const double bin_error = corrected_response->GetBinError(gen_bin, rec_bin);
+            error2 += bin_error * bin_error;
+        }
+        rebuilt_reconstructed->SetBinContent(rec_bin, sum);
+        rebuilt_reconstructed->SetBinError(rec_bin, std::sqrt(error2));
+    }
+    if(diagnostics != nullptr){ *diagnostics = local; }
+    return true;
+}
+
 inline void print_help(){
     std::cout <<
         "Dedicated_5D_Unfold (C++): 5D Bayesian unfolding.\n"
@@ -340,6 +698,12 @@ inline void print_help(){
         "  -bgs, --background_source rho0_new|lundvpk|lundrho|None\n"
         "  -rw, --require_weighed\n"
         "  -wt, --weight_tag ''|Acc|JSON|Spline|AccJSON|AccSpline\n"
+        "  -sac, --spline_amplitude_correction auto|on|off\n"
+        "                             3D Spline generated-column correction (default auto)\n"
+        "  -um, --unfold_method bayesian|bin\n"
+        "                             bayesian uses RooUnfold. bin is acceptance correction on the same MC\n"
+        "  -sam, --skip_acceptance_mask\n"
+        "                             Leave the acceptance mask unapplied, for the correction-off comparison\n"
         "  -cw, --closure_weight Acc|AccSpline\n"
         "                             Simple_Unfold only: weighted pseudo-data, nominal response\n"
         "  -pd, --pseudo_data nominal|Acc|Spline|AccSpline\n"
@@ -422,6 +786,14 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             args.require_weighed = true;
         } else if(match_opt(arg, {"-wt", "--weight_tag"})){
             args.weight_tag = opt_value(i, argc, argv, arg, "--weight_tag");
+        } else if(match_opt(arg, {"-sac", "--spline_amplitude_correction"})){
+            args.spline_amplitude_correction = opt_value(i, argc, argv, arg, "--spline_amplitude_correction");
+        } else if(match_opt(arg, {"-um", "--unfold_method"})){
+            args.unfold_method = opt_value(i, argc, argv, arg, "--unfold_method");
+        } else if(match_opt(arg, {"-sam", "--skip_acceptance_mask"})){
+            args.skip_acceptance_mask = true;
+        } else if(match_opt(arg, {"-sds", "--spline_divide_self_test"})){
+            args.spline_divide_self_test = true;
         } else if(match_opt(arg, {"-cw", "--closure_weight"})){
             args.closure_weight = opt_value(i, argc, argv, arg, "--closure_weight");
         } else if(match_opt(arg, {"-pd", "--pseudo_data"})){
@@ -520,6 +892,16 @@ inline UnfoldArgs parse_args(int argc, char** argv){
        (args.error_mode != "errors") && (args.error_mode != "none")){
         std::cerr << "Invalid --error_mode: " << args.error_mode
                   << " (expected toys|covariance|errors|none)" << std::endl;
+        std::exit(2);
+    }
+    std::string spline_error;
+    args.divide_spline_by_unweighted = DivideSplineActive(args.spline_amplitude_correction, args.weight_tag, spline_error);
+    if(!spline_error.empty()){
+        std::cerr << spline_error << std::endl;
+        std::exit(2);
+    }
+    if((args.unfold_method != "bayesian") && (args.unfold_method != "bin")){
+        std::cerr << "Invalid --unfold_method: " << args.unfold_method << " (expected bayesian|bin)" << std::endl;
         std::exit(2);
     }
     return args;
@@ -807,6 +1189,94 @@ inline HistoBins Find_Bins_From_Histo_Name(const std::string& data_string){
 
 inline int coerce_bin_value(const ConvertResult& result){
     return result.ok ? result.value : -1;
+}
+
+inline bool Near(double left, double right){
+    return std::abs(left - right) < 1e-6;
+}
+
+inline int SplineDivideSelfTest(){
+    std::string error;
+    if(UnweightedSplineCounterpart("response_(Spline)") != "response"){ std::cerr << "Spline suffix was not removed" << std::endl; return 1; }
+    if(!UnweightedSplineCounterpart("response_(AccSpline)").empty()){ std::cerr << "AccSpline was treated as Spline" << std::endl; return 1; }
+    if(DivideSplineActive("auto", "Spline", error) != true){ std::cerr << "auto Spline was off" << std::endl; return 1; }
+    if(DivideSplineActive("auto", "AccSpline", error) != false){ std::cerr << "auto AccSpline was on" << std::endl; return 1; }
+    if(DivideSplineActive("off", "Spline", error) != false){ std::cerr << "off still divided" << std::endl; return 1; }
+    if(DivideSplineActive("on", "AccSpline", error) || error.empty()){ std::cerr << "on accepted AccSpline" << std::endl; return 1; }
+
+    TH2D response("response", "response", 2, 0, 2, 2, 0, 2);
+    response.SetBinContent(1, 1, 60.0); response.SetBinError(1, 1, 6.0);
+    response.SetBinContent(1, 2, 20.0); response.SetBinError(1, 2, 2.0);
+    response.SetBinContent(2, 1, 30.0); response.SetBinError(2, 1, 3.0);
+    response.SetBinContent(2, 2, 30.0); response.SetBinError(2, 2, 3.0);
+    response.SetBinContent(3, 1, 40.0); response.SetBinError(3, 1, 4.0);
+    TH2D unweighted_response("unweighted_response", "unweighted_response", 2, 0, 2, 2, 0, 2);
+    unweighted_response.SetBinContent(3, 1, 4.0);
+    TH1D reconstructed("reconstructed", "reconstructed", 2, 0, 2);
+    reconstructed.SetBinContent(1, 130.0); reconstructed.SetBinContent(2, 50.0);
+    TH1D weighted_generated("weighted_generated", "weighted_generated", 2, 0, 2);
+    weighted_generated.SetBinContent(1, 100.0); weighted_generated.SetBinError(1, 10.0);
+    weighted_generated.SetBinContent(2, 120.0); weighted_generated.SetBinError(2, 12.0);
+    TH1D unweighted_generated("unweighted_generated", "unweighted_generated", 2, 0, 2);
+    unweighted_generated.SetBinContent(1, 10.0);
+    unweighted_generated.SetBinContent(2, 20.0);
+
+    TH2* corrected_response = nullptr;
+    TH1* corrected_rec = nullptr;
+    TH1* target_gen = nullptr;
+    SplineColumnDiagnostics diagnostics;
+    if(!CorrectSplineGeneratedColumns3D(&response, &unweighted_response, &reconstructed, &weighted_generated,
+                                        &unweighted_generated, corrected_response, corrected_rec,
+                                        target_gen, error, &diagnostics)){
+        std::cerr << error << std::endl;
+        return 1;
+    }
+    if((!Near(corrected_response->GetBinContent(1, 1), 6.0)) ||
+       (!Near(corrected_response->GetBinContent(1, 2), 2.0)) ||
+       (!Near(corrected_response->GetBinContent(2, 1), 1.5)) ||
+       (!Near(corrected_response->GetBinContent(2, 2), 1.5))){
+        std::cerr << "generated columns did not receive one common factor" << std::endl;
+        return 1;
+    }
+    if((!Near(target_gen->GetBinContent(1), 10.0)) || (!Near(target_gen->GetBinContent(2), 6.0))){
+        std::cerr << "generated mean-weight target mismatch" << std::endl;
+        return 1;
+    }
+    if((!Near(corrected_rec->GetBinContent(1), 17.5)) || (!Near(corrected_rec->GetBinContent(2), 3.5))){
+        std::cerr << "reconstructed projection was not rebuilt" << std::endl;
+        return 1;
+    }
+    if((!Near(diagnostics.corrected_fake_overflow_sum, 10.0)) ||
+       (!Near(corrected_response->GetBinContent(3, 1), 10.0))){
+        std::cerr << "generated-overflow fake component was not preserved with one common factor" << std::endl;
+        return 1;
+    }
+    if((diagnostics.max_migration_fraction_change > 1e-12) || (diagnostics.max_efficiency_change > 1e-12)){
+        std::cerr << "migration shape or matched/full efficiency changed" << std::endl;
+        return 1;
+    }
+    delete corrected_response;
+    delete corrected_rec;
+    delete target_gen;
+
+    TH1D unmatched(reconstructed);
+    unmatched.SetBinContent(1, 131.0);
+    corrected_response = nullptr;
+    corrected_rec = nullptr;
+    target_gen = nullptr;
+    error.clear();
+    if(CorrectSplineGeneratedColumns3D(&response, &unweighted_response, &unmatched, &weighted_generated,
+                                       &unweighted_generated, corrected_response, corrected_rec,
+                                       target_gen, error, nullptr) || error.empty()){
+        std::cerr << "material unmatched reconstructed content was accepted" << std::endl;
+        return 1;
+    }
+    TH1D untouched("untouched", "untouched", 1, 0, 1);
+    untouched.SetBinContent(1, 9); untouched.SetBinError(1, 3);
+    if(DivideSplineActive("off", "Spline", error)){ std::cerr << "off mode would divide" << std::endl; return 1; }
+    if((!Near(untouched.GetBinContent(1), 9.0)) || (!Near(untouched.GetBinError(1), 3.0))){ std::cerr << "off mode changed the histogram" << std::endl; return 1; }
+    std::cout << "spline generated-column self-test ok" << std::endl;
+    return 0;
 }
 
 } // namespace sidis5d

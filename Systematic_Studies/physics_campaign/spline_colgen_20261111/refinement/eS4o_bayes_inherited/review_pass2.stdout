@@ -1,0 +1,26 @@
+n_cells 421
+n_fit 421
+missing 0
+empty 0
+bad 7
+families {'Bayesian': 452, 'RC_Bayesian': 0, 'BC_RC_Bayesian': 0, 'Bin': 0, '5D': 0, 'other_phi': 1808}
+median 1.365674903041321
+n_misses 5
+MISS 4 22 stored 4.602 free 0.29 ndf 1.0 free_ndf 1.0 B -0.0892 -> 0.6813 C -0.0419 -> 0.4704 edge False False Berr 0.1184 Cerr 0.0835 filled 4 limits None None
+MISS 1 16 stored 1.662 free 1.023 ndf 10.0 free_ndf 10.0 B -0.025 -> 0.062 C -0.0002 -> 0.0602 edge False False Berr 0.0084 Cerr 0.0003 filled 13 limits [-0.15, -0.05] [-0.1, 0.1]
+MISS 7 3 stored 1.436 free 0.96 ndf 3.0 free_ndf 3.0 B -0.08 -> 0.5221 C -0.0868 -> 0.1893 edge False False Berr 0.1587 Cerr 0.102 filled 6 limits [-0.16, -0.05] None
+MISS 1 9 stored 1.016 free 0.615 ndf 7.0 free_ndf 7.0 B -0.0723 -> 0.0527 C 0.0 -> 0.0244 edge False True Berr 0.0153 Cerr 0.0 filled 10 limits [-0.2, 0.0] [0, 0.1]
+MISS 2 4 stored 1.184 free 0.808 ndf 7.0 free_ndf 7.0 B -0.05 -> 0.0875 C 0.0507 -> 0.1281 edge False False Berr 0.0684 Cerr 0.0314 filled 10 limits [-0.1, -0.3] [-0.1, 0.75]
+HIGH
+HIGH 5 6 stored 6.001 free 5.932 B -0.4314 freeB -0.465 C 0.005 freeC -0.0268 dB -0.0336 dC -0.0318 filled 13
+HIGH 4 22 stored 4.602 free 0.29 B -0.0892 freeB 0.6813 C -0.0419 freeC 0.4704 dB 0.7705 dC 0.5124 filled 4
+HIGH 5 12 stored 3.837 free 3.837 B -0.4112 freeB -0.4112 C 0.1159 freeC 0.1159 dB -0.0 dC -0.0 filled 20
+HIGH 3 18 stored 3.825 free 3.825 B -0.3897 freeB -0.3897 C 0.0797 freeC 0.0797 dB -0.0 dC 0.0 filled 13
+HIGH 5 28 stored 3.739 free 3.739 B -0.1966 freeB -0.1966 C 0.0141 freeC 0.0141 dB 0.0 dC 0.0 filled 24
+HIGH 9 14 stored 3.223 free 3.223 B -0.4824 freeB -0.4824 C 0.1839 freeC 0.1839 dB 0.0 dC 0.0 filled 24
+HIGH 6 27 stored 3.2 free 3.2 B -0.1458 freeB -0.1458 C -0.0469 freeC -0.0469 dB -0.0 dC -0.0 filled 12
+HIGH 5 3 stored 3.141 free 3.118 B -0.1351 freeB -0.1761 C 0.005 freeC -0.0227 dB -0.041 dC -0.0277 filled 10
+HIGH 5 7 stored 3.141 free 3.141 B -0.1718 freeB -0.1718 C -0.0899 freeC -0.0899 dB -0.0 dC -0.0 filled 8
+HIGH 7 18 stored 3.114 free 3.114 B -0.2664 freeB -0.2664 C 0.0847 freeC 0.0847 dB 0.0 dC -0.0 filled 15
+HIGH 7 29 stored 3.089 free 3.089 B -0.2065 freeB -0.2066 C 0.0397 freeC 0.0397 dB -0.0 dC 0.0 filled 15
+HIGH 6 22 stored 3.04 free 3.034 B -0.1647 freeB -0.1645 C -0.0023 freeC -0.0073 dB 0.0002 dC -0.0051 filled 23

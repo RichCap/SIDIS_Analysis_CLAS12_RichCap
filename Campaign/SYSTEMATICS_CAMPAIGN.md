@@ -13,6 +13,7 @@ The command prepares 34 Phase 1 response-matrix configurations and 7 nominal-onl
 | `-c` / `--campaign` | `systematics_3d` | Run name used in the work directory, log, and output names |
 | `-droot` / `--data_root` | `work_b` | Analysis data root |
 | `-wm` / `--weight_mode` | `unweighted` | Phase 2 response for the 33 non-nominal configurations: `unweighted`, `weighted` (spline), or `both` |
+| `-sac` / `--spline_amplitude_correction` | `auto` | For 3D Spline, apply the generated-column correction and keep each job's original acceptance mask. The output suffix is `_ColGenRatio`. `off` keeps the legacy calculation. `_DivUnw` is not a completed result. AccSpline stays uncorrected. A resumed manifest without this field stays `off` |
 | `-rnh` / `--regenerate_nominal_spline_hpp` | off | Write a new nominal spline HPP file. Do not overwrite the existing HPP products |
 | `-mlw` / `--max_local_workers` | `41` | Local histogram plus unfold workers. Values above 41 are rejected. A lower value staggers local work only |
 | `-n` / `--dry_run` | off | Print commands and write the manifest. No `sbatch` and no histogram or unfold process |

@@ -95,6 +95,14 @@ def parse_args():
     p.add_argument('-wt', '--weight_tag', type=str, default="",
                    choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
                    help="Select which weighted histogram set to unfold.\n")
+    p.add_argument('-sac', '--spline_amplitude_correction', type=str, default="auto",
+                   choices=["auto", "on", "off"],
+                   help="Apply the 3D generated-column Spline correction: target generated bins are weighted/unweighted full-generator ratios and each matched response column uses the same inverse unweighted population. auto is on only for Spline; off keeps the original calculation.\n")
+    p.add_argument('-um', '--unfold_method', type=str, default="bayesian",
+                   choices=["bayesian", "bin"],
+                   help="bayesian runs RooUnfold. bin applies the acceptance ratio to the same corrected MC and the same acceptance mask.\n")
+    p.add_argument('-sam', '--skip_acceptance_mask', action='store_true',
+                   help="Do not apply the acceptance mask. Used only for the correction-off bin-by-bin comparison.\n")
     p.add_argument('-cw', '--closure_weight', type=str, default="",
                    choices=["", "Acc", "AccSpline"],
                    help="Weighted pseudo-data on the nominal response. Requires --simulation. Acc truth is the original generator. AccSpline truth is _(Spline).\n")
@@ -217,6 +225,10 @@ def build_cpp_command(args):
         cmd.append("--require_weighed")
     if(args.weight_tag not in ["", None]):
         cmd.extend(["--weight_tag", args.weight_tag])
+    cmd.extend(["--spline_amplitude_correction", args.spline_amplitude_correction])
+    cmd.extend(["--unfold_method", args.unfold_method])
+    if(args.skip_acceptance_mask):
+        cmd.append("--skip_acceptance_mask")
     if(args.closure_weight not in ["", None]):
         cmd.extend(["--closure_weight", args.closure_weight])
     if(args.pseudo_data not in ["", None]):
@@ -265,6 +277,7 @@ def build_python_rho_command(args):
         cmd.extend(["--email_message", args.email_message])
     if(args.weight_tag not in ["", None]):
         cmd.extend(["--weight_tag", args.weight_tag])
+    cmd.extend(["--spline_amplitude_correction", args.spline_amplitude_correction])
     cmd.extend(["--data_root", args.data_root])
     bins = args.pos_bins if(args.pos_bins) else args.bins
     cmd.extend([str(b) for b in bins])

@@ -1,0 +1,19 @@
+{
+  "saved": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030|bayes|inherited_WSpline_ColGenRatio.root",
+  "saved_copy_for_root": "/tmp/saved_nominal_24.root",
+  "validation": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/validation_24bin/nominal_q2y1_WSpline_ColGenRatio.root",
+  "q2y": 1,
+  "phi_bins": 24,
+  "histograms_compared": 145,
+  "missing_in_saved": 0,
+  "content_mismatches": 0,
+  "error_mismatches": 0,
+  "worst_content_relative": 0.0,
+  "worst_content": "",
+  "worst_error_relative": 0.0,
+  "worst_error": "",
+  "saved_mask_key": true,
+  "validation_mask_key": true,
+  "compatible": true,
+  "basis": "Nominal 24-bin Q2-y bin 1 was rerun after the merge repair with the same input, 500 toys, covariance, acceptance 0.020, and the preserved-mask correction. The completed file was not rewritten."
+}

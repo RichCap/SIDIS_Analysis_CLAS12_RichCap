@@ -1,0 +1,35 @@
+n_cells 452
+median 1.4546019250659517
+tested 65
+improved 15
+MISS 13 4 stored 11.34 free 2.174 B -0.0085 -> -0.224 C 0.0713 -> -0.0445 bhit False chit False out False key ['13', '4']
+MISS 10 11 stored 2.842 free 1.234 B -0.1369 -> -0.2053 C 0.0244 -> -0.0056 bhit False chit False out False key ['10', '11']
+MISS 3 16 stored 2.972 free 1.376 B -0.0627 -> -0.1162 C 0.0033 -> -0.0194 bhit False chit False out False key ['3', '16']
+MISS 15 15 stored 2.821 free 1.253 B -0.2588 -> -0.2695 C -0.025 -> 0.0461 bhit False chit False out True key ['15', '15']
+MISS 14 5 stored 3.661 free 2.223 B -0.166 -> -0.2506 C 0.0172 -> -0.03 bhit False chit False out False key ['14', '5']
+MISS 3 29 stored 4.171 free 2.737 B -0.1431 -> -0.1747 C 0.0075 -> 0.062 bhit False chit False out True key ['3', '29']
+MISS 4 34 stored 2.769 free 1.372 B -0.0279 -> -0.0833 C -0.0352 -> -0.027 bhit False chit False out False key ['4', '34']
+MISS 1 16 stored 3.694 free 2.582 B -0.025 -> 0.0314 C -0.014 -> 0.0154 bhit False chit False out True key ['1', '16']
+MISS 5 31 stored 2.348 free 1.343 B -0.0288 -> 0.0289 C -0.0 -> 0.052 bhit False chit True out True key ['5', '31']
+MISS 3 24 stored 2.68 free 1.812 B -0.1622 -> -0.1858 C 0.0011 -> 0.0495 bhit False chit False out False key ['3', '24']
+MISS 1 17 stored 2.436 free 1.704 B -0.025 -> -0.0236 C 0.0 -> -0.0263 bhit False chit True out True key ['1', '17']
+MISS 1 5 stored 3.277 free 2.688 B -0.2325 -> -0.184 C -0.0409 -> -0.0159 bhit False chit False out True key ['1', '5']
+MISS 1 9 stored 2.716 free 2.197 B -0.0 -> 0.0509 C 0.0 -> 0.01 bhit True chit True out True key ['1', '9', 'BC']
+MISS 1 4 stored 3.384 free 2.947 B -0.2138 -> -0.1755 C -0.01 -> 0.0247 bhit False chit False out True key ['1', '4']
+MISS 5 7 stored 1.993 free 1.686 B -0.0578 -> -0.0137 C -0.0 -> 0.0395 bhit False chit True out True key ['5', '7']
+TAIL
+TAIL 13 4 11.34 2.174 imp True C 0.0713 -0.0445
+TAIL 1 32 7.087 7.087 imp False C 0.0098 0.0098
+TAIL 13 10 5.001 5.001 imp False C 0.0821 0.0821
+TAIL 1 2 4.715 4.715 imp False C 0.0304 0.0304
+TAIL 1 1 4.422 4.422 imp False C 0.0242 0.0242
+TAIL 2 2 4.411 4.411 imp False C 0.0577 0.0577
+TAIL 6 2 4.345 4.02 imp False C 0.0022 0.0296
+TAIL 12 24 4.234 4.234 imp False C -0.0204 -0.0203
+TAIL 3 29 4.171 2.737 imp True C 0.0075 0.062
+TAIL 2 4 4.123 4.123 imp False C -0.0028 -0.0028
+TAIL 1 26 3.996 3.996 imp False C 0.0363 0.0363
+TAIL 1 3 3.901 3.901 imp False C 0.0192 0.0192
+TAIL 14 12 3.706 3.706 imp False C 0.0811 0.0811
+TAIL 1 16 3.694 2.582 imp True C -0.014 0.0154
+TAIL 2 14 3.691 3.59 imp False C 0.03 0.0387

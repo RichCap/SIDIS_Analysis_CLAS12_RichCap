@@ -1,0 +1,452 @@
+{
+  "acceptance_mask": "not_applied",
+  "calculation_matches": true,
+  "campaign_mask_after_this_check": "preserved_original_spline_before_column_correction",
+  "config": "nominal_only_20261030",
+  "contents_match": true,
+  "cpp": {
+    "output": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030_q2y01_bin_cpp_WSpline.root",
+    "skip_acceptance_mask": true,
+    "spline_amplitude_correction": "off",
+    "unfold_method": "bin"
+  },
+  "dense_1d": [
+    {
+      "content_mismatches": [],
+      "content_ok": true,
+      "cpp_name": "(1D)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_All)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 698,
+      "python_name": "(1D)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_All)_(MultiDim_z_pT_Bin_Y_bin_phi_t)"
+    }
+  ],
+  "dense_content_match": true,
+  "dense_error_samples": [],
+  "done": true,
+  "error_difference_is_implementation_error": false,
+  "input_error_comparison": "Dense bin-by-bin errors agree. The 29-slice uncertainty difference is at most 6.4 percent in 21 slices and is not a launch blocker. Input reconstructed, generated, and background histograms already store Sumw2 errors; their largest relative gap versus a Poisson error is mdf 0.994499, gdf 0.995185, background 0.995343. That stored-error gap is larger than the slice difference, so the slice uncertainty difference is not an implementation error.",
+  "input_name_counts": {
+    "background": 2,
+    "gdf": 1,
+    "mdf": 1,
+    "rdf": 1,
+    "rho": 2
+  },
+  "input_names": {
+    "background": [
+      "((Histo-Group='Background_Response_Matrix'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)",
+      "((Histo-Group='Background_Response_Matrix_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)"
+    ],
+    "gdf": [
+      "((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='gdf'), (Data-Cut='no_cut'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)"
+    ],
+    "mdf": [
+      "((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)"
+    ],
+    "rdf": [
+      "((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))"
+    ],
+    "rho": [
+      "((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)",
+      "((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)_(Spline)"
+    ]
+  },
+  "input_response": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root",
+  "input_stored_errors": {
+    "background": {
+      "bins_with_stored_error": 664,
+      "max_rel_stored_error_vs_poisson": 0.9953433083423266,
+      "name": "((Histo-Group='Background_Response_Matrix_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)",
+      "sumw2_n": 700
+    },
+    "gdf": {
+      "bins_with_stored_error": 697,
+      "max_rel_stored_error_vs_poisson": 0.9951854228921624,
+      "name": "((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='gdf'), (Data-Cut='no_cut'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)",
+      "sumw2_n": 700
+    },
+    "mdf": {
+      "bins_with_stored_error": 675,
+      "max_rel_stored_error_vs_poisson": 0.9944987253208,
+      "name": "((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)",
+      "sumw2_n": 700
+    },
+    "rdf": {
+      "bins_with_stored_error": 669,
+      "max_rel_stored_error_vs_poisson": 0.0,
+      "name": "((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='rdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type=''), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))",
+      "sumw2_n": 0
+    }
+  },
+  "labels": [
+    "spline_amplitude_correction=off",
+    "spline_amplitude_correction=off",
+    "acceptance_mask=not_applied",
+    "acceptance_mask=not_applied",
+    "unfold_method=bin_by_bin",
+    "unfold_method=bin_by_bin",
+    "physical_bin_map_q2y01=shared_axis_edges",
+    "physical_bin_map_q2y01=shared_axis_edges"
+  ],
+  "mask_built_from_corrected_mc": false,
+  "measured_uncertainty": {
+    "at_most_6_4_percent": true,
+    "launch_blocker": false,
+    "matches_recorded_6_4_percent_in_21_slices": true,
+    "max_slice_error_percent": 6.359392413425938,
+    "max_slice_error_rel": 0.06359392413425938,
+    "slices_compared": 29,
+    "slices_with_error_difference": 21
+  },
+  "n_slices": 29,
+  "n_unmatched_reconstructed_bins": 0,
+  "physical_edge_map": "shared_axis_edges",
+  "python": {
+    "flags": [
+      "-u3D",
+      "-bbo",
+      "-sac",
+      "off",
+      "--no_post_unfold_acc_cut",
+      "-wt",
+      "Spline"
+    ],
+    "output": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030_q2y01_bin_py_WSpline.root"
+  },
+  "q2y_bin": 1,
+  "reference_calculation": {
+    "calculation": "add background to reconstructed MC, Sumw2, ROOT Divide by generated bins with matching edges, then divide measured data by that acceptance",
+    "data_divide_ok": true,
+    "data_source": "(1D)_(rdf)_(SMEAR='')_(Q2_y_Bin_1)_(z_pT_Bin_All)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+    "divide_ok": true,
+    "done": true,
+    "versus_cpp": {
+      "content_mismatches": [],
+      "content_ok": true,
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 698
+    },
+    "versus_python": {
+      "content_mismatches": [],
+      "content_ok": true,
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 698
+    }
+  },
+  "sha256": {
+    "Dedicated_5D_Unfold_Helpers_h": "606170a909fbe565b8d9216e542fef3fd8a7a999ec35e88dcc5f2fff8b5ba443",
+    "Simple_Unfold": "aec21e64a6ebfcd150adb236751f533daa6ae3632f0ad1861561fe9252ca6ff9",
+    "Simple_Unfold_cxx": "1e398b6bfd83bb870a7d99ae754f8ed93c1c0d1a897bbd936b605d849042a234",
+    "input_response": "9194611306fc155922e13a121c3c02d4004eab2539d2662429acbededd7672be"
+  },
+  "slice_content_match": true,
+  "slice_content_mismatch_examples": [],
+  "slices": [
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.00027579132111605465,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_1)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 1
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_2)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 2
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_3)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 3
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_4)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 4
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_5)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.00027504156067290514,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_5)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 5
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0033970614674735046,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_6)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 6
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.010702615552827947,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_7)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 7
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 3.281465931925861e-05,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_8)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 8
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_9)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 9
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 2.090240938861839e-05,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_10)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 10
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.006484334818964811,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_11)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 11
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.021667516816641613,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_12)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 12
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.03429289732454729,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_13)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 13
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.04172741015956137,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_14)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 14
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_15)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 15
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_16)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 16
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.013453790075543808,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_17)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 17
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.038968800295196226,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_18)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 18
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.04879009181605449,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_19)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 19
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.05323492055642245,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_20)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 20
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_22)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 22
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.007009402778886496,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_23)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 23
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.05005672084597933,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_24)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 24
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.06095463008974085,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_25)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 25
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.06359392413425938,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_26)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 26
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.0,
+      "n_content_mismatches": 0,
+      "n_error_bins": 0,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_29)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 29
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_30)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.021715976684624272,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_30)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 30
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_31)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.046403364973424226,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_31)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 31
+    },
+    {
+      "content_ok": true,
+      "cpp_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_32)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "max_error_rel": 0.052460612578737346,
+      "n_content_mismatches": 0,
+      "n_error_bins": 1,
+      "nbins": 24,
+      "python_name": "(MultiDim_3D_Histo)_(Bin)_(SMEAR=Smear)_(Q2_y_Bin_1)_(z_pT_Bin_32)_(MultiDim_z_pT_Bin_Y_bin_phi_t)",
+      "z_pT_bin": 32
+    }
+  ],
+  "task": "method-check",
+  "uncertainty_record": {
+    "launch_blocker": false,
+    "max_percent": 6.4,
+    "of_slices": 29,
+    "slices": 21,
+    "statement": "measured uncertainty difference is at most 6.4 percent in 21 of the 29 Q2-y bin 1 slices"
+  },
+  "unmatched_reconstructed_bins": [],
+  "weight_tag": "Spline"
+}

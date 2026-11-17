@@ -613,8 +613,10 @@ def complete_campaign_20261029():
     bin_row = [row for row in nominal_rows if(row["key"].endswith("BinByBin__Unweighted"))][0]
     if(bin_row["lineage"] != [row["lineage"] for row in nominal_rows if(row["key"].endswith("BinByBin__Spline"))][0]):
         raise SystemExit("bin-by-bin weights do not share a lineage")
-    if("-bbo" not in printed):
+    if("--unfold_method bin" not in printed) and ("-um bin" not in printed):
         raise SystemExit("bin-by-bin command was not printed")
+    if("-bbo" in printed):
+        raise SystemExit("bin-by-bin still uses the Python divider")
     if(printed.count("PHASE2 ecband_tight_el__inherited__Spline deferred") != 0):
         raise SystemExit("EC Phase 2 stayed deferred")
     for walk_root, _dirs, files in os.walk(camp):
@@ -1290,8 +1292,49 @@ def covariance_and_iteration_defaults():
         raise SystemExit("generated 5D command is missing explicit covariance")
 
 
+def spline_division_campaign_checks():
+    from Campaign.systematics_campaign import part_notes_ready, resolved_spline_correction, written_output_path
+    logical = "/parts/job.root"
+    if(written_output_path(logical, "Spline", "on") != "/parts/job_WSpline_ColGenRatio.root"):
+        raise SystemExit("column-corrected spline path was not renamed")
+    if(written_output_path(logical, "Spline", "off") != "/parts/job_WSpline.root"):
+        raise SystemExit("original spline path changed")
+    if(written_output_path(logical, "AccSpline", "on") != "/parts/job_WAccSpline.root"):
+        raise SystemExit("AccSpline was given the spline division suffix")
+    if(resolved_spline_correction("AccSpline", "auto") != "off"):
+        raise SystemExit("AccSpline auto correction was on")
+    if(resolved_spline_correction("Spline", "auto") != "on"):
+        raise SystemExit("Spline auto correction was off")
+    if(resolved_spline_correction("Spline", "off") != "off"):
+        raise SystemExit("explicit off did not stay off")
+    names = ["(1D)_(Bayesian)_(SMEAR='')_(Q2_y_Bin_1)"]
+    config_on = [
+        "error_mode=covariance",
+        "spline_amplitude_correction=generated_column_target_ratio",
+        "acceptance_mask=preserved_original_spline_before_column_correction",
+    ]
+    config_off = ["error_mode=covariance"]
+    inputs = ["response.root"]
+    divided = written_output_path(logical, "Spline", "on")
+    original = written_output_path(logical, "Spline", "off")
+    if(not part_notes_ready(names, config_on, inputs, 1, "Spline", inputs[0], divided, False, "on")):
+        raise SystemExit("divided spline notes were rejected")
+    if(part_notes_ready(names, config_off, inputs, 1, "Spline", inputs[0], divided, False, "on")):
+        raise SystemExit("a divided path without metadata was accepted")
+    if(part_notes_ready(names, config_on, inputs, 1, "Spline", inputs[0], original, False, "off")):
+        raise SystemExit("an original path accepted divided metadata")
+    if(not part_notes_ready(names, config_off, inputs, 1, "Spline", inputs[0], original, False, "off")):
+        raise SystemExit("legacy spline notes were rejected")
+    if(part_notes_ready(names, config_on, inputs, 1, "AccSpline", inputs[0], "/parts/job_WAccSpline_ColGenRatio.root", False, "on")):
+        raise SystemExit("AccSpline accepted a column-corrected file")
+    old_label = ["spline_amplitude_correction=divided_by_unweighted"]
+    if(part_notes_ready(names, old_label, inputs, 1, "Spline", inputs[0], "/parts/job_WSpline_DivUnw.root", False, "on")):
+        raise SystemExit("the superseded cell-division file was accepted")
+
+
 def main():
     self_test()
+    spline_division_campaign_checks()
     ledger_self_test()
     squeue_compact_is_pending()
     hpp_matches_submit_full()

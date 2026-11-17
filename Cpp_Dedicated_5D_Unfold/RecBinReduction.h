@@ -164,11 +164,17 @@ inline TH2D* Compress_TH2_Rec_Axis(TH2* th2, const RecSkipMap& skip_map, bool re
 }
 
 inline int Merged_Dense_Bin(int bin, int phi_in, int phi_out){
-    if(bin <= 0){ return bin; }
+    if(bin <= 0){ return 0; }
     const int zero = bin - 1;
     const int slot = zero / phi_in;
     const int phi = zero % phi_in;
     return slot * phi_out + (phi / 2) + 1;
+}
+
+inline int Merged_Dense_Dest(int bin, int nbins, int phi_in, int phi_out){
+    if(bin <= 0){ return 0; }
+    if(bin > nbins){ return (nbins / phi_in) * phi_out + 1; }
+    return Merged_Dense_Bin(bin, phi_in, phi_out);
 }
 
 inline TH1D* Merge_Dense_Phi_TH1(TH1* input, int phi_in, int phi_out){
@@ -181,8 +187,8 @@ inline TH1D* Merge_Dense_Phi_TH1(TH1* input, int phi_in, int phi_out){
     TH1D* out = new TH1D((std::string(input->GetName()) + "_phi12").c_str(), input->GetTitle(), nout, xmin, xmin + nout * width);
     out->SetDirectory(0);
     out->Sumw2();
-    for(int bin = 1; bin <= nbins; ++bin){
-        const int dest = Merged_Dense_Bin(bin, phi_in, phi_out);
+    for(int bin = 0; bin <= nbins + 1; ++bin){
+        const int dest = Merged_Dense_Dest(bin, nbins, phi_in, phi_out);
         const double content = out->GetBinContent(dest) + input->GetBinContent(bin);
         const double err2 = out->GetBinError(dest) * out->GetBinError(dest) + input->GetBinError(bin) * input->GetBinError(bin);
         out->SetBinContent(dest, content);
@@ -207,10 +213,10 @@ inline TH2D* Merge_Dense_Phi_TH2(TH2* input, int phi_in, int phi_out){
                          nx_out, xmin, xmin + nx_out * xwidth, ny_out, ymin, ymin + ny_out * ywidth);
     out->SetDirectory(0);
     out->Sumw2();
-    for(int ix = 1; ix <= nx; ++ix){
-        const int dest_x = Merged_Dense_Bin(ix, phi_in, phi_out);
-        for(int iy = 1; iy <= ny; ++iy){
-            const int dest_y = Merged_Dense_Bin(iy, phi_in, phi_out);
+    for(int ix = 0; ix <= nx + 1; ++ix){
+        const int dest_x = Merged_Dense_Dest(ix, nx, phi_in, phi_out);
+        for(int iy = 0; iy <= ny + 1; ++iy){
+            const int dest_y = Merged_Dense_Dest(iy, ny, phi_in, phi_out);
             const double content = out->GetBinContent(dest_x, dest_y) + input->GetBinContent(ix, iy);
             const double err2 = out->GetBinError(dest_x, dest_y) * out->GetBinError(dest_x, dest_y) + input->GetBinError(ix, iy) * input->GetBinError(ix, iy);
             out->SetBinContent(dest_x, dest_y, content);

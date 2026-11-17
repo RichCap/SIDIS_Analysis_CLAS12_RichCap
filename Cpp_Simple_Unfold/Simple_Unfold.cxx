@@ -175,6 +175,13 @@ std::string Strip_Weight_Tags(std::string name){
     return name;
 }
 
+std::string Unweighted_MC_Background_Name(const std::string& signal_1d_name){
+    // The fake/misidentification component is a separate signal-MC population.  Its untagged
+    // histogram retains the production base weights (for example exclusive_rho_weight) but must
+    // not inherit Spline/JSON/acceptance weights from the signal response selected for unfolding.
+    return Strip_Weight_Tags(Apply_Background_1D_Replacements(signal_1d_name));
+}
+
 std::string Strip_Smear_Tags(std::string name){
     name = replace_all(name, "_smeared", "");
     name = replace_all(name, "smear_", "");
@@ -322,8 +329,15 @@ bool Dense_Axis_Has_Index_Offset(const TAxis* axis){
     return (std::abs(xmin + 1.5) < 1e-6) && ((nbins % kPhiN) == 2) && (nbins > 2);
 }
 
-int Phi12_Dest_Bin(int bin, bool offset){
-    if(bin <= 0){ return bin; }
+int Phi12_Output_Count(int nbins, bool offset){
+    if(!offset){ return (nbins / kPhiN) * 12; }
+    return 2 + ((nbins - 2) / kPhiN) * 12;
+}
+
+int Phi12_Dest_Bin(int bin, int nbins, bool offset){
+    // Underflow stays underflow. Overflow stays the output overflow. Neither is folded into a phi slot.
+    if(bin <= 0){ return 0; }
+    if(bin > nbins){ return Phi12_Output_Count(nbins, offset) + 1; }
     if(!offset){ return sidis5d::Merged_Dense_Bin(bin, kPhiN, 12); }
     if(bin <= 2){ return bin; }
     return 2 + sidis5d::Merged_Dense_Bin(bin - 2, kPhiN, 12);
@@ -338,8 +352,8 @@ TH1D* Merge_Phi12_TH1(TH1* input){
     TH1D* out = new TH1D((std::string(input->GetName()) + "_phi12").c_str(), input->GetTitle(), nout, -1.5, -1.5 + nout);
     out->SetDirectory(0);
     out->Sumw2();
-    for(int bin = 1; bin <= nbins; ++bin){
-        const int dest = Phi12_Dest_Bin(bin, true);
+    for(int bin = 0; bin <= nbins + 1; ++bin){
+        const int dest = Phi12_Dest_Bin(bin, nbins, true);
         const double content = out->GetBinContent(dest) + input->GetBinContent(bin);
         const double err2 = out->GetBinError(dest) * out->GetBinError(dest) + input->GetBinError(bin) * input->GetBinError(bin);
         out->SetBinContent(dest, content);
@@ -362,10 +376,10 @@ TH2D* Merge_Phi12_TH2(TH2* input){
                          nx_out, -1.5, -1.5 + nx_out, ny_out, -1.5, -1.5 + ny_out);
     out->SetDirectory(0);
     out->Sumw2();
-    for(int ix = 1; ix <= nx; ++ix){
-        const int dest_x = Phi12_Dest_Bin(ix, true);
-        for(int iy = 1; iy <= ny; ++iy){
-            const int dest_y = Phi12_Dest_Bin(iy, true);
+    for(int ix = 0; ix <= nx + 1; ++ix){
+        const int dest_x = Phi12_Dest_Bin(ix, nx, true);
+        for(int iy = 0; iy <= ny + 1; ++iy){
+            const int dest_y = Phi12_Dest_Bin(iy, ny, true);
             const double content = out->GetBinContent(dest_x, dest_y) + input->GetBinContent(ix, iy);
             const double err2 = out->GetBinError(dest_x, dest_y) * out->GetBinError(dest_x, dest_y) + input->GetBinError(ix, iy) * input->GetBinError(ix, iy);
             out->SetBinContent(dest_x, dest_y, content);
@@ -377,10 +391,114 @@ TH2D* Merge_Phi12_TH2(TH2* input){
     return out;
 }
 
+TH1* AlignGeneratedToReconstructed(const TH1* reconstructed, const TH1* generated, std::string& map_label, std::string& error){
+    error.clear();
+    map_label.clear();
+    if((reconstructed == nullptr) || (generated == nullptr)){
+        error = "missing histogram for the bin-by-bin physical map";
+        return nullptr;
+    }
+    if(sidis5d::AxisEdgesMatch(reconstructed->GetXaxis(), generated->GetXaxis())){
+        TH1* aligned = dynamic_cast<TH1*>(generated->Clone((std::string(generated->GetName()) + "_AlignedGen").c_str()));
+        if(aligned == nullptr){
+            error = "could not clone the generated histogram";
+            return nullptr;
+        }
+        aligned->SetDirectory(nullptr);
+        map_label = "shared_axis_edges";
+        return aligned;
+    }
+    TH1* aligned = dynamic_cast<TH1*>(reconstructed->Clone((std::string(reconstructed->GetName()) + "_AlignedGen").c_str()));
+    if(aligned == nullptr){
+        error = "could not clone the reconstructed axis";
+        return nullptr;
+    }
+    aligned->SetDirectory(nullptr);
+    aligned->Reset("ICES");
+    const TAxis* rec_axis = reconstructed->GetXaxis();
+    const TAxis* gen_axis = generated->GetXaxis();
+    for(int rec_bin = 1; rec_bin <= reconstructed->GetNbinsX(); ++rec_bin){
+        const double low = rec_axis->GetBinLowEdge(rec_bin);
+        const double high = rec_axis->GetBinUpEdge(rec_bin);
+        int match = -1;
+        int matches = 0;
+        for(int gen_bin = 1; gen_bin <= generated->GetNbinsX(); ++gen_bin){
+            if((std::abs(gen_axis->GetBinLowEdge(gen_bin) - low) <= 1e-6) &&
+               (std::abs(gen_axis->GetBinUpEdge(gen_bin) - high) <= 1e-6)){
+                match = gen_bin;
+                matches += 1;
+            }
+        }
+        if(matches != 1){
+            error = "reconstructed bin " + std::to_string(rec_bin) + " has " + std::to_string(matches) +
+                    " generated bins with the same edges";
+            delete aligned;
+            return nullptr;
+        }
+        aligned->SetBinContent(rec_bin, generated->GetBinContent(match));
+        aligned->SetBinError(rec_bin, generated->GetBinError(match));
+    }
+    map_label = "unique_edge_match";
+    return aligned;
+}
+
+TH1* BinByBinUnfold(TH1* data, TH1* reconstructed, TH1* generated, TH1* background, std::string& map_label, std::string& error){
+    error.clear();
+    TH1* aligned = AlignGeneratedToReconstructed(reconstructed, generated, map_label, error);
+    if(aligned == nullptr){ return nullptr; }
+    if((background != nullptr) &&
+       ((background->GetNbinsX() != reconstructed->GetNbinsX()) ||
+        !sidis5d::AxisEdgesMatch(background->GetXaxis(), reconstructed->GetXaxis()))){
+        error = "background histogram does not match the reconstructed axis";
+        delete aligned;
+        return nullptr;
+    }
+    if((data == nullptr) || (data->GetNbinsX() != reconstructed->GetNbinsX()) ||
+       !sidis5d::AxisEdgesMatch(data->GetXaxis(), reconstructed->GetXaxis())){
+        error = "measured histogram does not match the reconstructed axis";
+        delete aligned;
+        return nullptr;
+    }
+    TH1* acceptance = dynamic_cast<TH1*>(reconstructed->Clone((std::string(reconstructed->GetName()) + "_BinAcceptance").c_str()));
+    TH1* unfolded = dynamic_cast<TH1*>(data->Clone((std::string(data->GetName()) + "_BinByBin").c_str()));
+    if((acceptance == nullptr) || (unfolded == nullptr)){
+        error = "could not clone histograms for bin-by-bin";
+        delete aligned;
+        delete acceptance;
+        delete unfolded;
+        return nullptr;
+    }
+    acceptance->SetDirectory(nullptr);
+    unfolded->SetDirectory(nullptr);
+    if(background != nullptr){ acceptance->Add(background); }
+    acceptance->Sumw2();
+    if(!acceptance->Divide(aligned)){
+        error = "ROOT Divide failed for bin-by-bin acceptance";
+        delete aligned;
+        delete acceptance;
+        delete unfolded;
+        return nullptr;
+    }
+    if(!unfolded->Divide(acceptance)){
+        error = "ROOT Divide failed for bin-by-bin data";
+        delete aligned;
+        delete acceptance;
+        delete unfolded;
+        return nullptr;
+    }
+    delete aligned;
+    delete acceptance;
+    return unfolded;
+}
+
 TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_GEN_1D, TH1* MC_BGS_1D,
                      UnfoldArgs& args, bool user_set_bi, const std::string& study_tag, RecSkipMap* skip_map_out,
-                     TH1* acceptance_rdf = nullptr, TH1* acceptance_bdf = nullptr, TH1* compare_truth = nullptr){
-    std::cout << Color::BCYAN << "Starting " << Color::UNDERLINE << Color::GREEN << "RooUnfold" << Color::END_B
+                     TH1* acceptance_rdf = nullptr, TH1* acceptance_bdf = nullptr, TH1* compare_truth = nullptr,
+                     TH2* Response_unweighted = nullptr, TH1* MC_GEN_unweighted = nullptr,
+                     TH1** corrected_rec_out = nullptr, TH1** corrected_gen_out = nullptr){
+    const bool bin_method = (args.unfold_method == "bin");
+    std::cout << Color::BCYAN << "Starting " << Color::UNDERLINE << Color::GREEN
+              << (bin_method ? "Bin-by-Bin" : "RooUnfold") << Color::END_B
               << Color::CYAN << " Unfolding Procedure..." << Color::END << std::endl;
     std::string Name_Main = Response_2D->GetName();
     std::string Name_Main_Print = Name_Main;
@@ -393,6 +511,10 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
 
     // 12-bin mode sums adjacent phi cells, including every rec/gen migration, before the acceptance skip.
     // Index -1 and the index-0 overflow stay single bins. Kinematic slots, which start at 1, are paired.
+    // own_merged_* is true only for histograms this function allocated. Caller histograms stay with the caller.
+    bool own_merged_response = false;
+    bool own_merged_rec = false;
+    bool own_merged_gen = false;
     if(args.phi_bins == 12){
         TH1D* merged_data = Merge_Phi12_TH1(ExREAL_1D);
         TH1D* merged_rec = Merge_Phi12_TH1(MC_REC_1D);
@@ -401,6 +523,11 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         TH2D* merged_response = Merge_Phi12_TH2(Response_2D);
         if((merged_data == nullptr) || (merged_rec == nullptr) || (merged_gen == nullptr) || (merged_response == nullptr)){
             std::cout << Color::RED << "phi_bins=12 requires dense axes whose bin count is a multiple of 24" << Color::END << std::endl;
+            delete merged_data;
+            delete merged_rec;
+            delete merged_gen;
+            delete merged_bkg;
+            delete merged_response;
             return nullptr;
         }
         ExREAL_1D = merged_data;
@@ -408,6 +535,9 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         MC_GEN_1D = merged_gen;
         MC_BGS_1D = merged_bkg;
         Response_2D = merged_response;
+        own_merged_response = true;
+        own_merged_rec = true;
+        own_merged_gen = true;
         if(acceptance_rdf != nullptr){
             TH1D* merged_acc = Merge_Phi12_TH1(acceptance_rdf);
             if(merged_acc != nullptr){ acceptance_rdf = merged_acc; }
@@ -418,17 +548,123 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         }
     }
 
+    // Acceptance is a property of this run's original MC sample. Preserve the exact existing
+    // weighted-Spline decision before changing response/generated normalization, then apply the
+    // saved map at the normal compression stage below. The full matrix remains unmasked while
+    // the generated-column correction is calculated.
+    RecSkipMap original_spline_skip_map;
+    bool have_original_spline_skip_map = false;
+    if(args.divide_spline_by_unweighted && !args.old_binning){
+        TH1* original_skip_rdf = (acceptance_rdf != nullptr) ? acceptance_rdf : ExREAL_1D;
+        TH1* original_skip_bdf = (acceptance_bdf != nullptr) ? acceptance_bdf : MC_BGS_1D;
+        original_spline_skip_map = Build_Rec_Skip_Map(original_skip_rdf, MC_REC_1D, MC_GEN_1D,
+                                                       original_skip_bdf, args.Min_Allowed_Acceptance_Cut);
+        have_original_spline_skip_map = true;
+    }
+
+    // Correct after the same phi merger, and before the acceptance skip, axis flip, and RooUnfoldResponse.
+    // The 3D source response is X=generated, Y=reconstructed here. Each generated column gets
+    // one factor 1/N_unweighted_full, while the generated target is W_weighted_full/N_unweighted_full.
+    if(args.divide_spline_by_unweighted){
+        if((Response_unweighted == nullptr) || (MC_GEN_unweighted == nullptr)){
+            std::cout << Color::RED << "Spline generated-column correction is missing the unweighted response or full generated histogram" << Color::END << std::endl;
+            if(own_merged_response){ delete Response_2D; }
+            if(own_merged_rec){ delete MC_REC_1D; }
+            if(own_merged_gen){ delete MC_GEN_1D; }
+            return nullptr;
+        }
+        TH2* denom_response = Response_unweighted;
+        TH1* denom_gen = MC_GEN_unweighted;
+        bool own_denom_response = false;
+        bool own_denom_gen = false;
+        if(args.phi_bins == 12){
+            denom_response = Merge_Phi12_TH2(Response_unweighted);
+            denom_gen = Merge_Phi12_TH1(MC_GEN_unweighted);
+            own_denom_response = (denom_response != nullptr);
+            own_denom_gen = (denom_gen != nullptr);
+            if((denom_response == nullptr) || (denom_gen == nullptr)){
+                std::cout << Color::RED << "phi_bins=12 could not merge the unweighted response or full generated Spline counterpart" << Color::END << std::endl;
+                if(own_denom_response){ delete denom_response; }
+                if(own_denom_gen){ delete denom_gen; }
+                if(own_merged_response){ delete Response_2D; }
+                if(own_merged_rec){ delete MC_REC_1D; }
+                if(own_merged_gen){ delete MC_GEN_1D; }
+                return nullptr;
+            }
+        }
+        std::string correction_error;
+        TH2* corrected_response = nullptr;
+        TH1* corrected_rec = nullptr;
+        TH1* corrected_gen = nullptr;
+        sidis5d::SplineColumnDiagnostics correction_diagnostics;
+        const bool corrected = sidis5d::CorrectSplineGeneratedColumns3D(Response_2D, denom_response, MC_REC_1D, MC_GEN_1D,
+                                                                         denom_gen, corrected_response,
+                                                                         corrected_rec, corrected_gen,
+                                                                         correction_error, &correction_diagnostics);
+        if(own_denom_response){ delete denom_response; }
+        if(own_denom_gen){ delete denom_gen; }
+        if(!corrected){
+            std::cout << Color::RED << correction_error << Color::END << std::endl;
+            delete corrected_response;
+            delete corrected_rec;
+            delete corrected_gen;
+            if(own_merged_response){ delete Response_2D; }
+            if(own_merged_rec){ delete MC_REC_1D; }
+            if(own_merged_gen){ delete MC_GEN_1D; }
+            return nullptr;
+        }
+        std::cout << Color::BGREEN
+                  << "Generated-column Spline correction: max(rec - response projection) rel = "
+                  << correction_diagnostics.max_rec_projection_rel
+                  << ", max migration-fraction change = " << correction_diagnostics.max_migration_fraction_change
+                  << ", max matched/full efficiency change = " << correction_diagnostics.max_efficiency_change
+                  << ", corrected generated-overflow MC fakes = " << correction_diagnostics.corrected_fake_overflow_sum
+                  << ", empty generated bins = " << correction_diagnostics.empty_generated_bins
+                  << Color::END << std::endl;
+        std::cout << Color::BGREEN
+                  << "Physical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns."
+                  << Color::END << std::endl;
+        delete Response_2D;
+        if(own_merged_rec){ delete MC_REC_1D; }
+        if(own_merged_gen){ delete MC_GEN_1D; }
+        Response_2D = corrected_response;
+        MC_REC_1D = corrected_rec;
+        MC_GEN_1D = corrected_gen;
+        if(corrected_rec_out != nullptr){ *corrected_rec_out = corrected_rec; }
+        if(corrected_gen_out != nullptr){ *corrected_gen_out = corrected_gen; }
+    }
+
     RecSkipMap skip_map;
     TH1* ExREAL_use = ExREAL_1D;
     TH1* MC_REC_use = MC_REC_1D;
     TH1* MC_BGS_use = MC_BGS_1D;
     bool own_rec = false;
     if(!args.old_binning){
-        TH1* skip_rdf = (acceptance_rdf != nullptr) ? acceptance_rdf : ExREAL_1D;
-        TH1* skip_bdf = (acceptance_bdf != nullptr) ? acceptance_bdf : MC_BGS_1D;
-        skip_map = Build_Rec_Skip_Map(skip_rdf, MC_REC_1D, MC_GEN_1D, skip_bdf, args.Min_Allowed_Acceptance_Cut);
+        if(have_original_spline_skip_map){
+            skip_map = original_spline_skip_map;
+            std::cout << Color::BGREEN
+                      << "Using acceptance mask preserved from the original weighted Spline MC before column correction."
+                      << Color::END << std::endl;
+        } else {
+            TH1* skip_rdf = (acceptance_rdf != nullptr) ? acceptance_rdf : ExREAL_1D;
+            TH1* skip_bdf = (acceptance_bdf != nullptr) ? acceptance_bdf : MC_BGS_1D;
+            skip_map = Build_Rec_Skip_Map(skip_rdf, MC_REC_1D, MC_GEN_1D, skip_bdf, args.Min_Allowed_Acceptance_Cut);
+        }
         Print_Rec_Skip_Map(skip_map);
         if(skip_map_out != nullptr){ *skip_map_out = skip_map; }
+        if(bin_method){
+            std::string map_label;
+            std::string bin_error;
+            TH1* bin_unfolded = BinByBinUnfold(ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, map_label, bin_error);
+            if(bin_unfolded == nullptr){
+                std::cout << Color::RED << bin_error << Color::END << std::endl;
+                return nullptr;
+            }
+            args.physical_bin_map = map_label;
+            std::cout << Color::BGREEN << "Bin-by-bin used physical map " << map_label
+                      << " before the preserved acceptance mask." << Color::END << std::endl;
+            return bin_unfolded;
+        }
         ExREAL_use = Compress_TH1_Rec(ExREAL_1D, skip_map, std::string(ExREAL_1D->GetName()) + "_rec_reduced");
         MC_REC_use = Compress_TH1_Rec(MC_REC_1D, skip_map, std::string(MC_REC_1D->GetName()) + "_rec_reduced");
         if(MC_BGS_1D != nullptr){
@@ -644,6 +880,7 @@ int Multi3D_Slice(TH1* Histo, TH1* Histo_Cut, const std::string& Name_In, const 
             Name_All = Name_Out;
             Name_All_Hist = new TH1D(Name_All.c_str(), (Title_Out + "; " + xtitle).c_str(), args.phi_bins, kPhiMin, kPhiMax);
             Name_All_Hist->SetDirectory(0);
+            Name_All_Hist->Sumw2();
             continue;
         }
         const int phi_n = args.phi_bins;
@@ -655,6 +892,7 @@ int Multi3D_Slice(TH1* Histo, TH1* Histo_Cut, const std::string& Name_In, const 
         if((End_phi_h_bin - Start_phi_h_bin) != phi_n){ continue; }
         TH1D* Slice_Hist = new TH1D(Name_Out.c_str(), (Title_Out + "; " + xtitle).c_str(), phi_n, kPhiMin, kPhiMax);
         Slice_Hist->SetDirectory(0);
+        Slice_Hist->Sumw2();
         int ii_bin_num = Start_phi_h_bin;
         while(ii_bin_num < End_phi_h_bin){
             for(int phi_bin = kPhiMin; phi_bin < kPhiMax; phi_bin += phi_step){
@@ -718,9 +956,7 @@ UnfoldArgs main_start(int argc, char** argv){
     // bool has_zero = false;
     // for(const auto& b : args.Q2_y_Bin_List){ if(b == "0"){ has_zero = true; } }
     // if(!has_zero){ args.Q2_y_Bin_List.push_back("0"); }
-    if((!args.weight_tag.empty()) && (!contains(args.root, "_W" + args.weight_tag))){
-        args.root = replace_all(args.root, ".root", "_W" + args.weight_tag + ".root");
-    }
+    sidis5d::Apply_Weight_Output_Suffix(args, true);
     if(!args.test){
         std::cout << "\n" << Color::BBLUE << "Will be saving results to " << Color::END_B << args.root << Color::END << "\n" << std::endl;
     } else {
@@ -780,14 +1016,15 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     if((Response_2D == nullptr) || (ExREAL_1D == nullptr) || (MC_REC_1D == nullptr) || (MC_GEN_1D == nullptr)){
         Crash_Report(args, "Failed to load histograms for " + out_print_main);
     }
-    std::string bdf_unweighted = Apply_Background_1D_Replacements(mdf_1d);
-    std::string bdf_1d = bdf_unweighted;
-    if(!args.closure_weight.empty()){ bdf_1d += "_(" + args.closure_weight + ")"; }
+    const std::string bdf_unweighted = Unweighted_MC_Background_Name(mdf_1d);
+    const std::string bdf_1d = bdf_unweighted;
     TH1* MC_BGS_1D = nullptr;
     if(key_in_file(input_file, bdf_1d) && contains(bdf_1d, "Background")){
         MC_BGS_1D = CloneDetached(dynamic_cast<TH1*>(input_file->Get(bdf_1d.c_str())), "bgs");
+        std::cout << Color::BGREEN << "Using unweighted signal-MC fake background '"
+                  << bdf_1d << "'" << Color::END << std::endl;
     } else {
-        Crash_Report(args, "Missing Background Histogram (would be named: " + bdf_1d + ")");
+        Crash_Report(args, "Missing required unweighted signal-MC fake background: " + bdf_1d);
     }
     if(args.sim && (MC_BGS_1D != nullptr)){ ExREAL_1D->Add(MC_BGS_1D); }
     TH1* acceptance_bdf = nullptr;
@@ -865,10 +1102,36 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
         }
         acceptance_rdf = pseudo_acceptance_data;
     }
-    TH1* Unfold_raw = Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args, user_set_bi, study_tag, &skip_map, acceptance_rdf, acceptance_bdf, compare_truth);
+    TH2* response_unw = nullptr;
+    TH1* gen_unw = nullptr;
+    if(args.divide_spline_by_unweighted){
+        std::string correction_error;
+        TH1* response_denom = sidis5d::LoadSplineCounterpart(input_file, out_print_main, correction_error);
+        TH1* gen_denom = (response_denom != nullptr)
+                           ? sidis5d::LoadSplineCounterpart(input_file, gdf_name, correction_error) : nullptr;
+        if((response_denom == nullptr) || (gen_denom == nullptr)){ Crash_Report(args, correction_error); }
+        response_unw = dynamic_cast<TH2*>(CloneDetached(response_denom, "resp_unw_for_fakes"));
+        gen_unw = CloneDetached(gen_denom, "gdf_unw");
+        if((response_unw == nullptr) || (gen_unw == nullptr)){
+            Crash_Report(args, "Failed to clone the unweighted response or full generated Spline counterpart for " + out_print_main);
+        }
+    }
+    TH1* corrected_rec = nullptr;
+    TH1* corrected_gen = nullptr;
+    TH1* Unfold_raw = Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args, user_set_bi, study_tag, &skip_map, acceptance_rdf, acceptance_bdf, compare_truth, response_unw, gen_unw, &corrected_rec, &corrected_gen);
+    delete response_unw;
+    delete gen_unw;
+    if(corrected_rec != nullptr){
+        delete MC_REC_1D;
+        MC_REC_1D = corrected_rec;
+    }
+    if(corrected_gen != nullptr){
+        delete MC_GEN_1D;
+        MC_GEN_1D = corrected_gen;
+    }
     if(Unfold_raw == nullptr){ Crash_Report(args, "Unfold_Function returned ERROR"); }
     TH1* Unfold_1D = Unfold_raw;
-    if(!args.old_binning){
+    if((!args.old_binning) && (!args.skip_acceptance_mask)){
         Unfold_1D = Mask_Full_To_Analysis(Unfold_raw, skip_map, std::string(Unfold_raw->GetName()) + "_analysis");
         delete Unfold_raw;
     }
@@ -891,7 +1154,17 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
     save_named(MC_REC_1D, "mdf");
     save_named(MC_GEN_1D, "gdf");
     if(MC_BGS_1D != nullptr){ save_named(MC_BGS_1D, "Background"); }
-    save_named(Unfold_1D, "Bayesian");
+    const std::string result_method = (args.unfold_method == "bin") ? "Bin" : "Bayesian";
+    save_named(Unfold_1D, result_method);
+    if((args.unfold_method == "bin") && (!args.physical_bin_map.empty()) && (output_file != nullptr) && (!args.test)){
+        std::string map_key = "physical_bin_map_q2y";
+        if(q2y < 10){ map_key += "0"; }
+        map_key += std::to_string(q2y);
+        map_key += "=";
+        map_key += args.physical_bin_map;
+        TNamed map_line(map_key.c_str(), map_key.c_str());
+        safe_write(&map_line, output_file);
+    }
 
     if(contains(out_print_main, "MultiDim_z_pT_Bin") && (q2y > 0)){
         std::string q2y_s = std::to_string(q2y);
@@ -901,7 +1174,7 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
         if(MC_BGS_1D != nullptr){
             Multi3D_Slice(MC_BGS_1D, nullptr, out_print_main, "Background", Smear_Input, q2y_s, args, output_file, save_count_ref);
         }
-        Multi3D_Slice(Unfold_1D, MC_REC_1D, out_print_main, "Bayesian", Smear_Input, q2y_s, args, output_file, save_count_ref);
+        Multi3D_Slice(Unfold_1D, MC_REC_1D, out_print_main, result_method, Smear_Input, q2y_s, args, output_file, save_count_ref);
     }
     delete ExREAL_1D;
     delete MC_REC_1D;
@@ -948,7 +1221,16 @@ int main_simple_unfold(UnfoldArgs& args, bool user_set_bi){
         Config_Tlist.Add(new TObjString(("bayes_iterations=" + std::to_string(args.bayes_iterations)).c_str()));
         Config_Tlist.Add(new TObjString(args.unfolding_3D ? "unfolding_3D=1" : "unfolding_3D=0"));
         Config_Tlist.Add(new TObjString(args.unfolding_1D ? "unfolding_1D=1" : "unfolding_1D=0"));
+        Config_Tlist.Add(new TObjString(sidis5d::SplineAmplitudeCorrectionLabel(args, true)));
+        Config_Tlist.Add(new TObjString(sidis5d::AcceptanceMaskLabel(args)));
+        Config_Tlist.Add(new TObjString(sidis5d::UnfoldMethodLabel(args)));
         safe_write(&Config_Tlist, output_file);
+        TNamed correction_note(sidis5d::SplineAmplitudeCorrectionLabel(args, true), sidis5d::SplineAmplitudeCorrectionLabel(args, true));
+        safe_write(&correction_note, output_file);
+        TNamed mask_note(sidis5d::AcceptanceMaskLabel(args), sidis5d::AcceptanceMaskLabel(args));
+        safe_write(&mask_note, output_file);
+        TNamed method_note(sidis5d::UnfoldMethodLabel(args), sidis5d::UnfoldMethodLabel(args));
+        safe_write(&method_note, output_file);
     } else {
         std::cout << Color::PINK << "Would be saving to: " << Color::BCYAN << args.root << Color::END << std::endl;
     }
@@ -972,6 +1254,9 @@ int main_simple_unfold(UnfoldArgs& args, bool user_set_bi){
 int main(int argc, char** argv){
     TH1::AddDirectory(kFALSE);
     gROOT->SetBatch(kTRUE);
+    if(ArgWasPassed(argc, argv, {"-sds", "--spline_divide_self_test"})){
+        return sidis5d::SplineDivideSelfTest();
+    }
     bool user_set_bi = ArgWasPassed(argc, argv, {"-bi", "-bayes-it", "--bayes_iterations"});
     UnfoldArgs args = main_start(argc, argv);
     int to_be_saved_count = 0;

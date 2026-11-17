@@ -1,0 +1,80 @@
+{
+  "acceptance_mask": "preserved_original_spline_before_column_correction",
+  "bins_missing": [],
+  "bins_present": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ],
+  "fingerprint": "ed17d5b5843e9d805a2c9eadeb682a2dfbba2836aa35c3fca2a43f1e95a917b7",
+  "input_response": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_ecthr_loose_el_Bank_cut_Complete_SIDIS_ecthr_loose_el_Response_Matrices_Final_Thesis_Files_All.root",
+  "job": "ecthr_loose_el|bayes|inherited",
+  "keys": {
+    "generated_column_target_ratio": true,
+    "preserved_original_spline_before_column_correction": true,
+    "unfold_method_bayesian": true
+  },
+  "n_keys": 2455,
+  "outcome": "complete",
+  "output": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/ecthr_loose_el|bayes|inherited_WSpline_ColGenRatio.root",
+  "settings": {
+    "acceptance": 0.02,
+    "acceptance_mask": "preserved_original_spline_before_column_correction",
+    "background": "rho0_new",
+    "bins": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "error_mode": "covariance",
+    "iteration_map": {
+      "1": 6,
+      "5": 6,
+      "default": 5
+    },
+    "iterations": "inherited",
+    "no_smear": false,
+    "phi_bins": 24,
+    "spline_amplitude_correction": "auto",
+    "unfold_method": "bayesian",
+    "weight_tag": "Spline"
+  },
+  "sha256": {
+    "Dedicated_5D_Unfold_Helpers.h": "606170a909fbe565b8d9216e542fef3fd8a7a999ec35e88dcc5f2fff8b5ba443",
+    "Simple_Unfold": "05700647fa071a40e04940d459e9bb96dc6be1e879084379e03252045a62b0e7",
+    "Simple_Unfold.cxx": "ac6f97afb963fd4c7e900b1b1f0abd3634761e738d89bbd37b8a7a2dae71095d",
+    "input_response": "37bc5aa399f678da1a0ad7ccdff7e589d4429bd5e071be1d4b5c616973c9b4d9"
+  },
+  "spec": "ecthr_loose_el|bayes|inherited",
+  "suffix_ok": true,
+  "task": "unfold",
+  "zombie": false
+}

@@ -791,7 +791,9 @@ int Multi5D_Slice(TH1* Histo, TH1* Histo_Cut, const std::string& Title_In, const
     return 0;
 }
 
-TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_GEN_1D, TH1* MC_BGS_1D, UnfoldArgs& args){
+TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_GEN_1D, TH1* MC_BGS_1D, UnfoldArgs& args,
+                     TH2* Response_unweighted = nullptr, TH1* MC_REC_unweighted = nullptr, TH1* MC_GEN_unweighted = nullptr,
+                     TH1** divided_rec_out = nullptr, TH1** divided_gen_out = nullptr){
     std::cout << Color::BCYAN << "Starting " << Color::UNDERLINE << Color::GREEN << "RooUnfold" << Color::END_B
               << Color::CYAN << " Unfolding Procedure..." << Color::END << std::endl;
     std::string Name_Main = Response_2D->GetName();
@@ -807,6 +809,10 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         std::cout << "\t" << Color::BOLD << "Unfolding Histogram:" << Color::END << "\n\t" << clean_name << std::endl;
     }
 
+    // own_merged_* is true only for histograms this function allocated. Caller histograms stay with the caller.
+    bool own_merged_response = false;
+    bool own_merged_rec = false;
+    bool own_merged_gen = false;
     if(args.phi_bins == 12){
         TH1D* merged_data = sidis5d::Merge_Dense_Phi_TH1(ExREAL_1D, 24, 12);
         TH1D* merged_rec = sidis5d::Merge_Dense_Phi_TH1(MC_REC_1D, 24, 12);
@@ -815,6 +821,11 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         TH2D* merged_response = sidis5d::Merge_Dense_Phi_TH2(Response_2D, 24, 12);
         if((merged_data == nullptr) || (merged_rec == nullptr) || (merged_gen == nullptr) || (merged_response == nullptr)){
             std::cout << Color::RED << "phi_bins=12 requires dense axes whose bin count is a multiple of 24" << Color::END << std::endl;
+            delete merged_data;
+            delete merged_rec;
+            delete merged_gen;
+            delete merged_bkg;
+            delete merged_response;
             return nullptr;
         }
         ExREAL_1D = merged_data;
@@ -822,6 +833,80 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
         MC_GEN_1D = merged_gen;
         MC_BGS_1D = merged_bkg;
         Response_2D = merged_response;
+        own_merged_response = true;
+        own_merged_rec = true;
+        own_merged_gen = true;
+    }
+
+    // Divide after the same phi merger, and before compression and RooUnfoldResponse.
+    // Phi 24 divides the stored slices before Rebuild, and does not pass denominators here.
+    if((Response_unweighted != nullptr) || (MC_REC_unweighted != nullptr) || (MC_GEN_unweighted != nullptr)){
+        if((Response_unweighted == nullptr) || (MC_REC_unweighted == nullptr) || (MC_GEN_unweighted == nullptr)){
+            std::cout << Color::RED << "Spline division is missing an unweighted response, reconstructed, or generated histogram" << Color::END << std::endl;
+            if(own_merged_response){ delete Response_2D; }
+            if(own_merged_rec){ delete MC_REC_1D; }
+            if(own_merged_gen){ delete MC_GEN_1D; }
+            return nullptr;
+        }
+        TH2* denom_response = Response_unweighted;
+        TH1* denom_rec = MC_REC_unweighted;
+        TH1* denom_gen = MC_GEN_unweighted;
+        bool own_denom_response = false;
+        bool own_denom_rec = false;
+        bool own_denom_gen = false;
+        if(args.phi_bins == 12){
+            denom_response = sidis5d::Merge_Dense_Phi_TH2(Response_unweighted, 24, 12);
+            denom_rec = sidis5d::Merge_Dense_Phi_TH1(MC_REC_unweighted, 24, 12);
+            denom_gen = sidis5d::Merge_Dense_Phi_TH1(MC_GEN_unweighted, 24, 12);
+            own_denom_response = (denom_response != nullptr);
+            own_denom_rec = (denom_rec != nullptr);
+            own_denom_gen = (denom_gen != nullptr);
+            if((denom_response == nullptr) || (denom_rec == nullptr) || (denom_gen == nullptr)){
+                std::cout << Color::RED << "phi_bins=12 could not merge the unweighted Spline counterparts" << Color::END << std::endl;
+                if(own_denom_response){ delete denom_response; }
+                if(own_denom_rec){ delete denom_rec; }
+                if(own_denom_gen){ delete denom_gen; }
+                if(own_merged_response){ delete Response_2D; }
+                if(own_merged_rec){ delete MC_REC_1D; }
+                if(own_merged_gen){ delete MC_GEN_1D; }
+                return nullptr;
+            }
+        }
+        std::string divide_error;
+        TH1* divided_response_h = sidis5d::DivideSplineClone(Response_2D, denom_response, divide_error);
+        TH1* divided_rec = nullptr;
+        TH1* divided_gen = nullptr;
+        if(divided_response_h != nullptr){
+            divided_rec = sidis5d::DivideSplineClone(MC_REC_1D, denom_rec, divide_error);
+        }
+        if(divided_rec != nullptr){
+            divided_gen = sidis5d::DivideSplineClone(MC_GEN_1D, denom_gen, divide_error);
+        }
+        if(own_denom_response){ delete denom_response; }
+        if(own_denom_rec){ delete denom_rec; }
+        if(own_denom_gen){ delete denom_gen; }
+        TH2* divided_response = dynamic_cast<TH2*>(divided_response_h);
+        if((divided_response == nullptr) || (divided_rec == nullptr) || (divided_gen == nullptr)){
+            std::cout << Color::RED << divide_error << Color::END << std::endl;
+            delete divided_response_h;
+            delete divided_rec;
+            delete divided_gen;
+            if(own_merged_response){ delete Response_2D; }
+            if(own_merged_rec){ delete MC_REC_1D; }
+            if(own_merged_gen){ delete MC_GEN_1D; }
+            return nullptr;
+        }
+        // This function releases the response. Delete a phi-merged response here, and also the
+        // incoming response when it was not merged, because that object would otherwise leak
+        // once Response_2D points at the divided clone.
+        delete Response_2D;
+        if(own_merged_rec){ delete MC_REC_1D; }
+        if(own_merged_gen){ delete MC_GEN_1D; }
+        Response_2D = divided_response;
+        MC_REC_1D = divided_rec;
+        MC_GEN_1D = divided_gen;
+        if(divided_rec_out != nullptr){ *divided_rec_out = divided_rec; }
+        if(divided_gen_out != nullptr){ *divided_gen_out = divided_gen; }
     }
 
     int nBins_gen = MC_GEN_1D->GetNbinsX();
@@ -1119,9 +1204,7 @@ UnfoldArgs main_start(int argc, char** argv){
             *target = cleaned;
         }
     }
-    if((!args.weight_tag.empty()) && (!contains(args.root, "_W" + args.weight_tag))){
-        args.root = replace_all(args.root, ".root", "_W" + args.weight_tag + ".root");
-    }
+    sidis5d::Apply_Weight_Output_Suffix(args);
     args.pass_version = "Pass 2";
     args.closure = false;
     args.mod = args.mod && (!args.closure);
@@ -1179,6 +1262,28 @@ UnfoldArgs main_start(int argc, char** argv){
     return args;
 }
 
+bool Divide_Spline_Slice_Map(TFile* input_file, std::map<std::string, TH2*>& slices, std::string& error){
+    std::map<std::string, TH2*> divided;
+    for(const auto& kv : slices){
+        TH1* denom = sidis5d::LoadSplineCounterpart(input_file, kv.first, error);
+        if(denom == nullptr){
+            for(auto& done : divided){ delete done.second; }
+            return false;
+        }
+        TH1* clone = sidis5d::DivideSplineClone(kv.second, denom, error);
+        TH2* divided_slice = dynamic_cast<TH2*>(clone);
+        if(divided_slice == nullptr){
+            delete clone;
+            if(error.empty()){ error = "divided slice is not TH2: " + kv.first; }
+            for(auto& done : divided){ delete done.second; }
+            return false;
+        }
+        divided[kv.first] = divided_slice;
+    }
+    for(auto& kv : divided){ slices[kv.first] = kv.second; }
+    return true;
+}
+
 std::pair<TH2D*, MatrixCandidate> Load_And_Rebuild_5D_Response_Matrix(TFile* input_file, UnfoldArgs& args){
     MatrixCandidate detected = Detect_5D_Matrix_Config(input_file, args);
     if(!detected.ok){
@@ -1190,6 +1295,12 @@ std::pair<TH2D*, MatrixCandidate> Load_And_Rebuild_5D_Response_Matrix(TFile* inp
     TH1* MC_REC_1D = dynamic_cast<TH1*>(input_file->Get(detected.out_print_main_mdf_1D.c_str()));
     Validate_And_Record_5D_Dimensions(args, detected, MC_REC_1D);
     std::cout << "\n" << Color::BGREEN << "(5D) Rebuilding Response Matrix: " << detected.out_print_main << Color::END << "\n" << std::endl;
+    if(args.divide_spline_by_unweighted){
+        std::string divide_error;
+        if(!Divide_Spline_Slice_Map(input_file, detected.Histo_List, divide_error)){
+            Crash_Report(args, divide_error);
+        }
+    }
     TH2D* Response_2D = Rebuild_Matrix_5D(detected.Histo_List, detected.out_print_main_mdf_base, args.increment_5d, "Default");
     Release_5D_Matrix_Slices(detected);
     if(Response_2D == nullptr){
@@ -1352,6 +1463,27 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
         Crash_Report(args, "Missing unweighted '" + args.background_source +
                      "' background for ExREAL_1D. Required '" + rho_rdf + "' or '" + rho_mdf + "'");
     }
+    const bool divide_before_compression = args.divide_spline_by_unweighted && (!args.old_binning) && (args.phi_bins != 12);
+    if(divide_before_compression){
+        std::string divide_error;
+        if(!Divide_Spline_Slice_Map(input_file, detected.Histo_List, divide_error)){
+            Crash_Report(args, divide_error);
+        }
+        TH1* rec_denom = sidis5d::LoadSplineCounterpart(input_file, out_print_main_mdf_1D, divide_error);
+        TH1* gen_denom = nullptr;
+        if(rec_denom != nullptr){ gen_denom = sidis5d::LoadSplineCounterpart(input_file, out_print_main_gdf, divide_error); }
+        if((rec_denom == nullptr) || (gen_denom == nullptr)){ Crash_Report(args, divide_error); }
+        TH1* divided_rec_now = sidis5d::DivideSplineClone(MC_REC_1D, rec_denom, divide_error);
+        TH1* divided_gen_now = nullptr;
+        if(divided_rec_now != nullptr){ divided_gen_now = sidis5d::DivideSplineClone(MC_GEN_1D, gen_denom, divide_error); }
+        if((divided_rec_now == nullptr) || (divided_gen_now == nullptr)){
+            delete divided_rec_now;
+            delete divided_gen_now;
+            Crash_Report(args, divide_error);
+        }
+        MC_REC_1D = divided_rec_now;
+        MC_GEN_1D = divided_gen_now;
+    }
     RecSkipMap skip_map_5d;
     const RecSkipMap* skip_ptr = nullptr;
     if((!args.old_binning) && (args.phi_bins != 12)){
@@ -1364,8 +1496,45 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
     if(Response_2D == nullptr){
         Crash_Report(args, "Rebuild_Matrix_5D returned ERROR");
     }
+    TH2* response_unw = nullptr;
+    TH1* rec_unw = nullptr;
+    TH1* gen_unw = nullptr;
+    if(args.divide_spline_by_unweighted && (!divide_before_compression)){
+        std::string divide_error;
+        const std::string unw_base = sidis5d::UnweightedSplineCounterpart(detected.out_print_main_mdf_base);
+        if(unw_base.empty()){ Crash_Report(args, "Spline response name does not end with _(Spline): " + detected.out_print_main_mdf_base); }
+        std::map<std::string, TH2*> unw_slices;
+        for(int slice_num = 1; slice_num <= detected.num_slices; ++slice_num){
+            const std::string weighted_slice = Slice_Name_For_Rebuild(detected.out_print_main_mdf_base, std::to_string(slice_num), args.increment_5d);
+            const std::string unw_slice = sidis5d::UnweightedSplineCounterpart(weighted_slice);
+            if(unw_slice.empty() || (!key_in_file(input_file, unw_slice))){
+                Crash_Report(args, "missing unweighted slice\n\tnumerator = " + weighted_slice + "\n\tdenominator = " + unw_slice);
+            }
+            TH2* histo = dynamic_cast<TH2*>(input_file->Get(unw_slice.c_str()));
+            if(histo == nullptr){ Crash_Report(args, "unweighted slice is not TH2: " + unw_slice); }
+            unw_slices[unw_slice] = histo;
+        }
+        response_unw = Rebuild_Matrix_5D(unw_slices, unw_base, args.increment_5d, "Default");
+        if(response_unw == nullptr){ Crash_Report(args, "Rebuild of the unweighted 5D response returned ERROR"); }
+        TH1* rec_denom = sidis5d::LoadSplineCounterpart(input_file, out_print_main_mdf_1D, divide_error);
+        TH1* gen_denom = nullptr;
+        if(rec_denom != nullptr){ gen_denom = sidis5d::LoadSplineCounterpart(input_file, out_print_main_gdf, divide_error); }
+        if((rec_denom == nullptr) || (gen_denom == nullptr)){ Crash_Report(args, divide_error); }
+        rec_unw = dynamic_cast<TH1*>(rec_denom->Clone((std::string(rec_denom->GetName()) + "_unw").c_str()));
+        gen_unw = dynamic_cast<TH1*>(gen_denom->Clone((std::string(gen_denom->GetName()) + "_unw").c_str()));
+        if(rec_unw != nullptr){ rec_unw->SetDirectory(nullptr); }
+        if(gen_unw != nullptr){ gen_unw->SetDirectory(nullptr); }
+        if((rec_unw == nullptr) || (gen_unw == nullptr)){ Crash_Report(args, "Failed to clone unweighted 5D MC histograms"); }
+    }
     args.timer.time_elapsed();
-    TH1* Unfold_1D = Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args);
+    TH1* divided_rec = nullptr;
+    TH1* divided_gen = nullptr;
+    TH1* Unfold_1D = Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, MC_BGS_1D, args, dynamic_cast<TH2*>(response_unw), rec_unw, gen_unw, &divided_rec, &divided_gen);
+    delete response_unw;
+    delete rec_unw;
+    delete gen_unw;
+    if(divided_rec != nullptr){ MC_REC_1D = divided_rec; }
+    if(divided_gen != nullptr){ MC_GEN_1D = divided_gen; }
     if(Unfold_1D == nullptr){
         Crash_Report(args, "Unfold_Function returned ERROR");
     }
@@ -1401,6 +1570,7 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
         Config_Tlist.Add(new TObjString((std::string("study_only=") + (study_only_result ? "1" : "0")).c_str()));
         Config_Tlist.Add(new TObjString((std::string("old_binning=") + (args.old_binning ? "1" : "0")).c_str()));
         Config_Tlist.Add(new TObjString(("Min_Allowed_Acceptance_Cut=" + std::to_string(args.Min_Allowed_Acceptance_Cut)).c_str()));
+        Config_Tlist.Add(new TObjString(sidis5d::SplineAmplitudeCorrectionLabel(args)));
         Config_Tlist.Write(Config_Tlist.GetName(), TObject::kSingleKey);
         if(ExREAL_1D_wExclusive_Background != nullptr){
             ExREAL_1D_wExclusive_Background->SetDirectory(0);

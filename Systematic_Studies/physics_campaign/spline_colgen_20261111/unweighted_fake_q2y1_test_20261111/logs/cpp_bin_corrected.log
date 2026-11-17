@@ -1,0 +1,101 @@
+
+Started running on [1m11-11-2026[0m at [1m12:10 p.m.[0m
+[1mROOT version: 6.38.04[0m  ROOTSYS=/Users/richardcapobianco/opt/miniforge3/envs/updated_python
+libMatrix: /Users/richardcapobianco/opt/miniforge3/envs/updated_python/lib/libMatrix.so
+
+[1m[94mWill be saving results to [0m[1mSystematic_Studies/physics_campaign/spline_colgen_20261111/unweighted_fake_q2y1_test_20261111/cpp_bin_corrected_WSpline_ColGenRatio.root[0m
+
+
+[1mStarting Simple 3D/1D Unfolding Analysis
+[0m
+The total number of histograms in '[1m[94mHisto_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root[0m' is [1m1326[0m
+[1m[94mSaving to: [1m[92mSystematic_Studies/physics_campaign/spline_colgen_20261111/unweighted_fake_q2y1_test_20261111/cpp_bin_corrected_WSpline_ColGenRatio.root[0m
+[1m[92mUsing unweighted signal-MC fake background '((Histo-Group='Background_Response_Matrix_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))'[0m
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 2.07334e-15, max migration-fraction change = 2.22045e-16, max matched/full efficiency change = 4.996e-16, corrected generated-overflow MC fakes = 25471.1, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 698
+reduced reconstructed bins: 610
+skipped reconstructed bins: 88
+skipped original indices: 1,2,3,4,5,6,17,18,22,23,24,25,26,27,28,29,30,31,47,48,49,50,51,52,53,71,72,73,74,75,76,77,96,97,98,99,100,101,121,122,123,145,171,172,173,174,191,192,193,194,195,196,197,215,216,217,218,219,220,241,242,243,339,340,341,342,359,360,361,362,363,364,385,386,483,484,485,504,505,506,507,530,603,604,605,624,625,626
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m12:10 p.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+
+[1m[94mDone Saving...[0m
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Dedicated_5D_Unfold.py' script has finished running.
+Started running on [1m11-11-2026[0m at [1m12:10 p.m.[0m
+
+Input File:
+	Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root
+Output File:
+	Systematic_Studies/physics_campaign/spline_colgen_20261111/unweighted_fake_q2y1_test_20261111/cpp_bin_corrected_WSpline_ColGenRatio.root
+
+
+
+Detected 5D Configuration:
+	increment  = 0
+	num_bins   = 0
+	num_slices = 0
+
+Arguments:
+--test                                              --> False
+--no_smear                                          --> False
+--sim                                               --> False
+--mod                                               --> False
+--bayes_iterations                                  --> 5
+--Num_Toys                                          --> 10
+--bins                                              --> ['1']
+--verbose                                           --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.020000
+--background_source                                 --> 'rho0_new'
+--require_weighed                                   --> False
+--weight_tag                                        --> 'Spline'
+--closure_weight                                    --> ''
+--pseudo_data                                       --> ''
+--increment                                         --> None
+--num_bins                                          --> None
+--matrix_pdf                                        --> False
+--logz                                              --> False
+--recover_slices                                    --> False
+--data_root                                         --> 'work'
+--error_mode                                        --> 'covariance'
+--iteration_study                                   --> False
+--old_binning                                       --> False
+--no_post_unfold_acc_cut                            --> False
+--pass_version                                      --> 'Pass 2'
+--closure                                           --> False
+--smearing_options                                  --> 'smear'
+
+
+The time that this code finished is [1m12:10 p.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+
+    

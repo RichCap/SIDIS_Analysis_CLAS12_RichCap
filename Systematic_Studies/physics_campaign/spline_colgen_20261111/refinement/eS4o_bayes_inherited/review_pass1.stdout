@@ -1,0 +1,38 @@
+n_cells 421
+n_fit 421
+missing 0
+empty 0
+bad 7
+families {'Bayesian': 452, 'RC_Bayesian': 0, 'BC_RC_Bayesian': 0, 'Bin': 0, '5D': 0, 'other_phi': 1808}
+median 1.3662888384943264
+n_misses 17
+MISS 1 13 stored 7.175 free 1.601 ndf 18.0 free_ndf 18.0 B -0.1228 -> -0.3225 C 0.1031 -> 0.1154 edge False False Berr 0.001 Cerr 0.0182 filled 21 limits None None
+MISS 4 22 stored 4.602 free 0.29 ndf 1.0 free_ndf 1.0 B -0.0892 -> 0.6813 C -0.0419 -> 0.4704 edge False False Berr 0.1184 Cerr 0.0835 filled 4 limits None None
+MISS 10 17 stored 5.169 free 1.479 ndf 17.0 free_ndf 17.0 B -0.0491 -> -0.2149 C 0.1023 -> 0.0411 edge False False Berr 0.0013 Cerr 0.0182 filled 20 limits None None
+MISS 1 19 stored 4.816 free 1.404 ndf 20.0 free_ndf 20.0 B -0.1374 -> -0.2735 C 0.0615 -> 0.0725 edge False False Berr 0.001 Cerr 0.0151 filled 23 limits None None
+MISS 16 11 stored 4.723 free 2.035 ndf 17.0 free_ndf 17.0 B -0.0546 -> -0.2487 C 0.1258 -> 0.0515 edge False False Berr 0.002 Cerr 0.0234 filled 20 limits None None
+MISS 11 24 stored 4.665 free 2.714 ndf 3.0 free_ndf 3.0 B -0.2281 -> -0.1416 C -0.03 -> -0.386 edge False False Berr 0.0422 Cerr 0.0181 filled 6 limits [-0.2, -0.1] [-0.02, 0.02]
+MISS 6 27 stored 5.073 free 3.2 ndf 9.0 free_ndf 9.0 B -0.0236 -> -0.1458 C 0.0441 -> -0.0469 edge False False Berr 0.0032 Cerr 0.0343 filled 12 limits None None
+MISS 2 16 stored 3.193 free 1.831 ndf 11.0 free_ndf 11.0 B -0.0655 -> -0.1718 C 0.0825 -> 0.0404 edge False False Berr 0.0034 Cerr 0.0252 filled 14 limits None None
+MISS 2 28 stored 2.694 free 1.418 ndf 14.0 free_ndf 14.0 B -0.0713 -> -0.1902 C 0.001 -> -0.0498 edge False False Berr 0.0033 Cerr 0.002 filled 17 limits None None
+MISS 5 31 stored 3.193 free 1.977 ndf 8.0 free_ndf 8.0 B -0.0104 -> 0.3388 C -0.0 -> 0.1959 edge False True Berr 0.0056 Cerr 0.0 filled 11 limits [-0.15, 0] [-0.07, 0]
+MISS 10 11 stored 2.151 free 0.949 ndf 15.0 free_ndf 15.0 B -0.1987 -> -0.3307 C 0.0433 -> -0.0124 edge False False Berr 0.0035 Cerr 0.0189 filled 18 limits None None
+MISS 9 24 stored 2.871 free 1.69 ndf 17.0 free_ndf 17.0 B -0.0548 -> -0.1507 C 0.0432 -> -0.0012 edge False False Berr 0.0023 Cerr 0.0169 filled 20 limits None None
+MISS 10 14 stored 2.413 free 1.289 ndf 15.0 free_ndf 15.0 B -0.004 -> -0.1274 C 0.0376 -> -0.021 edge False False Berr 0.0024 Cerr 0.0271 filled 18 limits None None
+MISS 1 16 stored 1.662 free 1.023 ndf 10.0 free_ndf 10.0 B -0.025 -> 0.062 C -0.0002 -> 0.0602 edge False False Berr 0.0084 Cerr 0.0003 filled 13 limits [-0.15, -0.05] [-0.1, 0.1]
+MISS 7 3 stored 1.436 free 0.96 ndf 3.0 free_ndf 3.0 B -0.08 -> 0.5221 C -0.0868 -> 0.1893 edge False False Berr 0.1587 Cerr 0.102 filled 6 limits [-0.16, -0.05] None
+MISS 1 9 stored 1.016 free 0.615 ndf 7.0 free_ndf 7.0 B -0.0723 -> 0.0527 C 0.0 -> 0.0244 edge False True Berr 0.0153 Cerr 0.0 filled 10 limits [-0.2, 0.0] [0, 0.1]
+MISS 2 4 stored 1.184 free 0.808 ndf 7.0 free_ndf 7.0 B -0.05 -> 0.0875 C 0.0507 -> 0.1281 edge False False Berr 0.0684 Cerr 0.0314 filled 10 limits [-0.1, -0.3] [-0.1, 0.75]
+HIGH
+HIGH 1 13 stored 7.175 free 1.601 B -0.1228 freeB -0.3225 C 0.1031 freeC 0.1154 dB -0.1997 dC 0.0122 filled 21
+HIGH 5 6 stored 6.001 free 5.932 B -0.4314 freeB -0.465 C 0.005 freeC -0.0268 dB -0.0336 dC -0.0318 filled 13
+HIGH 10 17 stored 5.169 free 1.479 B -0.0491 freeB -0.2149 C 0.1023 freeC 0.0411 dB -0.1657 dC -0.0612 filled 20
+HIGH 6 27 stored 5.073 free 3.2 B -0.0236 freeB -0.1458 C 0.0441 freeC -0.0469 dB -0.1222 dC -0.091 filled 12
+HIGH 1 19 stored 4.816 free 1.404 B -0.1374 freeB -0.2735 C 0.0615 freeC 0.0725 dB -0.1361 dC 0.011 filled 23
+HIGH 16 11 stored 4.723 free 2.035 B -0.0546 freeB -0.2487 C 0.1258 freeC 0.0515 dB -0.1941 dC -0.0744 filled 20
+HIGH 11 24 stored 4.665 free 2.714 B -0.2281 freeB -0.1416 C -0.03 freeC -0.386 dB 0.0865 dC -0.356 filled 6
+HIGH 4 22 stored 4.602 free 0.29 B -0.0892 freeB 0.6813 C -0.0419 freeC 0.4704 dB 0.7705 dC 0.5124 filled 4
+HIGH 5 12 stored 3.837 free 3.837 B -0.4112 freeB -0.4112 C 0.1159 freeC 0.1159 dB -0.0 dC -0.0 filled 20
+HIGH 3 18 stored 3.825 free 3.825 B -0.3897 freeB -0.3897 C 0.0797 freeC 0.0797 dB -0.0 dC 0.0 filled 13
+HIGH 5 28 stored 3.739 free 3.739 B -0.1966 freeB -0.1966 C 0.0141 freeC 0.0141 dB 0.0 dC 0.0 filled 24
+HIGH 9 14 stored 3.223 free 3.223 B -0.4824 freeB -0.4824 C 0.1839 freeC 0.1839 dB 0.0 dC 0.0 filled 24

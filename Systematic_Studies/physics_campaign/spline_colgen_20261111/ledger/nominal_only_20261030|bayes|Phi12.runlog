@@ -1,0 +1,95 @@
+Launching C++ unfolding:
+  /Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Cpp_Simple_Unfold/Simple_Unfold --root '/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030|bayes|Phi12_WSpline_ColGenRatio.root' --phi_bins 12 --Num_Toys 500 --error_mode covariance --unfolding_3D --bins 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 --Min_Allowed_Acceptance_Cut 0.02 --single_file_input /Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root --background_source rho0_new --weight_tag Spline --spline_amplitude_correction auto --unfold_method bayesian --data_root work
+
+Started running on [1m11-11-2026[0m at [1m05:03 a.m.[0m
+[1mROOT version: 6.38.04[0m  ROOTSYS=/Users/richardcapobianco/opt/miniforge3/envs/updated_python
+libMatrix: /Users/richardcapobianco/opt/miniforge3/envs/updated_python/lib/libMatrix.so
+
+[1m[94mWill be saving results to [0m[1m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030|bayes|Phi12_WSpline_ColGenRatio.root[0m
+
+
+[1mStarting Simple 3D/1D Unfolding Analysis
+[0m
+The total number of histograms in '[1m[94m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root[0m' is [1m1326[0m
+[1m[94mSaving to: [1m[92m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030|bayes|Phi12_WSpline_ColGenRatio.root[0m
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mRooUnfold[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[91mweighted reconstructed MC contains a material component outside the response projection at bin 2[0m
+
+[91m[1mCRASH WARNING![0m
+Unfold_Function returned ERROR
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Dedicated_5D_Unfold.py' script has [91m[1m[4mCRASHED![0m
+Started running on [1m11-11-2026[0m at [1m05:03 a.m.[0m
+
+Input File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root
+Output File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030|bayes|Phi12_WSpline_ColGenRatio.root
+
+
+
+[91m[1mCRASH WARNING![0m
+Unfold_Function returned ERROR
+
+
+
+Detected 5D Configuration:
+	increment  = 0
+	num_bins   = 0
+	num_slices = 0
+
+Arguments:
+--test                                              --> False
+--no_smear                                          --> False
+--sim                                               --> False
+--mod                                               --> False
+--bayes_iterations                                  --> 5
+--Num_Toys                                          --> 500
+--bins                                              --> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
+--verbose                                           --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.020000
+--background_source                                 --> 'rho0_new'
+--require_weighed                                   --> False
+--weight_tag                                        --> 'Spline'
+--closure_weight                                    --> ''
+--pseudo_data                                       --> ''
+--increment                                         --> None
+--num_bins                                          --> None
+--matrix_pdf                                        --> False
+--logz                                              --> False
+--recover_slices                                    --> False
+--data_root                                         --> 'work'
+--error_mode                                        --> 'covariance'
+--iteration_study                                   --> False
+--old_binning                                       --> False
+--no_post_unfold_acc_cut                            --> False
+--pass_version                                      --> 'Pass 2'
+--closure                                           --> False
+--smearing_options                                  --> 'smear'
+
+
+The time that this code finished is [1m05:03 a.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+[1m[93m[41m
+    	                                   	   
+    	       This code has CRASHED!      	   
+    	                                   	   [0m
+
+    

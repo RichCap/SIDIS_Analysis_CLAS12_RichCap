@@ -368,9 +368,10 @@ def pips6o_batch111_path():
     return paths[110]
 
 
-def dedicated_5d_command(python, script, data_root, response, root_out):
+def dedicated_5d_command(python, script, data_root, response, root_out, correction="on"):
     # Inherited Spline. Iteration, acceptance, and phi stay on the C++ launcher defaults.
     # Covariance is written on the command as well as being that launcher's default.
+    # correction on is the Spline default. off reproduces the undivided calculation.
     return [
         python, script,
         "-droot", data_root,
@@ -378,6 +379,7 @@ def dedicated_5d_command(python, script, data_root, response, root_out):
         "-r", root_out,
         "-wt", "Spline",
         "-err", "covariance",
+        "-sac", "off" if(str(correction) == "off") else "on",
     ]
 
 
@@ -592,17 +594,20 @@ def unfold_command(python, script, data_root, response, root_out, q2y, settings)
             python, script,
             "-droot", data_root,
             "-u3D",
-            "-bbo",
+            "-um", "bin",
             "-ac", ("%s" % settings["acceptance"]),
             "-bgs", settings["background"],
+            "-ph", str(settings["phi_bins"]),
+            "-b", str(int(q2y)),
             "-sfin", response,
             "-r", root_out,
+            "--skip_compile",
         ]
         if(settings["weight_tag"] not in [None, ""]):
             cmd.extend(["-wt", settings["weight_tag"]])
+        cmd.extend(["-sac", settings.get("spline_amplitude_correction", "off")])
         if(settings.get("unsmeared")):
             cmd.append("--no_smear")
-        cmd.append(str(int(q2y)))
         return cmd
     cmd = [
         python, script,
@@ -621,6 +626,7 @@ def unfold_command(python, script, data_root, response, root_out, q2y, settings)
         cmd.extend(["-bi", str(settings["iterations"])])
     if(settings["weight_tag"] not in [None, ""]):
         cmd.extend(["-wt", settings["weight_tag"]])
+    cmd.extend(["-sac", settings.get("spline_amplitude_correction", "off")])
     if(settings.get("unsmeared")):
         cmd.append("--no_smear")
     return cmd
@@ -639,18 +645,45 @@ def iteration_shell(branch):
     return [], ""
 
 
-def written_output_path(path, weight_tag):
+def resolved_spline_correction(weight_tag, mode):
+    # auto and on divide Spline only. Every other weight stays off, including AccSpline.
+    choice = "auto" if(mode in [None, ""]) else str(mode)
+    if(choice not in ["auto", "on", "off"]):
+        raise ValueError("invalid spline_amplitude_correction: %s" % choice)
+    tag = "" if(weight_tag in [None, ""]) else str(weight_tag)
+    if((choice in ["auto", "on"]) and (tag == "Spline")):
+        return "on"
+    return "off"
+
+
+def written_output_path(path, weight_tag, correction="off"):
     # The unfolder appends _W<tag> when a weight is requested and the given name does not already contain it.
+    # The 3D generated-column Spline result appends _ColGenRatio. _DivUnw is the superseded cell division.
     tag = "" if(weight_tag in [None, ""]) else str(weight_tag)
     if(tag == ""):
         return path
-    suffix = "_W%s.root" % tag
+    divide = (str(correction) == "on") and (tag == "Spline")
+    suffix = "_W%s_ColGenRatio.root" % tag if(divide) else "_W%s.root" % tag
     text = str(path)
     if(text.endswith(suffix)):
         return text
+    if(divide and text.endswith("_W%s.root" % tag)):
+        return text[:-5] + "_ColGenRatio.root"
     if(text.endswith(".root")):
         return text[:-5] + suffix
     return text
+
+
+def correction_lines_ready(names, config_lines, weight_tag, correction):
+    lines = [str(line) for line in list(config_lines) + list(names)]
+    column = any(("spline_amplitude_correction=generated_column_target_ratio" in line) for line in lines)
+    divided = any(("spline_amplitude_correction=divided_by_unweighted" in line) for line in lines)
+    preserved = any(("acceptance_mask=preserved_original_spline_before_column_correction" in line) for line in lines)
+    if(str(weight_tag) != "Spline"):
+        return (not column) and (not divided)
+    if(str(correction) == "on"):
+        return column and preserved and (not divided)
+    return (not column) and (not divided)
 
 
 def object_strings(obj):
@@ -680,13 +713,19 @@ def bayesian_names_ready(names, q2y, unsmeared=False):
     return matched
 
 
-def part_notes_ready(names, config_lines, input_lines, q2y, weight_tag, response, path, unsmeared=False):
+def part_notes_ready(names, config_lines, input_lines, q2y, weight_tag, response, path, unsmeared=False, correction="off"):
     tag = "" if(weight_tag in [None, ""]) else str(weight_tag)
     text = str(path)
     if(tag == ""):
-        if("_W" in os.path.basename(text)):
+        base_name = os.path.basename(text)
+        if(("_W" in base_name) or ("_DivUnw" in base_name) or ("_ColGenRatio" in base_name)):
+            return False
+    elif(str(correction) == "on"):
+        if((tag != "Spline") or (not text.endswith("_WSpline_ColGenRatio.root"))):
             return False
     elif(not text.endswith("_W%s.root" % tag)):
+        return False
+    if(not correction_lines_ready(names, config_lines, tag, correction)):
         return False
     if(not any(("error_mode=covariance" in line) for line in config_lines)):
         return False
@@ -717,13 +756,13 @@ def read_part_notes(path):
     handle.Close()
     # This binary writes each TObjString as its own key. Accept that form and a TList.
     if(len(config_lines) == 0):
-        config_lines = [name for name in names if(str(name).startswith("error_mode=") or str(name).startswith("bayes_iterations=") or str(name).startswith("unfolding_"))]
+        config_lines = [name for name in names if(str(name).startswith("error_mode=") or str(name).startswith("bayes_iterations=") or str(name).startswith("unfolding_") or str(name).startswith("spline_amplitude_correction="))]
     if(len(input_lines) == 0):
         input_lines = [name for name in names if(("Response_Matrices" in str(name)) or str(name).endswith(".root"))]
     return names, config_lines, input_lines
 
 
-def part_is_ready(path, q2y, weight_tag, response, unsmeared=False):
+def part_is_ready(path, q2y, weight_tag, response, unsmeared=False, correction="off"):
     if(not file_nonempty(path)):
         return False
     try:
@@ -733,10 +772,10 @@ def part_is_ready(path, q2y, weight_tag, response, unsmeared=False):
     if(notes is None):
         return False
     names, config_lines, input_lines = notes
-    return part_notes_ready(names, config_lines, input_lines, q2y, weight_tag, response, path, unsmeared)
+    return part_notes_ready(names, config_lines, input_lines, q2y, weight_tag, response, path, unsmeared, correction)
 
 
-def final_is_ready(path, response, unsmeared=False):
+def final_is_ready(path, response, unsmeared=False, weight_tag="", correction="off"):
     if(not file_nonempty(path)):
         return False
     try:
@@ -754,13 +793,21 @@ def final_is_ready(path, response, unsmeared=False):
     for q2y in Q2Y_BINS:
         if(not bayesian_names_ready(names, q2y, unsmeared)):
             return False
+    if(str(correction) == "on"):
+        if(not str(path).endswith("_WSpline_ColGenRatio.root")):
+            return False
+    elif(("_DivUnw" in os.path.basename(str(path))) or ("_ColGenRatio" in os.path.basename(str(path)))):
+        return False
+    if(not correction_lines_ready(names, config_lines, weight_tag, correction)):
+        return False
     return True
 
 
-def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_dir, stem, branch, weight_tag, unsmeared=False, array_spec="1-17"):
+def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_dir, stem, branch, weight_tag, unsmeared=False, array_spec="1-17", correction="off"):
     settings = branch_settings(branch, 1, weight_tag)
     settings["iterations"] = None
     settings["unsmeared"] = bool(unsmeared)
+    settings["spline_amplitude_correction"] = resolved_spline_correction(weight_tag, correction)
     sample = unfold_command(python, script, data_root, response, "ROOT_OUT", 1, settings)
     quoted = []
     for token in sample:
@@ -866,7 +913,7 @@ def keep_recorded_hpp(previous, assigned):
 SHARED_RESULT_CAMPAIGN = "systematics_3d_complete_20261029"
 
 
-def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False, nominal_only=False, only_5d=False, pips6o_batch111=False, phase1_local_jobs=None):
+def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp, previous=None, recovery=None, include_nominal=False, shared_unfold=False, nominal_only=False, only_5d=False, pips6o_batch111=False, phase1_local_jobs=None, spline_amplitude_correction="auto"):
     batch_by_id = None
     job_by_id = None
     defer_by_id = None
@@ -878,6 +925,14 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
     if((phase1_local_jobs not in [None, ""]) and (not nominal_only)):
         raise ValueError("phase1_local_concurrency is only for nominal_only")
     local_jobs = bounded_local_jobs(phase1_local_jobs, cap) if(nominal_only) else 1
+    # A manifest written before this option has no field. Resume keeps that original calculation.
+    if(isinstance(previous, dict)):
+        if("spline_amplitude_correction" in previous):
+            spline_amplitude_correction = previous.get("spline_amplitude_correction") or "off"
+        else:
+            spline_amplitude_correction = "off"
+    if(str(spline_amplitude_correction) not in ["auto", "on", "off"]):
+        raise ValueError("invalid spline_amplitude_correction: %s" % spline_amplitude_correction)
     if(nominal_only or only_5d or pips6o_batch111):
         if(recovery is not None):
             raise ValueError("this campaign does not use a recovery batch file")
@@ -1051,7 +1106,8 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         phase1.append(row)
         if(config.get("only_5d")):
             launch = os.path.join(unfold, "Unfolded_5D_inherited_Spline.root")
-            final = written_output_path(launch, "Spline")
+            five_correction = resolved_spline_correction("Spline", spline_amplitude_correction)
+            final = written_output_path(launch, "Spline", five_correction)
             five_key = "%s__inherited__Spline" % config["id"]
             five_row = {
                 "key": five_key,
@@ -1071,6 +1127,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
                 "reason": "",
                 "unsmeared": False,
                 "local_5d": True,
+                "spline_amplitude_correction": five_correction,
             }
             old_five = old_phase2.get(five_key)
             if(isinstance(old_five, dict)):
@@ -1088,6 +1145,10 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
                     "slurm_state": "",
                     "where": "",
                 }
+            job_correction = resolved_spline_correction(job["weight_tag"], spline_amplitude_correction)
+            final_path = final_root(unfold, job)
+            if(job_correction == "on"):
+                final_path = written_output_path(final_path, job["weight_tag"], "on")
             prow = {
                 "key": key,
                 "config_id": job["config_id"],
@@ -1097,7 +1158,8 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
                 "lineage": job["lineage"],
                 "local_order": job["local_order"],
                 "response": response,
-                "final": final_root(unfold, job),
+                "final": final_path,
+                "spline_amplitude_correction": job_correction,
                 "array_id": "",
                 "submit_time": None,
                 "status": "waiting_phase1",
@@ -1129,6 +1191,7 @@ def build_manifest(data_root, campaign, weight_mode, cap, tag, regenerate, stamp
         "max_local_workers": cap,
         "hpp_tag": tag,
         "regenerate_nominal_spline_hpp": bool(regenerate),
+        "spline_amplitude_correction": str(spline_amplitude_correction),
         "phase1": phase1,
         "phase2": phase2,
     }
@@ -1269,11 +1332,24 @@ def unfold_bin_ok(path, q2y, require_method=None):
     if(names is None):
         return False
     if(require_method == "Bin"):
+        matched = False
         for name in names:
             text = str(name)
             if(key_has_q2y(text, q2y) and (("_(Bin)_" in text) or ("(Data-Type='Bin')" in text))):
-                return True
-        return False
+                matched = True
+        if(not matched):
+            return False
+        if(str(path).endswith("_ColGenRatio.root")):
+            blob = "\n".join(str(name) for name in names)
+            if("spline_amplitude_correction=generated_column_target_ratio" not in blob):
+                return False
+            if("acceptance_mask=preserved_original_spline_before_column_correction" not in blob):
+                return False
+            if("unfold_method=bin_by_bin" not in blob):
+                return False
+            if("physical_bin_map" not in blob):
+                return False
+        return True
     return key_has_q2y_any(names, q2y)
 
 

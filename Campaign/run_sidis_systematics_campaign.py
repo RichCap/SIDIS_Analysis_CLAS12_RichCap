@@ -34,8 +34,7 @@ last_manifest = None
 
 
 def unfold_program(branch):
-    if(branch == "BinByBin"):
-        return BIN_SCRIPT
+    # Bin-by-bin uses the C++ unfolder so it sees the same corrected MC and mask as Bayesian.
     return UNFOLD_SCRIPT
 
 
@@ -169,7 +168,7 @@ def print_plan(manifest, regen_cmd):
             print("PHASE2 %s deferred" % row["key"])
             continue
         if(row.get("local_5d")):
-            sample = dedicated_5d_command(sys.executable, DEDICATED_5D_SCRIPT, manifest["data_root"], row["response"], row["launch_root"])
+            sample = dedicated_5d_command(sys.executable, DEDICATED_5D_SCRIPT, manifest["data_root"], row["response"], row["launch_root"], row.get("spline_amplitude_correction", "off"))
             print("PHASE2 %s lineage %s" % (row["key"], row["lineage"]))
             print("  starts after phase1 success")
             print("  final %s" % row["final"])
@@ -177,11 +176,12 @@ def print_plan(manifest, regen_cmd):
             continue
         settings = branch_settings(row["branch"], 1, row["weight_tag"])
         settings["unsmeared"] = bool(row.get("unsmeared"))
+        settings["spline_amplitude_correction"] = row.get("spline_amplitude_correction", "off")
         sample = unfold_command(sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], row["bins"]["1"]["root"], 1, settings)
         print("PHASE2 %s lineage %s" % (row["key"], row["lineage"]))
         print("  final %s" % row["final"])
         print("  bin1 %s" % command_text(sample))
-        script = sbatch_script(job_stem(row), logs, sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], os.path.dirname(row["bins"]["1"]["root"]), job_stem(row), row["branch"], row["weight_tag"], row.get("unsmeared"))
+        script = sbatch_script(job_stem(row), logs, sys.executable, unfold_program(row["branch"]), manifest["data_root"], row["response"], os.path.dirname(row["bins"]["1"]["root"]), job_stem(row), row["branch"], row["weight_tag"], row.get("unsmeared"), correction=row.get("spline_amplitude_correction", "off"))
         print("  sbatch %s" % script.splitlines()[3])
     print("manifest %s" % manifest_path(camp))
     sys.stdout.flush()
@@ -289,14 +289,14 @@ def submit_sbatch(script_path):
 
 
 def bin_written_path(row, q2y):
-    return written_output_path(row["bins"][str(q2y)]["root"], row["weight_tag"])
+    return written_output_path(row["bins"][str(q2y)]["root"], row["weight_tag"], row.get("spline_amplitude_correction", "off"))
 
 
 def bin_output_ready(row, q2y):
     written = bin_written_path(row, q2y)
     if(row["branch"] == "BinByBin"):
-        return unfold_bin_ok(row["bins"][str(q2y)]["root"], q2y, "Bin"), row["bins"][str(q2y)]["root"]
-    ready = part_is_ready(written, q2y, row["weight_tag"], row["response"], row.get("unsmeared"))
+        return unfold_bin_ok(written, q2y, "Bin"), written
+    ready = part_is_ready(written, q2y, row["weight_tag"], row["response"], row.get("unsmeared"), row.get("spline_amplitude_correction", "off"))
     return ready, written
 
 
@@ -323,6 +323,7 @@ def write_sbatch(camp, manifest, row, array_spec="1-17"):
     text = sbatch_script(
         job_stem(row), logs, sys.executable, unfold_program(row["branch"]), manifest["data_root"],
         row["response"], parts, job_stem(row), row["branch"], row["weight_tag"], row.get("unsmeared"), array_spec,
+        correction=row.get("spline_amplitude_correction", "off"),
     )
     handle = open(path, "w")
     handle.write(text)
@@ -643,7 +644,7 @@ def run_live(args, manifest):
                 launch_dir = os.path.dirname(row["launch_root"])
                 if(launch_dir not in ["", None]):
                     os.makedirs(launch_dir, exist_ok=True)
-                command = dedicated_5d_command(sys.executable, DEDICATED_5D_SCRIPT, manifest["data_root"], row["response"], row["launch_root"])
+                command = dedicated_5d_command(sys.executable, DEDICATED_5D_SCRIPT, manifest["data_root"], row["response"], row["launch_root"], row.get("spline_amplitude_correction", "off"))
                 five_proc = subprocess.Popen(command)
                 row["pid"] = five_proc.pid
                 row["status"] = "running"
@@ -665,7 +666,7 @@ def run_live(args, manifest):
             if(row.get("array_id") not in [None, ""]):
                 row["status"] = "submitted"
                 continue
-            if(final_is_ready(row["final"], row["response"], row.get("unsmeared"))):
+            if(final_is_ready(row["final"], row["response"], row.get("unsmeared"), row.get("weight_tag", ""), row.get("spline_amplitude_correction", "off"))):
                 row["status"] = "success"
                 row["reason"] = "existing final kept"
                 append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "saved", "", "success", row["reason"], row["final"])
@@ -726,6 +727,8 @@ def run_live(args, manifest):
                         append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], q2y, "slurm", row["array_id"], "cancel_failed", "left on SLURM", "")
                     else:
                         settings = branch_settings(row["branch"], q2y, row["weight_tag"])
+                        settings["spline_amplitude_correction"] = row.get("spline_amplitude_correction", "off")
+                        settings["unsmeared"] = bool(row.get("unsmeared"))
                         cmd = unfold_command(sys.executable, unfold_program(row["branch"]), args.data_root, row["response"], row["bins"][str(q2y)]["root"], q2y, settings)
                         log_handle = open(os.path.join(camp, "slurm_logs", "%s_q2y%02d.local.log" % (job_stem(row), q2y)), "w")
                         proc = subprocess.Popen(cmd, stdout=log_handle, stderr=subprocess.STDOUT)
@@ -784,7 +787,7 @@ def run_live(args, manifest):
                     body = reason
                 send_mail(args.email, "SIDIS systematics Phase 2 failed %s" % row["key"], body)
             elif((not pending) and (row["lineage"] not in running_local)):
-                if(final_is_ready(row["final"], row["response"], row.get("unsmeared"))):
+                if(final_is_ready(row["final"], row["response"], row.get("unsmeared"), row.get("weight_tag", ""), row.get("spline_amplitude_correction", "off"))):
                     row["status"] = "success"
                     row["reason"] = "existing final kept"
                     append_log(camp, "phase2", row["config_id"], row["branch"], row["weight_label"], "", "saved", row.get("array_id"), "success", row["reason"], row["final"])
@@ -889,6 +892,7 @@ def parse_args(argv):
     parser.add_argument("-plc", "--phase1_local_concurrency", type=int, default=None)
     parser.add_argument("-5ds", "--only_5d_spline", action="store_true")
     parser.add_argument("-p6b", "--pips6o_batch111", action="store_true")
+    parser.add_argument("-sac", "--spline_amplitude_correction", default="auto", choices=["auto", "on", "off"])
     return parser.parse_args(argv)
 
 
@@ -965,6 +969,7 @@ def main(argv=None):
             recovery=recovery, include_nominal=args.include_nominal, shared_unfold=args.shared_unfold_output,
             nominal_only=args.nominal_only, only_5d=args.only_5d_spline, pips6o_batch111=args.pips6o_batch111,
             phase1_local_jobs=args.phase1_local_concurrency,
+            spline_amplitude_correction=args.spline_amplitude_correction,
         )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)

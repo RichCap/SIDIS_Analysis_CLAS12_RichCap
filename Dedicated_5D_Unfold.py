@@ -15,6 +15,7 @@ EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
 from reconstructed_bin_reduction import build_rec_skip_map, compress_th1_rec, compress_th2_rec_axis, mask_full_to_analysis
+from spline_amplitude_correction import divide_spline_active, divide_spline_histogram, unweighted_spline_counterpart, output_root_with_weight, correction_metadata
 
 ROOT.gROOT.SetBatch(1)
 ROOT.TH1.AddDirectory(0)
@@ -111,6 +112,11 @@ def parse_args():
                    default="",
                    choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
                    help="Select which weighted histogram set to unfold. Empty = unweighted (default). Auto-tags output ROOT name.\n")
+    p.add_argument('-sac', '--spline_amplitude_correction',
+                   type=str,
+                   default="auto",
+                   choices=["auto", "on", "off"],
+                   help="Divide Spline MC by its unweighted counterpart before unfolding. auto is on only for Spline. off keeps the original calculation.\n")
     p.add_argument('-i', '--increment',
                    type=int,
                    default=None,
@@ -1221,9 +1227,12 @@ def main_start():
             if(cleaned != original):
                 print(f"{color.BYELLOW}Cleaned quotes from --{attr}: '{original}' -> '{cleaned}'{color.END}")
                 setattr(args, attr, cleaned)
-    weight_tag = getattr(args, "weight_tag", "")
-    if((weight_tag not in ["", None]) and (f"_W{weight_tag}" not in str(args.root))):
-        args.root = str(args.root).replace(".root", f"_W{weight_tag}.root")
+    try:
+        args.divide_spline_by_unweighted = divide_spline_active(getattr(args, "weight_tag", ""), getattr(args, "spline_amplitude_correction", "auto"))
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(2)
+    args.root = output_root_with_weight(args.root, getattr(args, "weight_tag", ""), args.divide_spline_by_unweighted)
     if(not args.matrix_pdf):
         output_parent = os.path.dirname(os.path.abspath(str(args.root)))
         if(output_parent not in ["", None]):
@@ -1328,6 +1337,30 @@ def Save_Rebuilt_Matrix_As_Pdf(Response_2D, pdf_path, args, gen_on_x=False):
     return 1
 
 
+def divide_loaded_spline(weighted, source_file, args):
+    if(not getattr(args, "divide_spline_by_unweighted", False)):
+        return weighted
+    name = str(weighted.GetName())
+    denom_name = unweighted_spline_counterpart(name)
+    if(denom_name == ""):
+        Crash_Report(args, crash_message="spline numerator does not end with _(Spline): %s" % name)
+    if(denom_name not in source_file.GetListOfKeys()):
+        Crash_Report(args, crash_message="missing unweighted counterpart\n\tnumerator = %s\n\tdenominator = %s" % (name, denom_name))
+    divided = divide_spline_histogram(weighted, source_file.Get(denom_name))
+    if(divided is None):
+        Crash_Report(args, crash_message="incompatible spline counterpart\n\tnumerator = %s\n\tdenominator = %s" % (name, denom_name))
+    return divided
+
+
+def divide_spline_slices(histo_list, source_file, args):
+    if(not getattr(args, "divide_spline_by_unweighted", False)):
+        return histo_list
+    divided = {}
+    for slice_name, slice_histo in histo_list.items():
+        divided[slice_name] = divide_loaded_spline(slice_histo, source_file, args)
+    return divided
+
+
 def Prepare_5D_Matrix_For_Pdf(input_file, args):
     # Same histogram loading, rho0 subtraction, and reconstructed-bin selection as main_5D_unfold.
     # Stops before Unfold_Function. The returned histogram is the display copy only.
@@ -1401,6 +1434,10 @@ def Prepare_5D_Matrix_For_Pdf(input_file, args):
     # else:
     #     ExREAL_1D_wExclusive_Background = None
     ExREAL_1D_wExclusive_Background, ExREAL_1D = Subtract_Unweighted_Rho(input_file, ExREAL_1D, out_print_main_rdf, out_print_main_mdf_1D, args)
+    if(getattr(args, "divide_spline_by_unweighted", False)):
+        MC_REC_1D = divide_loaded_spline(MC_REC_1D, input_file, args)
+        MC_GEN_1D = divide_loaded_spline(MC_GEN_1D, input_file, args)
+        Histo_List = divide_spline_slices(Histo_List, input_file, args)
     skip_map_5d = None
     if(not getattr(args, "old_binning", False)):
         bdf_in = None if(MC_BGS_1D in ["None", None]) else MC_BGS_1D
@@ -1533,6 +1570,10 @@ def main_5D_unfold(args):
     # elif(args.background_source not in ["None"]):
     #     print(f"Cannot subtract the '{args.background_source}' files to the 'ExREAL_1D' histogram")
     ExREAL_1D_wExclusive_Background, ExREAL_1D = Subtract_Unweighted_Rho(input_file, ExREAL_1D, out_print_main_rdf, out_print_main_mdf_1D, args)
+    if(getattr(args, "divide_spline_by_unweighted", False)):
+        MC_REC_1D = divide_loaded_spline(MC_REC_1D, input_file, args)
+        MC_GEN_1D = divide_loaded_spline(MC_GEN_1D, input_file, args)
+        Histo_List = divide_spline_slices(Histo_List, input_file, args)
     skip_map_5d = None
     if(not getattr(args, "old_binning", False)):
         bdf_in = None if(MC_BGS_1D in ["None", None]) else MC_BGS_1D
@@ -1573,6 +1614,7 @@ def main_5D_unfold(args):
         Config_Tlist.Add(ROOT.TObjString(f"increment={args.increment_5d}"))
         Config_Tlist.Add(ROOT.TObjString(f"num_bins={args.num_bins_5d}"))
         Config_Tlist.Add(ROOT.TObjString(f"num_slices={args.num_slices_5d}"))
+        Config_Tlist.Add(ROOT.TObjString(correction_metadata(getattr(args, "divide_spline_by_unweighted", False))))
         safe_write(Config_Tlist, output_file)
         if(ExREAL_1D_wExclusive_Background is not None):
             ExREAL_1D_wExclusive_Background.SetDirectory(0)

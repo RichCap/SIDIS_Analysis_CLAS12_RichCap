@@ -14,6 +14,7 @@ import rebuild_final_systematic_budget as base
 
 CAMP = base.CAMP
 REF = os.path.join(CAMP, "refinement_20261108")
+UNW = REF
 PRESERVED_DIR = os.path.join(CAMP, "budgets", "rerun_refinement_20261108_before_coverage135")
 PRESERVED_BUDGET = os.path.join(PRESERVED_DIR, "budget.json")
 PRESERVED_SHARES = os.path.join(PRESERVED_DIR, "per_bin_source_shares.json")
@@ -98,6 +99,8 @@ def parse_args():
     parser.add_argument("-cb", "--comparison_baseline_budget", default="", help="Budget JSON used as the comparison baseline.")
     parser.add_argument("-cs", "--comparison_baseline_shares", default="", help="Share JSON used as the comparison baseline.")
     parser.add_argument("-sk", "--sector_kinds", default="electron,pion", help="Sector populations to aggregate. electron,pion is the mixed study. electron keeps only eS1o--eS6o.")
+    parser.add_argument("-rr", "--refinement_root", default="", help="Spline fit root. The default is refinement_20261108.")
+    parser.add_argument("-ur", "--unweighted_root", default="", help="Unweighted fit root. The default is the spline refinement root.")
     return parser.parse_args()
 
 
@@ -196,9 +199,9 @@ def aggregate(drop_by_path, out_dir, write_live, preserved_norm, known_fits, sta
     path_bc_old = os.path.join(CAMP, "corrected", "spline", "bc", "fit.json")
     path_bc = os.path.join(REF, "spline", "nominal", "bc", "fit.json")
     path_bayes = os.path.join(REF, "spline", "nominal", "acceptance", "fit.json")
-    path_unw = os.path.join(REF, "unweighted", "nominal", "acceptance", "fit.json")
+    path_unw = os.path.join(UNW, "unweighted", "nominal", "acceptance", "fit.json")
     path_unw_bc_old = os.path.join(CAMP, "corrected", "unweighted", "bc", "fit.json")
-    path_unw_bc = os.path.join(REF, "unweighted", "nominal", "bc", "fit.json")
+    path_unw_bc = os.path.join(UNW, "unweighted", "nominal", "bc", "fit.json")
     path_unw_norm = os.path.join(CAMP, "corrected", "unweighted", "normalized_bc.json")
     path_archive = os.path.join(CAMP, "corrected", "spline", "normalized_bc_before_bc_families_20261103.json")
     path_now = os.path.join(CAMP, "corrected", "spline", "normalized_bc.json")
@@ -292,7 +295,7 @@ def aggregate(drop_by_path, out_dir, write_live, preserved_norm, known_fits, sta
     bin_cells = load_key(path_bin, KEY_BIN)
     bin_shifts = omit_coverage(path_bin, base.pair_shifts(bayes, bin_cells, scale))
     check_scaled_shift(path_bin, bayes, bin_cells, scale, bin_shifts, False)
-    path_5d = os.path.join(REF, "unweighted", "dimension", "5D", "fit.json")
+    path_5d = os.path.join(UNW, "unweighted", "dimension", "5D", "fit.json")
     five_cells = load_key(path_5d, KEY_5D)
     five_shifts = omit_coverage(path_5d, base.pair_shifts(unw_bayes, five_cells, scale_unw))
     check_scaled_shift(path_5d, unw_bayes, five_cells, scale_unw, five_shifts, False)
@@ -1270,7 +1273,14 @@ def rewrite_saved_comparison(args):
 
 
 def main():
+    global REF, UNW
     args = parse_args()
+    if(args.refinement_root != ""):
+        REF = os.path.abspath(args.refinement_root)
+    if(args.unweighted_root != ""):
+        UNW = os.path.abspath(args.unweighted_root)
+    else:
+        UNW = REF
     if(args.comparison_only):
         rewrite_saved_comparison(args)
         return

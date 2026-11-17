@@ -1,0 +1,57 @@
+{
+  "scope": "ecthr_loose_el column-generation spline, acceptance only, inherited Bayesian. 3D phi_h, Q2-y 1-17, 452 cells. Input file unfolded/ecthr_loose_el|bayes|inherited_WSpline_ColGenRatio.root copied to refinement/ecthr_loose_el_bayesian/histograms.root. RC_Bayesian, BC_RC_Bayesian, Bin, and 5D are absent and were not created. No publication.",
+  "start_mode": "manual. The run-local guide is refinement/ecthr_loose_el_bayesian/refine_init.py, which loads Phi_h_Fit_Parameters_Initialize.py and overrides only diagnosed bins. --use_spline_init was not passed. The shared manual and spline files were not edited.",
+  "error_source": "histogram",
+  "changed": "Pass 1 was not treated as finished. Median chi2/NDF was 1.57 and 452 Fit_Pars_from_3D_Bayesian cells were kept. Wide fits showed 24 bins whose second-pass window flattened A(1+B cos phi_h+C cos 2phi_h) relative to the points, including (13,4), (3,16), and (10,11). Those keys were reset to the wide-fit cosine with limits of +/-0.20 in B and +/-0.15 in C. Remade Q2-y 1 3 4 5 6 7 9 10 11 13 14 15 16. All 24 improved and no other cell in those bins moved. A second scan still had eight trapped windows: (1,4), (1,16), (3,7), (5,3), (6,2), (11,20), (12,24), and (15,24). Those keys were opened the same way and those Q2-y bins were remade. Each improved. (13,4) chi2/NDF 17.87 to 2.49; the red curve follows the cosine and the gray first-pass curve is too flat. (1,32) stays at 7.32 because a wide fit does not move. JSON still has 452 cells. Unselected Q2-y bins are unchanged.",
+  "left_bins": "Collapsed near-zero moments were left where a wide fit does not improve the histogram: (1,9), (1,10), (2,14), (2,21), (4,29), (5,1), and (8,21). High chi2/NDF that already matches a wide fit was left, including (1,32) with one high phi bin, (13,10) 5.68, (2,6) 5.08, (6,12) 5.00, (1,2) 4.90, and (1,7) 4.87. No 5D family, so nothing was left from a 3D-versus-5D disagreement.",
+  "unresolved": "The remaining high chi2/NDF tail is the histogram, not a tighter guide. No empty histograms. Further wide fits outside three stored standard deviations do not improve chi2/NDF by 0.25 or more. No publication.",
+  "input_file": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/ecthr_loose_el|bayes|inherited_WSpline_ColGenRatio.root",
+  "refinement_root": "/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/refinement/ecthr_loose_el_bayesian/histograms.root",
+  "fingerprint": "ed17d5b5843e9d805a2c9eadeb682a2dfbba2836aa35c3fca2a43f1e95a917b7",
+  "acceptance_mask": "preserved_original_spline_before_column_correction",
+  "unfold_fingerprint": {
+    "fingerprint": "ed17d5b5843e9d805a2c9eadeb682a2dfbba2836aa35c3fca2a43f1e95a917b7",
+    "acceptance_mask": "acceptance_mask=preserved_original_spline_before_column_correction",
+    "dedicated_5d_unfold_helpers_h_sha256": "606170a909fbe565b8d9216e542fef3fd8a7a999ec35e88dcc5f2fff8b5ba443",
+    "input_response_sha256": "37bc5aa399f678da1a0ad7ccdff7e589d4429bd5e071be1d4b5c616973c9b4d9",
+    "simple_unfold_sha256": "05700647fa071a40e04940d459e9bb96dc6be1e879084379e03252045a62b0e7",
+    "simple_unfold_cxx_sha256": "ac6f97afb963fd4c7e900b1b1f0abd3634761e738d89bbd37b8a7a2dae71095d",
+    "settings": {
+      "acceptance": 0.02,
+      "acceptance_mask": "preserved_original_spline_before_column_correction",
+      "background": "rho0_new",
+      "bins": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "error_mode": "covariance",
+      "iteration_map": {
+        "1": 6,
+        "5": 6,
+        "default": 5
+      },
+      "iterations": "inherited",
+      "no_smear": false,
+      "phi_bins": 24,
+      "spec": "ecthr_loose_el|bayes|inherited",
+      "spline_amplitude_correction": "auto",
+      "unfold_method": "bayesian",
+      "weight_tag": "Spline"
+    }
+  }
+}

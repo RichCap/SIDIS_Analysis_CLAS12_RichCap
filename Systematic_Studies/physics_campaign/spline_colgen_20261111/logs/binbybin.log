@@ -1,0 +1,436 @@
+
+Started running on [1m11-11-2026[0m at [1m05:56 a.m.[0m
+[1mROOT version: 6.38.04[0m  ROOTSYS=/Users/richardcapobianco/opt/miniforge3/envs/updated_python
+libMatrix: /Users/richardcapobianco/opt/miniforge3/envs/updated_python/lib/libMatrix.so
+
+[1m[94mWill be saving results to [0m[1m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030|bin|BinByBin_WSpline_ColGenRatio.root[0m
+
+
+[1mStarting Simple 3D/1D Unfolding Analysis
+[0m
+The total number of histograms in '[1m[94m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root[0m' is [1m1326[0m
+[1m[94mSaving to: [1m[92m/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030|bin|BinByBin_WSpline_ColGenRatio.root[0m
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=1, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 2.07334e-15, max migration-fraction change = 2.22045e-16, max matched/full efficiency change = 4.996e-16, corrected generated-overflow MC fakes = 25471.1, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 698
+reduced reconstructed bins: 612
+skipped reconstructed bins: 86
+skipped original indices: 1,2,3,4,5,6,17,23,24,25,26,27,28,29,30,31,47,48,49,50,51,52,53,71,72,73,74,75,76,77,96,97,98,99,100,101,121,122,123,145,171,172,173,174,191,192,193,194,195,196,197,215,216,217,218,219,220,241,242,243,339,340,341,342,359,360,361,362,363,364,385,386,483,484,485,504,505,506,507,530,603,604,605,624,625,626
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=10, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=10, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=10, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.63231e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 4.996e-16, corrected generated-overflow MC fakes = 0, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 770
+reduced reconstructed bins: 702
+skipped reconstructed bins: 68
+skipped original indices: 1,2,49,51,73,74,75,76,77,97,98,99,100,121,122,123,124,145,146,193,194,195,196,197,217,218,219,220,241,242,243,244,265,266,315,337,338,339,340,361,362,363,364,385,386,458,459,460,481,482,483,484,505,506,555,578,579,580,601,602,603,626,675,698,699,700,721,722
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=11, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=554, MinBin=-1.5, MaxBin=552.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=11, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=554, MinBin=-1.5, MaxBin=552.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=11, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.90828e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 3.88578e-16, corrected generated-overflow MC fakes = 26118.2, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 554
+reduced reconstructed bins: 522
+skipped reconstructed bins: 32
+skipped original indices: 1,2,49,74,75,76,77,98,170,171,194,195,218,266,267,268,290,291,314,363,386,387,410,446,447,482,483,484,505,506,507,530
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=12, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=362, MinBin=-1.5, MaxBin=360.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=12, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=362, MinBin=-1.5, MaxBin=360.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=12, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.77352e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 2.22045e-16, corrected generated-overflow MC fakes = 22631.8, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 362
+reduced reconstructed bins: 345
+skipped reconstructed bins: 17
+skipped original indices: 1,2,74,146,147,170,242,243,266,315,338,339,349,350,351,352,362
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=13, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=13, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=13, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.69838e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 6.10623e-16, corrected generated-overflow MC fakes = 18957.1, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 626
+reduced reconstructed bins: 560
+skipped reconstructed bins: 66
+skipped original indices: 1,2,27,49,50,51,52,53,73,74,75,76,77,96,97,98,99,100,121,122,147,148,169,170,171,172,193,194,195,196,217,218,265,266,267,268,289,290,291,292,313,314,315,338,363,385,386,387,388,409,410,411,434,459,460,481,482,483,484,505,506,555,556,577,578,602
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=14, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=746, MinBin=-1.5, MaxBin=744.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=14, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=746, MinBin=-1.5, MaxBin=744.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=14, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.84026e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 6.66134e-16, corrected generated-overflow MC fakes = 20352.2, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 746
+reduced reconstructed bins: 693
+skipped reconstructed bins: 53
+skipped original indices: 1,2,73,74,75,76,97,98,99,100,121,122,171,194,195,196,217,218,219,220,241,242,243,314,315,316,337,338,339,361,362,363,386,435,458,459,460,481,482,483,506,555,556,577,578,579,602,651,674,675,676,697,698
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=458, MinBin=-1.5, MaxBin=456.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=458, MinBin=-1.5, MaxBin=456.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=15, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 2.09458e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 3.60822e-16, corrected generated-overflow MC fakes = 20263.4, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 458
+reduced reconstructed bins: 440
+skipped reconstructed bins: 18
+skipped original indices: 1,2,122,123,146,195,218,219,242,314,315,338,387,410,411,434,446,447
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=16, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=578, MinBin=-1.5, MaxBin=576.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=16, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=578, MinBin=-1.5, MaxBin=576.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=16, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.55082e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 4.996e-16, corrected generated-overflow MC fakes = 13955.1, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 578
+reduced reconstructed bins: 527
+skipped reconstructed bins: 51
+skipped original indices: 1,2,51,73,74,75,76,97,98,99,100,121,122,123,124,145,146,171,194,195,196,217,218,219,220,241,242,243,266,315,316,337,338,339,340,361,362,386,435,436,457,458,459,482,507,508,530,531,532,553,554
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=17, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=602, MinBin=-1.5, MaxBin=600.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=17, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=602, MinBin=-1.5, MaxBin=600.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=17, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.44232e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 4.44089e-16, corrected generated-overflow MC fakes = 15011.9, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 602
+reduced reconstructed bins: 575
+skipped reconstructed bins: 27
+skipped original indices: 1,2,75,98,170,171,194,195,217,218,219,242,291,314,315,338,339,362,434,435,458,459,482,531,554,555,578
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=2, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=2, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=2, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.91429e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 4.71845e-16, corrected generated-overflow MC fakes = 0, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 770
+reduced reconstructed bins: 686
+skipped reconstructed bins: 84
+skipped original indices: 1,2,23,24,25,26,27,28,29,48,49,50,51,52,53,54,55,72,73,74,75,76,96,97,98,99,100,121,122,123,145,146,147,168,169,170,171,172,173,174,193,194,195,196,216,217,218,219,220,241,242,243,291,313,314,315,316,336,337,338,339,340,361,362,435,436,457,458,459,460,481,482,555,556,577,578,579,580,601,602,675,676,697,698
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=3, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=674, MinBin=-1.5, MaxBin=672.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=3, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=674, MinBin=-1.5, MaxBin=672.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=3, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 2.21376e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 1.94289e-16, corrected generated-overflow MC fakes = 31182.1, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 674
+reduced reconstructed bins: 591
+skipped reconstructed bins: 83
+skipped original indices: 1,2,20,21,22,23,42,43,48,49,50,51,65,73,74,75,76,77,78,79,89,97,98,99,100,104,121,122,144,145,169,170,171,172,173,174,193,194,195,196,217,218,219,220,242,243,266,289,290,291,314,315,316,337,338,339,340,362,386,411,434,435,436,457,458,459,460,482,506,542,543,555,578,579,580,601,602,603,604,625,626,662,663
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=4, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=554, MinBin=-1.5, MaxBin=552.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=4, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=554, MinBin=-1.5, MaxBin=552.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=4, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.45833e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 1.66533e-16, corrected generated-overflow MC fakes = 29560.4, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 554
+reduced reconstructed bins: 462
+skipped reconstructed bins: 92
+skipped original indices: 1,2,18,19,20,21,22,23,24,25,41,42,49,50,65,74,75,76,77,78,79,88,89,97,98,113,121,146,170,171,172,175,193,194,195,196,208,215,218,241,242,266,267,269,290,291,314,315,327,338,362,386,387,388,409,410,411,423,434,444,445,446,447,448,449,459,470,471,472,482,483,484,485,495,505,506,507,508,511,519,526,527,529,530,531,532,536,542,543,544,553,554
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=5, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.44347e-15, max migration-fraction change = 2.22045e-16, max matched/full efficiency change = 4.996e-16, corrected generated-overflow MC fakes = 0, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 770
+reduced reconstructed bins: 657
+skipped reconstructed bins: 113
+skipped original indices: 1,2,3,4,22,23,24,25,26,27,28,29,30,48,49,50,51,52,53,54,55,72,73,74,75,76,77,96,97,98,99,100,101,120,121,122,123,145,146,147,148,167,168,169,170,171,172,173,174,192,193,194,195,196,197,216,217,218,219,220,241,242,243,265,266,291,292,293,312,313,314,315,316,317,336,337,338,339,340,361,362,363,385,386,435,436,437,456,457,458,459,460,481,482,483,505,506,555,556,557,576,577,578,579,580,601,602,675,676,677,696,697,698
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=6, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=6, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=6, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.94067e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 4.71845e-16, corrected generated-overflow MC fakes = 25581.7, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 626
+reduced reconstructed bins: 564
+skipped reconstructed bins: 62
+skipped original indices: 1,2,24,27,49,50,51,52,53,73,74,75,76,97,98,99,100,121,122,123,146,169,170,171,172,193,194,195,196,217,218,219,220,241,242,243,291,313,314,315,316,337,338,339,340,361,362,411,433,434,435,436,457,458,531,532,553,554,555,556,577,578
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=7, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=7, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=770, MinBin=-1.5, MaxBin=768.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=7, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.94411e-15, max migration-fraction change = 2.22045e-16, max matched/full efficiency change = 3.60822e-16, corrected generated-overflow MC fakes = 0, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 770
+reduced reconstructed bins: 711
+skipped reconstructed bins: 59
+skipped original indices: 1,2,48,49,73,74,75,76,77,78,97,98,145,170,171,172,194,195,196,217,218,219,242,290,291,292,314,315,316,337,338,339,362,410,411,434,435,436,457,458,459,482,554,555,578,579,602,651,674,675,676,697,698,699,722,757,758,759,760
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=626, MinBin=-1.5, MaxBin=624.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=8, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 2.00489e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 2.77556e-16, corrected generated-overflow MC fakes = 28893.6, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 626
+reduced reconstructed bins: 577
+skipped reconstructed bins: 49
+skipped original indices: 1,2,49,74,122,146,147,148,149,150,170,218,242,243,244,266,267,290,338,339,362,363,385,386,387,398,399,410,434,459,482,483,506,517,518,519,520,530,554,555,578,579,580,601,602,603,614,615,626
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+[1m[92mSubtracting the 'rho0_new' histogram '((Histo-Group='Response_Matrix_Normal_1D'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=9, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(rho0_new)' from the 'ExREAL_1D' histogram[0m
+
+[1m[92mUnfolding: ((Histo-Group='Response_Matrix_Normal'), (Data-Type='mdf'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=9, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'-[NumBins=698, MinBin=-1.5, MaxBin=696.5]), (Var-D2='z_pT_Bin_Y_bin_smeared'-[NumBins=38, MinBin=-0.5, MaxBin=37.5]))_(Spline)[0m
+
+[1m[96mStarting [4m[92mBin-by-Bin[0m[1m[96m Unfolding Procedure...[0m
+	[1mUnfolding Histogram:[0m
+	((Histo-Group='Response_Matrix_Normal'), (Data-Cut='cut_Complete_SIDIS'), (Smear-Type='smear'), (Binning-Type='Y_bin'-[Q2-y-Bin=9, z-PT-Bin=All]), (Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'))
+[1m[92mGenerated-column Spline correction: max(rec - response projection) rel = 1.70283e-15, max migration-fraction change = 1.11022e-16, max matched/full efficiency change = 3.88578e-16, corrected generated-overflow MC fakes = 22530.8, empty generated bins = 2[0m
+[1m[92mPhysical background/fake histogram remains unscaled; reconstructed MC is rebuilt from corrected response columns.[0m
+[1m[92mUsing acceptance mask preserved from the original weighted Spline MC before column correction.[0m
+original reconstructed bins: 698
+reduced reconstructed bins: 611
+skipped reconstructed bins: 87
+skipped original indices: 1,2,24,25,26,27,28,29,48,49,50,51,52,53,54,72,73,74,75,76,77,96,97,98,99,100,120,121,122,123,124,145,146,147,171,192,193,194,195,196,197,216,217,218,219,220,240,241,242,243,244,265,266,267,339,340,360,361,362,363,364,384,385,386,387,388,409,410,483,484,485,504,505,506,507,508,529,530,603,604,605,624,625,626,627,628,650
+Warning in <TH1D::Sumw2>: Sum of squares of weights structure already created
+[1m[92mBin-by-bin used physical map shared_axis_edges before the preserved acceptance mask.[0m
+
+Current Time: [1m05:56 a.m.[0m
+Time Elapsed Up To Now:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+
+[1m[94mDone Saving...[0m
+
+
+
+
+
+[1m[43mEMAIL MESSAGE TO SEND:[0m
+
+
+The 'Dedicated_5D_Unfold.py' script has finished running.
+Started running on [1m11-11-2026[0m at [1m05:56 a.m.[0m
+
+Input File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames/SIDIS_epip_Response_Matrices_from_RDataFrames_Only_3D_Sys3D_nominal_only_20261030_Bank_Response_Matrices_Final_Thesis_Files_All.root
+Output File:
+	/Users/richardcapobianco/Desktop/Work_Offline.nosync/SIDIS_Analysis_CLAS12_RichCap/Systematic_Studies/physics_campaign/spline_colgen_20261111/unfolded/nominal_only_20261030|bin|BinByBin_WSpline_ColGenRatio.root
+
+
+
+Detected 5D Configuration:
+	increment  = 0
+	num_bins   = 0
+	num_slices = 0
+
+Arguments:
+--test                                              --> False
+--no_smear                                          --> False
+--sim                                               --> False
+--mod                                               --> False
+--bayes_iterations                                  --> 5
+--Num_Toys                                          --> 500
+--bins                                              --> ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
+--verbose                                           --> False
+--Min_Allowed_Acceptance_Cut                        --> 0.020000
+--background_source                                 --> 'rho0_new'
+--require_weighed                                   --> False
+--weight_tag                                        --> 'Spline'
+--closure_weight                                    --> ''
+--pseudo_data                                       --> ''
+--increment                                         --> None
+--num_bins                                          --> None
+--matrix_pdf                                        --> False
+--logz                                              --> False
+--recover_slices                                    --> False
+--data_root                                         --> 'work'
+--error_mode                                        --> 'covariance'
+--iteration_study                                   --> False
+--old_binning                                       --> False
+--no_post_unfold_acc_cut                            --> False
+--pass_version                                      --> 'Pass 2'
+--closure                                           --> False
+--smearing_options                                  --> 'smear'
+
+
+The time that this code finished is [1m05:56 a.m.[0m
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 0 Second(s).
+
+    
+
+[1m[92m[43m
+    	                                   	   
+    	This code has now finished running.	   
+    	                                   	   [0m
+
+    

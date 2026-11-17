@@ -138,6 +138,11 @@ def parse_args():
                    default="",
                    choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
                    help="Select which weighted histogram set to unfold. Empty = unweighted (default). Auto-tags output ROOT name.\n")
+    p.add_argument('-sac', '--spline_amplitude_correction',
+                   type=str,
+                   default="auto",
+                   choices=["auto", "on", "off"],
+                   help="Divide Spline MC by its unweighted counterpart. auto is on only for Spline. off keeps the original calculation.\n")
     p.add_argument('-i', '--increment',
                    type=int,
                    default=None,
@@ -280,6 +285,7 @@ def build_cpp_command(args):
         cmd.append("--require_weighed")
     if(args.weight_tag not in ["", None]):
         cmd.extend(["--weight_tag", args.weight_tag])
+    cmd.extend(["--spline_amplitude_correction", args.spline_amplitude_correction])
     if(args.increment is not None):
         cmd.extend(["--increment", str(args.increment)])
     if(args.num_bins is not None):
