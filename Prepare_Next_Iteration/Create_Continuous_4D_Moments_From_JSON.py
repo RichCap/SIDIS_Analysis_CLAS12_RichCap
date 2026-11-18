@@ -153,6 +153,14 @@ def parse_args():
                    type=str,
                    default=None,
                    help="Existing prefix, without _Fit_Par_B.npz, whose B and C npz files the C++ export reuses.\n")
+    p.add_argument("-gto", "--generated_totals_out",
+                   type=str,
+                   default=None,
+                   help="Write the (Q2-y, z-pT) generated population table after it is built.\n")
+    p.add_argument("-gti", "--generated_totals_in",
+                   type=str,
+                   default=None,
+                   help="Load a previously written population table instead of opening the generated reference.\n")
     
     p.add_argument("-t", "--test",
                    action="store_true",
@@ -1286,6 +1294,59 @@ def load_generated_cell_totals(reference_path, cells):
     return totals
 
 
+def write_generated_cell_totals(path, totals, reference):
+    cells = {}
+    for q2y_bin, zpt_bin in sorted(totals.keys()):
+        cells["%d,%d" % (int(q2y_bin), int(zpt_bin))] = float(totals[(q2y_bin, zpt_bin)])
+    payload = {"reference": "" if(reference in [None, ""]) else os.path.abspath(str(reference)), "cells": cells}
+    with open(path, "w") as handle:
+        json.dump(payload, handle, indent=1, sort_keys=True)
+        handle.write("\n")
+
+
+def read_generated_cell_totals(path, cells):
+    with open(path, "r") as handle:
+        payload = json.load(handle)
+    stored = payload.get("cells", {})
+    totals = {}
+    missing = []
+    zeros = []
+    for q2y_bin, zpt_bin in cells:
+        key = "%d,%d" % (int(q2y_bin), int(zpt_bin))
+        if(key not in stored):
+            missing.append((q2y_bin, zpt_bin))
+            continue
+        total = float(stored[key])
+        totals[(q2y_bin, zpt_bin)] = total
+        if(total == 0.0):
+            zeros.append((q2y_bin, zpt_bin))
+    if(len(missing) > 0):
+        for q2y_bin, zpt_bin in missing:
+            print("Population table has no cell (%d, %d)" % (q2y_bin, zpt_bin))
+        raise RuntimeError("Population table does not cover every retained A cell. No training value was divided.")
+    if(len(zeros) > 0):
+        for q2y_bin, zpt_bin in zeros:
+            print("Zero generated population in cell (%d, %d)" % (q2y_bin, zpt_bin))
+        raise RuntimeError("Retained A cell has zero generated population. No training value was divided.")
+    return totals
+
+
+def npz_text(value):
+    array = np.asarray(value)
+    if(array.shape == ()):
+        return str(array.item())
+    return str(value)
+
+
+def physics_iteration_from_prefix(prefix):
+    text = str(prefix)
+    if("normGenA_iter1" in text):
+        return "iter1"
+    if("normGenA_iter2" in text):
+        return "iter2"
+    return ""
+
+
 def spline_npz_path(args, y_par):
     if((y_par in ["Fit_Par_B", "Fit_Par_C"]) and (getattr(args, "bc_prefix", None) not in [None, ""])):
         return "%s_Fit_Par_%s.npz" % (args.bc_prefix, y_par[-1])
@@ -1318,7 +1379,10 @@ def generate_spline_code(args):
             "epsilon": float(d["epsilon"]) if("epsilon" in d.files) else 1.0,
             "dimension_mode": str(d["dimension_mode"]),
             "log_space": bool(d["log_space"]) if("log_space" in d.files) else False,
-            "a_convention": str(d["a_convention"]) if("a_convention" in d.files) else "raw_A",
+            "a_convention": npz_text(d["a_convention"]) if("a_convention" in d.files) else "raw_A",
+            "physics_iteration": npz_text(d["physics_iteration"]) if("physics_iteration" in d.files) else "",
+            "measurement_source": npz_text(d["measurement_source"]) if("measurement_source" in d.files) else "",
+            "population_table": npz_text(d["population_table"]) if("population_table" in d.files) else "",
         }
         rbf = _rebuild_rbf_from_npz_record(rec, y_par)
         P, R, coeffs = _require_rbf_export_attrs(rbf, y_par)
@@ -1341,10 +1405,20 @@ def generate_spline_code(args):
     cpp_code += f"// Dimension mode: {args.dimension_mode}\n"
     cpp_code += f"// Fit set: {args.fit_set}\n"
     cpp_code += f"// Generated on {gen_time}\n"
+    a_record = data["Fit_Par_A"]
     a_convention = "raw_A"
-    if("a_convention" in data["Fit_Par_A"]):
-        a_convention = str(data["Fit_Par_A"]["a_convention"])
+    if("a_convention" in a_record):
+        a_convention = str(a_record["a_convention"])
     cpp_code += "// A convention: %s\n" % a_convention
+    physics_iteration = str(a_record.get("physics_iteration", "")).strip()
+    if(physics_iteration not in ["", "None"]):
+        cpp_code += "// Physics iteration: %s\n" % physics_iteration
+    measurement_source = str(a_record.get("measurement_source", "")).strip()
+    if(measurement_source not in ["", "None"]):
+        cpp_code += "// Measurement source: %s\n" % measurement_source
+    population_table = str(a_record.get("population_table", "")).strip()
+    if(population_table not in ["", "None"]):
+        cpp_code += "// Population table: %s\n" % population_table
     cpp_code += f"// Evaluator matches SciPy RBFInterpolator (SciPy {scipy_ver}):\n"
     if(getattr(args, "omit_photon_flux", False)):
         cpp_code += "// EvGen amplitude: A_ep = A_fit / (bin area * luminosity); virtual-photon flux omitted\n"
@@ -1481,12 +1555,21 @@ def main():
     if((args.verbose) or (args.email)):
         Update_Email(args, update_message=f"{color.CYAN}[INFO] Using fit_set: {fit_set}\n[INFO] Total measurement points: {len(fit_dict)}\n[INFO] Dimension mode: {args.dimension_mode}{color.END}", verbose_override=False, no_time=True)
     y_pars = [str(item) for item in args.y_pars]
-    if(bool(getattr(args, "normalize_generated_A", False)) and (getattr(args, "generated_reference", None) in [None, ""])):
-        Crash_Report(args, crash_message=f"{color.Error}ERROR: --normalize_generated_A requires --generated_reference.{color.END}", continue_run=False)
-    if(bool(getattr(args, "normalize_generated_A", False))):
+    normalize_A = bool(getattr(args, "normalize_generated_A", False))
+    totals_in = getattr(args, "generated_totals_in", None)
+    totals_out = getattr(args, "generated_totals_out", None)
+    if(normalize_A and (totals_in in [None, ""]) and (getattr(args, "generated_reference", None) in [None, ""])):
+        Crash_Report(args, crash_message=f"{color.Error}ERROR: --normalize_generated_A requires --generated_reference or --generated_totals_in.{color.END}", continue_run=False)
+    if(normalize_A):
         cells = retained_a_cells(fit_dict, info_map, args)
         try:
-            args._generated_cell_totals = load_generated_cell_totals(args.generated_reference, cells)
+            if(totals_in not in [None, ""]):
+                args._generated_cell_totals = read_generated_cell_totals(totals_in, cells)
+            else:
+                args._generated_cell_totals = load_generated_cell_totals(args.generated_reference, cells)
+            if(totals_out not in [None, ""]):
+                reference = "" if(totals_in not in [None, ""]) else args.generated_reference
+                write_generated_cell_totals(totals_out, args._generated_cell_totals, reference)
         except RuntimeError as err:
             Crash_Report(args, crash_message=str(err), continue_run=False)
     fit_this_pass = not args.generate_spline_code_only
@@ -1553,6 +1636,12 @@ def main():
                     }
             if((y_par == "Fit_Par_A") and bool(getattr(args, "normalize_generated_A", False))):
                 config["a_convention"] = "original_mc_cell_normalized"
+                config["physics_iteration"] = physics_iteration_from_prefix(args.output_prefix)
+                config["measurement_source"] = os.path.abspath(str(args.json_file))
+                table_path = getattr(args, "generated_totals_out", None)
+                if(table_path in [None, ""]):
+                    table_path = getattr(args, "generated_totals_in", None)
+                config["population_table"] = "" if(table_path in [None, ""]) else os.path.abspath(str(table_path))
             mode_str = args.dimension_mode
             pkl_file = f"{args.output_prefix}_{mode_str}_{fit_set}_{y_par}.pkl"
             with open(pkl_file, "wb") as f:

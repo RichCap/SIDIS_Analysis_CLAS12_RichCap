@@ -221,7 +221,7 @@ def parse_args():
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",  # 2026-10-26 previous nominal 5D MC weight
                         # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",  # historical raw-A evaluator; pass it explicitly with --spline_file
-                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                        default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter1_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                         help="Path to the spline weight file when '--spline_weights' is used.\n")
     parser.add_argument('-hpp_in', '--hpp_input_file',
                         type=str,
@@ -1339,15 +1339,21 @@ if(__name__ == "__main__"):
             from helper_functions_for_using_RDataFrames_python import declare_cpp_file
             declare_cpp_file(args.spline_file, [("ComputeSplineWeight", "ComputeSplineWeight(2.0, 0.2, 0.4, 0.3, 0.2, 15.0)")])
             args.spline_a_convention = "raw_A"
+            args.physics_spline_iteration = "unmarked"
             with open(args.spline_file, "r") as spline_header:
                 for header_line in spline_header:
                     header_text = header_line.strip()
                     if(header_text.startswith("// A convention:")):
                         args.spline_a_convention = header_text.split(":", 1)[1].strip()
+                    elif(header_text.startswith("// Physics iteration:")):
+                        args.physics_spline_iteration = header_text.split(":", 1)[1].strip()
+                    elif(header_text.startswith("double ")):
                         break
             if(args.spline_a_convention != "original_mc_cell_normalized"):
                 args.spline_a_convention = "raw_A"
-            Update_Email(args, update_message=f"{color.CYAN}Spline A convention: {args.spline_a_convention}{color.END}", verbose_override=True, no_time=True)
+            if(args.physics_spline_iteration not in ["iter1", "iter2"]):
+                args.physics_spline_iteration = "unmarked"
+            Update_Email(args, update_message=f"{color.CYAN}Spline A convention: {args.spline_a_convention}; physics iteration: {args.physics_spline_iteration}{color.END}", verbose_override=True, no_time=True)
             w_phys_gdf = "ComputeSplineWeight(Q2, xB, y, z, pT, phi_t)"
             w_phys_mdf = "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)"
             phys_tag   = "Spline"
@@ -1833,16 +1839,19 @@ if(__name__ == "__main__"):
         num_histos_saved = Evaluate_And_Write_Histograms(hist_ptrs=Histograms_All, out_path=args.root, test=args.dry_run, timer=args.timer)  # See helper_functions_for_using_RDataFrames_python.py
         if((args.spline_weights) and (getattr(args, "spline_file", None) not in [None, ""]) and (not args.dry_run)):
             convention = getattr(args, "spline_a_convention", "raw_A")
+            physics_iteration = getattr(args, "physics_spline_iteration", "unmarked")
             convention_file = ROOT.TFile.Open(str(args.root), "UPDATE")
             if((convention_file is None) or convention_file.IsZombie()):
                 if(convention_file is not None):
                     convention_file.Close()
                 Crash_Report(args, crash_message="Could not record spline_A_convention in %s" % args.root, continue_run=False)
-            convention_marker = ROOT.TNamed("spline_A_convention", str(convention))
             convention_file.cd()
+            convention_marker = ROOT.TNamed("spline_A_convention", str(convention))
             convention_marker.Write("", ROOT.TObject.kOverwrite)
+            iteration_marker = ROOT.TNamed("physics_spline_iteration", str(physics_iteration))
+            iteration_marker.Write("", ROOT.TObject.kOverwrite)
             convention_file.Close()
-            Update_Email(args, update_message=f"{color.CYAN}Recorded spline_A_convention {convention} in {args.root}{color.END}", verbose_override=True, no_time=True)
+            Update_Email(args, update_message=f"{color.CYAN}Recorded spline_A_convention {convention} and physics_spline_iteration {physics_iteration} in {args.root}{color.END}", verbose_override=True, no_time=True)
         print(f"{color.BBLUE}Done Saving (Saved {color.END_B}{num_histos_saved}{color.BBLUE} Histograms){color.END}\n")
         Update_Email(args, update_name="'Evaluate_And_Write_Histograms()'", verbose_override=True)
         args.num_histos_saved = num_histos_saved

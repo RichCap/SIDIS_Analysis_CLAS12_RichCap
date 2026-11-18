@@ -175,8 +175,15 @@ def parse_args():
                    # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/Final_ZerothOrder_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                    # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/rho0_Subtracted_5D_V2_4D_xB_Fit_Pars_from_5D_BC_RC_Bayesian_Compute_SplineWeight.txt",  # 2026-10-26 previous nominal 5D MC weight
                    # default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",  # historical raw-A evaluator; pass it explicitly with --spline_file
-                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
+                   default="/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter1_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt",
                    help="Spline weight file for combined HPP and response-matrix spline weights. Default is resolved under --data_root with fallback to the other JLab tree unless this flag is given.\n")
+    p.add_argument("-pi", "--physics_iteration",
+                   choices=["iter1", "iter2"],
+                   default="iter1",
+                   help="Physics Spline injection used when --spline_file is omitted. iter1 is the default. An explicit header that disagrees with this flag stops the launch.\n")
+    p.add_argument("-pso", "--physics_spline_only",
+                   action="store_true",
+                   help="Run Only_5D with the selected physics Spline and no acceptance or reconstruction weight.\n")
     add_data_root_argument(p)
     p.add_argument("-n", "--name",
                    type=str,
@@ -559,11 +566,55 @@ def resolve_main_hpp(args):
         return pure, comb
     raise RuntimeError(f"Acceptance skip with --HPP_Old_Name='{args.HPP_Old_Name}' but no main HPP pair found: {pure} / {comb}")
 
+def physics_header_name(iteration):
+    if(str(iteration) == "iter2"):
+        return "acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt"
+    return "acc020_3D_BC_RC_normGenA_iter1_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt"
+
+
+def header_physics_iteration(path):
+    identity = "unmarked"
+    with open(path, "r") as handle:
+        for line in handle:
+            text = line.strip()
+            if(text.startswith("// Physics iteration:")):
+                identity = text.split(":", 1)[1].strip()
+                break
+            if(text.startswith("double ")):
+                break
+    if(identity in [None, ""]):
+        identity = "unmarked"
+    return identity
+
+
+def resolve_physics_header(args):
+    explicit_file = flag_was_passed(["-spf", "--spline_file"])
+    explicit_iteration = flag_was_passed(["-pi", "--physics_iteration"])
+    if(not explicit_file):
+        name = physics_header_name(args.physics_iteration)
+        args.spline_file = "/w/hallb-scshelf2102/clas12/richcap/SIDIS_Analysis/Prepare_Next_Iteration/%s" % name
+    apply_input_if_default(args, "spline_file", ["-spf", "--spline_file"], args.data_root)
+    if(not os.path.isfile(args.spline_file)):
+        Crash_Report(args, crash_message="Physics Spline header was not found: %s" % args.spline_file, continue_run=False)
+    identity = header_physics_iteration(args.spline_file)
+    if(explicit_iteration and (identity != str(args.physics_iteration))):
+        Crash_Report(args, crash_message="Requested physics iteration %s disagrees with header %s identity %s" % (args.physics_iteration, args.spline_file, identity), continue_run=False)
+    if(explicit_iteration):
+        args.physics_iteration_resolved = str(args.physics_iteration)
+    else:
+        args.physics_iteration_resolved = identity
+    return args.physics_iteration_resolved
+
+
 def hybrid_batch_paths(args, cut_name, product, naming_cut=None):
     shared = product_shared_name(args, naming_cut if(naming_cut not in [None, ""]) else cut_name)
     name_tag = product_output_name(product, shared)
     date = getattr(args, "hybrid_date", datetime.now().strftime("%m_%d_%Y"))
-    run_subdir = f"{name_tag}_{PIPELINE_NAME_IN}_{date}"
+    identity = getattr(args, "physics_iteration_resolved", None)
+    if(identity not in [None, ""]):
+        run_subdir = f"{name_tag}_{identity}_{PIPELINE_NAME_IN}_{date}"
+    else:
+        run_subdir = f"{name_tag}_{PIPELINE_NAME_IN}_{date}"
     return os.path.join(VOLATILE_BASE, run_subdir), run_subdir
 
 def product_output_name(product, shared):
@@ -673,6 +724,8 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     # This comparison loads the physics Spline and does not load legacy Acc.
     if(product.get("key") == "Iter1_AllWeights"):
         use_hpp = False
+    if(bool(getattr(args, "physics_spline_only", False))):
+        use_hpp = False
     cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-m", run_mode])
     cmd.extend(["-cn", cut_name])
@@ -680,7 +733,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     name_tag = product_output_name(product, shared)
     cmd.extend(["-n", name_tag])
     cmd.extend(["--name_in"] + list(PIPELINE_NAME_IN_GLOBS))
-    attach_physics_spline = bool(use_hpp) or (product.get("key") == "Iter1_AllWeights")
+    attach_physics_spline = bool(use_hpp) or (product.get("key") == "Iter1_AllWeights") or bool(getattr(args, "physics_spline_only", False))
     if(use_hpp):
         cmd.append("--use_hpp")
     if(attach_physics_spline):
@@ -796,19 +849,22 @@ def reconstruction_identity_path(args):
 
 
 def write_reconstruction_identity(args, cut_name, product):
-    from helper_functions_for_using_RDataFrames_python import default_recs_header, expected_recs_fit_set, header_fit_set
+    from helper_functions_for_using_RDataFrames_python import default_recs_header, expected_recs_fit_set, header_fit_set, recw_plain_file, recw_spline_file
     iteration = int(getattr(args, "cumulative_iteration", 1))
+    physics = getattr(args, "physics_iteration_resolved", "")
+    if(physics not in ["iter1", "iter2"]):
+        physics = ""
     plain_path = getattr(args, "recs_file", None)
     if(plain_path in [None, ""]):
         plain_path = default_recs_header(iteration, False)
     spline_path = getattr(args, "recs_spline_file", None)
     if(spline_path in [None, ""]):
-        spline_path = default_recs_header(iteration, True)
+        spline_path = default_recs_header(iteration, True, physics)
     plain_set = header_fit_set(plain_path) if(os.path.isfile(plain_path)) else expected_recs_fit_set(iteration, False)
-    spline_set = header_fit_set(spline_path) if(os.path.isfile(spline_path)) else expected_recs_fit_set(iteration, True)
+    spline_set = header_fit_set(spline_path) if((spline_path not in [None, ""]) and os.path.isfile(spline_path)) else expected_recs_fit_set(iteration, True, physics)
     recw_path = getattr(args, "recw_file", None)
     if(recw_path in [None, ""]):
-        recw_path = os.path.join(DATAFRAMES_DIR, "RecW_Output", "Rec_Weight.root")
+        recw_path = recw_plain_file()
     choice = getattr(args, "reconstruction_weight", "none")
     if(choice in [None, ""]):
         choice = "none"
@@ -821,7 +877,9 @@ def write_reconstruction_identity(args, cut_name, product):
         "recs_spline_file=%s" % spline_path,
         "fit_set_plain=%s" % plain_set,
         "fit_set_spline=%s" % spline_set,
+        "physics_iteration=%s" % ("unmarked" if(physics in [None, ""]) else physics),
         "recw_file=%s" % recw_path,
+        "recw_spline_file=%s" % recw_spline_file(physics),
         "tags=_(RecS),_(RecSSpline),_(RecW),_(RecWSpline)",
     ]
     path = reconstruction_identity_path(args)
@@ -1224,11 +1282,22 @@ def main():
     args = parse_args()
     args.timer = RuntimeTimer()
     args.timer.start()
-    apply_input_if_default(args, "spline_file", ["-spf", "--spline_file"], args.data_root)
+    if(bool(getattr(args, "physics_spline_only", False))):
+        args.skip_acceptance = True
+        args.jobs_2D = 0
+        args.jobs_3D = 0
+        args.jobs_recw = 0
+        args.jobs_iter1 = 0
+        args.jobs_Binning = 0
+        args.jobs_dphi = 0
+        args.jobs_ch4 = 0
+        args.jobs_1d = 0
+        args.jobs_diag = 0
     HPP_OUT_DIR = pipeline_output_path(REL_HPP_OUT, args.data_root)
     # Preserve the user-provided email body separately from the runner log.
     args.user_email_message = args.email_message if(args.email_message not in [None]) else ""
     args.email_message = args.user_email_message
+    resolve_physics_header(args)
 
     safe_name = re.sub(r"[^\w.\-]+", "_", str(args.name))
     args.master_log_path = os.path.join(DATAFRAMES_DIR, f"{safe_name}_full_pipeline.log")

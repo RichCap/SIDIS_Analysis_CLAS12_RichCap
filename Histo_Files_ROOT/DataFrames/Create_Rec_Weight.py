@@ -57,6 +57,7 @@ def parse_args():
     parser.add_argument("-vf", "--variable_file", type=str, default=None, help="ROOT file with variable-versus-index histograms for the figure. Defaults to --input_file.\n")
     parser.add_argument("-sw", "--spline_weights", action="store_true", help="Use the Spline-baseline MC history.\n")
     parser.add_argument("-it", "--iteration", type=int, default=1, help="Derivation number. 1 is the first residual.\n")
+    parser.add_argument("-pi", "--physics_iteration", default=None, choices=["iter1", "iter2"], help="Physics injection for a Spline-baseline history. Omitted reads physics_spline_iteration from the input file.\n")
     parser.add_argument("-rw", "--recw_file", type=str, default=None, help="Cumulative-factor ROOT file to read and update.\n")
     parser.add_argument("-o", "--output_dir", type=str, default=None, help="Directory for the ROOT file, JSON, and figure.\n")
     parser.add_argument("-f", "--overwrite_iteration", action="store_true", help="Replace this iteration when no later iteration exists in the same history.\n")
@@ -80,9 +81,28 @@ def report_name(iteration, spline):
     return "report_%s_%d" % (stem, int(iteration))
 
 
-def json_fit_set(iteration, spline):
-    stem = "spline" if(spline) else "default"
-    return "RecS_%s_iter%d" % (stem, int(iteration))
+def json_fit_set(iteration, spline, physics_iteration=""):
+    if(not spline):
+        return "RecS_default_iter%d" % int(iteration)
+    if(str(physics_iteration) in ["iter1", "iter2"]):
+        return "RecS_spline_phys%s_iter%d" % (str(physics_iteration), int(iteration))
+    return ""
+
+
+def read_physics_iteration(path):
+    root_file = ROOT.TFile.Open(str(path), "READ")
+    if((root_file is None) or root_file.IsZombie()):
+        if(root_file is not None):
+            root_file.Close()
+        return "unmarked"
+    marker = root_file.Get("physics_spline_iteration")
+    identity = "unmarked"
+    if(marker):
+        identity = str(marker.GetTitle()).strip()
+    root_file.Close()
+    if(identity not in ["iter1", "iter2"]):
+        return "unmarked"
+    return identity
 
 
 def figure_path(output_dir, iteration, spline):
@@ -490,11 +510,13 @@ def bin_centers(q2y_bin, zpt_bin, phi_bin):
     return xB_center, y_center, z_center, pt_center, phi_center
 
 
-def export_json(cumulative, iteration, spline, output_dir):
+def export_json(cumulative, iteration, spline, output_dir, physics_iteration=""):
     from Histo_Files_ROOT.DataFrames.helper_functions_for_using_RDataFrames_python import create_dense_5d_bin_mapping
     mapping = create_dense_5d_bin_mapping()
     reverse = mapping["reverse_map"]
-    fit_set = json_fit_set(iteration, spline)
+    fit_set = json_fit_set(iteration, spline, physics_iteration)
+    if(fit_set in [None, ""]):
+        fail("Spline-baseline JSON needs physics iteration iter1 or iter2")
     rows = {}
     for index in range(1, N_APPROVED + 1):
         q2y_bin, zpt_bin, phi_bin = reverse[index]
@@ -618,8 +640,18 @@ def derive(args):
     input_path = args.input_file if(args.input_file not in [None, ""]) else default_input_path()
     output_dir = args.output_dir if(args.output_dir not in [None, ""]) else default_output_dir()
     os.makedirs(output_dir, exist_ok=True)
-    weight_path = args.recw_file if(args.recw_file not in [None, ""]) else os.path.join(output_dir, "Rec_Weight.root")
     spline = bool(args.spline_weights)
+    physics = getattr(args, "physics_iteration", None)
+    if(spline and (physics in [None, ""])):
+        physics = read_physics_iteration(input_path)
+    if(spline and (str(physics) not in ["iter1", "iter2"])):
+        fail("Selected input physics iteration is unmarked. No Spline-baseline RecW file is defined.")
+    if(args.recw_file not in [None, ""]):
+        weight_path = args.recw_file
+    elif(spline):
+        weight_path = os.path.join(output_dir, "Rec_Weight_phys%s.root" % str(physics))
+    else:
+        weight_path = os.path.join(output_dir, "Rec_Weight.root")
     baseline = "spline" if(spline) else "default"
     iteration = int(args.iteration)
     if(iteration < 1):
@@ -663,7 +695,7 @@ def derive(args):
     source.Close()
     write_objects(weight_path, [residual, cumulative, undefined_hist, text], bool(args.overwrite_iteration))
     print("Wrote %s" % weight_path)
-    export_json(cumulative, iteration, spline, output_dir)
+    export_json(cumulative, iteration, spline, output_dir, "" if(not spline) else str(physics))
     variable_path = args.variable_file if(args.variable_file not in [None, ""]) else input_path
     draw_figure(variable_path, cumulative, iteration, spline, output_dir, "bdf held fixed: %s" % bdf_key)
     return weight_path
