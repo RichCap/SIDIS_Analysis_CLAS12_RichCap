@@ -136,8 +136,8 @@ def parse_args():
     p.add_argument('-wt', '--weight_tag',
                    type=str,
                    default="",
-                   choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
-                   help="Select which weighted histogram set to unfold. Empty = unweighted (default). Auto-tags output ROOT name.\n")
+                   choices=["RecS", "RecW", "RecSSpline", "RecWSpline", "Unweighted", "Spline", "SplineOnly", "", "Acc", "JSON", "AccJSON", "AccSpline"],
+                   help="Histogram tag to unfold. Omitted selects the untagged response. Spline stays the pure Spline histogram. Unweighted selects the untagged histograms. No weight file is read here.\n")
     p.add_argument('-sac', '--spline_amplitude_correction',
                    type=str,
                    default="auto",
@@ -241,6 +241,24 @@ def ensure_binary(roounfold_dir, skip_compile=False):
         run_checked(["make", "-C", CPP_DIR], env=env)
 
 
+def command_requests_weight_tag():
+    for token in sys.argv[1:]:
+        if(token in ["-wt", "--weight_tag"]):
+            return True
+        if(token.startswith("--weight_tag=")):
+            return True
+    return False
+
+
+def effective_weight_tag(requested):
+    # Histogram tag actually read. An omitted tag and Unweighted stay on the untagged response.
+    if(requested in [None, "", "Unweighted"]):
+        return ""
+    if(requested == "SplineOnly"):
+        return "Spline"
+    return str(requested)
+
+
 def build_cpp_command(args):
     cmd = [CPP_BIN]
     if(args.test):
@@ -283,8 +301,12 @@ def build_cpp_command(args):
     cmd.extend(["--background_source", args.background_source])
     if(args.require_weighed):
         cmd.append("--require_weighed")
-    if(args.weight_tag not in ["", None]):
-        cmd.extend(["--weight_tag", args.weight_tag])
+    # The C++ backend resolves the token once. This launcher does not rewrite it.
+    if(command_requests_weight_tag()):
+        print("Forwarding weight tag %s" % args.weight_tag)
+        cmd.extend(["--weight_tag", str(args.weight_tag)])
+    else:
+        print("Weight tag omitted; the backend nominal selection is RecS")
     cmd.extend(["--spline_amplitude_correction", args.spline_amplitude_correction])
     if(args.increment is not None):
         cmd.extend(["--increment", str(args.increment)])

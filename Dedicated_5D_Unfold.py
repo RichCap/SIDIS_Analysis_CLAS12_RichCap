@@ -110,8 +110,8 @@ def parse_args():
     p.add_argument('-wt', '--weight_tag',
                    type=str,
                    default="",
-                   choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
-                   help="Select which weighted histogram set to unfold. Empty = unweighted (default). Auto-tags output ROOT name.\n")
+                   choices=["RecS", "RecW", "RecSSpline", "RecWSpline", "Unweighted", "Spline", "SplineOnly", "", "Acc", "JSON", "AccJSON", "AccSpline"],
+                   help="Histogram tag to unfold. Omitted selects the untagged response. Spline stays the pure Spline histogram. Does not load a weight file or iteration.\n")
     p.add_argument('-sac', '--spline_amplitude_correction',
                    type=str,
                    default="auto",
@@ -631,7 +631,7 @@ def subtract_bkg_with_zero_floor(hist_data, hist_background):
 ##==========##==========##        5D Detection / Validation Helpers                ##==========##==========##==========##==========##==========##==========##==========##==========##
 ################################################################################################################################################################################################################################################
 SLICE_INCREMENT_RE = re.compile(r"_Slice_1_\(Increment='(\d+)'\)")
-WEIGHT_SUFFIXES = ["_(AccSpline)", "_(AccJSON)", "_(Acc)", "_(JSON)", "_(Spline)", "_(Weighed)"]
+WEIGHT_SUFFIXES = ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Acc)", "_(JSON)", "_(Spline)", "_(Weighed)"]
 SLICE_NUMBER_RE = re.compile(r"_Slice_(\d+)_\(Increment='(\d+)'\)")
 
 def Trailing_Weight_Suffix(name):
@@ -684,7 +684,7 @@ def Subtract_Unweighted_Rho(input_file, ExREAL_1D, rdf_name, mdf_1d_name, args):
 
 def Passes_Weighed_Filter(name, args):
     weight_tag = getattr(args, "weight_tag", "")
-    known_tags = ["_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"]
+    known_tags = ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"]
     has_weight_tag = any(tag_str in name for tag_str in known_tags)
     if(weight_tag not in ["", None]):
         if(f"_({weight_tag})" not in name):
@@ -745,6 +745,24 @@ def Apply_Background_1D_Replacements(name):
     name = name.replace("'5D_Response_Matrix_1D'", "'Background_5D_Response_Matrix_1D'")
     name = name.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_1D'")
     return name
+
+def resolved_weight_tag(requested):
+    # One resolution for this Python backend. The launcher forwards the token unchanged.
+    if(requested in [None, "", "Unweighted"]):
+        return ""
+    if(requested == "SplineOnly"):
+        return "Spline"
+    return str(requested)
+
+
+def reconstruction_background_name(signal_1d_name, weight_tag):
+    # Plain RecS and RecW use the untagged background. The combined tags use the existing Spline background.
+    stripped = Apply_Background_1D_Replacements(Strip_Weight_Tags(signal_1d_name))
+    if(weight_tag in ["RecSSpline", "RecWSpline"]):
+        return stripped + "_(Spline)"
+    if(weight_tag in ["RecS", "RecW"]):
+        return stripped
+    return Apply_Background_1D_Replacements(signal_1d_name)
 
 def Build_5D_Matrix_Candidate(mdf, out_print_main):
     out_print_main_mdf = out_print_main
@@ -1227,6 +1245,9 @@ def main_start():
             if(cleaned != original):
                 print(f"{color.BYELLOW}Cleaned quotes from --{attr}: '{original}' -> '{cleaned}'{color.END}")
                 setattr(args, attr, cleaned)
+    requested_weight = getattr(args, "weight_tag", "")
+    args.weight_tag = resolved_weight_tag(requested_weight)
+    print("Requested weight tag %s effective weight tag %s" % (requested_weight, args.weight_tag if(args.weight_tag not in ["", None]) else "Unweighted"))
     try:
         args.divide_spline_by_unweighted = divide_spline_active(getattr(args, "weight_tag", ""), getattr(args, "spline_amplitude_correction", "auto"))
     except ValueError as exc:
@@ -1373,22 +1394,22 @@ def Prepare_5D_Matrix_For_Pdf(input_file, args):
     Histo_List = detected["Histo_List"]
     out_print_main_rdf = out_print_main_mdf_base.replace("(Data-Type='mdf')", "(Data-Type='rdf')")
     out_print_main_gdf = out_print_main_mdf_base.replace("(Data-Type='mdf')", "(Data-Type='gdf')")
-    for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+    for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
         out_print_main_rdf = out_print_main_rdf.replace(tag_str, "")
     weight_tag = getattr(args, "weight_tag", "")
     if(weight_tag in ["Acc"]):
-        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
             out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
     elif(weight_tag in ["AccJSON"]):
-        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
             out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
         out_print_main_gdf = f"{out_print_main_gdf}_(JSON)"
     elif(weight_tag in ["AccSpline"]):
-        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
             out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
         out_print_main_gdf = f"{out_print_main_gdf}_(Spline)"
-    elif(weight_tag in ["", None]):
-        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+    elif(weight_tag in ["", None, "Unweighted"]):
+        for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
             out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
     out_print_main_gdf = out_print_main_gdf.replace("cut_Complete_EDIS", "no_cut")
     for sector_cut_remove in range(1, 7):
@@ -1413,7 +1434,7 @@ def Prepare_5D_Matrix_For_Pdf(input_file, args):
     print(f"\n{color.BGREEN}(5D) Matrix PDF inputs: {detected['out_print_main']}{color.END}\n")
     ExREAL_1D = input_file.Get(out_print_main_rdf)
     MC_GEN_1D = input_file.Get(out_print_main_gdf)
-    out_print_main_bdf_1D = Apply_Background_1D_Replacements(out_print_main_mdf_1D)
+    out_print_main_bdf_1D = reconstruction_background_name(out_print_main_mdf_1D, weight_tag)
     if((out_print_main_bdf_1D in input_file.GetListOfKeys()) and ("Background" in str(out_print_main_bdf_1D))):
         MC_BGS_1D = input_file.Get(out_print_main_bdf_1D)
     else:
@@ -1506,23 +1527,23 @@ def main_5D_unfold(args):
     Histo_List = detected["Histo_List"]
     out_print_main_rdf = out_print_main_mdf_base.replace("(Data-Type='mdf')", "(Data-Type='rdf')")
     out_print_main_gdf = out_print_main_mdf_base.replace("(Data-Type='mdf')", "(Data-Type='gdf')")
-    for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+    for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
         out_print_main_rdf = out_print_main_rdf.replace(tag_str, "")
     # gdf companion: Acc* mdf tags map to Phys-only or unweighted gdf names
     weight_tag = getattr(args, "weight_tag", "")
     if(weight_tag in ["Acc"]):
-        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
             out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
     elif(weight_tag in ["AccJSON"]):
-        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
             out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
         out_print_main_gdf = f"{out_print_main_gdf}_(JSON)"
     elif(weight_tag in ["AccSpline"]):
-        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+        for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
             out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
         out_print_main_gdf = f"{out_print_main_gdf}_(Spline)"
-    elif(weight_tag in ["", None]):
-        for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+    elif(weight_tag in ["", None, "Unweighted"]):
+        for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
             out_print_main_gdf = out_print_main_gdf.replace(tag_str, "")
     # JSON / Spline weight_tag: keep matching tag already present on gdf name
     out_print_main_gdf = out_print_main_gdf.replace("cut_Complete_EDIS", "no_cut")
@@ -1548,7 +1569,7 @@ def main_5D_unfold(args):
     print(f"\n{color.BGREEN}(5D) Unfolding: {detected['out_print_main']}{color.END}\n")
     ExREAL_1D = input_file.Get(out_print_main_rdf)
     MC_GEN_1D = input_file.Get(out_print_main_gdf)
-    out_print_main_bdf_1D = Apply_Background_1D_Replacements(out_print_main_mdf_1D)
+    out_print_main_bdf_1D = reconstruction_background_name(out_print_main_mdf_1D, weight_tag)
     if((out_print_main_bdf_1D in input_file.GetListOfKeys()) and ("Background" in str(out_print_main_bdf_1D))):
         MC_BGS_1D = input_file.Get(out_print_main_bdf_1D)
         MC_BGS_1D.SetTitle("".join(["#splitline{BACKGROUND}{", str(MC_REC_1D.GetTitle()), "};", str(MC_REC_1D.GetXaxis().GetTitle()), ";", str(MC_REC_1D.GetYaxis().GetTitle())]))

@@ -93,8 +93,8 @@ def parse_args():
     p.add_argument('-rw', '--require_weighed', action='store_true',
                    help="Require a weight tag on mdf/gdf/slice keys.\n")
     p.add_argument('-wt', '--weight_tag', type=str, default="",
-                   choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
-                   help="Select which weighted histogram set to unfold.\n")
+                   choices=["RecS", "RecW", "RecSSpline", "RecWSpline", "Unweighted", "Spline", "SplineOnly", "", "Acc", "JSON", "AccJSON", "AccSpline"],
+                   help="Histogram tag to unfold. Omitted selects the untagged response. Spline stays the pure Spline histogram. Unweighted selects the untagged histograms. No weight file is read here.\n")
     p.add_argument('-sac', '--spline_amplitude_correction', type=str, default="auto",
                    choices=["auto", "on", "off"],
                    help="Apply the 3D generated-column Spline correction: target generated bins are weighted/unweighted full-generator ratios and each matched response column uses the same inverse unweighted population. auto is on only for Spline; off keeps the original calculation.\n")
@@ -105,7 +105,7 @@ def parse_args():
                    help="Do not apply the acceptance mask. Used only for the correction-off bin-by-bin comparison.\n")
     p.add_argument('-cw', '--closure_weight', type=str, default="",
                    choices=["", "Acc", "AccSpline"],
-                   help="Weighted pseudo-data on the nominal response. Requires --simulation. Acc truth is the original generator. AccSpline truth is _(Spline).\n")
+                   help="Weighted pseudo-data on the nominal response. Requires --simulation. Acc truth is the original generator. AccSpline truth is _(Spline). If --weight_tag is omitted, the untagged response is used.\n")
     p.add_argument('-pd', '--pseudo_data', type=str, default="",
                    choices=["", "nominal", "Acc", "Spline", "AccSpline"],
                    help="Replace only the measured histogram. The response, fakes, and acceptance map stay on the data configuration. Do not combine with --simulation.\n")
@@ -177,6 +177,33 @@ def ensure_binary(roounfold_dir, skip_compile=False):
         run_checked(["make", "-C", CPP_DIR], env=env)
 
 
+def command_requests_weight_tag():
+    for token in sys.argv[1:]:
+        if(token in ["-wt", "--weight_tag"]):
+            return True
+        if(token.startswith("--weight_tag=")):
+            return True
+    return False
+
+
+def effective_weight_tag(requested):
+    # Histogram tag actually read. An omitted tag and Unweighted stay on the untagged response.
+    if(requested in [None, "", "Unweighted"]):
+        return ""
+    if(requested == "SplineOnly"):
+        return "Spline"
+    return str(requested)
+
+
+def resolve_effective_weight_tag(args):
+    # Closure and pseudo-data stay on the untagged response unless a tag was requested.
+    closure_requested = getattr(args, "closure_weight", "") not in ["", None]
+    pseudo_requested  = getattr(args, "pseudo_data", "") not in ["", None]
+    if((closure_requested or pseudo_requested) and (not command_requests_weight_tag())):
+        return ""
+    return effective_weight_tag(getattr(args, "weight_tag", ""))
+
+
 def build_cpp_command(args):
     cmd = [CPP_BIN]
     if(args.test):
@@ -223,8 +250,12 @@ def build_cpp_command(args):
     cmd.extend(["--background_source", args.background_source])
     if(args.require_weighed):
         cmd.append("--require_weighed")
-    if(args.weight_tag not in ["", None]):
-        cmd.extend(["--weight_tag", args.weight_tag])
+    # The C++ backend resolves the token once. This launcher does not rewrite it.
+    if(command_requests_weight_tag()):
+        print("Forwarding weight tag %s" % args.weight_tag)
+        cmd.extend(["--weight_tag", str(args.weight_tag)])
+    else:
+        print("Weight tag omitted; the backend nominal selection is RecS")
     cmd.extend(["--spline_amplitude_correction", args.spline_amplitude_correction])
     cmd.extend(["--unfold_method", args.unfold_method])
     if(args.skip_acceptance_mask):
@@ -275,8 +306,11 @@ def build_python_rho_command(args):
         cmd.append("--email")
     if(args.email_message not in ["", None]):
         cmd.extend(["--email_message", args.email_message])
-    if(args.weight_tag not in ["", None]):
-        cmd.extend(["--weight_tag", args.weight_tag])
+    if(command_requests_weight_tag()):
+        print("Forwarding weight tag %s" % args.weight_tag)
+        cmd.extend(["--weight_tag", str(args.weight_tag)])
+    else:
+        print("Weight tag omitted; exclusive rho uses the untagged lundvpk response")
     cmd.extend(["--spline_amplitude_correction", args.spline_amplitude_correction])
     cmd.extend(["--data_root", args.data_root])
     bins = args.pos_bins if(args.pos_bins) else args.bins

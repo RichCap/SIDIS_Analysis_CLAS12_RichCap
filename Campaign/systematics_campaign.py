@@ -28,7 +28,7 @@ USED_CAMPAIGN_IDS = [
     "systematics_3d_both_recovery_20261029",
 ]
 Q2Y_BINS = list(range(1, 18))
-WEIGHT_SUFFIXES = ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)"]
+WEIGHT_SUFFIXES = ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)"]
 EMAIL_TO = "richard.capobianco@uconn.edu"
 SLURM_MEM = "15000"
 SLURM_TIME = "1:40:00"
@@ -377,7 +377,7 @@ def dedicated_5d_command(python, script, data_root, response, root_out, correcti
         "-droot", data_root,
         "-sfin", response,
         "-r", root_out,
-        "-wt", "Spline",
+        "-wt", "SplineOnly",
         "-err", "covariance",
         "-sac", "off" if(str(correction) == "off") else "on",
     ]
@@ -394,6 +394,7 @@ def nominal_complete_command(python, submit_script, data_root, campaign, hpp_pur
         "-cn", DEFAULT_CUT,
         "-n", "Sys3D_%s" % NOMINAL_COMPLETE_ID,
         "-sa",
+        "-lacc",
         "-hpf", hpp_pure,
         "-hps", hpp_spline,
         "-spf", SPLINE_WEIGHT_FILE,
@@ -588,6 +589,15 @@ def final_root(unfold_dir, job):
     return os.path.join(unfold_dir, "%s.root" % job_stem(job))
 
 
+def command_weight_token(weight_tag):
+    # Historical empty and Spline jobs name the untagged and pure-Spline inputs.
+    if(weight_tag in [None, "", "Unweighted"]):
+        return "Unweighted"
+    if(weight_tag == "Spline"):
+        return "SplineOnly"
+    return str(weight_tag)
+
+
 def unfold_command(python, script, data_root, response, root_out, q2y, settings):
     if(settings.get("method") == "Bin"):
         cmd = [
@@ -603,8 +613,7 @@ def unfold_command(python, script, data_root, response, root_out, q2y, settings)
             "-r", root_out,
             "--skip_compile",
         ]
-        if(settings["weight_tag"] not in [None, ""]):
-            cmd.extend(["-wt", settings["weight_tag"]])
+        cmd.extend(["-wt", command_weight_token(settings["weight_tag"])])
         cmd.extend(["-sac", settings.get("spline_amplitude_correction", "off")])
         if(settings.get("unsmeared")):
             cmd.append("--no_smear")
@@ -624,8 +633,7 @@ def unfold_command(python, script, data_root, response, root_out, q2y, settings)
     ]
     if(settings["iterations"] is not None):
         cmd.extend(["-bi", str(settings["iterations"])])
-    if(settings["weight_tag"] not in [None, ""]):
-        cmd.extend(["-wt", settings["weight_tag"]])
+    cmd.extend(["-wt", command_weight_token(settings["weight_tag"])])
     cmd.extend(["-sac", settings.get("spline_amplitude_correction", "off")])
     if(settings.get("unsmeared")):
         cmd.append("--no_smear")

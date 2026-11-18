@@ -697,7 +697,7 @@ inline void print_help(){
         // "  -bgs, --background_source lundvpk|lundrho|None\n"  // 10/25/2026
         "  -bgs, --background_source rho0_new|lundvpk|lundrho|None\n"
         "  -rw, --require_weighed\n"
-        "  -wt, --weight_tag ''|Acc|JSON|Spline|AccJSON|AccSpline\n"
+        "  -wt, --weight_tag RecS|RecW|RecSSpline|RecWSpline|Unweighted|Spline|SplineOnly|Acc|JSON|AccJSON|AccSpline\n"
         "  -sac, --spline_amplitude_correction auto|on|off\n"
         "                             3D Spline generated-column correction (default auto)\n"
         "  -um, --unfold_method bayesian|bin\n"
@@ -730,6 +730,7 @@ inline void print_help(){
 inline UnfoldArgs parse_args(int argc, char** argv){
     UnfoldArgs args;
     bool saw_positional_bins = false;
+    bool weight_tag_set = false;
     for(int i = 1; i < argc; ++i){
         std::string arg = argv[i];
         if((arg == "-h") || (arg == "--help")){
@@ -786,6 +787,7 @@ inline UnfoldArgs parse_args(int argc, char** argv){
             args.require_weighed = true;
         } else if(match_opt(arg, {"-wt", "--weight_tag"})){
             args.weight_tag = opt_value(i, argc, argv, arg, "--weight_tag");
+            weight_tag_set = true;
         } else if(match_opt(arg, {"-sac", "--spline_amplitude_correction"})){
             args.spline_amplitude_correction = opt_value(i, argc, argv, arg, "--spline_amplitude_correction");
         } else if(match_opt(arg, {"-um", "--unfold_method"})){
@@ -854,11 +856,21 @@ inline UnfoldArgs parse_args(int argc, char** argv){
         std::cerr << "Invalid --background_source: " << args.background_source << std::endl;
         std::exit(2);
     }
-    const std::vector<std::string> ok_tags = {"", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"};
+    const std::vector<std::string> ok_tags = {"", "RecS", "RecW", "RecSSpline", "RecWSpline", "Unweighted", "Spline", "SplineOnly", "Acc", "JSON", "AccJSON", "AccSpline"};
     if(std::find(ok_tags.begin(), ok_tags.end(), args.weight_tag) == ok_tags.end()){
         std::cerr << "Invalid --weight_tag: " << args.weight_tag << std::endl;
         std::exit(2);
     }
+    const std::string requested_weight_tag = args.weight_tag;
+    if(args.weight_tag == "Unweighted"){ args.weight_tag = ""; }
+    else if(args.weight_tag == "SplineOnly"){ args.weight_tag = "Spline"; }
+    // An omitted tag stays on the untagged response. Spline stays the pure Spline histogram.
+    if((!weight_tag_set) && (requested_weight_tag == "RecS") && ((!args.closure_weight.empty()) || (!args.pseudo_data.empty()))){
+        args.weight_tag = "";
+    }
+    std::cout << "Requested weight tag '" << requested_weight_tag
+              << "' effective weight tag '" << (args.weight_tag.empty() ? std::string("Unweighted") : args.weight_tag)
+              << "'" << std::endl;
     if((args.closure_weight != "") && (args.closure_weight != "Acc") && (args.closure_weight != "AccSpline")){
         std::cerr << "Invalid --closure_weight: " << args.closure_weight << " (expected Acc|AccSpline)" << std::endl;
         std::exit(2);

@@ -1200,6 +1200,16 @@ def hadd_response_batches(args, batch_output_dir, num_batches):
     hadd_cmd = ["hadd", "-f", merged_file] + batch_files
     subprocess.run(hadd_cmd, check=True)
     Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
+    extra = list(getattr(args, "extra", None) or [])
+    if("--weight_comparison" in extra):
+        helper_dir = os.path.dirname(os.path.abspath(__file__))
+        if(helper_dir not in sys.path):
+            sys.path.insert(0, helper_dir)
+        from helper_functions_for_using_RDataFrames_python import finalize_iter1_weight_comparison
+        try:
+            finalize_iter1_weight_comparison(merged_file)
+        except RuntimeError as err:
+            Crash_Report(args, crash_message=str(err), continue_run=False)
     merge_ch4_count_files(args, batch_output_dir, merged_file)
 
 

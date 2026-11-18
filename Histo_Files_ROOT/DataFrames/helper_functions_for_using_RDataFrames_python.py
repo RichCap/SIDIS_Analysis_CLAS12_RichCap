@@ -542,24 +542,57 @@ def _write_and_tick(obj, key, file_location, output_type):
 
 
 # --- Multi-weight histogram tag helpers ---
-def enabled_weight_specs(args, histo_data="mdf"):
+def reconstruction_choice(args):
+    choice = getattr(args, "reconstruction_weight", "none")
+    if(choice in [None, ""]):
+        choice = "none"
+    return str(choice)
+
+
+def reconstruction_active(args):
+    if(getattr(args, "recw_creation", False)):
+        return False
+    if(bool(getattr(args, "book_recw", False))):
+        return True
+    return reconstruction_choice(args) not in ["none"]
+
+
+def enabled_weight_specs(args, histo_data="mdf", allow_reconstruction=True):
     # Always start with unweighted base: (tag, column). column None => exclusive_rho / no weight column.
     weight_specs = [("", None)]
     use_acc  = bool(getattr(args, "use_hpp", False) or getattr(args, "angles_only_hpp", False))
     use_json = bool(getattr(args, "json_weights", False))
     use_spl  = bool(getattr(args, "spline_weights", False))
+    choice   = reconstruction_choice(args)
+    use_recs = (choice == "recs") and allow_reconstruction and reconstruction_active(args)
+    use_recw = ((choice == "recw") or bool(getattr(args, "book_recw", False))) and allow_reconstruction and ((choice != "none") or bool(getattr(args, "book_recw", False)))
+    if(getattr(args, "recw_creation", False)):
+        use_recs = False
+        use_recw = False
+        use_acc  = False
+    if((choice == "none") and (not bool(getattr(args, "book_recw", False)))):
+        use_recw = False
     if((use_json) and (use_spl)):
         raise ValueError("--json_weights and --spline_weights are mutually exclusive (same physics factor).")
+    if(histo_data in ["mdf", "gdf"]):
+        if(use_recs):
+            weight_specs.append(("RecS", "Event_Weight_RecS"))
+            if(use_spl):
+                weight_specs.append(("RecSSpline", "Event_Weight_RecSSpline"))
+        if(use_recw):
+            weight_specs.append(("RecW", "Event_Weight_RecW"))
+            if(use_spl):
+                weight_specs.append(("RecWSpline", "Event_Weight_RecWSpline"))
     if(histo_data in ["mdf"]):
-        if(use_acc):
+        if((choice == "none") and (use_acc)):
             weight_specs.append(("Acc", "Event_Weight_Acc"))
         if(use_json):
             weight_specs.append(("JSON", "Event_Weight_JSON"))
-            if(use_acc):
+            if((choice == "none") and (use_acc)):
                 weight_specs.append(("AccJSON", "Event_Weight_AccJSON"))
         if(use_spl):
             weight_specs.append(("Spline", "Event_Weight_Spline"))
-            if(use_acc):
+            if((choice == "none") and (use_acc)):
                 weight_specs.append(("AccSpline", "Event_Weight_AccSpline"))
     elif(histo_data in ["gdf"]):
         if(use_json):
@@ -567,6 +600,462 @@ def enabled_weight_specs(args, histo_data="mdf"):
         if(use_spl):
             weight_specs.append(("Spline", "Event_Weight_Spline"))
     return weight_specs
+
+
+_RECONSTRUCTION_READY = False
+_RECONSTRUCTION_HISTS = []
+_DECLARE_PROBE = 0
+_LOADED_CPP = set()
+_DENSE_5D_CPP = False
+
+def declare_dense_5d_cpp(args):
+    # Declare Get_Dense_5D_Bin once. A later booking path must not redefine it.
+    global _DENSE_5D_CPP
+    if(_DENSE_5D_CPP or getattr(args, "_dense_5D_declared", False)):
+        _DENSE_5D_CPP = True
+        if(args is not None):
+            args._dense_5D_declared = True
+        return
+    from Convert_MultiDim_Kinematic_Bins import create_dense_5d_bin_mapping
+    mapping = create_dense_5d_bin_mapping()
+    accepted = bool(ROOT.gInterpreter.Declare(mapping["cpp_dense_5d_code"]))
+    if(not accepted):
+        probe = bool(ROOT.gInterpreter.Declare("int recw_dense_probe_once = Get_Dense_5D_Bin(1, 1, 10.0);"))
+        if(not probe):
+            raise RuntimeError("ROOT rejected the dense 5D index definition")
+    _DENSE_5D_CPP = True
+    if(args is not None):
+        args._dense_5D_declared = True
+        args._dense_5d_mapping = mapping
+
+def expected_recs_fit_set(iteration, spline):
+    stem = "spline" if(spline) else "default"
+    return "RecS_%s_iter%d" % (stem, int(iteration))
+
+
+def default_recs_header(iteration, spline):
+    fit_set = expected_recs_fit_set(iteration, spline)
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "RecW_Output", "%s_4D_xB_phi_%s_RecS.txt" % (fit_set, fit_set))
+
+
+def header_fit_set(path):
+    with open(path) as handle:
+        for line in handle:
+            if(line.startswith("// Fit set:")):
+                return line.split(":", 1)[1].strip()
+            if(line.startswith("double ")):
+                break
+    return ""
+
+
+def declare_cpp_file(path, probes):
+    # One successful load per file. A rejected header stops before any fill and names this file.
+    global _DECLARE_PROBE
+    global _LOADED_CPP
+    if(path in [None, ""]) or (not os.path.isfile(path)):
+        raise RuntimeError("Missing C++ artifact: %s" % path)
+    real = os.path.realpath(path)
+    if(real in _LOADED_CPP):
+        return
+    with open(path) as handle:
+        text = handle.read()
+    accepted = bool(ROOT.gInterpreter.Declare(text))
+    if(not accepted):
+        raise RuntimeError("ROOT rejected %s" % path)
+    _LOADED_CPP.add(real)
+    for name, call in probes:
+        _DECLARE_PROBE += 1
+        probe = "double recs_load_probe_%d = %s;" % (_DECLARE_PROBE, call)
+        probe_ok = bool(ROOT.gInterpreter.Declare(probe))
+        if(not probe_ok):
+            raise RuntimeError("ROOT rejected evaluator %s from %s" % (name, path))
+
+
+def resolve_reconstruction_artifacts(args):
+    # Bind the continuous fit and the C_n lookup to this baseline and iteration before any fill.
+    if(getattr(args, "_reconstruction_resolved", False)):
+        return
+    iteration = int(getattr(args, "cumulative_iteration", 1))
+    spline    = bool(getattr(args, "spline_weights", False))
+    choice    = reconstruction_choice(args)
+    creating  = bool(getattr(args, "recw_creation", False))
+    need_recs = (choice == "recs") and (not creating)
+    need_recw = ((choice == "recw") or bool(getattr(args, "book_recw", False))) and (not creating)
+    if(need_recs):
+        plain_set = expected_recs_fit_set(iteration, False)
+        plain_path = getattr(args, "recs_file", None)
+        if(plain_path in [None, ""]):
+            plain_path = default_recs_header(iteration, False)
+        if(not os.path.isfile(plain_path)):
+            raise RuntimeError("Missing continuous fit for plain iteration %d: %s" % (iteration, plain_path))
+        found_set = header_fit_set(plain_path)
+        if(found_set != plain_set):
+            raise RuntimeError("RecS header %s is fit set '%s', requested %s" % (plain_path, found_set, plain_set))
+        args.recs_file = plain_path
+        if(spline):
+            spline_set = expected_recs_fit_set(iteration, True)
+            spline_path = getattr(args, "recs_spline_file", None)
+            if(spline_path in [None, ""]):
+                spline_path = default_recs_header(iteration, True)
+            if(not os.path.isfile(spline_path)):
+                raise RuntimeError("Missing continuous fit for Spline-baseline iteration %d: %s" % (iteration, spline_path))
+            found_spline = header_fit_set(spline_path)
+            if(found_spline != spline_set):
+                raise RuntimeError("Spline-baseline RecS header %s is fit set '%s', requested %s" % (spline_path, found_spline, spline_set))
+            args.recs_spline_file = spline_path
+    if(need_recw):
+        weight_path = getattr(args, "recw_file", None)
+        if(weight_path in [None, ""]):
+            weight_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "RecW_Output", "Rec_Weight.root")
+            args.recw_file = weight_path
+        required = ["C_%d" % iteration]
+        if(spline):
+            required.append("C_%d_Spline" % iteration)
+        if(not os.path.isfile(weight_path)):
+            raise RuntimeError("Missing RecW lookup file for iteration %d: %s (needed %s)" % (iteration, weight_path, ", ".join(required)))
+        weight_file = ROOT.TFile.Open(weight_path, "READ")
+        if((weight_file is None) or (weight_file.IsZombie())):
+            raise RuntimeError("Could not open RecW lookup file: %s" % weight_path)
+        missing = [name for name in required if(not weight_file.GetListOfKeys().Contains(name))]
+        weight_file.Close()
+        if(len(missing) > 0):
+            raise RuntimeError("Missing %s in %s for iteration %d" % (", ".join(missing), weight_path, iteration))
+    args._reconstruction_resolved = True
+
+
+def declare_reconstruction_functions(args):
+    # Load the selected C_n lookup and RecS header once. Unfolding never calls this.
+    global _RECONSTRUCTION_READY
+    global _RECONSTRUCTION_HISTS
+    if(_RECONSTRUCTION_READY):
+        return
+    if(not reconstruction_active(args)):
+        _RECONSTRUCTION_READY = True
+        return
+    resolve_reconstruction_artifacts(args)
+    choice = reconstruction_choice(args)
+    need_recs = (choice == "recs")
+    need_recw = (choice == "recw") or bool(getattr(args, "book_recw", False))
+    if(need_recs):
+        declare_cpp_file(args.recs_file, [("RecS", "RecS(0.2, 0.4, 0.3, 0.2, 15.0)")])
+        if(bool(getattr(args, "spline_weights", False))):
+            declare_cpp_file(args.recs_spline_file, [("RecSFromSplineBaseline", "RecSFromSplineBaseline(0.2, 0.4, 0.3, 0.2, 15.0)")])
+            spline_file = getattr(args, "spline_file", None)
+            declare_cpp_file(spline_file, [("ComputeSplineWeight", "ComputeSplineWeight(2.0, 0.2, 0.4, 0.3, 0.2, 15.0)")])
+    if(need_recw):
+        weight_path = getattr(args, "recw_file", None)
+        iteration   = int(getattr(args, "cumulative_iteration", 1))
+        if(weight_path in [None, ""]) or (not os.path.isfile(weight_path)):
+            raise RuntimeError("Missing RecW file (--recw_file): %s" % weight_path)
+        weight_file = ROOT.TFile.Open(weight_path, "READ")
+        if((weight_file is None) or (weight_file.IsZombie())):
+            raise RuntimeError("Could not open RecW file: %s" % weight_path)
+        names = ["C_%d" % iteration]
+        if(bool(getattr(args, "spline_weights", False))):
+            names.append("C_%d_Spline" % iteration)
+        holders = []
+        for name in names:
+            hist = weight_file.Get(name)
+            if((hist is None) or (not hist)):
+                weight_file.Close()
+                raise RuntimeError("Missing %s in %s" % (name, weight_path))
+            copied = hist.Clone(name + "_runtime")
+            copied.SetDirectory(0)
+            holders.append(copied)
+        weight_file.Close()
+        _RECONSTRUCTION_HISTS.extend(holders)
+        ROOT.gInterpreter.Declare(r"""
+        #include <cmath>
+        double RecW_FromHist(TH1* hist, double raw_index) {
+            if((hist == nullptr) || (!std::isfinite(raw_index))) { return 1.0; }
+            return hist->GetBinContent(hist->FindBin(raw_index));
+        }
+        """)
+        # Keep the histograms addressable by the event expression through a pointer name.
+        ROOT.gROOT.GetListOfSpecials().Add(holders[0])
+        holders[0].SetName("RecW_Plain_Hist")
+        if(len(holders) > 1):
+            ROOT.gROOT.GetListOfSpecials().Add(holders[1])
+            holders[1].SetName("RecW_Spline_Hist")
+    _RECONSTRUCTION_READY = True
+
+
+def ensure_dense_recw_index(df, args, data_kind):
+    # RecW uses Get_Dense_5D_Bin. A stored MultiDim column may still hold the sparse index.
+    q_column = "Q2_Y_Bin_gen" if(data_kind == "mdf") else "Q2_Y_Bin"
+    z_column = "z_pT_Bin_Y_bin_gen" if(data_kind == "mdf") else "z_pT_Bin_Y_bin"
+    p_column = "phi_t_gen" if(data_kind == "mdf") else "phi_t"
+    out_name = "RecW_Dense_Index_gen" if(data_kind == "mdf") else "RecW_Dense_Index"
+    missing = [name for name in (q_column, z_column, p_column) if(not df.HasColumn(name))]
+    if(len(missing) > 0):
+        raise RuntimeError("RecW needs the approved dense index from %s, %s, and %s. Missing %s. The stored MultiDim column is not used as the lookup." % (q_column, z_column, p_column, ", ".join(missing)))
+    declare_dense_5d_cpp(args)
+    expression = "Get_Dense_5D_Bin(%s, %s, %s)" % (q_column, z_column, p_column)
+    if(df.HasColumn(out_name)):
+        return df.Redefine(out_name, expression)
+    return df.Define(out_name, expression)
+
+
+def ensure_matched_z_pt_bin(df):
+    # Same z-pT cell the 5D producer writes after matching: Find_z_pT_Bin(Q2_Y_Bin_gen, z_gen, pT_gen).
+    needed = ["Q2_Y_Bin_gen", "z_gen", "pT_gen"]
+    missing = [name for name in needed if(not df.HasColumn(name))]
+    if(len(missing) > 0):
+        raise RuntimeError("Matched z-pT cell needs Q2_Y_Bin_gen, z_gen, and pT_gen. Missing %s." % ", ".join(missing))
+    code = Multi_Bin_Standard_Def_Function(Variable_Type="gen", Dimension="2D", Use_Dense_Binning=False)
+    if(df.HasColumn("z_pT_Bin_Y_bin_gen")):
+        return df.Redefine("z_pT_Bin_Y_bin_gen", code)
+    return df.Define("z_pT_Bin_Y_bin_gen", code)
+
+
+def define_physics_weight(df, args, data_kind):
+    if(bool(getattr(args, "spline_weights", False))):
+        declare_cpp_file(getattr(args, "spline_file", None), [("ComputeSplineWeight", "ComputeSplineWeight(2.0, 0.2, 0.4, 0.3, 0.2, 15.0)")])
+        if(data_kind == "mdf"):
+            expression = "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)"
+        else:
+            expression = "ComputeSplineWeight(Q2, xB, y, z, pT, phi_t)"
+    else:
+        expression = "1.0"
+    if(df.HasColumn("W_phys")):
+        df = df.Redefine("W_phys", expression)
+    else:
+        df = df.Define("W_phys", expression)
+    if(bool(getattr(args, "spline_weights", False))):
+        rho = "exclusive_rho_weight" if(df.HasColumn("exclusive_rho_weight")) else "1.0"
+        spline_weight = "%s * W_phys" % rho
+        if(df.HasColumn("Event_Weight_Spline")):
+            return df.Redefine("Event_Weight_Spline", spline_weight)
+        return df.Define("Event_Weight_Spline", spline_weight)
+    return df
+
+
+def define_reconstruction_columns(df, args, data_kind):
+    if(not reconstruction_active(args)):
+        return df
+    declare_reconstruction_functions(args)
+    choice = reconstruction_choice(args)
+    rho = "exclusive_rho_weight" if(df.HasColumn("exclusive_rho_weight")) else "1.0"
+    if(data_kind == "mdf"):
+        coords = "xB_gen, y_gen, z_gen, pT_gen, phi_t_gen"
+        index_name = "RecW_Dense_Index_gen"
+        # BG_Cut_Function true means wrong PID or unmatched. Those events keep the baseline.
+        signal_gate = "(!(%s))" % BG_Cut_Function(dataframe="mdf")
+    else:
+        coords = "xB, y, z, pT, phi_t"
+        index_name = "RecW_Dense_Index"
+        signal_gate = "(1)"
+    need_recw_index = (choice == "recw") or bool(getattr(args, "book_recw", False))
+    if(need_recw_index):
+        df = ensure_dense_recw_index(df, args, data_kind)
+    need_recs = (choice == "recs")
+    need_recw = (choice == "recw") or bool(getattr(args, "book_recw", False))
+    spline_on = bool(getattr(args, "spline_weights", False))
+    if(need_recs):
+        expression = "%s * (%s ? (RecS(%s)) : 1.0)" % (rho, signal_gate, coords)
+        df = df.Define("Event_Weight_RecS", expression) if(not df.HasColumn("Event_Weight_RecS")) else df.Redefine("Event_Weight_RecS", expression)
+        if(spline_on):
+            # Physics Spline stays inside the eligible branch. Background keeps reconstruction factor 1.
+            combined = "%s * (%s ? (RecSFromSplineBaseline(%s) * W_phys) : 1.0)" % (rho, signal_gate, coords)
+            df = df.Define("Event_Weight_RecSSpline", combined) if(not df.HasColumn("Event_Weight_RecSSpline")) else df.Redefine("Event_Weight_RecSSpline", combined)
+    if(need_recw):
+        plain_lookup = "RecW_FromHist((TH1*)gROOT->GetListOfSpecials()->FindObject(\"RecW_Plain_Hist\"), %s)" % index_name
+        expression = "%s * (%s ? (%s) : 1.0)" % (rho, signal_gate, plain_lookup)
+        df = df.Define("Event_Weight_RecW", expression) if(not df.HasColumn("Event_Weight_RecW")) else df.Redefine("Event_Weight_RecW", expression)
+        if(spline_on):
+            spline_lookup = "RecW_FromHist((TH1*)gROOT->GetListOfSpecials()->FindObject(\"RecW_Spline_Hist\"), %s)" % index_name
+            combined = "%s * (%s ? ((%s) * W_phys) : 1.0)" % (rho, signal_gate, spline_lookup)
+            df = df.Define("Event_Weight_RecWSpline", combined) if(not df.HasColumn("Event_Weight_RecWSpline")) else df.Redefine("Event_Weight_RecWSpline", combined)
+    return df
+
+
+def book_recw_creation_variables(histograms, rdf, mdf, gdf, args, custom_tag, smear):
+    # Baseline variable-versus-index histograms. No reconstruction weight is applied here.
+    import Create_Rec_Weight as recw
+    tag = "" if(custom_tag in [None, ""]) else str(custom_tag)
+    excluded = tag in ["lundvpk", "lundrho", "rho0_new"]
+    signal_filter = apply_background_filter("mdf", "Response_Matrix_Normal", "esec != -2", rho_background=(mdf.HasColumn("exclusive_rho") and (not excluded)))
+    background_filter = apply_background_filter("mdf", "Background_Response_Matrix", "esec != -2", rho_background=(mdf.HasColumn("exclusive_rho") and (not excluded)))
+    generated_filter = apply_background_filter("gdf", "Response_Matrix_Normal", "esec != -2", rho_background=False)
+    data_filter = apply_background_filter("rdf", "Response_Matrix_Normal", "esec != -2", rho_background=False)
+    spline_ok = (mdf.HasColumn("Event_Weight_Spline")) and (not excluded)
+    def baseline_weight(frame):
+        if((frame is not None) and (frame.HasColumn("exclusive_rho_weight"))):
+            return "exclusive_rho_weight"
+        return None
+    mdf_weight = baseline_weight(mdf)
+    gdf_weight = baseline_weight(gdf)
+    rdf_weight = baseline_weight(rdf)
+    for label, column, n_bins, x_min, x_max in recw.VARIABLES:
+        mdf_column = "%s_smeared" % column if(smear not in ["", None]) else column
+        signal_name = recw.variable_histo_name("Response_Matrix_Normal", "mdf", "cut_Complete_SIDIS", smear if(smear not in [None]) else "", mdf_column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h_gen", recw.N_AXIS, tag)
+        background_name = recw.variable_histo_name("Background_Response_Matrix", "mdf", "cut_Complete_SIDIS", smear if(smear not in [None]) else "", mdf_column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h_gen", recw.N_AXIS, tag)
+        generated_name = recw.variable_histo_name("Response_Matrix_Normal", "gdf", "no_cut", "", column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h", recw.N_AXIS, tag)
+        data_name = recw.variable_histo_name("Response_Matrix_Normal", "rdf", "cut_Complete_SIDIS", "", column, n_bins, x_min, x_max, "", 0, tag)
+        y_bins, y_min, y_max = recw.N_AXIS, recw.AXIS_MIN, recw.AXIS_MAX
+        if(mdf is not None):
+            signal_frame = mdf.Filter(signal_filter)
+            background_frame = mdf.Filter(background_filter)
+            if(mdf_weight is None):
+                histograms[signal_name] = signal_frame.Histo2D((signal_name, signal_name, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen")
+                histograms[background_name] = background_frame.Histo2D((background_name, background_name, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen")
+            else:
+                histograms[signal_name] = signal_frame.Histo2D((signal_name, signal_name, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen", mdf_weight)
+                histograms[background_name] = background_frame.Histo2D((background_name, background_name, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen", mdf_weight)
+            if(spline_ok):
+                signal_spline = recw.variable_histo_name("Response_Matrix_Normal", "mdf", "cut_Complete_SIDIS", smear if(smear not in [None]) else "", mdf_column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h_gen", recw.N_AXIS, "Spline")
+                background_spline = recw.variable_histo_name("Background_Response_Matrix", "mdf", "cut_Complete_SIDIS", smear if(smear not in [None]) else "", mdf_column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h_gen", recw.N_AXIS, "Spline")
+                histograms[signal_spline] = signal_frame.Histo2D((signal_spline, signal_spline, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen", "Event_Weight_Spline")
+                histograms[background_spline] = background_frame.Histo2D((background_spline, background_spline, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen", "Event_Weight_Spline")
+        if(gdf is not None):
+            generated_frame = gdf.Filter(generated_filter)
+            if(gdf_weight is None):
+                histograms[generated_name] = generated_frame.Histo2D((generated_name, generated_name, n_bins, x_min, x_max, y_bins, y_min, y_max), column, "MultiDim_Q2_y_z_pT_phi_h")
+            else:
+                histograms[generated_name] = generated_frame.Histo2D((generated_name, generated_name, n_bins, x_min, x_max, y_bins, y_min, y_max), column, "MultiDim_Q2_y_z_pT_phi_h", gdf_weight)
+            if((gdf.HasColumn("Event_Weight_Spline")) and (not excluded)):
+                generated_spline = recw.variable_histo_name("Response_Matrix_Normal", "gdf", "no_cut", "", column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h", recw.N_AXIS, "Spline")
+                histograms[generated_spline] = generated_frame.Histo2D((generated_spline, generated_spline, n_bins, x_min, x_max, y_bins, y_min, y_max), column, "MultiDim_Q2_y_z_pT_phi_h", "Event_Weight_Spline")
+        if(rdf is not None):
+            data_frame = rdf.Filter(data_filter)
+            if(rdf_weight is None):
+                histograms[data_name] = data_frame.Histo1D((data_name, data_name, n_bins, x_min, x_max), column)
+            else:
+                histograms[data_name] = data_frame.Histo1D((data_name, data_name, n_bins, x_min, x_max), column, rdf_weight)
+    return histograms
+
+
+def comparison_unit_copy(hist, name):
+    integral = float(hist.Integral())
+    if(integral == 0.0):
+        return None
+    copied = hist.Clone(name)
+    copied.SetDirectory(0)
+    return copied
+
+
+def book_weight_comparison(histograms, rdf, mdf, gdf, args, smear, sample_identity=None):
+    # Five spectra per variable. Baseline is one of the five. Workers write additive raw yields only.
+    axes = (
+        ("Q2", "Q2", 120, 0.0, 12.0),
+        ("y", "y", 120, 0.05, 1.05),
+        ("z", "z", 120, 0.0, 1.0),
+        ("pT", "pT", 120, 0.0, 1.05),
+        ("phi_h", "phi_t", 120, 0.0, 360.0),
+    )
+    tags = (
+        ("", None),
+        ("RecW", "Event_Weight_RecW"),
+        ("RecS", "Event_Weight_RecS"),
+        ("RecWSpline", "Event_Weight_RecWSpline"),
+        ("RecSSpline", "Event_Weight_RecSSpline"),
+    )
+    jobs = []
+    args._weight_compare_jobs = jobs
+    rec_suffix = "" if(smear in ["", None]) else "_smeared"
+    selected = getattr(args, "rho0_source", "rho0_new")
+    if(selected in [None, ""]):
+        selected = "rho0_new"
+    ordinary = sample_identity in [None, ""]
+    rho_source = str(sample_identity) == str(selected)
+    def esec_frame(frame):
+        if((frame is not None) and frame.HasColumn("esec")):
+            return frame.Filter("esec != -2")
+        return frame
+    def book_one(frame, role, label, column, weight_name, tag):
+        if(not frame.HasColumn(column)):
+            raise RuntimeError("Weight comparison needs column %s for %s" % (column, role))
+        if((weight_name not in [None, ""]) and (not frame.HasColumn(weight_name))):
+            raise RuntimeError("Weight comparison needs column %s for %s" % (weight_name, role))
+        suffix = "" if(tag in ["", None]) else "_(%s)" % tag
+        raw_name = "WeightCompare_Raw_%s_%s%s" % (role, label, suffix)
+        pending = "%s_pending" % raw_name
+        model = (pending, pending, n_bins, x_min, x_max)
+        if(weight_name in [None, ""]):
+            ptr = frame.Histo1D(model, column)
+        else:
+            ptr = frame.Histo1D(model, column, weight_name)
+        jobs.append({"role": role, "label": label, "tag": tag, "ptr": ptr, "raw_name": raw_name})
+    for label, column, n_bins, x_min, x_max in axes:
+        rec_column = "%s%s" % (column, rec_suffix)
+        if((ordinary) and (mdf is not None)):
+            mc_frame = esec_frame(mdf)
+            for tag, weight_name in tags:
+                use_weight = weight_name
+                if(tag in ["", None]):
+                    use_weight = "exclusive_rho_weight" if(mdf.HasColumn("exclusive_rho_weight")) else None
+                book_one(mc_frame, "mdf", label, rec_column, use_weight, tag)
+        if((ordinary) and (gdf is not None)):
+            gen_frame = esec_frame(gdf)
+            for tag, weight_name in tags:
+                use_weight = weight_name
+                if(tag in ["", None]):
+                    use_weight = "exclusive_rho_weight" if(gdf.HasColumn("exclusive_rho_weight")) else None
+                book_one(gen_frame, "gdf", label, column, use_weight, tag)
+        if((rho_source) and (mdf is not None)):
+            if(not mdf.HasColumn("exclusive_rho_weight")):
+                raise RuntimeError("Selected rho source %s has no exclusive_rho_weight" % selected)
+            rho_base = "esec != -2" if(mdf.HasColumn("esec")) else ""
+            rho_cut = apply_background_filter("mdf", "Response_Matrix_Normal", rho_base, rho_background=False)
+            rho_frame = mdf.Filter(rho_cut) if(rho_cut not in ["", None]) else mdf
+            book_one(rho_frame, "rho", label, rec_column, "exclusive_rho_weight", "")
+        if(rdf is not None):
+            book_one(esec_frame(rdf), "rdf", label, column, None, "")
+    return histograms
+
+
+def finish_weight_comparison(histograms, args):
+    jobs = list(getattr(args, "_weight_compare_jobs", []) or [])
+    if(len(jobs) == 0):
+        return histograms
+    ROOT.RDF.RunGraphs([job["ptr"] for job in jobs])
+    for job in jobs:
+        hist = job["ptr"].GetValue()
+        raw = hist.Clone(job["raw_name"])
+        raw.SetDirectory(0)
+        histograms[job["raw_name"]] = raw
+    args._weight_compare_jobs = []
+    return histograms
+
+
+def finalize_iter1_weight_comparison(merged_file):
+    # One subtraction after hadd. Raw worker yields stay in the file.
+    labels = ("Q2", "y", "z", "pT", "phi_h")
+    tags = ("", "_(RecW)", "_(RecS)", "_(RecWSpline)", "_(RecSSpline)")
+    root_file = ROOT.TFile.Open(str(merged_file), "UPDATE")
+    if((root_file is None) or root_file.IsZombie()):
+        raise RuntimeError("Could not open merged comparison file %s" % merged_file)
+    try:
+        for label in labels:
+            data_name = "WeightCompare_Raw_rdf_%s" % label
+            rho_name = "WeightCompare_Raw_rho_%s" % label
+            data_hist = root_file.Get(data_name)
+            rho_hist = root_file.Get(rho_name)
+            if((not data_hist) or (not rho_hist)):
+                raise RuntimeError("Missing %s or %s in %s" % (data_name, rho_name, merged_file))
+            rec_name = "WeightCompare_Data_REC_%s" % label
+            rec = data_hist.Clone(rec_name)
+            rec.SetDirectory(0)
+            rec.Add(rho_hist, -1.0)
+            root_file.cd()
+            rec.Write("", ROOT.TObject.kOverwrite)
+            data_unit = comparison_unit_copy(rec, "WeightCompare_rdf_%s" % label)
+            if(data_unit is not None):
+                data_unit.Scale(1.0 / float(data_unit.Integral()))
+                root_file.cd()
+                data_unit.Write("", ROOT.TObject.kOverwrite)
+            for tag in tags:
+                mc_name = "WeightCompare_Raw_mdf_%s%s" % (label, tag)
+                mc_hist = root_file.Get(mc_name)
+                if(not mc_hist):
+                    raise RuntimeError("Missing %s in %s" % (mc_name, merged_file))
+                mc_unit = comparison_unit_copy(mc_hist, "WeightCompare_mdf_%s%s" % (label, tag))
+                if(mc_unit is not None):
+                    mc_unit.Scale(1.0 / float(mc_unit.Integral()))
+                    root_file.cd()
+                    mc_unit.Write("", ROOT.TObject.kOverwrite)
+    finally:
+        root_file.Close()
 
 
 # --- 5D Response Matrix: make exactly one request (single variable setup, one Histo_Group at a time) ---
@@ -606,6 +1095,8 @@ def make_rm5d_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binni
     Background_Filter = apply_background_filter(Histo_Data, Histo_Group, base_filter, rho_background=(sdf.HasColumn("exclusive_rho")) and ("lund" not in str(custom_tag)))
     title_1d_base = str(rec_title_mdf) if((rec_title_mdf is not None) and (Histo_Data in ["mdf"])) else str(base_title)
     for weight_tag, weight_col in weight_specs:
+        if((weight_col not in [None, ""]) and (not sdf.HasColumn(weight_col))):
+            continue
         tag_suffix   = f"_({weight_tag})" if(weight_tag not in ["", None]) else ""
         title_weight = f"#splitline{{{base_title.split(';')[0]}}}{{Weighted ({weight_tag})}};{';'.join(base_title.split(';')[1:])}" if(weight_tag not in ["", None]) else str(base_title)
         if((weight_tag not in ["", None]) and (";" in title_1d_base)):
@@ -1083,6 +1574,8 @@ def make_rm_single(sdf, Histo_Group, Histo_Data, Histo_Cut, Histo_Smear, Binning
     # print(f"Histo_Group = {Histo_Group}")
     # sdf_cut    = apply_weight_norm(df_in=sdf, bin_filter=Bin_Filter, use_weight=Use_Weight, histo_data=Histo_Data)
     for weight_tag, weight_col in weight_specs:
+        if((weight_col not in [None, ""]) and (not sdf.HasColumn(weight_col))):
+            continue
         tag_suffix = f"_({weight_tag})" if(weight_tag not in ["", None]) else ""
         name_w     = f"{Histo_Name}{tag_suffix}"
         name_1d_w  = f"{Histo_Name_1D}{tag_suffix}"
@@ -1404,6 +1897,8 @@ def make_TH2D_histos(sdf, Histo_Data, Histo_Cut, Histo_Smear, Binning, Vars_Inpu
         if(Use_Weight):
             weight_specs.append(("Weighed", "Event_Weight"))
     for weight_tag, weight_col in weight_specs:
+        if((weight_col not in [None, ""]) and (not sdf.HasColumn(weight_col))):
+            continue
         tag_suffix = f"_({weight_tag})" if(weight_tag not in ["", None]) else ""
         name_w     = f"{TH2D_Name}{tag_suffix}"
         if(weight_col is not None):

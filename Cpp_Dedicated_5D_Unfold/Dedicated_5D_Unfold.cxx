@@ -81,7 +81,7 @@ std::string Strip_Slice_Increment(const std::string& name){
 }
 
 const std::vector<std::string> kWeightSuffixes = {
-    "_(AccSpline)", "_(AccJSON)", "_(Acc)", "_(JSON)", "_(Spline)", "_(Weighed)"
+    "_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Acc)", "_(JSON)", "_(Spline)", "_(Weighed)"
 };
 
 std::string Trailing_Weight_Suffix(const std::string& name){
@@ -147,7 +147,7 @@ std::string Apply_Background_1D_Replacements(std::string name){
 }
 
 bool Passes_Weighed_Filter(const std::string& name, const UnfoldArgs& args){
-    const std::vector<std::string> known_tags = {"_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"};
+    const std::vector<std::string> known_tags = {"_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"};
     bool has_weight_tag = false;
     for(const auto& tag_str : known_tags){
         if(contains(name, tag_str)){ has_weight_tag = true; break; }
@@ -1370,11 +1370,11 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
     std::string out_print_main_mdf_1D = detected.out_print_main_mdf_1D;
     std::string out_print_main_rdf = replace_all(detected.out_print_main_mdf_base, "(Data-Type='mdf')", "(Data-Type='rdf')");
     std::string out_print_main_gdf = replace_all(detected.out_print_main_mdf_base, "(Data-Type='mdf')", "(Data-Type='gdf')");
-    for(const char* tag_str : {"_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"}){
+    for(const char* tag_str : {"_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"}){
         out_print_main_rdf = replace_all(out_print_main_rdf, tag_str, "");
     }
     const std::string& weight_tag = args.weight_tag;
-    if((weight_tag == "Acc") || (weight_tag == "AccJSON") || (weight_tag == "AccSpline") || weight_tag.empty()){
+    if((weight_tag == "Acc") || (weight_tag == "AccJSON") || (weight_tag == "AccSpline") || weight_tag.empty() || (weight_tag == "Unweighted")){
         for(const char* tag_str : {"_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"}){
             out_print_main_gdf = replace_all(out_print_main_gdf, tag_str, "");
         }
@@ -1409,6 +1409,11 @@ int main_5D_unfold(UnfoldArgs& args, SliceMetadata& meta){
     TH1* ExREAL_1D = dynamic_cast<TH1*>(input_file->Get(out_print_main_rdf.c_str()));
     TH1* MC_GEN_1D = dynamic_cast<TH1*>(input_file->Get(out_print_main_gdf.c_str()));
     std::string out_print_main_bdf_1D = Apply_Background_1D_Replacements(out_print_main_mdf_1D);
+    if((weight_tag == "RecS") || (weight_tag == "RecW")){
+        out_print_main_bdf_1D = Apply_Background_1D_Replacements(Strip_Weight_Tags(out_print_main_mdf_1D));
+    } else if((weight_tag == "RecSSpline") || (weight_tag == "RecWSpline")){
+        out_print_main_bdf_1D = Apply_Background_1D_Replacements(Strip_Weight_Tags(out_print_main_mdf_1D)) + "_(Spline)";
+    }
     TH1* MC_BGS_1D = nullptr;
     if(key_in_file(input_file, out_print_main_bdf_1D) && contains(out_print_main_bdf_1D, "Background")){
         MC_BGS_1D = dynamic_cast<TH1*>(input_file->Get(out_print_main_bdf_1D.c_str()));

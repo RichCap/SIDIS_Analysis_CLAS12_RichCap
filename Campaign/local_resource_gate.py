@@ -36,6 +36,7 @@ PRODUCT_MODE = {
     "2D_Presentation": "Only_2D",
     "Only_3D": "Only_3D",
     "Only_5D": "Only_5D",
+    "Iter1_AllWeights": "Only_5D",
     "Only_1D": "Only_1D",
     "Diagnostic_1D": "Diagnostic_1D",
 }

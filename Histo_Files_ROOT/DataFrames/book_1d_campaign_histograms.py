@@ -119,7 +119,8 @@ def dense_cell_axis():
     n_cells = int(mapping["total_kinematic_slots"])
     if(not _DENSE_READY):
         import ROOT
-        ROOT.gInterpreter.Declare(mapping["cpp_dense_5d_code"])
+        from Histo_Files_ROOT.DataFrames.helper_functions_for_using_RDataFrames_python import declare_dense_5d_cpp
+        declare_dense_5d_cpp(None)
         ROOT.gInterpreter.Declare("""
 int Campaign_Dense_4D_Cell(int q2y, int zpt){
     if((q2y <= 0) || (zpt <= 0) || (q2y >= 18) || (zpt >= 40)){ return 0; }
@@ -143,13 +144,13 @@ def attach_dense_cell(df, missing, sample):
     return df, n_bins, z_min, z_max
 
 
-def weight_variants(args, data_kind, names, missing, label):
+def weight_variants(args, data_kind, names, missing, label, allow_reconstruction=True):
     # rdf is never acceptance-weighted or spline-weighted. MC follows enabled_weight_specs.
     variants = [("", None)]
     if(data_kind == "rdf"):
         return variants
     from Histo_Files_ROOT.DataFrames.helper_functions_for_using_RDataFrames_python import enabled_weight_specs
-    for tag, column in enabled_weight_specs(args, data_kind):
+    for tag, column in enabled_weight_specs(args, data_kind, allow_reconstruction=allow_reconstruction):
         if(tag in [None, ""]):
             continue
         if(column not in names):
@@ -211,7 +212,8 @@ def book_kinematic_family(df, histograms, missing, args, data_kind, rho_tag, lab
         return
     y_spec = (Q2Y_BINS, Q2Y_MIN, Q2Y_MAX)
     z_spec = (ZPT_BINS, ZPT_MIN, ZPT_MAX)
-    for tag, weight_col in weight_variants(args, data_kind, names, missing, label):
+    allow_reconstruction = rho_tag not in ["lundvpk", "lundrho", "rho0_new"]
+    for tag, weight_col in weight_variants(args, data_kind, names, missing, label, allow_reconstruction):
         for column, nbins, low, high in KINEMATIC_COLUMNS:
             source_column = column if(column_suffix in [None, ""]) else "%s%s" % (column, column_suffix)
             if(source_column not in names):
@@ -242,7 +244,8 @@ def book_phi_response(df, histograms, missing, args, rho_tag, label):
         return
     frame, n_bins, z_min, z_max = attached
     frame = frame.Filter("cut_Complete_SIDIS == 1")
-    for tag, weight_col in weight_variants(args, "mdf", names, missing, label):
+    allow_reconstruction = rho_tag not in ["lundvpk", "lundrho", "rho0_new"]
+    for tag, weight_col in weight_variants(args, "mdf", names, missing, label, allow_reconstruction):
         name = campaign_histo_name("Only_1D", "mdf", "cut_Complete_SIDIS", "no_smear", "phi_response_4d", rho_tag, tag)
         title = weighted_title("Reconstructed #phi_{h} vs matched generated #phi_{h} vs 4D cell;#phi_{h} rec [deg];#phi_{h} gen [deg];4D cell", tag)
         book_th3(frame, histograms, missing, name, title, (24, 0.0, 360.0), (24, 0.0, 360.0), (n_bins, z_min, z_max), "phi_t", "phi_t_gen", DENSE_CELL, weight_col)
@@ -328,7 +331,8 @@ def book_correction_and_smear(df, histograms, missing, args, data_kind, rho_tag,
             ("smear_el_index", "Delta_Smear_El_P"),
             ("smear_pip_index", "Delta_Smear_Pip_P"),
         ]
-    for tag, weight_col in weight_variants(args, data_kind, names, missing, label):
+    allow_reconstruction = rho_tag not in ["lundvpk", "lundrho", "rho0_new"]
+    for tag, weight_col in weight_variants(args, data_kind, names, missing, label, allow_reconstruction):
         for var, xcol, ycol in pairs:
             if((xcol not in names) or (ycol not in names)):
                 missing.append("%s %s" % (label, var))
@@ -382,7 +386,8 @@ def book_matching(df, histograms, missing, args, data_kind, rho_tag, label, matc
     ones_axis = (1, -0.5, 0.5)
     y_q2 = (Q2Y_BINS, Q2Y_MIN, Q2Y_MAX)
     z_pt = (ZPT_BINS, ZPT_MIN, ZPT_MAX)
-    for tag, weight_col in weight_variants(args, data_kind, names, missing, label):
+    allow_reconstruction = rho_tag not in ["lundvpk", "lundrho", "rho0_new"]
+    for tag, weight_col in weight_variants(args, data_kind, names, missing, label, allow_reconstruction):
         name = campaign_histo_name("Diagnostic_1D", data_kind, "cut_Complete_SIDIS", "no_smear", "match_category", rho_tag, tag)
         title = weighted_title("Bank match category;electron / pion;Counts", tag)
         book_th1(df, histograms, missing, name, title, cat_axis, "campaign_match_category", weight_col)
@@ -487,6 +492,14 @@ def run_campaign_1d(args, all_root_files):
     histograms = {}
     for data_kind, label, rho_tag, paths in source_jobs(all_root_files, missing):
         df = ROOT.RDataFrame("h22", paths)
+        if((data_kind in ["mdf", "gdf"]) and (rho_tag not in ["lundvpk", "lundrho", "rho0_new"])):
+            from Histo_Files_ROOT.DataFrames.helper_functions_for_using_RDataFrames_python import apply_matching_and_redefine_gen, define_physics_weight, define_reconstruction_columns, ensure_matched_z_pt_bin, reconstruction_active
+            if(reconstruction_active(args)):
+                if(data_kind == "mdf"):
+                    df, _match_msg = apply_matching_and_redefine_gen(df, getattr(args, "matching_criteria", "Bank"))
+                    df = ensure_matched_z_pt_bin(df)
+                df = define_physics_weight(df, args, data_kind)
+                df = define_reconstruction_columns(df, args, data_kind)
         if(getattr(args, "only_1d", False)):
             book_kinematic_family(df, histograms, missing, args, data_kind, rho_tag, label, "", "no_smear")
             if(data_kind == "mdf"):

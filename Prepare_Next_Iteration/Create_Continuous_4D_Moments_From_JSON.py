@@ -103,9 +103,9 @@ def parse_args():
 
     # === NEW DIMENSION MODE ===
     p.add_argument("-dm", "--dimension_mode",
-                   choices=["4D", "5D", "4D_xB"],
+                   choices=["4D", "5D", "4D_xB", "4D_xB_phi"],
                    default="4D",
-                   help="Spline dimensionality:\n  4D     = Q², y, z, pT (original)\n  5D     = Q², y, z, pT, xB\n  4D_xB  = xB, y, z, pT (xB replaces Q²)\n")
+                   help="Spline dimensionality:\n  4D        = Q², y, z, pT (original)\n  5D        = Q², y, z, pT, xB\n  4D_xB     = xB, y, z, pT (xB replaces Q²)\n  4D_xB_phi = xB, y, z, pT, cos(phi_h), sin(phi_h) for RecS\n")
 
     # === TUNING KNOBS ===
     p.add_argument("-s", "--smoothing_factor",
@@ -291,10 +291,16 @@ def sanitize_for_filename(text_in):
     return txt
 
 def parse_inner_key(key_str):
-    mm = re.fullmatch(r"\(Q2_y_Bin_(\d+)\)-\(z_pT_Bin_(\d+)\)", str(key_str).strip())
+    mm = re.fullmatch(r"\(Q2_y_Bin_(\d+)\)-\(z_pT_Bin_(\d+)\)(?:-\(phi_h_Bin_(\d+)\))?", str(key_str).strip())
     if(mm is None):
-        raise ValueError(f"Key '{key_str}' does not match '(Q2_y_Bin_#)-(z_pT_Bin_#)'")
+        raise ValueError(f"Key '{key_str}' does not match '(Q2_y_Bin_#)-(z_pT_Bin_#)' or the phi_h form")
     return int(mm.group(1)), int(mm.group(2))
+
+def parse_phi_bin(key_str):
+    mm = re.fullmatch(r"\(Q2_y_Bin_(\d+)\)-\(z_pT_Bin_(\d+)\)-\(phi_h_Bin_(\d+)\)", str(key_str).strip())
+    if(mm is None):
+        return None
+    return int(mm.group(3))
 
 def Construct_JSON_Info(Q2_y_Bin, z_pT_Bin, return_info=None):
     if(return_info is None):
@@ -319,6 +325,9 @@ def build_info_map(fit_dict):
     for key_str in fit_dict.keys():
         q2y_bin, zpt_bin = parse_inner_key(key_str)
         Construct_JSON_Info(str(q2y_bin), str(zpt_bin), return_info=info_map)
+        short_key = "(Q2_y_Bin_%s)-(z_pT_Bin_%s)" % (q2y_bin, zpt_bin)
+        if(short_key in info_map):
+            info_map[key_str] = info_map[short_key]
     return info_map
 
 def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
@@ -334,6 +343,23 @@ def Convert_xB_var(xB_in=None, Q2_in=None, y_in=None, Var_out="y"):
 # ------------------------------------------------------------
 # Build data points for any dimension mode
 # ------------------------------------------------------------
+def entry_is_recs_value(entry, err_suffix="_ERR"):
+    # A reconstruction factor may be zero or negative. It is not an amplitude.
+    if(not isinstance(entry, dict)):
+        return True
+    if("Fit_Par_RecS" not in entry):
+        return True
+    try:
+        value = float(entry["Fit_Par_RecS"])
+        error = float(entry["Fit_Par_RecS%s" % err_suffix])
+    except Exception:
+        return True
+    if(not np.isfinite(value)):
+        return True
+    if((not np.isfinite(error)) or (error == 0.0)):
+        return True
+    return False
+
 def entry_is_failed_fit(entry, y_pars=None, err_suffix="_ERR"):
     # Same sentinels as Full_Moment_Plots_Creation_From_JSON.py: drop the whole bin.
     if(not isinstance(entry, dict)):
@@ -377,7 +403,10 @@ def build_data(fit_dict, info_map, y_par, args):
     for key_str, entry in fit_dict.items():
         if((y_par not in entry) or (f"{y_par}{args.err_suffix}" not in entry)):
             continue
-        if(entry_is_failed_fit(entry, ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"], getattr(args, "err_suffix", "_ERR"))):
+        if(y_par == "Fit_Par_RecS"):
+            if(entry_is_recs_value(entry, getattr(args, "err_suffix", "_ERR"))):
+                continue
+        elif(entry_is_failed_fit(entry, ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"], getattr(args, "err_suffix", "_ERR"))):
             continue
         if(key_str not in info_map):
             continue
@@ -414,6 +443,14 @@ def build_data(fit_dict, info_map, y_par, args):
         elif(args.dimension_mode == "4D_xB"):
             xB = Convert_xB_var(Q2_in=Q2_val, y_in=y_val, Var_out="xB")
             points.append([xB, y_val, z_val, Pt_val])
+        elif(args.dimension_mode == "4D_xB_phi"):
+            phi_bin = parse_phi_bin(key_str)
+            if(phi_bin is None):
+                continue
+            xB = Convert_xB_var(Q2_in=Q2_val, y_in=y_val, Var_out="xB")
+            phi_deg = (float(phi_bin) - 0.5) * 15.0
+            phi_rad = float(np.deg2rad(phi_deg))
+            points.append([xB, y_val, z_val, Pt_val, float(np.cos(phi_rad)), float(np.sin(phi_rad))])
 
         values.append(val)
         stds.append(err)
@@ -943,7 +980,208 @@ def _rebuild_rbf_from_npz_record(rec, y_par):
     _require_rbf_export_attrs(rbf, y_par)
     return rbf
 
+RECS_KERNELS = (
+    "thin_plate_spline",
+    "linear",
+    "cubic",
+    "quintic",
+    "multiquadric",
+    "inverse_multiquadric",
+    "inverse_quadratic",
+    "gaussian",
+)
+
+def recs_cpp_name(fit_set):
+    if("spline" in str(fit_set).lower()):
+        return "RecSFromSplineBaseline"
+    return "RecS"
+
+def recs_kernel_value(kernel, radius):
+    # Same formulas as the generated C++ kernel. An unknown name is rejected.
+    r = float(radius)
+    if(kernel not in RECS_KERNELS):
+        raise ValueError("Unsupported RecS kernel: %s" % kernel)
+    if(kernel == "thin_plate_spline"):
+        if(r == 0.0):
+            return 0.0
+        return (r * r) * float(np.log(r))
+    if(kernel == "linear"):
+        return -r
+    if(kernel == "cubic"):
+        return r * r * r
+    if(kernel == "quintic"):
+        return -(r * r * r * r * r)
+    if(kernel == "multiquadric"):
+        return -float(np.sqrt((r * r) + 1.0))
+    if(kernel == "inverse_multiquadric"):
+        return 1.0 / float(np.sqrt((r * r) + 1.0))
+    if(kernel == "inverse_quadratic"):
+        return 1.0 / ((r * r) + 1.0)
+    return float(np.exp(-(r * r)))
+
+def evaluate_recs_record(record, xB, y, z, pT, phi_h):
+    coords = [float(xB), float(y), float(z), float(pT), float(phi_h)]
+    if(any((not np.isfinite(item)) for item in coords)):
+        return 1.0
+    phi_rad = coords[4] * np.pi / 180.0
+    pt = np.array([coords[0], coords[1], coords[2], coords[3], np.cos(phi_rad), np.sin(phi_rad)], dtype=float)
+    centers = np.asarray(record["points"], dtype=float)
+    coeffs = np.asarray(record["coeffs"], dtype=float).reshape(-1)
+    powers = np.asarray(record["powers"], dtype=int)
+    shift = np.asarray(record["shift"], dtype=float).reshape(-1)
+    scale = np.asarray(record["scale"], dtype=float).reshape(-1)
+    epsilon = float(record["epsilon"])
+    kernel = str(record["kernel"])
+    count_points = int(centers.shape[0])
+    total = 0.0
+    scaled = epsilon * pt
+    for index in range(count_points):
+        diff = scaled - (epsilon * centers[index])
+        radius = float(np.sqrt(np.dot(diff, diff)))
+        total += float(coeffs[index]) * recs_kernel_value(kernel, radius)
+    xhat = (pt - shift) / scale
+    for poly_index in range(int(powers.shape[0])):
+        mono = 1.0
+        for axis in range(int(pt.shape[0])):
+            power = int(powers[poly_index, axis])
+            if(power != 0):
+                mono *= float(xhat[axis] ** power)
+        total += float(coeffs[count_points + poly_index]) * mono
+    return float(total)
+
+def recs_record_from_pickle(path):
+    # Read the trained coefficients. Do not construct a new interpolator.
+    import pickle
+    with open(path, "rb") as handle:
+        payload = pickle.load(handle)
+    trained = payload["rbf"]
+    config = payload.get("config", {})
+    points = np.asarray(payload["points"], dtype=float)
+    coeffs = np.asarray(trained._coeffs, dtype=float).reshape(-1)
+    powers = np.asarray(trained.powers, dtype=int)
+    shift = np.asarray(trained._shift, dtype=float).reshape(-1)
+    scale = np.asarray(trained._scale, dtype=float).reshape(-1)
+    kernel = str(config.get("kernel", getattr(trained, "kernel", "")))
+    epsilon = float(config.get("epsilon", getattr(trained, "epsilon", 1.0)))
+    if(kernel not in RECS_KERNELS):
+        raise ValueError("Unsupported RecS kernel in %s: %s" % (path, kernel))
+    if(int(coeffs.shape[0]) != (int(points.shape[0]) + int(powers.shape[0]))):
+        raise ValueError("RecS coefficient length does not match %s" % path)
+    return {
+        "points": points,
+        "coeffs": coeffs,
+        "powers": powers,
+        "shift": shift,
+        "scale": scale,
+        "kernel": kernel,
+        "epsilon": epsilon,
+    }
+
+def generate_recs_code(args):
+    # One scalar RBF. Does not define ComputeSplineWeight.
+    y_par = "Fit_Par_RecS"
+    pkl_file = f"{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_{y_par}.pkl"
+    if(not os.path.isfile(pkl_file)):
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR: Missing {pkl_file}{color.END}\n", continue_run=False)
+    try:
+        record = recs_record_from_pickle(pkl_file)
+    except ValueError as err:
+        Crash_Report(args, crash_message=f"\n{color.Error}ERROR: {err}{color.END}\n", continue_run=False)
+    count_points = int(record["points"].shape[0])
+    count_poly = int(record["powers"].shape[0])
+    coeffs = record["coeffs"]
+    powers = record["powers"]
+    shift = record["shift"]
+    scale = record["scale"]
+    ndim = int(record["points"].shape[1])
+    function_name = recs_cpp_name(args.fit_set)
+    out_path = f"{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_RecS.txt"
+    scipy_ver = __import__("scipy").__version__
+    lines = []
+    lines.append("// Auto-generated RecS evaluator. Does not define ComputeSplineWeight.")
+    lines.append("// Dimension mode: %s" % args.dimension_mode)
+    lines.append("// Fit set: %s" % args.fit_set)
+    lines.append("// Coordinates: xB, y, z, pT, cos(phi_h), sin(phi_h)")
+    lines.append("// phi_h is degrees. Finite inputs are evaluated, including outside the training box.")
+    lines.append("#include <cmath>")
+    lines.append("#include <limits>")
+    lines.append("#include <string>")
+    lines.append("")
+    prefix = function_name
+    lines.append("inline double %s_scipy_rbf_kernel(const double r, const std::string& kernel) {" % prefix)
+    lines.append("    if(kernel == \"thin_plate_spline\") {")
+    lines.append("        if(r == 0.0) { return 0.0; }")
+    lines.append("        return r*r * std::log(r);")
+    lines.append("    }")
+    lines.append("    if(kernel == \"linear\") { return -r; }")
+    lines.append("    if(kernel == \"cubic\") { return r*r*r; }")
+    lines.append("    if(kernel == \"quintic\") { return -r*r*r*r*r; }")
+    lines.append("    if(kernel == \"multiquadric\") { return -std::sqrt((r*r) + 1.0); }")
+    lines.append("    if(kernel == \"inverse_multiquadric\") { return 1.0 / std::sqrt((r*r) + 1.0); }")
+    lines.append("    if(kernel == \"inverse_quadratic\") { return 1.0 / ((r*r) + 1.0); }")
+    lines.append("    if(kernel == \"gaussian\") { return std::exp(-(r*r)); }")
+    lines.append("    return std::numeric_limits<double>::quiet_NaN();")
+    lines.append("}")
+    lines.append("")
+    lines.append("const int %s_n = %d;" % (prefix, count_points))
+    lines.append("const int %s_n_poly = %d;" % (prefix, count_poly))
+    lines.append("const int %s_ndim = %d;" % (prefix, ndim))
+    lines.append("const double %s_centers[%d][%d] = {" % (prefix, count_points, ndim))
+    for point in record["points"]:
+        lines.append("    {" + ", ".join("%.16e" % float(item) for item in point) + "},")
+    lines.append("};")
+    lines.append("const double %s_coeffs[%d] = {%s};" % (prefix, count_points + count_poly, ", ".join("%.16e" % float(item) for item in coeffs)))
+    lines.append("const int %s_powers[%d][%d] = {" % (prefix, count_poly, ndim))
+    for row in powers:
+        lines.append("    {" + ", ".join("%d" % int(item) for item in row) + "},")
+    lines.append("};")
+    lines.append("const double %s_shift[%d] = {%s};" % (prefix, ndim, ", ".join("%.16e" % float(item) for item in shift)))
+    lines.append("const double %s_scale[%d] = {%s};" % (prefix, ndim, ", ".join("%.16e" % float(item) for item in scale)))
+    lines.append("const std::string %s_kernel = \"%s\";" % (prefix, record["kernel"]))
+    lines.append("const double %s_epsilon = %.16e;" % (prefix, float(record["epsilon"])))
+    lines.append("")
+    lines.append("double %s(double xB, double y, double z, double pT, double phi_h) {" % function_name)
+    lines.append("    if((!std::isfinite(xB)) || (!std::isfinite(y)) || (!std::isfinite(z)) || (!std::isfinite(pT)) || (!std::isfinite(phi_h))) { return 1.0; }")
+    lines.append("    const double phi_rad = phi_h * 3.14159265358979323846 / 180.0;")
+    lines.append("    double pt[6];")
+    lines.append("    pt[0] = xB; pt[1] = y; pt[2] = z; pt[3] = pT; pt[4] = std::cos(phi_rad); pt[5] = std::sin(phi_rad);")
+    lines.append("    const int ndim = %s_ndim;" % prefix)
+    lines.append("    const int P = %s_n;" % prefix)
+    lines.append("    const int R = %s_n_poly;" % prefix)
+    lines.append("    const double eps = %s_epsilon;" % prefix)
+    lines.append("    double sum = 0.0;")
+    lines.append("    for(int i = 0; i < P; ++i) {")
+    lines.append("        double r2 = 0.0;")
+    lines.append("        for(int j = 0; j < ndim; ++j) {")
+    lines.append("            const double diff = eps * pt[j] - eps * %s_centers[i][j];" % prefix)
+    lines.append("            r2 += diff * diff;")
+    lines.append("        }")
+    lines.append("        sum += %s_coeffs[i] * %s_scipy_rbf_kernel(std::sqrt(r2), %s_kernel);" % (prefix, prefix, prefix))
+    lines.append("    }")
+    lines.append("    double xhat[6];")
+    lines.append("    for(int j = 0; j < ndim; ++j) {")
+    lines.append("        xhat[j] = (pt[j] - %s_shift[j]) / %s_scale[j];" % (prefix, prefix))
+    lines.append("    }")
+    lines.append("    for(int m = 0; m < R; ++m) {")
+    lines.append("        double mono = 1.0;")
+    lines.append("        for(int j = 0; j < ndim; ++j) {")
+    lines.append("            const int powv = %s_powers[m][j];" % prefix)
+    lines.append("            if(powv != 0) { mono *= std::pow(xhat[j], powv); }")
+    lines.append("        }")
+    lines.append("        sum += %s_coeffs[P + m] * mono;" % prefix)
+    lines.append("    }")
+    lines.append("    return sum;")
+    lines.append("}")
+    lines.append("")
+    with open(out_path, "w") as handle:
+        handle.write("\n".join(lines))
+    args.Compute_SplineWeight_File = out_path
+    print("Wrote %s as %s (SciPy %s, P=%d)" % (out_path, function_name, scipy_ver, count_points))
+    return out_path
+
 def generate_spline_code(args):
+    if(str(getattr(args, "dimension_mode", "")) == "4D_xB_phi"):
+        return generate_recs_code(args)
     args.Compute_SplineWeight_File = f"{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_Compute_SplineWeight.txt"
     print(f"\n{color.BOLD}=== Generating complete C++ Spline Evaluator ({args.Compute_SplineWeight_File}) ==={color.END}\n")
     scipy_ver = __import__("scipy").__version__
@@ -1100,6 +1338,8 @@ def main():
     args = parse_args()
     args.timer = RuntimeTimer()
     args.timer.start()
+    if(getattr(args, "generate_spline_code_only", False)):
+        args.generate_spline_code = True
     if((getattr(args, "omit_photon_flux", False)) and (not getattr(args, "apply_A_corr", False))):
         Crash_Report(args, crash_message=f"{color.Error}ERROR: --omit_photon_flux requires --apply_A_corr.{color.END}", continue_run=False)
     print(f"\n{color.BBLUE}=== Building tunable spline functions ({args.dimension_mode} mode) ==={color.END}\n")
@@ -1123,7 +1363,8 @@ def main():
     if((args.verbose) or (args.email)):
         Update_Email(args, update_message=f"{color.CYAN}[INFO] Using fit_set: {fit_set}\n[INFO] Total measurement points: {len(fit_dict)}\n[INFO] Dimension mode: {args.dimension_mode}{color.END}", verbose_override=False, no_time=True)
     y_pars = [str(item) for item in args.y_pars]
-    if(not args.generate_spline_code_only):
+    fit_this_pass = not args.generate_spline_code_only
+    if(fit_this_pass):
         for y_par in y_pars:
             # points, values, stds = build_data(fit_dict, info_map, y_par, args.err_suffix, args.dimension_mode)
             points, values, stds = build_data(fit_dict, info_map, y_par, args)
@@ -1167,11 +1408,16 @@ def main():
                     n_bad = int(np.sum(values <= 0))
                     Update_Email(args, update_message=f"{color.Error}[WARNING] {n_bad} non-positive Fit_Par_A values; clipping to 1e-30 before log_A fit{color.END}", verbose_override=True, no_time=True)
                 fit_values = np.log(np.clip(values, 1e-30, None))
-            rbf = RBFInterpolator(points, fit_values, kernel=kernel_par, smoothing=smoothing, epsilon=args.epsilon)
+            rbf_epsilon = args.epsilon
+            if(rbf_epsilon is None):
+                rbf = RBFInterpolator(points, fit_values, kernel=kernel_par, smoothing=smoothing)
+                rbf_epsilon = float(getattr(rbf, "epsilon", 1.0))
+            else:
+                rbf = RBFInterpolator(points, fit_values, kernel=kernel_par, smoothing=smoothing, epsilon=rbf_epsilon)
             config = {"kernel": kernel_par,
                     "smoothing_factor": args.smoothing_factor,
                     "effective_smoothing": smoothing,
-                    "epsilon": args.epsilon,
+                    "epsilon": rbf_epsilon,
                     "fit_set": fit_set,
                     "y_par": y_par,
                     "n_points": len(points),

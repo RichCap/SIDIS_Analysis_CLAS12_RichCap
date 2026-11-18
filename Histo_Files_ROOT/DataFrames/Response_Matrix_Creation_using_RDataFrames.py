@@ -86,6 +86,18 @@ def parse_args():
                         default=1,
                         # choices=range(0, 109),
                         help="Uses pre-defined groups of data and (clasdis) MC files (Maximum Group Number: See File_Batches.py — 0 runs all batches together).\n")
+    parser.add_argument("-mdfin", "--mdf_input",
+                        nargs="+",
+                        default=None,
+                        help="Explicit matched-MC ROOT files. Use with --gdf_input instead of a File_Batches group. Names must share the pairing marker.\n")
+    parser.add_argument("-gdfin", "--gdf_input",
+                        nargs="+",
+                        default=None,
+                        help="Explicit generated-MC ROOT files paired with --mdf_input.\n")
+    parser.add_argument("-rdfin", "--rdf_input",
+                        nargs="+",
+                        default=None,
+                        help="Explicit data ROOT files used with --mdf_input. Omit to run MC only.\n")
     parser.add_argument('-numF', '-nf', '--number_of_files',
                         type=int,
                         default=-1,
@@ -137,6 +149,41 @@ def parse_args():
     parser.add_argument('-u5Do', '--unfold_5D_only',
                         action='store_true',
                         help='Only makes the response matrices for the full 5D unfolding (will skip the 3D response matrices).\n')
+    parser.add_argument('-rcw', '--recw_creation',
+                        action='store_true',
+                        help='Book the baseline 5D slices and the variable-versus-index histograms used to derive RecW. Does not apply a reconstruction weight.\n')
+    parser.add_argument('-rwgt', '--reconstruction_weight',
+                        type=str,
+                        default='none',
+                        choices=['recs', 'recw', 'none'],
+                        help="Reconstruction weight applied while filling events. recs is the continuous fit, recw is the bin lookup, none leaves that weight off.\n")
+    parser.add_argument('-ci', '--cumulative_iteration',
+                        type=int,
+                        default=1,
+                        help='Which saved cumulative factor C_n to apply when filling RecW or RecS histograms.\n')
+    parser.add_argument('-rwf', '--recw_file',
+                        type=str,
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'RecW_Output', 'Rec_Weight.root'),
+                        help='ROOT file containing C_n from Create_Rec_Weight.py.\n')
+    parser.add_argument('-rsf', '--recs_file',
+                        type=str,
+                        default=None,
+                        help='C++ header that defines RecS(xB, y, z, pT, phi_h). Default is the plain fit for --cumulative_iteration.\n')
+    parser.add_argument('-rss', '--recs_spline_file',
+                        type=str,
+                        default=None,
+                        help='C++ header that defines RecSFromSplineBaseline. Default is the Spline-baseline fit for --cumulative_iteration.\n')
+    parser.add_argument('-brw', '--book_recw',
+                        action='store_true',
+                        help='Also fill the RecW lookup histograms in a pass that defaults to RecS.\n')
+    parser.add_argument('-wc', '--weight_comparison',
+                        action='store_true',
+                        help='Book the five Q2, y, z, pT, and phi_h comparison spectra for baseline, RecW, RecS, RecWSpline, and RecSSpline.\n')
+    parser.add_argument('-rho0', '--rho0_source',
+                        type=str,
+                        default='rho0_new',
+                        choices=['rho0_new', 'lundrho', 'lundvpk'],
+                        help='Rho MC source whose existing weighted spectrum is subtracted from data after the merge. Default rho0_new.\n')
     parser.add_argument('-old5D', '--old_5D_unfold',
                         action='store_true',
                         help=f"Uses the older (more sparse) definitions of the 5D bins {color.RED}(does nothing to Valerii's binning scheme){color.END}.\n")
@@ -854,6 +901,8 @@ if(__name__ == "__main__"):
 
     args.make_2D_rho  =  args.make_2D_rho  and (not args.make_2D_rho_normalization_only)
     args.make_2D_only = (args.make_2D_only and (not args.unfold_5D_only)) or (args.make_2D_rho_normalization_only)
+    if(getattr(args, "recw_creation", False)):
+        args.unfold_5D_only = True
     args.unfold_5D    = (args.unfold_5D     or      args.unfold_5D_only) and (not args.make_2D_only)
     args.make_2D      = (args.make_2D       or      args.make_2D_only)   and (not args.unfold_5D_only)
     if(args.binning_presentation_only):
@@ -919,7 +968,14 @@ if(__name__ == "__main__"):
     all_root_files = {}
     print(f"\n\n{color.BOLD}Will Run With:{color.END}\n")
     skip_real_data = (getattr(args, "ch4_diagnostics", False) or getattr(args, "mc_only", False))
-    if(args.batch_id > 0):
+    explicit_mdf = list(args.mdf_input) if(args.mdf_input not in [None, []]) else []
+    explicit_gdf = list(args.gdf_input) if(args.gdf_input not in [None, []]) else []
+    explicit_rdf = list(args.rdf_input) if(args.rdf_input not in [None, []]) else []
+    if((len(explicit_mdf) > 0) or (len(explicit_gdf) > 0)):
+        if((len(explicit_mdf) == 0) or (len(explicit_gdf) == 0)):
+            raise RuntimeError("--mdf_input and --gdf_input must be set together")
+        all_root_files = build_all_root_files(explicit_mdf, explicit_gdf, pair_key_after_marker, rdf_list=explicit_rdf, mc_key="_clasdis", all_root_files=all_root_files)
+    elif(args.batch_id > 0):
         rdf_list_for_build = [] if(skip_real_data) else rdf_batch[args.batch_id]
         all_root_files = build_all_root_files(mdf_batch[args.batch_id], gdf_batch[args.batch_id], pair_key_after_marker, rdf_list=rdf_list_for_build, mc_key="_clasdis", all_root_files=all_root_files)
     else:
@@ -1271,15 +1327,16 @@ if(__name__ == "__main__"):
         rho_gdf = "exclusive_rho_weight" if(gdf_clasdis.HasColumn("exclusive_rho_weight")) else "1.0"
         rho_mdf = "exclusive_rho_weight" if(mdf_clasdis.HasColumn("exclusive_rho_weight")) else "1.0"
         use_acc = bool(args.use_hpp or args.angles_only_hpp)
+        if(reconstruction_active(args) or getattr(args, "recw_creation", False)):
+            use_acc = False
 
         # 1) Load / declare physics weight functions (mutually exclusive JSON vs Spline)
         if(args.spline_weights):
             if(not args.spline_file):
                 Crash_Report(args, crash_message="--spline_weights was used but no --spline_file was provided!", continue_run=False)
             Update_Email(args, update_message=f"\n{color.BBLUE}Using new spline-based event-by-event weights from {args.spline_file}{color.END}\n", verbose_override=True)
-            with open(args.spline_file) as f:
-                spline_cpp_code = f.read()
-            ROOT.gInterpreter.Declare(spline_cpp_code)
+            from helper_functions_for_using_RDataFrames_python import declare_cpp_file
+            declare_cpp_file(args.spline_file, [("ComputeSplineWeight", "ComputeSplineWeight(2.0, 0.2, 0.4, 0.3, 0.2, 15.0)")])
             w_phys_gdf = "ComputeSplineWeight(Q2, xB, y, z, pT, phi_t)"
             w_phys_mdf = "ComputeSplineWeight(Q2_gen, xB_gen, y_gen, z_gen, pT_gen, phi_t_gen)"
             phys_tag   = "Spline"
@@ -1430,8 +1487,13 @@ if(__name__ == "__main__"):
             mdf_clasdis = mdf_clasdis.Define("W_pre", "W_phys") if(not mdf_clasdis.HasColumn("W_pre")) else mdf_clasdis.Redefine("W_pre", "W_phys")
             mdf_clasdis = mdf_clasdis.Define("Event_Weight_raw", "W_pre * W_acc") if(not mdf_clasdis.HasColumn("Event_Weight_raw")) else mdf_clasdis.Redefine("Event_Weight_raw", "W_pre * W_acc")
 
-        weight_specs_mdf = enabled_weight_specs(args, "mdf")
-        weight_specs_gdf = enabled_weight_specs(args, "gdf")
+        if(reconstruction_active(args)):
+            mdf_clasdis = define_reconstruction_columns(mdf_clasdis, args, "mdf")
+            gdf_clasdis = define_reconstruction_columns(gdf_clasdis, args, "gdf")
+        exclude_reconstruction = rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC) in ["lundvpk", "lundrho", "rho0_new"]
+        weight_specs_mdf = enabled_weight_specs(args, "mdf", allow_reconstruction=(not exclude_reconstruction))
+        weight_specs_bg  = enabled_weight_specs(args, "mdf", allow_reconstruction=False)
+        weight_specs_gdf = enabled_weight_specs(args, "gdf", allow_reconstruction=(not exclude_reconstruction))
         mdf_smear_type   = "" if(getattr(args, "unsmeared", False)) else "smear"
         print(f"{color.BLUE}Will be saving to: {color.BGREEN}{args.root}{color.END}")
         print(f"{color.BBLUE}Weight tags (mdf): {color.END_B}{[tag for tag, col in weight_specs_mdf]}{color.END}")
@@ -1481,7 +1543,7 @@ if(__name__ == "__main__"):
                 Histograms_All = make_rm_single(sdf=rdf,           Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut=f"{args.cut_name_rdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_Data)) else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, weight_specs=[("", None)])
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}mdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
                 Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_mdf)
-                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_mdf)
+                Histograms_All = make_rm_single(sdf=mdf_clasdis,   Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear=mdf_smear_type,     Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_bg)
                 Update_Email(args, update_message=f"{color.BLUE}Creating Histograms for {color.BGREEN}gdf_clasdis{color.END_B} ({Bin_str} {Q2_y_Bins if(Q2_y_Bins > 0) else 'All'}){color.END}", verbose_override=True)
                 Histograms_All = make_rm_single(sdf=gdf_clasdis,   Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}", Histo_Smear="",          Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Var_Input=z_pT_phi_h_Binning, Q2_y_bin_num=Q2_y_Bins, Use_Weight=False, Histograms_All=Histograms_All, file_location="output_file", output_type="output_file", Res_Binning_2D_z_pT=Res_Binning_2D_z_pT_In, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_gdf)
                 if(args.Use_EvGen):
@@ -1500,7 +1562,7 @@ if(__name__ == "__main__"):
             Histograms_All = make_rm5d_single(sdf=rdf,             Histo_Group="Response_Matrix_Normal",     Histo_Data="rdf", Histo_Cut=f"{args.cut_name_rdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_Data)) else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, weight_specs=[("", None)])
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}rdf{color.END})'",              verbose_override=True)
             Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_mdf)
-            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_mdf)
+            Histograms_All = make_rm5d_single(sdf=mdf_clasdis,     Histo_Group="Background_Response_Matrix", Histo_Data="mdf", Histo_Cut=f"{args.cut_name_mdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear=mdf_smear_type, Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_bg)
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}mdf_clasdis{color.END})'",      verbose_override=True)
             Histograms_All = make_rm5d_single(sdf=gdf_clasdis,     Histo_Group="Response_Matrix_Normal",     Histo_Data="gdf", Histo_Cut=f"{args.cut_name_gdf}{'' if(args.cut_rho0 in ['']) else f'_{args.cut_rho0}'}{'' if(not (args.cut or args.cut_MC))   else '_Extra'}",     Histo_Smear="",      Binning="Y_bin" if(not args.valerii_bins) else "Valerii", Q2_y_z_pT_phi_h_5D_Binning=phi_h_5D_Binning,          Use_Weight=False, Sliced_5D_Increment=Sliced_5D_Increment, Histograms_All=Histograms_All, custom_title=args.title, custom_tag=rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), weight_specs=weight_specs_gdf)
             Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}gdf_clasdis{color.END})'",      verbose_override=True)
@@ -1513,6 +1575,12 @@ if(__name__ == "__main__"):
                 Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}gdf_EvGen{color.END})'",    verbose_override=True)
         else:
             Update_Email(args, update_message=f"{color.Error}Skipped the 5D Response Matricies{color.END}", verbose_override=True)
+        if(getattr(args, "recw_creation", False)):
+            Histograms_All = book_recw_creation_variables(Histograms_All, rdf, mdf_clasdis, gdf_clasdis, args, rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), mdf_smear_type)
+            Update_Email(args, update_name="'book_recw_creation_variables'", verbose_override=True)
+        if(getattr(args, "weight_comparison", False)):
+            Histograms_All = book_weight_comparison(Histograms_All, rdf, mdf_clasdis, gdf_clasdis, args, mdf_smear_type, rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC))
+            Update_Email(args, update_name="'book_weight_comparison'", verbose_override=True)
         if(args.make_2D):
             print(f"\n{color.BGREEN}Making the 2D Kinematic Plots...{color.END}")
             args.timer.time_elapsed()
@@ -1749,6 +1817,8 @@ if(__name__ == "__main__"):
         Update_Email(args, update_message=f"\n{color.BCYAN}Done Collecting Histograms. Ready to Save.{color.END}\n", verbose_override=True, no_time=True)
         args.timer.time_elapsed()
         sys.stdout.flush()
+        if(getattr(args, "weight_comparison", False)):
+            Histograms_All = finish_weight_comparison(Histograms_All, args)
         num_histos_saved = Evaluate_And_Write_Histograms(hist_ptrs=Histograms_All, out_path=args.root, test=args.dry_run, timer=args.timer)  # See helper_functions_for_using_RDataFrames_python.py
         print(f"{color.BBLUE}Done Saving (Saved {color.END_B}{num_histos_saved}{color.BBLUE} Histograms){color.END}\n")
         Update_Email(args, update_name="'Evaluate_And_Write_Histograms()'", verbose_override=True)

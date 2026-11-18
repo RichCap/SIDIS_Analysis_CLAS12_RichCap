@@ -144,7 +144,7 @@ int Extract_Q2y(const std::string& name){
 }
 
 bool Passes_Weighed_Filter(const std::string& name, const UnfoldArgs& args){
-    const std::vector<std::string> known_tags = {"_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"};
+    const std::vector<std::string> known_tags = {"_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"};
     bool has_weight_tag = false;
     for(const auto& tag_str : known_tags){
         if(contains(name, tag_str)){ has_weight_tag = true; break; }
@@ -169,7 +169,7 @@ std::string Apply_Background_1D_Replacements(std::string name){
 }
 
 std::string Strip_Weight_Tags(std::string name){
-    for(const char* tag_str : {"_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"}){
+    for(const char* tag_str : {"_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"}){
         name = replace_all(name, tag_str, "");
     }
     return name;
@@ -224,7 +224,7 @@ std::string Rewrite_Generated_Data_Cut(std::string name){
 std::string Prepare_Gdf_Name(std::string name, const UnfoldArgs& args){
     name = replace_all(name, "(Data-Type='mdf')", "(Data-Type='gdf')");
     const std::string& weight_tag = args.weight_tag;
-    if((weight_tag == "Acc") || (weight_tag == "AccJSON") || (weight_tag == "AccSpline") || weight_tag.empty()){
+    if((weight_tag == "Acc") || (weight_tag == "AccJSON") || (weight_tag == "AccSpline") || weight_tag.empty() || (weight_tag == "Unweighted")){
         name = Strip_Weight_Tags(name);
         if(weight_tag == "AccJSON"){ name += "_(JSON)"; }
         else if(weight_tag == "AccSpline"){ name += "_(Spline)"; }
@@ -1017,7 +1017,10 @@ int Unfold_One_Matrix(TFile* input_file, const std::string& out_print_main, Unfo
         Crash_Report(args, "Failed to load histograms for " + out_print_main);
     }
     const std::string bdf_unweighted = Unweighted_MC_Background_Name(mdf_1d);
-    const std::string bdf_1d = bdf_unweighted;
+    std::string bdf_1d = bdf_unweighted;
+    if((args.weight_tag == "RecSSpline") || (args.weight_tag == "RecWSpline")){
+        bdf_1d = bdf_unweighted + "_(Spline)";
+    }
     TH1* MC_BGS_1D = nullptr;
     if(key_in_file(input_file, bdf_1d) && contains(bdf_1d, "Background")){
         MC_BGS_1D = CloneDetached(dynamic_cast<TH1*>(input_file->Get(bdf_1d.c_str())), "bgs");

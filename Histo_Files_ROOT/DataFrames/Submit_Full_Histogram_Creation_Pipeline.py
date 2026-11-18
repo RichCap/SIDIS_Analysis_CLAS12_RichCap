@@ -21,7 +21,7 @@ _BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 from jlab_work_paths import (
-    REL_HPP_OUT, VOLATILE_BASE as SHARED_VOLATILE_BASE, add_data_root_argument, apply_input_if_default,
+    REL_HADD, REL_HPP_OUT, VOLATILE_BASE as SHARED_VOLATILE_BASE, add_data_root_argument, apply_input_if_default,
     bootstrap_from_file, data_root_path, flag_was_passed, pipeline_output_path, resolve_pipeline_input, root_label,
 )
 EXEC_ROOT = bootstrap_from_file(__file__)
@@ -92,6 +92,20 @@ PRODUCTS = [{
         "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D"],
         "extra": ["--run_rho_weight", "--unfold_5D_only"],
         "jobs_attr": "jobs_5D",
+        }, {
+        "key": "RecW_Creation",
+        "label": "RecW baseline slices and variable-versus-index histograms",
+        "name_fmt": "RecW_Creation_{shared}_Response_Matrices",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D"],
+        "extra": ["--run_rho_weight", "--unfold_5D_only", "--recw_creation", "--spline_weights", "--reconstruction_weight", "none"],
+        "jobs_attr": "jobs_recw",
+        }, {
+        "key": "Iter1_AllWeights",
+        "label": "Iteration-one RecW and RecS comparison",
+        "name_fmt": "Iter1_AllWeights_{shared}_Response_Matrices",
+        "pipeline_flags": ["--no_make_2D_rho", "--no_make_2D"],
+        "extra": ["--run_rho_weight", "--unfold_5D_only", "--spline_weights", "--reconstruction_weight", "recs", "--book_recw", "--cumulative_iteration", "1", "--weight_comparison"],
+        "jobs_attr": "jobs_iter1",
         }, {
         "key": "Binning_Presentation_Only",
         "label": "Binning Presentation Only Histograms",
@@ -170,6 +184,9 @@ def parse_args():
     p.add_argument("-sa", "--skip_acceptance",
                    action="store_true",
                    help="Skip HPP generation. With --HPP_Old_Name, resolve older HPP paths; otherwise children use script defaults.\n")
+    p.add_argument("-lacc", "--legacy_acceptance",
+                   action="store_true",
+                   help="Book the legacy _(Acc) and _(AccSpline) weights. Acceptance generation still follows -sa.\n")
     p.add_argument("--HPP_Old_Name", "-hon", "-hppOld",
                    type=str,
                    default=None,
@@ -270,7 +287,7 @@ def parse_args():
     p.add_argument("-j", "--jobs",
                    type=int,
                    default=5,
-                   help="Default pipeline --jobs for each Phase-2 product unless overridden by --jobs_2D/--jobs_3D/--jobs_5D. Does not apply to --jobs_Binning (that product is opt-in and defaults to 0).\n")
+                   help="Default pipeline --jobs for each Phase-2 product unless overridden by --jobs_2D/--jobs_3D/--jobs_5D. Does not apply to --jobs_Binning, --jobs_recw, or --jobs_iter1 (those products are opt-in and default to 0).\n")
     p.add_argument("-j2D", "--jobs_2D",
                    type=int,
                    default=None,
@@ -283,6 +300,14 @@ def parse_args():
                    type=int,
                    default=None,
                    help="Concurrent batch jobs for the Only_5D product only. Unset → use --jobs; 0 → skip this product.\n")
+    p.add_argument("-jrcw", "--jobs_recw",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the RecW_Creation product only. Default 0 skips this product. Unlike --jobs_5D, unset does not inherit --jobs.\n")
+    p.add_argument("-jiter1", "--jobs_iter1",
+                   type=int,
+                   default=0,
+                   help="Concurrent batch jobs for the Iter1_AllWeights product only. Default 0 skips this product. Unlike --jobs_5D, unset does not inherit --jobs.\n")
     p.add_argument("-jBin", "--jobs_Binning",
                    type=int,
                    default=0,
@@ -320,6 +345,29 @@ def parse_args():
     p.add_argument("-old3D", "--old_3D_unfold",
                    action="store_true",
                    help="Forward --old_3D_unfold to the pipeline (legacy sparse 3D MultiDim / fixed 915-bin axes).\n")
+    p.add_argument("-ci", "--cumulative_iteration",
+                   type=int,
+                   default=1,
+                   help="Cumulative reconstruction iteration forwarded to Response_Matrix. Histogram suffixes do not encode it.\n")
+    p.add_argument("-rwgt", "--reconstruction_weight",
+                   default=None,
+                   choices=["recs", "recw", "none"],
+                   help="Reconstruction weight forwarded only when this flag is passed and the product extra does not already set one.\n")
+    p.add_argument("-brw", "--book_recw",
+                   action="store_true",
+                   help="Also book the RecW and RecWSpline histograms beside the selected reconstruction weight.\n")
+    p.add_argument("-rwf", "--recw_file",
+                   default=None,
+                   help="Explicit Rec_Weight.root. Unset uses the producer default.\n")
+    p.add_argument("-rsf", "--recs_file",
+                   default=None,
+                   help="Explicit plain RecS header. Unset uses the iteration default.\n")
+    p.add_argument("-rss", "--recs_spline_file",
+                   default=None,
+                   help="Explicit Spline-baseline RecS header. Unset uses the iteration default.\n")
+    p.add_argument("-pc", "--print_commands",
+                   action="store_true",
+                   help="Print the hybrid pipeline and producer commands, write the reconstruction identity file, and exit before submission.\n")
     return p.parse_args()
 
 # ===================================================================
@@ -621,6 +669,9 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     # Chapter 4 reads stored columns only. Do not require an HPP file before those counts and histograms.
     if(product.get("key") in ["CH4_Diagnostics", "Delta_Phi_h", "Only_1D", "Diagnostic_1D"]):
         use_hpp = False
+    # This comparison loads the physics Spline and does not load legacy Acc.
+    if(product.get("key") == "Iter1_AllWeights"):
+        use_hpp = False
     cmd.extend(["--data_root", str(args.data_root)])
     cmd.extend(["-m", run_mode])
     cmd.extend(["-cn", cut_name])
@@ -628,10 +679,13 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     name_tag = product_output_name(product, shared)
     cmd.extend(["-n", name_tag])
     cmd.extend(["--name_in"] + list(PIPELINE_NAME_IN_GLOBS))
+    attach_physics_spline = bool(use_hpp) or (product.get("key") == "Iter1_AllWeights")
     if(use_hpp):
         cmd.append("--use_hpp")
+    if(attach_physics_spline):
         cmd.append("--spline_weights")
         cmd.extend(["--spline_weight_file", args.spline_file])
+    if(use_hpp):
         if(pure_hpp not in [None, ""]):
             cmd.extend(["--hpp_weight_file", pure_hpp])
         if(comb_hpp not in [None, ""]):
@@ -702,10 +756,111 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["-emj", child_email_message(args.user_email_message, product["label"])])
     # --extra LAST: only true Response_Matrix passthrough args
     extra = product_extra_flags(args, product)
+    if(bool(getattr(args, "legacy_acceptance", False)) and ("--reconstruction_weight" not in extra)):
+        extra.extend(["--reconstruction_weight", "none"])
+    if(("--reconstruction_weight" not in extra) and flag_was_passed(["-rwgt", "--reconstruction_weight"])):
+        choice = getattr(args, "reconstruction_weight", "none")
+        if(choice not in [None, ""]):
+            extra.extend(["--reconstruction_weight", str(choice)])
+    if(("--book_recw" not in extra) and flag_was_passed(["-brw", "--book_recw"])):
+        extra.append("--book_recw")
+    if(("--cumulative_iteration" not in extra) and flag_was_passed(["-ci", "--cumulative_iteration"])):
+        extra.extend(["--cumulative_iteration", str(int(args.cumulative_iteration))])
+    for flag_name, flag_value in (("--recw_file", getattr(args, "recw_file", None)), ("--recs_file", getattr(args, "recs_file", None)), ("--recs_spline_file", getattr(args, "recs_spline_file", None))):
+        if(flag_value not in [None, ""]) and (flag_name not in extra):
+            extra.extend([flag_name, str(flag_value)])
+    if((product.get("key") == "Iter1_AllWeights") and ("--rho0_source" not in extra)):
+        source = getattr(args, "rho0_source", "rho0_new")
+        if(source in [None, ""]):
+            source = "rho0_new"
+        extra.extend(["--rho0_source", str(source)])
     if(extra):
         cmd.append("--extra")
         cmd.extend(extra)
     return cmd
+
+
+def merged_response_path(args, cut_name, product):
+    # Same hadd name run_sidis_DataFrame_pipeline writes under the data-root work_dir.
+    shared = product_shared_name(args, cut_name)
+    pipeline_name = product_output_name(product, shared)
+    label = str(PIPELINE_NAME_IN_GLOBS[0]).replace("*", "").replace(".root", "")
+    filename = "SIDIS_epip_Response_Matrices_from_RDataFrames_%s_%s_All.root" % (pipeline_name, label)
+    return os.path.join(data_root_path(args.data_root), REL_HADD, filename)
+
+
+def reconstruction_identity_path(args):
+    safe_name = re.sub(r"[^\w.\-]+", "_", str(args.name))
+    return os.path.join(DATAFRAMES_DIR, "%s_reconstruction_identity.txt" % safe_name)
+
+
+def write_reconstruction_identity(args, cut_name, product):
+    from helper_functions_for_using_RDataFrames_python import default_recs_header, expected_recs_fit_set, header_fit_set
+    iteration = int(getattr(args, "cumulative_iteration", 1))
+    plain_path = getattr(args, "recs_file", None)
+    if(plain_path in [None, ""]):
+        plain_path = default_recs_header(iteration, False)
+    spline_path = getattr(args, "recs_spline_file", None)
+    if(spline_path in [None, ""]):
+        spline_path = default_recs_header(iteration, True)
+    plain_set = header_fit_set(plain_path) if(os.path.isfile(plain_path)) else expected_recs_fit_set(iteration, False)
+    spline_set = header_fit_set(spline_path) if(os.path.isfile(spline_path)) else expected_recs_fit_set(iteration, True)
+    recw_path = getattr(args, "recw_file", None)
+    if(recw_path in [None, ""]):
+        recw_path = os.path.join(DATAFRAMES_DIR, "RecW_Output", "Rec_Weight.root")
+    choice = getattr(args, "reconstruction_weight", "none")
+    if(choice in [None, ""]):
+        choice = "none"
+    lines = [
+        "iteration=%d" % iteration,
+        "merged_path=%s" % merged_response_path(args, cut_name, product),
+        "reconstruction_weight=%s" % choice,
+        "book_recw=%d" % int(bool(getattr(args, "book_recw", False))),
+        "recs_file=%s" % plain_path,
+        "recs_spline_file=%s" % spline_path,
+        "fit_set_plain=%s" % plain_set,
+        "fit_set_spline=%s" % spline_set,
+        "recw_file=%s" % recw_path,
+        "tags=_(RecS),_(RecSSpline),_(RecW),_(RecWSpline)",
+    ]
+    path = reconstruction_identity_path(args)
+    with open(path, "w") as handle:
+        handle.write("\n".join(lines) + "\n")
+    return path
+
+
+def print_hybrid_commands(args, cut_name, pure_hpp, comb_hpp):
+    import run_sidis_DataFrame_pipeline as pipeline
+    selected, _skipped = selected_products(args)
+    only_5d = None
+    for product, jobs in selected:
+        if(product.get("key") == "Only_5D"):
+            only_5d = product
+        if(args.mode == "hybrid"):
+            batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
+            slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True)
+            parallel_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir)
+            print("SLURM %s" % product["key"])
+            print(" ".join(str(item) for item in slurm_cmd))
+            print("PARALLEL %s" % product["key"])
+            print(" ".join(str(item) for item in parallel_cmd))
+            producer_source = parallel_cmd
+        else:
+            producer_source = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=args.mode, jobs=jobs)
+            print("%s %s" % (str(args.mode).upper(), product["key"]))
+            print(" ".join(str(item) for item in producer_source))
+        saved_argv = list(sys.argv)
+        sys.argv = [PIPELINE_SCRIPT] + [str(item) for item in producer_source[1:]]
+        pipe_args = pipeline.parse_args()
+        sys.argv = saved_argv
+        pipeline.apply_pipeline_data_root_defaults(pipe_args)
+        producer_cmd = pipeline.build_main_command(pipe_args, 1, "/tmp/print_commands", slurm_placeholders=True)
+        print("PRODUCER %s" % product["key"])
+        print(" ".join(str(item) for item in producer_cmd))
+    if(only_5d is None):
+        only_5d = [item for item in PRODUCTS if(item["key"] == "Only_5D")][0]
+    identity = write_reconstruction_identity(args, cut_name, only_5d)
+    print("IDENTITY %s" % identity)
 
 # ===================================================================
 # PROCESS LAUNCH + LOGGING
@@ -1096,7 +1251,7 @@ def main():
     log_print(args, f"  name={args.name}  mode={args.mode}  email={args.email}  skip_acceptance={args.skip_acceptance}  run_all_cuts={args.run_all_cuts}  systematic_runs={args.systematic_runs}  matching_criteria={args.matching_criteria}  unsmeared={args.unsmeared}  no_run_rho_weight={args.no_run_rho_weight}  rho0_source={args.rho0_source}")
     log_print(args, f"  master log: {args.master_log_path}")
     log_print(args, f"  time log:   {args.time_log_path}")
-    log_print(args, f"  default --jobs={args.jobs}  overrides: jobs_2D={args.jobs_2D}  jobs_3D={args.jobs_3D}  jobs_5D={args.jobs_5D}  jobs_Binning={args.jobs_Binning}")
+    log_print(args, f"  default --jobs={args.jobs}  overrides: jobs_2D={args.jobs_2D}  jobs_3D={args.jobs_3D}  jobs_5D={args.jobs_5D}  jobs_recw={args.jobs_recw}  jobs_iter1={args.jobs_iter1}  jobs_Binning={args.jobs_Binning}")
     if(getattr(args, "slurm_mem", None) not in [None, ""]):
         log_print(args, f"{color.BBLUE}--slurm_mem forwarded to pipeline children: {color.END_B}{args.slurm_mem}{color.END}")
     if(args.no_run_rho_weight):
@@ -1143,7 +1298,7 @@ def main():
     except ValueError as err:
         Crash_Report(args, crash_message=str(err), continue_run=False)
     if(len(selected0) == 0):
-        Crash_Report(args, crash_message="No Phase-2 products selected: --jobs_2D/--jobs_3D/--jobs_5D/--jobs_Binning are all 0 (or resolve to 0). Set at least one product jobs count > 0.", continue_run=False)
+        Crash_Report(args, crash_message="No Phase-2 products selected: --jobs_2D/--jobs_3D/--jobs_5D/--jobs_recw/--jobs_iter1/--jobs_Binning are all 0 (or resolve to 0). Set at least one product jobs count > 0.", continue_run=False)
 
     if((args.run_all_cuts or args.systematic_runs) and (args.mode == "slurm")):
         Crash_Report(args, crash_message="--run_all_cuts/--systematic_runs is not allowed with pure --mode slurm (job-count limits). Use --mode hybrid to coordinate SLURM then parallel, or use parallel/sequential.", continue_run=False)
@@ -1223,6 +1378,25 @@ def main():
     plan_bits = ", ".join(f"{p['key']}×{j}" for p, j in selected_plan)
     log_print(args, f"\n{color.BGREEN}=== Stage 2: Response-matrix products ({plan_bits} when parallel) ==={color.END}")
     log_print(args, f"{color.BBLUE}Phase-2 product job plan:\n{format_product_jobs_plan(args)}{color.END}")
+    if(bool(getattr(args, "print_commands", False))):
+        for spec in run_specs:
+            cut_name = spec["cut"]
+            args.matching_criteria = spec["matching"]
+            args.unsmeared = spec["unsmeared"]
+            if(args.systematic_runs):
+                pure_hpp, comb_hpp = hpp_map.get(DEFAULT_CUT, (None, None))
+            else:
+                pure_hpp, comb_hpp = hpp_map.get(cut_name, (None, None))
+            print_hybrid_commands(args, cut_name, pure_hpp, comb_hpp)
+        try:
+            args.master_log_fh.close()
+        except Exception:
+            pass
+        try:
+            args.time_log_fh.close()
+        except Exception:
+            pass
+        return
     all_failed = []
     task_count = 0
     for spec in run_specs:

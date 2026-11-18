@@ -77,8 +77,8 @@ def parse_args():
     p.add_argument('-wt', '--weight_tag',
                    type=str,
                    default="",
-                   choices=["", "Acc", "JSON", "Spline", "AccJSON", "AccSpline"],
-                   help="Select which weighted histogram set to unfold (e.g. Acc, Spline, AccSpline). Empty = unweighted (default). Also auto-tags output ROOT/JSON names.\n")
+                   choices=["RecS", "RecW", "RecSSpline", "RecWSpline", "Unweighted", "Spline", "SplineOnly", "", "Acc", "JSON", "AccJSON", "AccSpline"],
+                   help="Histogram tag to unfold. Omitted selects the untagged response. Spline stays the pure Spline histogram. Does not load a weight file or iteration.\n")
     p.add_argument('-sac', '--spline_amplitude_correction',
                    type=str,
                    default="auto",
@@ -2298,14 +2298,16 @@ def divide_loaded_spline(weighted, source_file, args):
 def strip_weight_tag_suffixes(name_in):
     # Remove known multi-weight and legacy _(Weighed) suffixes from histogram names
     name_out = str(name_in)
-    for tag_str in ["_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
+    for tag_str in ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Spline)", "_(JSON)", "_(Acc)", "_(Weighed)"]:
         name_out = name_out.replace(tag_str, "")
     return name_out
 
-def unweighted_mc_background_name(signal_1d_name):
+def unweighted_mc_background_name(signal_1d_name, weight_tag=""):
     name_out = strip_weight_tag_suffixes(signal_1d_name)
     name_out = name_out.replace("'Response_Matrix_1D'", "'Background_Response_Matrix_1D'")
     name_out = name_out.replace("'Response_Matrix_Normal_1D'", "'Background_Response_Matrix_1D'")
+    if(weight_tag in ["RecSSpline", "RecWSpline"]):
+        return name_out + "_(Spline)"
     return name_out
 
 def main_start():
@@ -2327,6 +2329,13 @@ def main_start():
     # =========================================================================
     # Auto-tag output ROOT (and thus JSON via MainFileName) when a weight set is selected.
     # Spline division adds _DivUnw so it cannot replace an undivided result.
+    requested_weight = getattr(args, "weight_tag", "")
+    if(getattr(args, "unfold_exclusive_rho0", False)):
+        print("Requested weight tag %s; exclusive rho opens the untagged lundvpk response" % requested_weight)
+        args.weight_tag = ""
+    else:
+        args.weight_tag = resolved_weight_tag(requested_weight)
+        print("Requested weight tag %s effective weight tag %s" % (requested_weight, args.weight_tag if(args.weight_tag not in ["", None]) else "Unweighted"))
     try:
         args.divide_spline_by_unweighted = divide_spline_active(getattr(args, "weight_tag", ""), getattr(args, "spline_amplitude_correction", "auto"))
     except ValueError as exc:
@@ -2502,6 +2511,27 @@ def subtract_bkg_with_zero_floor(hist_data, hist_background):
             result_histogram.SetBinContent(global_bin, 0.0)
     return orginal_histo, result_histogram
 
+def resolved_weight_tag(requested):
+    # One resolution for this Python backend. The launcher forwards the token unchanged.
+    if(requested in [None, "", "Unweighted"]):
+        return ""
+    if(requested == "SplineOnly"):
+        return "Spline"
+    return str(requested)
+
+
+def exclusive_rho_selects(name):
+    # The control response is the untagged lundvpk histogram.
+    known = ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(AccSpline)", "_(AccJSON)", "_(Acc)", "_(JSON)", "_(Spline)", "_(Weighed)"]
+    if("_(lundvpk)" not in str(name)):
+        return False
+    if("_(lundrho)" in str(name)):
+        return False
+    if(any((tag in str(name)) for tag in known)):
+        return False
+    return True
+
+
 def main_unfold(args):
     try:
         rdf = ROOT.TFile(args.single_file_input, "READ")
@@ -2522,8 +2552,8 @@ def main_unfold(args):
         out_print_main = str(ii.GetName()).replace("mdf", "DataFrame_Type")
         if("Q2_y_z_pT_4D_Bins" in out_print_main):
             continue
-        weight_tag     = getattr(args, "weight_tag", "")
-        known_weight_tags = ["_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"]
+        weight_tag = getattr(args, "weight_tag", "")
+        known_weight_tags = ["_(RecSSpline)", "_(RecWSpline)", "_(RecS)", "_(RecW)", "_(Acc)", "_(JSON)", "_(Spline)", "_(AccJSON)", "_(AccSpline)", "_(Weighed)"]
         has_weight_tag = any(tag_str in out_print_main for tag_str in known_weight_tags)
         if(weight_tag not in ["", None]):
             if(f"_({weight_tag})" not in out_print_main):
@@ -2535,8 +2565,7 @@ def main_unfold(args):
             # print(f"\n{color.BOLD}Skipping '{out_print_main}' because it is unweighed{color.END}\n")
             continue
         if(getattr(args, "unfold_exclusive_rho0", False) and args.unfolding_3D):
-            plain_lundvpk = ("_(lundvpk)" in out_print_main) and ("_(lundrho)" not in out_print_main) and (not has_weight_tag)
-            if(not plain_lundvpk):
+            if(not exclusive_rho_selects(out_print_main)):
                 continue
         elif(any(lundskip in out_print_main for lundskip in ["_(lundvpk)", "_(lundrho)"])):
             # print(f"\n{color.BOLD}Skipping '{out_print_main}' because Harut's exclusive rho0 files are added later{color.END}\n")
@@ -3168,7 +3197,7 @@ def main_unfold(args):
                 # counterpart is the required input regardless of the selected signal weight tag.
                 # Untagging preserves legitimate production base weights while excluding Spline,
                 # JSON, and acceptance weights from the fake background itself.
-                out_print_main_bdf_1D = unweighted_mc_background_name(out_print_main_mdf_1D)
+                out_print_main_bdf_1D = unweighted_mc_background_name(out_print_main_mdf_1D, getattr(args, "weight_tag", ""))
                 if((out_print_main_bdf_1D in mdf.GetListOfKeys()) and ("Background" in str(out_print_main_bdf_1D))):
                     MC_BGS_1D_initial = mdf.Get(out_print_main_bdf_1D)
                     print(f"{color.BGREEN}Using unweighted signal-MC fake background '{out_print_main_bdf_1D}'{color.END}")
