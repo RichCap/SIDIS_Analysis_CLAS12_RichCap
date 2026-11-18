@@ -27,7 +27,7 @@ _BOOT = os.path.abspath(os.path.dirname(__file__))
 if(_BOOT not in sys.path):
     sys.path.insert(0, _BOOT)
 from jlab_work_paths import add_data_root_argument, apply_input_if_default, apply_output_if_default, bootstrap_from_file, is_bare_filename
-from spline_amplitude_correction import divide_spline_active, divide_spline_histogram, unweighted_spline_counterpart, output_root_with_weight, correction_metadata
+from spline_amplitude_correction import divide_spline_active, divide_spline_histogram, unweighted_spline_counterpart, output_root_with_weight, correction_metadata, skip_cell_normalized_division
 EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
@@ -2341,6 +2341,9 @@ def main_start():
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         sys.exit(2)
+    if(skip_cell_normalized_division(getattr(args, "single_file_input", ""))):
+        args.divide_spline_by_unweighted = False
+        print("Skipping the per-phi generated division. The loaded A convention is original_mc_cell_normalized.")
     args.root = output_root_with_weight(args.root, getattr(args, "weight_tag", ""), args.divide_spline_by_unweighted)
     args.pass_version = "Pass 2"
     args.sim = args.sim or args.closure

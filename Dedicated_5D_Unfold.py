@@ -15,7 +15,7 @@ EXEC_ROOT = bootstrap_from_file(__file__)
 from MyCommonAnalysisFunction_richcap import *
 from Convert_MultiDim_Kinematic_Bins  import *
 from reconstructed_bin_reduction import build_rec_skip_map, compress_th1_rec, compress_th2_rec_axis, mask_full_to_analysis
-from spline_amplitude_correction import divide_spline_active, divide_spline_histogram, unweighted_spline_counterpart, output_root_with_weight, correction_metadata
+from spline_amplitude_correction import divide_spline_active, divide_spline_histogram, unweighted_spline_counterpart, output_root_with_weight, correction_metadata, skip_cell_normalized_division
 
 ROOT.gROOT.SetBatch(1)
 ROOT.TH1.AddDirectory(0)
@@ -1253,6 +1253,9 @@ def main_start():
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         sys.exit(2)
+    if(skip_cell_normalized_division(getattr(args, "single_file_input", ""))):
+        args.divide_spline_by_unweighted = False
+        print("Skipping the per-phi generated division. The loaded A convention is original_mc_cell_normalized.")
     args.root = output_root_with_weight(args.root, getattr(args, "weight_tag", ""), args.divide_spline_by_unweighted)
     if(not args.matrix_pdf):
         output_parent = os.path.dirname(os.path.abspath(str(args.root)))

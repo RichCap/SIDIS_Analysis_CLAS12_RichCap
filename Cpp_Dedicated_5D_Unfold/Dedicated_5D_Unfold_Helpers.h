@@ -348,6 +348,30 @@ inline bool DivideSplineActive(const std::string& mode, const std::string& weigh
     return weight_tag == "Spline";
 }
 
+// Cell-total A already contains one factor for the whole (Q2-y, z-pT) cell.
+// That is not the per-phi 1/N_j correction, so a marked file must not be divided again.
+inline void SuppressCellNormalizedSplineDivision(UnfoldArgs& args){
+    if(!args.divide_spline_by_unweighted){ return; }
+    if(args.single_file_input.empty()){ return; }
+    TFile* probe = TFile::Open(args.single_file_input.c_str(), "READ");
+    if((probe == nullptr) || probe->IsZombie()){
+        if(probe != nullptr){
+            probe->Close();
+            delete probe;
+        }
+        return;
+    }
+    TObject* marker = probe->Get("spline_A_convention");
+    std::string title = "";
+    if(marker != nullptr){ title = marker->GetTitle(); }
+    probe->Close();
+    delete probe;
+    if(title == "original_mc_cell_normalized"){
+        args.divide_spline_by_unweighted = false;
+        std::cout << "Skipping the per-phi generated division. The loaded A convention is original_mc_cell_normalized." << std::endl;
+    }
+}
+
 inline void Apply_Weight_Output_Suffix(UnfoldArgs& args, bool generated_column_mode = false){
     if(args.weight_tag.empty()){ return; }
     const bool divide = args.divide_spline_by_unweighted && (args.weight_tag == "Spline");

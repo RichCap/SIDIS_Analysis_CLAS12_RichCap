@@ -142,6 +142,17 @@ def parse_args():
     p.add_argument("-logA", "--log_A",
                    action="store_true",
                    help="Fit Fit_Par_A in log-space (RBF on log(A), evaluate with exp). Helps Amplitude multi-decade dynamic range and reduces between-point oscillations. B/C are unchanged.\n")
+    p.add_argument("-nga", "--normalize_generated_A",
+                   action="store_true",
+                   help="Divide each Fit_Par_A training value by the total unweighted generated population of its (Q2-y, z-pT) cell before the log transform.\n")
+    p.add_argument("-gr", "--generated_reference",
+                   type=str,
+                   default=None,
+                   help="Merged Only_3D file. Used once with --normalize_generated_A for the untagged gdf no_cut Response_Matrix_Normal_1D spectra.\n")
+    p.add_argument("-bcf", "--bc_prefix",
+                   type=str,
+                   default=None,
+                   help="Existing prefix, without _Fit_Par_B.npz, whose B and C npz files the C++ export reuses.\n")
     
     p.add_argument("-t", "--test",
                    action="store_true",
@@ -419,6 +430,13 @@ def build_data(fit_dict, info_map, y_par, args):
         err = float(entry[f"{y_par}{args.err_suffix}"])
         if((not np.isfinite(val)) or (not np.isfinite(err))):
             continue
+
+        # Cell-total generated population. Applied before the log transform. Not a per-phi correction.
+        if((getattr(args, "normalize_generated_A", False)) and (y_par == "Fit_Par_A")):
+            q2y_bin, zpt_bin = parse_inner_key(key_str)
+            n_gen = float(args._generated_cell_totals[(q2y_bin, zpt_bin)])
+            val = val / n_gen
+            err = err / n_gen
 
         # === Apply normalization correction to A only ===
         if((getattr(args, "apply_A_corr", False)) and (y_par == "Fit_Par_A")):
@@ -1179,6 +1197,101 @@ def generate_recs_code(args):
     print("Wrote %s as %s (SciPy %s, P=%d)" % (out_path, function_name, scipy_ver, count_points))
     return out_path
 
+def gdf_population_name(name, q2y):
+    text = str(name)
+    required = (
+        "Histo-Group='Response_Matrix_Normal_1D'",
+        "Data-Type='gdf'",
+        "Data-Cut='no_cut'",
+        "Smear-Type=''",
+        "z-PT-Bin=All",
+        "Var-D1='MultiDim_z_pT_Bin_Y_bin_phi_t'",
+        "Q2-y-Bin=%d," % int(q2y),
+    )
+    if("_(" in text):
+        return False
+    for token in required:
+        if(token not in text):
+            return False
+    return True
+
+
+def retained_a_cells(fit_dict, info_map, args):
+    cells = []
+    y_par = "Fit_Par_A"
+    for key_str, entry in fit_dict.items():
+        if((y_par not in entry) or (f"{y_par}{args.err_suffix}" not in entry)):
+            continue
+        if(entry_is_failed_fit(entry, ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"], getattr(args, "err_suffix", "_ERR"))):
+            continue
+        if(key_str not in info_map):
+            continue
+        try:
+            val = float(entry[y_par])
+            err = float(entry[f"{y_par}{args.err_suffix}"])
+        except Exception:
+            continue
+        if((not np.isfinite(val)) or (not np.isfinite(err))):
+            continue
+        q2y_bin, zpt_bin = parse_inner_key(key_str)
+        cells.append((q2y_bin, zpt_bin))
+    return cells
+
+
+def load_generated_cell_totals(reference_path, cells):
+    # One open. N_gen is the sum of the 24 physical phi bins, not a per-phi denominator.
+    import ROOT
+    helper_dir = os.path.join(script_dir, "Histo_Files_ROOT", "DataFrames")
+    if(helper_dir not in sys.path):
+        sys.path.insert(0, helper_dir)
+    from helper_functions_for_using_RDataFrames_python import create_dense_3d_bin_mapping
+    forward_map = create_dense_3d_bin_mapping()["forward_map"]
+    root_file = ROOT.TFile.Open(str(reference_path), "READ")
+    if((root_file is None) or root_file.IsZombie()):
+        if(root_file is not None):
+            root_file.Close()
+        raise RuntimeError("Could not open generated reference %s" % reference_path)
+    names = [str(key.GetName()) for key in root_file.GetListOfKeys()]
+    by_q2y = {}
+    totals = {}
+    zeros = []
+    try:
+        for q2y_bin, zpt_bin in cells:
+            if(q2y_bin not in by_q2y):
+                matches = [name for name in names if(gdf_population_name(name, q2y_bin))]
+                if(len(matches) != 1):
+                    raise RuntimeError("Q2-y %d matched %d untagged gdf population histograms" % (q2y_bin, len(matches)))
+                by_q2y[q2y_bin] = root_file.Get(matches[0])
+                if(not by_q2y[q2y_bin]):
+                    raise RuntimeError("Could not read %s" % matches[0])
+            hist = by_q2y[q2y_bin]
+            total = 0.0
+            for phi in range(1, 25):
+                slot = forward_map.get((q2y_bin, zpt_bin, phi))
+                if(slot is None):
+                    raise RuntimeError("No dense index for cell (%d, %d) phi %d" % (q2y_bin, zpt_bin, phi))
+                bin_index = int(hist.GetXaxis().FindFixBin(float(slot)))
+                if((bin_index < 1) or (bin_index > hist.GetNbinsX())):
+                    raise RuntimeError("Dense index %s for cell (%d, %d) is outside the histogram axis" % (slot, q2y_bin, zpt_bin))
+                total += float(hist.GetBinContent(bin_index))
+            totals[(q2y_bin, zpt_bin)] = total
+            if(total == 0.0):
+                zeros.append((q2y_bin, zpt_bin))
+    finally:
+        root_file.Close()
+    if(len(zeros) > 0):
+        for q2y_bin, zpt_bin in zeros:
+            print("Zero generated population in cell (%d, %d)" % (q2y_bin, zpt_bin))
+        raise RuntimeError("Retained A cell has zero generated population. No training value was divided.")
+    return totals
+
+
+def spline_npz_path(args, y_par):
+    if((y_par in ["Fit_Par_B", "Fit_Par_C"]) and (getattr(args, "bc_prefix", None) not in [None, ""])):
+        return "%s_Fit_Par_%s.npz" % (args.bc_prefix, y_par[-1])
+    return "%s_%s_%s_%s.npz" % (args.output_prefix, args.dimension_mode, args.fit_set, y_par)
+
+
 def generate_spline_code(args):
     if(str(getattr(args, "dimension_mode", "")) == "4D_xB_phi"):
         return generate_recs_code(args)
@@ -1188,7 +1301,7 @@ def generate_spline_code(args):
     print(f"{color.BBLUE}SciPy version in this process: {scipy_ver} (farm production target: 1.16.2; export uses public rebuild + private dual coeffs){color.END}")
     files = {}
     for y_par in ["Fit_Par_A", "Fit_Par_B", "Fit_Par_C"]:
-        npz_file = f"{args.output_prefix}_{args.dimension_mode}_{args.fit_set}_{y_par}.npz"
+        npz_file = spline_npz_path(args, y_par)
         if(not os.path.isfile(npz_file)):
             Crash_Report(args, crash_message=f"\n{color.Error}ERROR: Missing {npz_file}{color.END}\n", continue_run=True)
             return
@@ -1205,6 +1318,7 @@ def generate_spline_code(args):
             "epsilon": float(d["epsilon"]) if("epsilon" in d.files) else 1.0,
             "dimension_mode": str(d["dimension_mode"]),
             "log_space": bool(d["log_space"]) if("log_space" in d.files) else False,
+            "a_convention": str(d["a_convention"]) if("a_convention" in d.files) else "raw_A",
         }
         rbf = _rebuild_rbf_from_npz_record(rec, y_par)
         P, R, coeffs = _require_rbf_export_attrs(rbf, y_par)
@@ -1227,6 +1341,10 @@ def generate_spline_code(args):
     cpp_code += f"// Dimension mode: {args.dimension_mode}\n"
     cpp_code += f"// Fit set: {args.fit_set}\n"
     cpp_code += f"// Generated on {gen_time}\n"
+    a_convention = "raw_A"
+    if("a_convention" in data["Fit_Par_A"]):
+        a_convention = str(data["Fit_Par_A"]["a_convention"])
+    cpp_code += "// A convention: %s\n" % a_convention
     cpp_code += f"// Evaluator matches SciPy RBFInterpolator (SciPy {scipy_ver}):\n"
     if(getattr(args, "omit_photon_flux", False)):
         cpp_code += "// EvGen amplitude: A_ep = A_fit / (bin area * luminosity); virtual-photon flux omitted\n"
@@ -1363,6 +1481,14 @@ def main():
     if((args.verbose) or (args.email)):
         Update_Email(args, update_message=f"{color.CYAN}[INFO] Using fit_set: {fit_set}\n[INFO] Total measurement points: {len(fit_dict)}\n[INFO] Dimension mode: {args.dimension_mode}{color.END}", verbose_override=False, no_time=True)
     y_pars = [str(item) for item in args.y_pars]
+    if(bool(getattr(args, "normalize_generated_A", False)) and (getattr(args, "generated_reference", None) in [None, ""])):
+        Crash_Report(args, crash_message=f"{color.Error}ERROR: --normalize_generated_A requires --generated_reference.{color.END}", continue_run=False)
+    if(bool(getattr(args, "normalize_generated_A", False))):
+        cells = retained_a_cells(fit_dict, info_map, args)
+        try:
+            args._generated_cell_totals = load_generated_cell_totals(args.generated_reference, cells)
+        except RuntimeError as err:
+            Crash_Report(args, crash_message=str(err), continue_run=False)
     fit_this_pass = not args.generate_spline_code_only
     if(fit_this_pass):
         for y_par in y_pars:
@@ -1425,6 +1551,8 @@ def main():
                     "dimension_mode": args.dimension_mode,
                     "log_space": use_log_A,
                     }
+            if((y_par == "Fit_Par_A") and bool(getattr(args, "normalize_generated_A", False))):
+                config["a_convention"] = "original_mc_cell_normalized"
             mode_str = args.dimension_mode
             pkl_file = f"{args.output_prefix}_{mode_str}_{fit_set}_{y_par}.pkl"
             with open(pkl_file, "wb") as f:

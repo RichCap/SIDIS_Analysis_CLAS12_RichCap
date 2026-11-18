@@ -956,6 +956,7 @@ UnfoldArgs main_start(int argc, char** argv){
     // bool has_zero = false;
     // for(const auto& b : args.Q2_y_Bin_List){ if(b == "0"){ has_zero = true; } }
     // if(!has_zero){ args.Q2_y_Bin_List.push_back("0"); }
+    sidis5d::SuppressCellNormalizedSplineDivision(args);
     sidis5d::Apply_Weight_Output_Suffix(args, true);
     if(!args.test){
         std::cout << "\n" << Color::BBLUE << "Will be saving results to " << Color::END_B << args.root << Color::END << "\n" << std::endl;

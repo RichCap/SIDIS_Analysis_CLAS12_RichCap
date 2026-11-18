@@ -1,5 +1,6 @@
 # Spline MC is divided by its unweighted counterpart with ROOT's TH1::Divide.
 # AccSpline and the other weight tags are left unchanged.
+import os
 
 SPLINE_SUFFIX = "_(Spline)"
 CORRECTION_ON = "spline_amplitude_correction=divided_by_unweighted"
@@ -18,6 +19,26 @@ def divide_spline_active(weight_tag, mode):
     if(choice == "off"):
         return False
     return tag == "Spline"
+
+
+def skip_cell_normalized_division(path):
+    # original_mc_cell_normalized already divided Fit_Par_A by the cell total.
+    # Missing marker and raw_A keep the per-phi correction selectable.
+    text = "" if(path in [None, ""]) else str(path)
+    if((text == "") or (not os.path.isfile(text))):
+        return False
+    import ROOT
+    root_file = ROOT.TFile.Open(text, "READ")
+    if((root_file is None) or root_file.IsZombie()):
+        if(root_file is not None):
+            root_file.Close()
+        return False
+    marker = root_file.Get("spline_A_convention")
+    title = ""
+    if(marker):
+        title = str(marker.GetTitle())
+    root_file.Close()
+    return title == "original_mc_cell_normalized"
 
 
 def unweighted_spline_counterpart(name):

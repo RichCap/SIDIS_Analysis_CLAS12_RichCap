@@ -1204,6 +1204,7 @@ UnfoldArgs main_start(int argc, char** argv){
             *target = cleaned;
         }
     }
+    sidis5d::SuppressCellNormalizedSplineDivision(args);
     sidis5d::Apply_Weight_Output_Suffix(args);
     args.pass_version = "Pass 2";
     args.closure = false;

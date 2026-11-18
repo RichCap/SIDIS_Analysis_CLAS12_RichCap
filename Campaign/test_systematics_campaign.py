@@ -750,7 +750,7 @@ def array_script_paths():
             value = parts[parts.index(flag) + 1]
             if(not value.startswith("/")):
                 raise SystemExit("%s %s stayed relative: %s" % (product, flag, value))
-        if(not parts[parts.index("--spline_file") + 1].endswith("acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt")):
+        if(not parts[parts.index("--spline_file") + 1].endswith("acc020_3D_BC_RC_normGenA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt")):
             raise SystemExit("%s spline file name changed" % product)
         if(" --spline_file Prepare_Next_Iteration/" in text):
             raise SystemExit("%s script kept a bare spline path" % product)
@@ -786,7 +786,7 @@ def nominal_and_5d_dry_run():
             raise SystemExit("nominal-only command contains %s" % banned)
     if(manifest["phase1"][0].get("auto_merge")) or (manifest["phase1"][0].get("batch_ids") not in [None, ""]):
         raise SystemExit("nominal hybrid added a second merge")
-    if("/Prepare_Next_Iteration/acc020_3D_BC_RC_rawA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt" not in command):
+    if("/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt" not in command):
         raise SystemExit("nominal-only command spline path is not absolute")
     for row in manifest["phase2"]:
         if("systematics_3d_complete_20261029/unfolded" not in row["final"]):
