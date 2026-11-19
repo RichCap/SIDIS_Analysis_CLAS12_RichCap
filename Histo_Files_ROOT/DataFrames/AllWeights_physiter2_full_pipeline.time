@@ -1,0 +1,6 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-11-19T00:40:57 name=AllWeights_physiter2 mode=hybrid email=runner =====
+=== TASK: Iter1_AllWeights-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 0.83 s
+peak_memory: 487.28 MB
+
