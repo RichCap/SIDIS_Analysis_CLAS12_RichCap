@@ -21,6 +21,7 @@ MODE_TABLE = {
     "Only_2D":        {"mem_gb": 3,  "cpus": 1, "kind": "histogram",  "ceiling": 6,  "slurm_mem": "3GB"},
     "Only_3D":        {"mem_gb": 4,  "cpus": 1, "kind": "histogram",  "ceiling": 8,  "slurm_mem": "4GB"},
     "Only_5D":        {"mem_gb": 14, "cpus": 1, "kind": "histogram",  "ceiling": 2,  "slurm_mem": "14GB"},
+    "AllWeights":     {"mem_gb": 14, "cpus": 1, "kind": "histogram",  "ceiling": 8,  "slurm_mem": "14GB"},
     "Only_1D":        {"mem_gb": 4,  "cpus": 1, "kind": "histogram",  "ceiling": 2,  "slurm_mem": "4GB"},
     "Diagnostic_1D":  {"mem_gb": 5,  "cpus": 1, "kind": "histogram",  "ceiling": 3,  "slurm_mem": "5GB"},
     "rc":             {"mem_gb": 3,  "cpus": 1, "kind": "rc",          "ceiling": 10, "slurm_mem": "3GB"},
@@ -36,7 +37,7 @@ PRODUCT_MODE = {
     "2D_Presentation": "Only_2D",
     "Only_3D": "Only_3D",
     "Only_5D": "Only_5D",
-    "Iter1_AllWeights": "Only_5D",
+    "Iter1_AllWeights": "AllWeights",
     "Only_1D": "Only_1D",
     "Diagnostic_1D": "Diagnostic_1D",
 }
