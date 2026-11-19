@@ -164,7 +164,7 @@ def parse_args():
     parser.add_argument('-rwf', '--recw_file',
                         type=str,
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'RecW_Output', 'Rec_Weight.root'),
-                        help='ROOT file containing C_n from Create_Rec_Weight.py.\n')
+                        help='ROOT file containing both C_n and C_n_Spline. Both keys are read from this file.\n')
     parser.add_argument('-rsf', '--recs_file',
                         type=str,
                         default=None,
@@ -178,7 +178,7 @@ def parse_args():
                         help='Also fill the RecW lookup histograms in a pass that defaults to RecS.\n')
     parser.add_argument('-wc', '--weight_comparison',
                         action='store_true',
-                        help='Book the five Q2, y, z, pT, and phi_h comparison spectra for baseline, RecW, RecS, RecWSpline, and RecSSpline.\n')
+                        help='Book the five Q2, y, z, pT, and phi_h comparison spectra for baseline, RecW, RecS, Spline, RecWSpline, and RecSSpline.\n')
     parser.add_argument('-rho0', '--rho0_source',
                         type=str,
                         default='rho0_new',

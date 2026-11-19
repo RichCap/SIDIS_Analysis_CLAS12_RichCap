@@ -637,9 +637,11 @@ def expected_recs_fit_set(iteration, spline, physics_iteration=""):
 
 
 def default_recs_header(iteration, spline, physics_iteration=""):
-    fit_set = expected_recs_fit_set(iteration, spline, physics_iteration)
-    if(fit_set in [None, ""]):
-        return ""
+    # Omitted production files follow the reconstruction iteration. Physics iteration does not rename them.
+    if(spline):
+        fit_set = "RecS_spline_iter%d" % int(iteration)
+    else:
+        fit_set = "RecS_default_iter%d" % int(iteration)
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "RecW_Output", "%s_4D_xB_phi_%s_RecS.txt" % (fit_set, fit_set))
 
 
@@ -700,7 +702,8 @@ def declare_cpp_file(path, probes):
 
 
 def resolve_reconstruction_artifacts(args):
-    # Bind the continuous fit and the C_n lookup to this baseline and iteration before any fill.
+    # Bind the continuous fit and the C_n lookup before any fill.
+    # One ROOT file supplies both C_N and C_N_Spline. A fit-set label does not reject a usable header.
     if(getattr(args, "_reconstruction_resolved", False)):
         return
     iteration = int(getattr(args, "cumulative_iteration", 1))
@@ -710,63 +713,45 @@ def resolve_reconstruction_artifacts(args):
     need_recs = (choice == "recs") and (not creating)
     need_recw = ((choice == "recw") or bool(getattr(args, "book_recw", False))) and (not creating)
     if(need_recs):
-        plain_set = expected_recs_fit_set(iteration, False)
         plain_path = getattr(args, "recs_file", None)
         if(plain_path in [None, ""]):
             plain_path = default_recs_header(iteration, False)
+        plain_path = os.path.abspath(os.path.expanduser(str(plain_path)))
         if(not os.path.isfile(plain_path)):
             raise RuntimeError("Missing continuous fit for plain iteration %d: %s" % (iteration, plain_path))
-        found_set = header_fit_set(plain_path)
-        if(found_set != plain_set):
-            raise RuntimeError("RecS header %s is fit set '%s', requested %s" % (plain_path, found_set, plain_set))
         args.recs_file = plain_path
         if(spline):
-            physics = physics_iteration_of(args)
-            spline_set = expected_recs_fit_set(iteration, True, physics)
             spline_path = getattr(args, "recs_spline_file", None)
             if(spline_path in [None, ""]):
-                spline_path = default_recs_header(iteration, True, physics)
-            if(spline_set in [None, ""]) or (spline_path in [None, ""]):
-                raise RuntimeError("Unmarked physics header has no Spline-baseline RecS file for reconstruction iteration %d" % iteration)
+                spline_path = default_recs_header(iteration, True)
+            spline_path = os.path.abspath(os.path.expanduser(str(spline_path)))
             if(not os.path.isfile(spline_path)):
-                raise RuntimeError("Missing Spline-baseline RecS header for %s reconstruction iteration %d: %s" % (physics, iteration, spline_path))
-            found_spline = header_fit_set(spline_path)
-            if(found_spline != spline_set):
-                raise RuntimeError("Spline-baseline RecS header %s is fit set '%s', requested %s" % (spline_path, found_spline, spline_set))
+                raise RuntimeError("Missing Spline-baseline RecS header for reconstruction iteration %d: %s" % (iteration, spline_path))
             args.recs_spline_file = spline_path
     if(need_recw):
         plain_name = "C_%d" % iteration
-        explicit_plain = getattr(args, "recw_file", None)
-        if(explicit_plain not in [None, ""]) and (not spline):
-            plain_path = explicit_plain
-        else:
-            plain_path = recw_plain_file()
-        args.recw_file = plain_path
-        if(not os.path.isfile(plain_path)):
-            raise RuntimeError("Missing plain RecW file for iteration %d: %s (needed %s)" % (iteration, plain_path, plain_name))
-        plain_file = ROOT.TFile.Open(plain_path, "READ")
-        if((plain_file is None) or plain_file.IsZombie()):
-            raise RuntimeError("Could not open plain RecW file: %s" % plain_path)
-        plain_found = bool(plain_file.GetListOfKeys().Contains(plain_name))
-        plain_file.Close()
-        if(not plain_found):
-            raise RuntimeError("Missing %s in %s" % (plain_name, plain_path))
+        spline_name = "C_%d_Spline" % iteration
+        weight_path = getattr(args, "recw_file", None)
+        if(weight_path in [None, ""]):
+            weight_path = recw_plain_file()
+        weight_path = os.path.abspath(os.path.expanduser(str(weight_path)))
+        if(not os.path.isfile(weight_path)):
+            raise RuntimeError("Missing RecW file for iteration %d: %s (needed %s)" % (iteration, weight_path, plain_name))
+        weight_file = ROOT.TFile.Open(weight_path, "READ")
+        if((weight_file is None) or weight_file.IsZombie()):
+            raise RuntimeError("Could not open RecW file: %s" % weight_path)
+        plain_found = bool(weight_file.GetListOfKeys().Contains(plain_name))
+        spline_found = True
         if(spline):
-            physics = physics_iteration_of(args)
-            spline_name = "C_%d_Spline" % iteration
-            spline_weight = recw_spline_file(physics)
-            if(spline_weight in [None, ""]):
-                raise RuntimeError("Unmarked physics header has no Spline-baseline RecW file. Expected Rec_Weight_physiter1.root or Rec_Weight_physiter2.root for %s" % spline_name)
-            args.recw_spline_file = spline_weight
-            if(not os.path.isfile(spline_weight)):
-                raise RuntimeError("Missing Spline-baseline RecW file for %s reconstruction iteration %d: %s (needed %s)" % (physics, iteration, spline_weight, spline_name))
-            spline_file = ROOT.TFile.Open(spline_weight, "READ")
-            if((spline_file is None) or spline_file.IsZombie()):
-                raise RuntimeError("Could not open Spline-baseline RecW file: %s" % spline_weight)
-            spline_found = bool(spline_file.GetListOfKeys().Contains(spline_name))
-            spline_file.Close()
-            if(not spline_found):
-                raise RuntimeError("Missing %s in %s" % (spline_name, spline_weight))
+            spline_found = bool(weight_file.GetListOfKeys().Contains(spline_name))
+        weight_file.Close()
+        if(not plain_found):
+            raise RuntimeError("Missing %s in %s" % (plain_name, weight_path))
+        if(not spline_found):
+            raise RuntimeError("Missing %s in %s" % (spline_name, weight_path))
+        args.recw_file = weight_path
+        if(spline):
+            args.recw_spline_file = weight_path
     args._reconstruction_resolved = True
 
 
@@ -995,7 +980,7 @@ def comparison_unit_copy(hist, name):
 
 
 def book_weight_comparison(histograms, rdf, mdf, gdf, args, smear, sample_identity=None):
-    # Five spectra per variable. Baseline is one of the five. Workers write additive raw yields only.
+    # Six spectra per variable. Baseline is one of the six. Workers write additive raw yields only.
     axes = (
         ("Q2", "Q2", 120, 0.0, 12.0),
         ("y", "y", 120, 0.05, 1.05),
@@ -1007,6 +992,7 @@ def book_weight_comparison(histograms, rdf, mdf, gdf, args, smear, sample_identi
         ("", None),
         ("RecW", "Event_Weight_RecW"),
         ("RecS", "Event_Weight_RecS"),
+        ("Spline", "Event_Weight_Spline"),
         ("RecWSpline", "Event_Weight_RecWSpline"),
         ("RecSSpline", "Event_Weight_RecSSpline"),
     )
@@ -1081,7 +1067,7 @@ def finish_weight_comparison(histograms, args):
 def finalize_iter1_weight_comparison(merged_file):
     # One subtraction after hadd. Raw worker yields stay in the file.
     labels = ("Q2", "y", "z", "pT", "phi_h")
-    tags = ("", "_(RecW)", "_(RecS)", "_(RecWSpline)", "_(RecSSpline)")
+    tags = ("", "_(RecW)", "_(RecS)", "_(Spline)", "_(RecWSpline)", "_(RecSSpline)")
     root_file = ROOT.TFile.Open(str(merged_file), "UPDATE")
     if((root_file is None) or root_file.IsZombie()):
         raise RuntimeError("Could not open merged comparison file %s" % merged_file)

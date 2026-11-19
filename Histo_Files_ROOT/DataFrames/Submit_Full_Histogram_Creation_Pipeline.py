@@ -714,6 +714,11 @@ def product_extra_flags(args, product):
 
 def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False, jobs=None, batch_output_dir=None, run_subdir_name=None, skip_slurm_hadd=False, use_hpp=True, naming_cut=None):
     # IMPORTANT: --extra is argparse.REMAINDER in the pipeline — put all pipeline-owned flags before it or they get swallowed and forwarded to Response_Matrix.
+    # Absolute paths are fixed before either worker changes directory.
+    for path_attr in ("spline_file", "recw_file", "recs_file", "recs_spline_file"):
+        path_value = getattr(args, path_attr, None)
+        if(path_value not in [None, ""]):
+            setattr(args, path_attr, os.path.abspath(os.path.expanduser(str(path_value))))
     cmd = [PIPELINE_SCRIPT]
     run_mode = args.mode if(mode is None) else mode
     if(run_mode == "hybrid"):
@@ -818,8 +823,13 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
             extra.extend(["--reconstruction_weight", str(choice)])
     if(("--book_recw" not in extra) and flag_was_passed(["-brw", "--book_recw"])):
         extra.append("--book_recw")
-    if(("--cumulative_iteration" not in extra) and flag_was_passed(["-ci", "--cumulative_iteration"])):
-        extra.extend(["--cumulative_iteration", str(int(args.cumulative_iteration))])
+    if(flag_was_passed(["-ci", "--cumulative_iteration"])):
+        iteration_token = str(int(args.cumulative_iteration))
+        if("--cumulative_iteration" in extra):
+            iteration_index = extra.index("--cumulative_iteration")
+            extra[iteration_index + 1] = iteration_token
+        else:
+            extra.extend(["--cumulative_iteration", iteration_token])
     for flag_name, flag_value in (("--recw_file", getattr(args, "recw_file", None)), ("--recs_file", getattr(args, "recs_file", None)), ("--recs_spline_file", getattr(args, "recs_spline_file", None))):
         if(flag_value not in [None, ""]) and (flag_name not in extra):
             extra.extend([flag_name, str(flag_value)])
@@ -849,7 +859,7 @@ def reconstruction_identity_path(args):
 
 
 def write_reconstruction_identity(args, cut_name, product):
-    from helper_functions_for_using_RDataFrames_python import default_recs_header, expected_recs_fit_set, header_fit_set, recw_plain_file, recw_spline_file
+    from helper_functions_for_using_RDataFrames_python import default_recs_header, header_fit_set, recw_plain_file
     iteration = int(getattr(args, "cumulative_iteration", 1))
     physics = getattr(args, "physics_iteration_resolved", "")
     if(physics not in ["iter1", "iter2"]):
@@ -857,14 +867,20 @@ def write_reconstruction_identity(args, cut_name, product):
     plain_path = getattr(args, "recs_file", None)
     if(plain_path in [None, ""]):
         plain_path = default_recs_header(iteration, False)
+    else:
+        plain_path = os.path.abspath(os.path.expanduser(str(plain_path)))
     spline_path = getattr(args, "recs_spline_file", None)
     if(spline_path in [None, ""]):
-        spline_path = default_recs_header(iteration, True, physics)
-    plain_set = header_fit_set(plain_path) if(os.path.isfile(plain_path)) else expected_recs_fit_set(iteration, False)
-    spline_set = header_fit_set(spline_path) if((spline_path not in [None, ""]) and os.path.isfile(spline_path)) else expected_recs_fit_set(iteration, True, physics)
+        spline_path = default_recs_header(iteration, True)
+    else:
+        spline_path = os.path.abspath(os.path.expanduser(str(spline_path)))
+    plain_set = header_fit_set(plain_path) if(os.path.isfile(plain_path)) else ("RecS_default_iter%d" % iteration)
+    spline_set = header_fit_set(spline_path) if((spline_path not in [None, ""]) and os.path.isfile(spline_path)) else ("RecS_spline_iter%d" % iteration)
     recw_path = getattr(args, "recw_file", None)
     if(recw_path in [None, ""]):
         recw_path = recw_plain_file()
+    else:
+        recw_path = os.path.abspath(os.path.expanduser(str(recw_path)))
     choice = getattr(args, "reconstruction_weight", "none")
     if(choice in [None, ""]):
         choice = "none"
@@ -879,8 +895,8 @@ def write_reconstruction_identity(args, cut_name, product):
         "fit_set_spline=%s" % spline_set,
         "physics_iteration=%s" % ("unmarked" if(physics in [None, ""]) else physics),
         "recw_file=%s" % recw_path,
-        "recw_spline_file=%s" % recw_spline_file(physics),
-        "tags=_(RecS),_(RecSSpline),_(RecW),_(RecWSpline)",
+        "recw_spline_file=%s" % recw_path,
+        "tags=_(RecS),_(RecSSpline),_(RecW),_(RecWSpline),_(Spline)",
     ]
     path = reconstruction_identity_path(args)
     with open(path, "w") as handle:
