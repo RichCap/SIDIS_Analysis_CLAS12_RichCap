@@ -602,6 +602,28 @@ def enabled_weight_specs(args, histo_data="mdf", allow_reconstruction=True):
     return weight_specs
 
 
+def weight_half_of(args):
+    half = getattr(args, "weight_half", None)
+    if(half in [None, ""]):
+        return ""
+    return str(half)
+
+
+def weight_half_specs(specs, half):
+    # A and B book disjoint variants. An unset half keeps the full list.
+    if(str(half) not in ["A", "B"]):
+        return list(specs)
+    if(str(half) == "A"):
+        allowed = ["", "RecS", "RecWSpline"]
+    else:
+        allowed = ["Spline", "RecW", "RecSSpline"]
+    chosen = []
+    for tag, column in specs:
+        if(tag in allowed):
+            chosen.append((tag, column))
+    return chosen
+
+
 _RECONSTRUCTION_READY = False
 _RECONSTRUCTION_HISTS = []
 _DECLARE_PROBE = 0
@@ -996,6 +1018,8 @@ def book_weight_comparison(histograms, rdf, mdf, gdf, args, smear, sample_identi
         ("RecWSpline", "Event_Weight_RecWSpline"),
         ("RecSSpline", "Event_Weight_RecSSpline"),
     )
+    tags = weight_half_specs(tags, weight_half_of(args))
+    book_shared = weight_half_of(args) != "B"
     jobs = []
     args._weight_compare_jobs = jobs
     rec_suffix = "" if(smear in ["", None]) else "_smeared"
@@ -1038,14 +1062,14 @@ def book_weight_comparison(histograms, rdf, mdf, gdf, args, smear, sample_identi
                 if(tag in ["", None]):
                     use_weight = "exclusive_rho_weight" if(gdf.HasColumn("exclusive_rho_weight")) else None
                 book_one(gen_frame, "gdf", label, column, use_weight, tag)
-        if((rho_source) and (mdf is not None)):
+        if((rho_source) and (mdf is not None) and book_shared):
             if(not mdf.HasColumn("exclusive_rho_weight")):
                 raise RuntimeError("Selected rho source %s has no exclusive_rho_weight" % selected)
             rho_base = "esec != -2" if(mdf.HasColumn("esec")) else ""
             rho_cut = apply_background_filter("mdf", "Response_Matrix_Normal", rho_base, rho_background=False)
             rho_frame = mdf.Filter(rho_cut) if(rho_cut not in ["", None]) else mdf
             book_one(rho_frame, "rho", label, rec_column, "exclusive_rho_weight", "")
-        if(rdf is not None):
+        if((rdf is not None) and book_shared):
             book_one(esec_frame(rdf), "rdf", label, column, None, "")
     return histograms
 

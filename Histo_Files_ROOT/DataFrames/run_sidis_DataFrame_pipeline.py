@@ -1202,7 +1202,7 @@ def hadd_response_batches(args, batch_output_dir, num_batches):
     subprocess.run(hadd_cmd, check=True)
     Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
     extra = list(getattr(args, "extra", None) or [])
-    if("--weight_comparison" in extra):
+    if(("--weight_comparison" in extra) and ("--weight_half" not in extra)):
         helper_dir = os.path.dirname(os.path.abspath(__file__))
         if(helper_dir not in sys.path):
             sys.path.insert(0, helper_dir)

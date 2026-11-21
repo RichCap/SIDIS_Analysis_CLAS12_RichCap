@@ -606,6 +606,61 @@ def resolve_physics_header(args):
     return args.physics_iteration_resolved
 
 
+def split_allweights_jobs(total):
+    # The requested count is the total local pool for A and B together.
+    total = int(total)
+    left = total // 2
+    right = total - left
+    if(left < 1):
+        left = 1
+    if(right < 1):
+        right = 1
+    return left, right
+
+
+def set_allweights_half(args, base_name, half):
+    if(half in ["A", "B"]):
+        args.name = "%s_%s" % (base_name, half)
+        args.weight_half = half
+    else:
+        args.name = base_name
+        args.weight_half = None
+
+
+def allweights_launch_rows(product, jobs, hybrid):
+    if((hybrid) and (product.get("key") == "Iter1_AllWeights")):
+        left, right = split_allweights_jobs(jobs)
+        return [(product, left, "A"), (product, right, "B")]
+    return [(product, jobs, None)]
+
+
+def allweights_final_path(args, cut_name, product):
+    plain = merged_response_path(args, cut_name, product)
+    if(plain.endswith("_All.root")):
+        return plain[:-len("_All.root")] + "_Split_All.root"
+    return plain.replace(".root", "_Split.root")
+
+
+def combine_allweights_halves(args, cut_name, product):
+    # Hadd the two raw half files, then run the existing comparison finalization once.
+    from helper_functions_for_using_RDataFrames_python import finalize_iter1_weight_comparison
+    base_name = args.name
+    half_paths = []
+    for half in ("A", "B"):
+        set_allweights_half(args, base_name, half)
+        half_paths.append(merged_response_path(args, cut_name, product))
+    set_allweights_half(args, base_name, None)
+    final_path = allweights_final_path(args, cut_name, product)
+    for path in half_paths:
+        if((not os.path.isfile(path)) or (os.path.getsize(path) <= 0)):
+            raise RuntimeError("Missing raw AllWeights half merge: %s" % path)
+    log_print(args, f"{color.BBLUE}Combining AllWeights halves into {color.END_B}{final_path}{color.END}")
+    subprocess.run(["hadd", "-f", final_path] + half_paths, check=True)
+    finalize_iter1_weight_comparison(final_path)
+    log_print(args, f"{color.BGREEN}AllWeights final file written: {final_path}{color.END}", no_time=False)
+    return final_path
+
+
 def hybrid_batch_paths(args, cut_name, product, naming_cut=None):
     shared = product_shared_name(args, naming_cut if(naming_cut not in [None, ""]) else cut_name)
     name_tag = product_output_name(product, shared)
@@ -833,6 +888,9 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     for flag_name, flag_value in (("--recw_file", getattr(args, "recw_file", None)), ("--recs_file", getattr(args, "recs_file", None)), ("--recs_spline_file", getattr(args, "recs_spline_file", None))):
         if(flag_value not in [None, ""]) and (flag_name not in extra):
             extra.extend([flag_name, str(flag_value)])
+    half = getattr(args, "weight_half", None)
+    if((product.get("key") == "Iter1_AllWeights") and (half in ["A", "B"]) and ("--weight_half" not in extra)):
+        extra.extend(["--weight_half", str(half)])
     if((product.get("key") == "Iter1_AllWeights") and ("--rho0_source" not in extra)):
         source = getattr(args, "rho0_source", "rho0_new")
         if(source in [None, ""]):
@@ -908,30 +966,39 @@ def print_hybrid_commands(args, cut_name, pure_hpp, comb_hpp):
     import run_sidis_DataFrame_pipeline as pipeline
     selected, _skipped = selected_products(args)
     only_5d = None
+    base_name = args.name
+    rows = []
     for product, jobs in selected:
-        if(product.get("key") == "Only_5D"):
-            only_5d = product
-        if(args.mode == "hybrid"):
-            batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
-            slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True)
-            parallel_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir)
-            print("SLURM %s" % product["key"])
-            print(" ".join(str(item) for item in slurm_cmd))
-            print("PARALLEL %s" % product["key"])
-            print(" ".join(str(item) for item in parallel_cmd))
-            producer_source = parallel_cmd
-        else:
-            producer_source = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=args.mode, jobs=jobs)
-            print("%s %s" % (str(args.mode).upper(), product["key"]))
-            print(" ".join(str(item) for item in producer_source))
-        saved_argv = list(sys.argv)
-        sys.argv = [PIPELINE_SCRIPT] + [str(item) for item in producer_source[1:]]
-        pipe_args = pipeline.parse_args()
-        sys.argv = saved_argv
-        pipeline.apply_pipeline_data_root_defaults(pipe_args)
-        producer_cmd = pipeline.build_main_command(pipe_args, 1, "/tmp/print_commands", slurm_placeholders=True)
-        print("PRODUCER %s" % product["key"])
-        print(" ".join(str(item) for item in producer_cmd))
+        rows.extend(allweights_launch_rows(product, jobs, args.mode == "hybrid"))
+    try:
+        for product, jobs, half in rows:
+            set_allweights_half(args, base_name, half)
+            label = product["key"] if(half is None) else "%s_%s" % (product["key"], half)
+            if(product.get("key") == "Only_5D"):
+                only_5d = product
+            if(args.mode == "hybrid"):
+                batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
+                slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True)
+                parallel_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir)
+                print("SLURM %s" % label)
+                print(" ".join(str(item) for item in slurm_cmd))
+                print("PARALLEL %s" % label)
+                print(" ".join(str(item) for item in parallel_cmd))
+                producer_source = parallel_cmd
+            else:
+                producer_source = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=args.mode, jobs=jobs)
+                print("%s %s" % (str(args.mode).upper(), label))
+                print(" ".join(str(item) for item in producer_source))
+            saved_argv = list(sys.argv)
+            sys.argv = [PIPELINE_SCRIPT] + [str(item) for item in producer_source[1:]]
+            pipe_args = pipeline.parse_args()
+            sys.argv = saved_argv
+            pipeline.apply_pipeline_data_root_defaults(pipe_args)
+            producer_cmd = pipeline.build_main_command(pipe_args, 1, "/tmp/print_commands", slurm_placeholders=True)
+            print("PRODUCER %s" % label)
+            print(" ".join(str(item) for item in producer_cmd))
+    finally:
+        set_allweights_half(args, base_name, None)
     if(only_5d is None):
         only_5d = [item for item in PRODUCTS if(item["key"] == "Only_5D")][0]
     identity = write_reconstruction_identity(args, cut_name, only_5d)
@@ -1204,27 +1271,40 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
 
     if(mode == "hybrid"):
         # Per selected product: noninteractive SLURM submit (--yes), capture array id, then parallel with -saj.
-        # Both backends write batch ROOT files to the same /volatile run directory.
+        # AllWeights submits A and B before either controller is awaited. Both backends write batch ROOT files under that half's /volatile run directory.
+        rows = []
+        for product, jobs in selected:
+            rows.extend(allweights_launch_rows(product, jobs, True))
         array_ids = {}
         hybrid_dirs = {}
-        for product, jobs in selected:
-            task = product["key"]
-            batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
-            hybrid_dirs[task] = (batch_dir, run_subdir)
-            slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True)
-            array_ids[task] = submit_slurm_capture_array_id(args, slurm_cmd, f"{task}-slurm", cut_name)
-        wait_after_slurm_submit(args)
+        base_name = args.name
+        try:
+            for product, jobs, half in rows:
+                set_allweights_half(args, base_name, half)
+                task = product["key"] if(half is None) else "%s_%s" % (product["key"], half)
+                batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
+                hybrid_dirs[task] = (batch_dir, run_subdir)
+                slurm_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="slurm", auto_yes=True, jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir, skip_slurm_hadd=True)
+                array_ids[task] = submit_slurm_capture_array_id(args, slurm_cmd, f"{task}-slurm", cut_name)
+            wait_after_slurm_submit(args)
 
-        launched = []
-        for i, (product, jobs) in enumerate(selected):
-            task = product["key"]
-            batch_dir, run_subdir = hybrid_dirs[task]
-            par_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", saj=array_ids[task], jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir)
-            tee = bool(args.verbose) and (i == 0)
-            launched.append((product, launch_cmd(args, par_cmd, f"{task}-parallel", tee_terminal=tee)))
-        for product, job in launched:
-            rc = wait_launched(args, job, cut_name, "hybrid-parallel")
-            results.append((product["key"], rc))
+            launched = []
+            for i, (product, jobs, half) in enumerate(rows):
+                set_allweights_half(args, base_name, half)
+                task = product["key"] if(half is None) else "%s_%s" % (product["key"], half)
+                batch_dir, run_subdir = hybrid_dirs[task]
+                par_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", saj=array_ids[task], jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir)
+                tee = bool(args.verbose) and (i == 0)
+                launched.append((task, launch_cmd(args, par_cmd, f"{task}-parallel", tee_terminal=tee)))
+            for task, job in launched:
+                rc = wait_launched(args, job, cut_name, "hybrid-parallel")
+                results.append((task, rc))
+            if((not any(rc != 0 for _task, rc in results)) and any(half in ["A", "B"] for _product, _jobs, half in rows)):
+                set_allweights_half(args, base_name, None)
+                allweights_product = [product for product, _jobs, half in rows if(half == "A")][0]
+                combine_allweights_halves(args, cut_name, allweights_product)
+        finally:
+            set_allweights_half(args, base_name, None)
         return results
 
     if(mode == "sequential"):
