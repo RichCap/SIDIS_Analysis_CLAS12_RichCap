@@ -155,3 +155,975 @@ The total time the code took to run is:
 Captured SLURM array job id 15092355 for Iter1_AllWeights-slurm
 Waiting 1s for SLURM to register array job before local squeue checks.
 CMD [Iter1_AllWeights-parallel]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS -n Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --spline_weights --spline_weight_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt --matching_criteria Bank --run_rho_weight --no_make_2D_rho --no_make_2D --slurm_array_jobid 15092355 --jobs 2 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026 --run_subdir_name Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026 --slurm_mem 14GB --slurm_cpus 1 -crm Only_5D --histogram_local_cap 2 --extra --run_rho_weight --unfold_5D_only --spline_weights --reconstruction_weight recs --book_recw --cumulative_iteration 1 --weight_comparison --recw_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root --recs_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt --recs_spline_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt --rho0_source rho0_new
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-11-19T16:43:50 name=AllWeights_physiter2 mode=hybrid email=runner =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=AllWeights_physiter2  mode=hybrid  email=runner  skip_acceptance=True  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=rho0_new
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/AllWeights_physiter2_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/AllWeights_physiter2_full_pipeline.time
+  default --jobs=0  overrides: jobs_2D=0  jobs_3D=0  jobs_5D=0  jobs_recw=0  jobs_iter1=2  jobs_Binning=0
+rho0_source for Acceptance: rho0_new
+
+=== Stage 1: Acceptance SKIPPED (-sa / -rac / defaults) ===
+  HPP cut=cut_Complete_SIDIS: using child-script defaults
+
+=== Stage 2: Response-matrix products (Iter1_AllWeights×2 when parallel) ===
+Phase-2 product job plan:
+  2D_Presentation: SKIPPED (jobs_2D=0)
+  Only_3D: SKIPPED (jobs_3D=0)
+  Only_5D: SKIPPED (jobs_5D=0)
+  RecW_Creation: SKIPPED (jobs_recw=0)
+  Iter1_AllWeights: jobs=2 (from --jobs_iter1)
+  Binning_Presentation_Only: SKIPPED (jobs_Binning=0)
+  CH4_Diagnostics: SKIPPED (jobs_ch4=0)
+  Delta_Phi_h: SKIPPED (jobs_dphi=0)
+  Only_1D: SKIPPED (jobs_1d=0)
+  Diagnostic_1D: SKIPPED (jobs_diag=0)
+
+Products for cut cut_Complete_SIDIS matching=Bank unsmeared=False
+SKIP product 2D_Presentation for cut cut_Complete_SIDIS (jobs_2D=0)
+SKIP product Only_3D for cut cut_Complete_SIDIS (jobs_3D=0)
+SKIP product Only_5D for cut cut_Complete_SIDIS (jobs_5D=0)
+SKIP product RecW_Creation for cut cut_Complete_SIDIS (jobs_recw=0)
+SKIP product Binning_Presentation_Only for cut cut_Complete_SIDIS (jobs_Binning=0)
+SKIP product CH4_Diagnostics for cut cut_Complete_SIDIS (jobs_ch4=0)
+SKIP product Delta_Phi_h for cut cut_Complete_SIDIS (jobs_dphi=0)
+SKIP product Only_1D for cut cut_Complete_SIDIS (jobs_1d=0)
+SKIP product Diagnostic_1D for cut cut_Complete_SIDIS (jobs_diag=0)
+SLURM SUBMIT [Iter1_AllWeights-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS -n Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --spline_weights --spline_weight_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt --matching_criteria Bank --run_rho_weight --no_make_2D_rho --no_make_2D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026 --run_subdir_name Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026 --skip_slurm_hadd --slurm_mem 14GB --slurm_cpus 1 -crm AllWeights --slurm_time 24:00:00 --batch_ids 3-14,25-35,37-75,77-168 --yes --extra --run_rho_weight --unfold_5D_only --spline_weights --reconstruction_weight recs --book_recw --cumulative_iteration 1 --weight_comparison --recw_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root --recs_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt --recs_spline_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt --rho0_source rho0_new
+[Iter1_AllWeights-slurm-slurm]
+
+Started running on 11-19-2026 at 04:43 p.m.
+
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+
+
+
+
+EMAIL MESSAGE TO SEND:
+
+
+The 'run_sidis_DataFrame_pipeline.py' script has CRASHED!
+Started running on 11-19-2026 at 04:43 p.m.
+
+
+
+CRASH WARNING!
+Recovery stopped. These batches are outside --batch_ids and are not valid, so nothing was submitted:
+/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch001.root
+/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch002.root
+
+
+
+Arguments:
+
+--mode                                              --> 'slurm'
+--cut_name                                          --> 'cut_Complete_SIDIS'
+--no_make_2D                                        --> True
+--no_make_2D_rho                                    --> True
+--z_axis_2D                                         --> '4D_Bin'
+--valerii_bins                                      --> False
+--use_hpp                                           --> False
+--spline_weights                                    --> True
+--spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+--json_weights                                      --> False
+--json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+--hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+--hpp_weight_file_spline                            --> None
+--run_rho_weight                                    --> True
+--unsmeared                                         --> False
+--matching_criteria                                 --> 'Bank'
+--make_2D_only                                      --> False
+--unfold_5D_only                                    --> False
+--old_3D_unfold                                     --> False
+--name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+--name                                              --> 'Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices'
+--num_batches                                       --> 171
+--rho_source_token                                  --> None
+--data_root                                         --> 'work_b'
+--work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+--scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+--log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+--jobs                                              --> 6
+--continue_on_failure                               --> False
+--slurm_time                                        --> '24:00:00'
+--batch_ids                                         --> '3-14,25-35,37-75,77-168'
+--replace_listed_batches                            --> False
+--defer_merge                                       --> False
+--submission_config                                 --> None
+--slurm_mem                                         --> '14GB'
+--slurm_cpus                                        --> '1'
+--campaign_resource_mode                            --> 'AllWeights'
+--histogram_local_cap                               --> None
+--campaign_worker_cap                               --> None
+--campaign_worker_name                              --> None
+--slurm_array_jobid                                 --> None
+--batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026'
+--run_subdir_name                                   --> 'Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026'
+--skip_slurm_hadd                                   --> True
+--rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+--mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+--gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+--batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+--verbose                                           --> False
+--yes                                               --> True
+--extra                                             --> ['--run_rho_weight', '--unfold_5D_only', '--spline_weights', '--reconstruction_weight', 'recs', '--book_recw', '--cumulative_iteration', '1', '--weight_comparison', '--recw_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root', '--recs_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt', '--recs_spline_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt', '--rho0_source', 'rho0_new']
+
+
+The time that this code finished is 04:44 p.m.
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 37 Second(s).
+
+    
+
+
+    	                                   	
+    	       This code has CRASHED!      	
+    	                                   	   
+
+    
+
+CRASH WARNING!
+Recovery stopped. These batches are outside --batch_ids and are not valid, so nothing was submitted:
+/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch001.root
+/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch002.root
+
+
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] Started running on 11-19-2026 at 12:41 a.m.
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[Iter1_AllWeights-parallel] Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+[Iter1_AllWeights-parallel] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[Iter1_AllWeights-parallel] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] [INFO] Cancelling pending SLURM task 15092355_1
+[Iter1_AllWeights-parallel] [INFO] Cancelled SLURM array task 15092355_1
+[Iter1_AllWeights-parallel] START: Batch   1 of 171
+[Iter1_AllWeights-parallel] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s). 
+[Iter1_AllWeights-parallel] [INFO] Cancelling pending SLURM task 15092355_2
+[Iter1_AllWeights-parallel] [INFO] Cancelled SLURM array task 15092355_2
+[Iter1_AllWeights-parallel] START: Batch   2 of 171
+[Iter1_AllWeights-parallel] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s). 
+[Iter1_AllWeights-parallel] DONE : Batch   2 of 171
+[Iter1_AllWeights-parallel] Time Elapsed Up To Now: 0 Day(s), 16 Hour(s), 55 Minute(s), and 16 Second(s). 
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 3.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 4.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 5.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 6.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 7.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 8.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 9.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 10.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 11.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 12.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 13.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 14.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 15.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 16.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 17.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 18.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 19.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 20.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 21.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 22.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 23.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 24.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 25.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 26.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 27.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 28.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 29.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 30.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 31.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 32.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 33.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 34.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 35.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 36.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 37.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 38.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 39.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 40.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 41.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 42.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 43.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 44.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 45.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 46.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 47.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 48.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 49.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 50.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 51.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 52.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 53.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 54.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 55.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 56.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 57.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 58.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 59.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 60.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 61.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 62.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 63.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 64.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 65.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 66.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 67.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 68.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 69.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 70.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 71.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 72.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 73.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 74.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 75.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 76.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 77.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 78.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 79.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 80.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 81.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 82.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 83.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 84.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 85.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 86.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 87.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 88.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 89.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 90.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 91.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 92.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 93.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 94.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 95.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 96.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 97.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 98.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 99.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 100.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 101.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 102.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 103.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 104.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 105.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 106.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 107.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 108.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 109.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 110.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 111.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 112.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 113.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 114.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 115.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 116.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 117.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 118.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 119.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 120.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 121.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 122.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 123.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 124.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 125.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 126.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 127.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 128.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 129.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 130.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 131.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 132.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 133.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 134.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 135.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 136.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 137.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 138.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 139.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 140.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 141.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 142.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 143.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 144.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 145.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 146.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 147.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 148.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 149.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 150.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 151.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 152.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 153.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 154.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 155.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 156.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 157.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 158.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 159.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 160.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 161.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 162.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 163.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 164.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 165.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 166.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 167.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 168.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 169.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 170.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 171.
+[Iter1_AllWeights-parallel] DONE : Batch   1 of 171
+[Iter1_AllWeights-parallel] Time Elapsed Up To Now: 0 Day(s), 18 Hour(s), 38 Minute(s), and 49 Second(s). 
+[Iter1_AllWeights-parallel] hadd was not run. The merge still requires all 171 batch files. Missing or invalid:
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch003.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch004.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch005.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch006.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch007.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch008.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch009.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch010.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch011.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch012.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch013.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch014.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch025.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch026.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch027.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch028.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch029.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch030.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch031.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch032.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch033.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch034.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch035.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch037.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch038.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch039.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch040.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch041.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch042.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch043.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch044.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch045.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch046.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch047.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch048.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch049.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch050.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch051.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch052.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch053.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch054.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch055.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch056.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch057.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch058.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch059.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch060.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch061.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch062.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch063.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch064.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch065.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch066.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch067.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch068.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch069.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch070.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch071.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch072.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch073.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch074.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch075.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch077.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch078.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch079.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch080.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch081.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch082.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch083.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch084.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch085.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch086.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch087.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch088.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch089.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch090.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch091.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch092.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch093.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch094.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch095.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch096.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch097.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch098.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch099.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch100.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch101.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch102.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch103.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch104.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch105.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch106.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch107.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch108.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch109.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch110.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch111.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch112.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch113.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch114.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch115.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch116.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch117.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch118.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch119.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch120.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch121.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch122.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch123.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch124.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch125.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch126.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch127.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch128.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch129.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch130.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch131.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch132.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch133.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch134.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch135.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch136.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch137.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch138.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch139.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch140.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch141.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch142.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch143.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch144.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch145.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch146.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch147.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch148.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch149.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch150.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch151.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch152.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch153.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch154.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch155.root
+[Iter1_AllWeights-parallel] CRASH WARNING!
+[Iter1_AllWeights-parallel] Cannot hadd: missing 154 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch003.root
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch156.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch157.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch158.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch159.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch160.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch161.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch162.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch163.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch164.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch165.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch166.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch167.root
+[Iter1_AllWeights-parallel] /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch168.root
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] EMAIL MESSAGE TO SEND:
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] The 'run_sidis_DataFrame_pipeline.py' script has CRASHED!
+[Iter1_AllWeights-parallel] Started running on 11-19-2026 at 12:41 a.m.
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] Loaded File_Batches from /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py
+[Iter1_AllWeights-parallel] Starting parallel run with 171 batches → output dir: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] START: Batch   1 of 171
+[Iter1_AllWeights-parallel] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s). 
+[Iter1_AllWeights-parallel] START: Batch   2 of 171
+[Iter1_AllWeights-parallel] Time Elapsed Up To Now: 0 Day(s), 0 Hour(s), 0 Minute(s), and 1 Second(s). 
+[Iter1_AllWeights-parallel] DONE : Batch   2 of 171
+[Iter1_AllWeights-parallel] Time Elapsed Up To Now: 0 Day(s), 16 Hour(s), 55 Minute(s), and 16 Second(s). 
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 3.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 4.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 5.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 6.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 7.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 8.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 9.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 10.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 11.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 12.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 13.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 14.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 15.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 16.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 17.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 18.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 19.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 20.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 21.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 22.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 23.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 24.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 25.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 26.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 27.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 28.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 29.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 30.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 31.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 32.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 33.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 34.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 35.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 36.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 37.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 38.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 39.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 40.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 41.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 42.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 43.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 44.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 45.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 46.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 47.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 48.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 49.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 50.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 51.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 52.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 53.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 54.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 55.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 56.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 57.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 58.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 59.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 60.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 61.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 62.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 63.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 64.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 65.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 66.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 67.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 68.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 69.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 70.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 71.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 72.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 73.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 74.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 75.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 76.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 77.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 78.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 79.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 80.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 81.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 82.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 83.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 84.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 85.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 86.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 87.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 88.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 89.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 90.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 91.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 92.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 93.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 94.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 95.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 96.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 97.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 98.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 99.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 100.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 101.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 102.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 103.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 104.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 105.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 106.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 107.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 108.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 109.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 110.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 111.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 112.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 113.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 114.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 115.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 116.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 117.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 118.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 119.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 120.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 121.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 122.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 123.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 124.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 125.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 126.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 127.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 128.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 129.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 130.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 131.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 132.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 133.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 134.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 135.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 136.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 137.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 138.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 139.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 140.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 141.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 142.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 143.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 144.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 145.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 146.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 147.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 148.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 149.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 150.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 151.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 152.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 153.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 154.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 155.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 156.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 157.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 158.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 159.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 160.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 161.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 162.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 163.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 164.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 165.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 166.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 167.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 168.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 169.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 170.
+[Iter1_AllWeights-parallel] [INFO] squeue failed; not starting a second writer for batch 171.
+[Iter1_AllWeights-parallel] DONE : Batch   1 of 171
+[Iter1_AllWeights-parallel] Time Elapsed Up To Now: 0 Day(s), 18 Hour(s), 38 Minute(s), and 49 Second(s). 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] CRASH WARNING!
+[Iter1_AllWeights-parallel] Cannot hadd: missing 154 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch003.root
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] Arguments:
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] --mode                                              --> 'parallel'
+[Iter1_AllWeights-parallel] --cut_name                                          --> 'cut_Complete_SIDIS'
+[Iter1_AllWeights-parallel] --no_make_2D                                        --> True
+[Iter1_AllWeights-parallel] --no_make_2D_rho                                    --> True
+[Iter1_AllWeights-parallel] --z_axis_2D                                         --> '4D_Bin'
+[Iter1_AllWeights-parallel] --valerii_bins                                      --> False
+[Iter1_AllWeights-parallel] --use_hpp                                           --> False
+[Iter1_AllWeights-parallel] --spline_weights                                    --> True
+[Iter1_AllWeights-parallel] --spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Iter1_AllWeights-parallel] --json_weights                                      --> False
+[Iter1_AllWeights-parallel] --json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Iter1_AllWeights-parallel] --hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+[Iter1_AllWeights-parallel] --hpp_weight_file_spline                            --> None
+[Iter1_AllWeights-parallel] --run_rho_weight                                    --> True
+[Iter1_AllWeights-parallel] --unsmeared                                         --> False
+[Iter1_AllWeights-parallel] --matching_criteria                                 --> 'Bank'
+[Iter1_AllWeights-parallel] --make_2D_only                                      --> False
+[Iter1_AllWeights-parallel] --unfold_5D_only                                    --> False
+[Iter1_AllWeights-parallel] --old_3D_unfold                                     --> False
+[Iter1_AllWeights-parallel] --name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+[Iter1_AllWeights-parallel] --name                                              --> 'Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices'
+[Iter1_AllWeights-parallel] --num_batches                                       --> 171
+[Iter1_AllWeights-parallel] --rho_source_token                                  --> None
+[Iter1_AllWeights-parallel] --data_root                                         --> 'work_b'
+[Iter1_AllWeights-parallel] --work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Iter1_AllWeights-parallel] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Iter1_AllWeights-parallel] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Iter1_AllWeights-parallel] --jobs                                              --> 2
+[Iter1_AllWeights-parallel] --continue_on_failure                               --> False
+[Iter1_AllWeights-parallel] --batch_ids                                         --> None
+[Iter1_AllWeights-parallel] --replace_listed_batches                            --> False
+[Iter1_AllWeights-parallel] --defer_merge                                       --> False
+[Iter1_AllWeights-parallel] --submission_config                                 --> None
+[Iter1_AllWeights-parallel] --campaign_resource_mode                            --> 'Only_5D'
+[Iter1_AllWeights-parallel] --histogram_local_cap                               --> 2
+[Iter1_AllWeights-parallel] --campaign_worker_cap                               --> None
+[Iter1_AllWeights-parallel] --campaign_worker_name                              --> None
+[Iter1_AllWeights-parallel] --batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026'
+[Iter1_AllWeights-parallel] --run_subdir_name                                   --> 'Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026'
+[Iter1_AllWeights-parallel] --rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Iter1_AllWeights-parallel] --mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Iter1_AllWeights-parallel] --gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Iter1_AllWeights-parallel] --batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Iter1_AllWeights-parallel] --verbose                                           --> False
+[Iter1_AllWeights-parallel] --yes                                               --> False
+[Iter1_AllWeights-parallel] --extra                                             --> ['--run_rho_weight', '--unfold_5D_only', '--spline_weights', '--reconstruction_weight', 'recs', '--book_recw', '--cumulative_iteration', '1', '--weight_comparison', '--recw_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root', '--recs_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt', '--recs_spline_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt', '--rho0_source', 'rho0_new']
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] The time that this code finished is 07:19 p.m.
+[Iter1_AllWeights-parallel] The total time the code took to run is:
+[Iter1_AllWeights-parallel] 0 Day(s), 18 Hour(s), 38 Minute(s), and 51 Second(s).
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel]     
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel]     	                                   	
+[Iter1_AllWeights-parallel]     	       This code has CRASHED!      	
+[Iter1_AllWeights-parallel]     	                                   	   
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel]     
+FAIL [Iter1_AllWeights-parallel] cut=cut_Complete_SIDIS rc=1 wall=67131.8s
+--- child output snippet (Iter1_AllWeights-parallel) ---
+[Iter1_AllWeights-parallel] CRASH WARNING!
+[Iter1_AllWeights-parallel] Cannot hadd: missing 154 expected batch ROOT files. First missing: /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch003.root
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] Arguments:
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] --mode                                              --> 'parallel'
+[Iter1_AllWeights-parallel] --cut_name                                          --> 'cut_Complete_SIDIS'
+[Iter1_AllWeights-parallel] --no_make_2D                                        --> True
+[Iter1_AllWeights-parallel] --no_make_2D_rho                                    --> True
+[Iter1_AllWeights-parallel] --z_axis_2D                                         --> '4D_Bin'
+[Iter1_AllWeights-parallel] --valerii_bins                                      --> False
+[Iter1_AllWeights-parallel] --use_hpp                                           --> False
+[Iter1_AllWeights-parallel] --spline_weights                                    --> True
+[Iter1_AllWeights-parallel] --spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+[Iter1_AllWeights-parallel] --json_weights                                      --> False
+[Iter1_AllWeights-parallel] --json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+[Iter1_AllWeights-parallel] --hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+[Iter1_AllWeights-parallel] --hpp_weight_file_spline                            --> None
+[Iter1_AllWeights-parallel] --run_rho_weight                                    --> True
+[Iter1_AllWeights-parallel] --unsmeared                                         --> False
+[Iter1_AllWeights-parallel] --matching_criteria                                 --> 'Bank'
+[Iter1_AllWeights-parallel] --make_2D_only                                      --> False
+[Iter1_AllWeights-parallel] --unfold_5D_only                                    --> False
+[Iter1_AllWeights-parallel] --old_3D_unfold                                     --> False
+[Iter1_AllWeights-parallel] --name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+[Iter1_AllWeights-parallel] --name                                              --> 'Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices'
+[Iter1_AllWeights-parallel] --num_batches                                       --> 171
+[Iter1_AllWeights-parallel] --rho_source_token                                  --> None
+[Iter1_AllWeights-parallel] --data_root                                         --> 'work_b'
+[Iter1_AllWeights-parallel] --work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+[Iter1_AllWeights-parallel] --scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+[Iter1_AllWeights-parallel] --log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+[Iter1_AllWeights-parallel] --jobs                                              --> 2
+[Iter1_AllWeights-parallel] --continue_on_failure                               --> False
+[Iter1_AllWeights-parallel] --batch_ids                                         --> None
+[Iter1_AllWeights-parallel] --replace_listed_batches                            --> False
+[Iter1_AllWeights-parallel] --defer_merge                                       --> False
+[Iter1_AllWeights-parallel] --submission_config                                 --> None
+[Iter1_AllWeights-parallel] --campaign_resource_mode                            --> 'Only_5D'
+[Iter1_AllWeights-parallel] --histogram_local_cap                               --> 2
+[Iter1_AllWeights-parallel] --campaign_worker_cap                               --> None
+[Iter1_AllWeights-parallel] --campaign_worker_name                              --> None
+[Iter1_AllWeights-parallel] --batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026'
+[Iter1_AllWeights-parallel] --run_subdir_name                                   --> 'Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026'
+[Iter1_AllWeights-parallel] --rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+[Iter1_AllWeights-parallel] --mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+[Iter1_AllWeights-parallel] --gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+[Iter1_AllWeights-parallel] --batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+[Iter1_AllWeights-parallel] --verbose                                           --> False
+[Iter1_AllWeights-parallel] --yes                                               --> False
+[Iter1_AllWeights-parallel] --extra                                             --> ['--run_rho_weight', '--unfold_5D_only', '--spline_weights', '--reconstruction_weight', 'recs', '--book_recw', '--cumulative_iteration', '1', '--weight_comparison', '--recw_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root', '--recs_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt', '--recs_spline_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt', '--rho0_source', 'rho0_new']
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] The time that this code finished is 07:19 p.m.
+[Iter1_AllWeights-parallel] The total time the code took to run is:
+[Iter1_AllWeights-parallel] 0 Day(s), 18 Hour(s), 38 Minute(s), and 51 Second(s).
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel]     
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel]     	                                   	
+[Iter1_AllWeights-parallel]     	       This code has CRASHED!      	
+[Iter1_AllWeights-parallel]     	                                   	   
+[Iter1_AllWeights-parallel] 
+[Iter1_AllWeights-parallel]     
+--- end child output snippet ---
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-11-19T19:19:53 name=AllWeights_physiter2 mode=hybrid email=runner =====
+
+Submit_Full_Histogram_Creation_Pipeline.py ready.
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+  name=AllWeights_physiter2  mode=hybrid  email=runner  skip_acceptance=True  run_all_cuts=False  systematic_runs=False  matching_criteria=Bank  unsmeared=False  no_run_rho_weight=False  rho0_source=rho0_new
+  master log: /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/AllWeights_physiter2_full_pipeline.log
+  time log:   /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/AllWeights_physiter2_full_pipeline.time
+  default --jobs=0  overrides: jobs_2D=0  jobs_3D=0  jobs_5D=0  jobs_recw=0  jobs_iter1=2  jobs_Binning=0
+rho0_source for Acceptance: rho0_new
+
+=== Stage 1: Acceptance SKIPPED (-sa / -rac / defaults) ===
+  HPP cut=cut_Complete_SIDIS: using child-script defaults
+
+=== Stage 2: Response-matrix products (Iter1_AllWeights×2 when parallel) ===
+Phase-2 product job plan:
+  2D_Presentation: SKIPPED (jobs_2D=0)
+  Only_3D: SKIPPED (jobs_3D=0)
+  Only_5D: SKIPPED (jobs_5D=0)
+  RecW_Creation: SKIPPED (jobs_recw=0)
+  Iter1_AllWeights: jobs=2 (from --jobs_iter1)
+  Binning_Presentation_Only: SKIPPED (jobs_Binning=0)
+  CH4_Diagnostics: SKIPPED (jobs_ch4=0)
+  Delta_Phi_h: SKIPPED (jobs_dphi=0)
+  Only_1D: SKIPPED (jobs_1d=0)
+  Diagnostic_1D: SKIPPED (jobs_diag=0)
+
+Products for cut cut_Complete_SIDIS matching=Bank unsmeared=False
+SKIP product 2D_Presentation for cut cut_Complete_SIDIS (jobs_2D=0)
+SKIP product Only_3D for cut cut_Complete_SIDIS (jobs_3D=0)
+SKIP product Only_5D for cut cut_Complete_SIDIS (jobs_5D=0)
+SKIP product RecW_Creation for cut cut_Complete_SIDIS (jobs_recw=0)
+SKIP product Binning_Presentation_Only for cut cut_Complete_SIDIS (jobs_Binning=0)
+SKIP product CH4_Diagnostics for cut cut_Complete_SIDIS (jobs_ch4=0)
+SKIP product Delta_Phi_h for cut cut_Complete_SIDIS (jobs_dphi=0)
+SKIP product Only_1D for cut cut_Complete_SIDIS (jobs_1d=0)
+SKIP product Diagnostic_1D for cut cut_Complete_SIDIS (jobs_diag=0)
+SLURM SUBMIT [Iter1_AllWeights-slurm]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m slurm -cn cut_Complete_SIDIS -n Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --spline_weights --spline_weight_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt --matching_criteria Bank --run_rho_weight --no_make_2D_rho --no_make_2D --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026 --run_subdir_name Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026 --skip_slurm_hadd --slurm_mem 14GB --slurm_cpus 1 -crm AllWeights --slurm_time 24:00:00 --batch_ids 3-14,25-35,37-75,77-168 --yes --extra --run_rho_weight --unfold_5D_only --spline_weights --reconstruction_weight recs --book_recw --cumulative_iteration 1 --weight_comparison --recw_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root --recs_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt --recs_spline_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt --rho0_source rho0_new
+[Iter1_AllWeights-slurm-slurm]
+
+Started running on 11-19-2026 at 07:19 p.m.
+
+Execution repository: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+Data root: work_b (/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap)
+
+[INFO] Proposed SLURM array script:
+
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --job-name=RMatrix_Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=richard.capobianco@uconn.edu
+#SBATCH --output=/farm_out/%u/%x-%A_%a-%j-%N.out
+#SBATCH --error=/farm_out/%u/%x-%A_%a-%j-%N.err
+#SBATCH --partition=production
+#SBATCH --account=clas12
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=14GB
+#SBATCH --time=24:00:00
+#SBATCH --array=3,4,5,6,7,8,9,10,11,12,13,14,25,26,27,28,29,30,31,32,33,34,35,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168
+
+BATCH_ID=${SLURM_ARRAY_TASK_ID}
+BATCH_PAD=$(printf "%03d" "${BATCH_ID}")
+cd /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026
+/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Response_Matrix_Creation_using_RDataFrames.py --batch_id ${BATCH_ID} --data_root work_b -cnR cut_Complete_SIDIS -cnM cut_Complete_SIDIS --make_root --unfold_5D --fast --spline_weights --spline_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt --run_rho_weight --matching_criteria Bank -n Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_Final_Thesis_Files_Batch${BATCH_PAD} -r /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026/SIDIS_epip_Response_Matrices_from_RDataFrames.root --run_rho_weight --unfold_5D_only --spline_weights --reconstruction_weight recs --book_recw --cumulative_iteration 1 --weight_comparison --recw_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root --recs_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt --recs_spline_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt --rho0_source rho0_new
+
+
+[INFO] --skip_slurm_hadd: array only; local hybrid hadd will merge after remaining tasks finish.
+
+
+[INFO] --yes set: auto-approving SLURM submission.
+Submitted SLURM array job 15147784
+
+
+
+
+EMAIL MESSAGE TO SEND:
+
+
+The 'run_sidis_DataFrame_pipeline.py' script has finished running.
+Started running on 11-19-2026 at 07:19 p.m.
+
+
+Submitted SLURM array job 15147784
+
+Arguments:
+
+--mode                                              --> 'slurm'
+--cut_name                                          --> 'cut_Complete_SIDIS'
+--no_make_2D                                        --> True
+--no_make_2D_rho                                    --> True
+--z_axis_2D                                         --> '4D_Bin'
+--valerii_bins                                      --> False
+--use_hpp                                           --> False
+--spline_weights                                    --> True
+--spline_weight_file                                --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt'
+--json_weights                                      --> False
+--json_file                                         --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Fit_Pars_from_3D_Bayesian_with_Toys.json'
+--hpp_weight_file                                   --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/generated_acceptance_weights.hpp'
+--hpp_weight_file_spline                            --> None
+--run_rho_weight                                    --> True
+--unsmeared                                         --> False
+--matching_criteria                                 --> 'Bank'
+--make_2D_only                                      --> False
+--unfold_5D_only                                    --> False
+--old_3D_unfold                                     --> False
+--name_in                                           --> ['*Final_Thesis_Files*.root', '*lundvpk*.root', '*lundrho*.root']
+--name                                              --> 'Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices'
+--num_batches                                       --> 171
+--rho_source_token                                  --> None
+--data_root                                         --> 'work_b'
+--work_dir                                          --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/hadd_ROOT_files_From_using_RDataFrames'
+--scratch_dir                                       --> '/scratch/richcap/Response_Matrix_Outputs'
+--log_dir                                           --> '/scratch/richcap/Response_Matrix_Outputs'
+--jobs                                              --> 6
+--continue_on_failure                               --> False
+--slurm_time                                        --> '24:00:00'
+--batch_ids                                         --> '3-14,25-35,37-75,77-168'
+--replace_listed_batches                            --> False
+--defer_merge                                       --> False
+--submission_config                                 --> None
+--slurm_mem                                         --> '14GB'
+--slurm_cpus                                        --> '1'
+--campaign_resource_mode                            --> 'AllWeights'
+--histogram_local_cap                               --> None
+--campaign_worker_cap                               --> None
+--campaign_worker_name                              --> None
+--slurm_array_jobid                                 --> None
+--batch_output_dir                                  --> '/lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026'
+--run_subdir_name                                   --> 'Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026'
+--skip_slurm_hadd                                   --> True
+--rdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/REAL_Data'
+--mdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/Matching_REC_MC'
+--gdf_dir                                           --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/GEN_MC'
+--batch_file                                        --> '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/File_Batches.py'
+--verbose                                           --> False
+--yes                                               --> True
+--extra                                             --> ['--run_rho_weight', '--unfold_5D_only', '--spline_weights', '--reconstruction_weight', 'recs', '--book_recw', '--cumulative_iteration', '1', '--weight_comparison', '--recw_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root', '--recs_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt', '--recs_spline_file', '/w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt', '--rho0_source', 'rho0_new']
+
+
+The time that this code finished is 07:19 p.m.
+The total time the code took to run is:
+0 Day(s), 0 Hour(s), 0 Minute(s), and 2 Second(s).
+
+    
+
+
+    	                                   	
+    	This code has now finished running.	
+    	                                   	   
+
+    
+
+Captured SLURM array job id 15147784 for Iter1_AllWeights-slurm
+Waiting 1s for SLURM to register array job before local squeue checks.
+CMD [Iter1_AllWeights-parallel]: ./run_sidis_DataFrame_pipeline.py --data_root work_b -m parallel -cn cut_Complete_SIDIS -n Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices --name_in *Final_Thesis_Files*.root *lundvpk*.root *lundrho*.root --spline_weights --spline_weight_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Prepare_Next_Iteration/acc020_3D_BC_RC_normGenA_iter2_4D_xB_Fit_Pars_from_3D_BC_RC_Bayesian_Compute_SplineWeight.txt --matching_criteria Bank --run_rho_weight --no_make_2D_rho --no_make_2D --slurm_array_jobid 15147784 --jobs 2 --batch_output_dir /lustre24/expphy/volatile/clas12/richcap/RDataFrames_to_Delete_from_work/Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026 --run_subdir_name Iter1_AllWeights_AllWeights_physiter2_Bank_Response_Matrices_iter2_Final_Thesis_Files_11_19_2026 --slurm_mem 14GB --slurm_cpus 1 -crm AllWeights --slurm_time 24:00:00 --batch_ids 3-14,25-35,37-75,77-168 --extra --run_rho_weight --unfold_5D_only --spline_weights --reconstruction_weight recs --book_recw --cumulative_iteration 1 --weight_comparison --recw_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/Rec_Weight.root --recs_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_default_iter1_4D_xB_phi_RecS_default_iter1_RecS.txt --recs_spline_file /w/ceph24/hallb/clas12/users/richcap/SIDIS_Analysis_CLAS12_RichCap/Histo_Files_ROOT/DataFrames/RecW_Output/RecS_spline_iter1_4D_xB_phi_RecS_spline_iter1_RecS.txt --rho0_source rho0_new

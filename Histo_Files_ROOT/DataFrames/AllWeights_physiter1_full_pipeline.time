@@ -8,3 +8,13 @@ peak_memory: 490.41 MB
 wall_time: 54722.97 s
 peak_memory: 490.41 MB
 
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-11-19T16:43:36 name=AllWeights_physiter1 mode=hybrid email=runner =====
+=== TASK: Iter1_AllWeights-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.64 s
+peak_memory: 490.44 MB
+
+=== TASK: Iter1_AllWeights-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 86467.82 s
+peak_memory: 11.55 GB
+
