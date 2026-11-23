@@ -9,6 +9,7 @@ import json
 import math
 import os
 import shutil
+import subprocess
 import sys
 
 import ROOT
@@ -137,6 +138,11 @@ def parse_args():
     parser.add_argument("-pbso", "--pid_background_output", default="", help="Output directory for the background-to-signal ratios.")
     parser.add_argument("-pbsn", "--pid_background_nominal", default="", help="Nominal spline ROOT file for the background-to-signal ratios.")
     parser.add_argument("-pbsv", "--pid_background_variation", default="", help="Stricter pion PID spline ROOT file for the background-to-signal ratios.")
+    parser.add_argument("-gmm", "--generated_mm_study", action="store_true", help="Fill the local generated missing-mass study. Default off.")
+    parser.add_argument("-gmp", "--generated_mm_plot", action="store_true", help="Redraw the generated missing-mass study from saved ROOT files. Default off.")
+    parser.add_argument("-gdf", "--generated_dataframe", default="", help="Generated clasdis DataFrame for the generated missing-mass study.")
+    parser.add_argument("-gmb", "--generated_mm_before", default="", help="ROOT file of generated histograms before the missing-mass cut.")
+    parser.add_argument("-gma", "--generated_mm_after", default="", help="ROOT file of generated histograms after the missing-mass cut.")
     return parser.parse_args()
 
 
@@ -2074,6 +2080,339 @@ def draw_pid_background_signal(args):
     print("pid ratio summary %s" % summary_path)
 
 
+GEN_MM_DIR_DEFAULT = "/Users/richardcapobianco/Desktop/MM_Generated_Level_Cut_Study"
+GEN_ZPT_NAME       = "(Normal_2D)_(gdf)_(generated_MM)_(SMEAR='')_(Q2_Y_Bin)_(z)_(pT)"
+GEN_MM_NAME        = "(Only_1D)_(gdf)_(generated_MM)_(SMEAR='')_(Q2_Y_Bin)_(z_pT_Bin_Y_bin)_(MM)"
+GROK_CODING        = "/Users/richardcapobianco/Desktop/Work_Offline.nosync/Grok_Coding"
+
+
+def generated_mm_output(args):
+    if(args.output_dir not in ["", None]):
+        return args.output_dir
+    return GEN_MM_DIR_DEFAULT
+
+
+def generated_bin_borders(q2y, zpt):
+    corners = Full_Bin_Definition_Array.get("Q2-y=%d, z-pT=%d" % (q2y, zpt))
+    if(corners is None):
+        return "", "", "", ""
+    z_max, z_min, pt_max, pt_min = corners
+    return z_min, z_max, pt_min, pt_max
+
+
+def book_generated_mm_pair(frame, zpt_name, mm_name, model_tag):
+    pair = {}
+    pair[zpt_name] = frame.Histo3D(("%s_%s" % (model_tag, zpt_name), "generated z vs P_{T}", 100, 0.0, 1.0, 105, 0.0, 1.05, 18, -0.5, 17.5), "z", "pT", "Q2_Y_Bin")
+    pair[mm_name]  = frame.Histo3D(("%s_%s" % (model_tag, mm_name), "generated M_{X}", 80, 0.5, 4.5, 18, -0.5, 17.5, 38, -0.5, 37.5), "MM", "Q2_Y_Bin", "z_pT_Bin_Y_bin")
+    return pair
+
+
+def write_evaluated_histograms(histograms, path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    output = ROOT.TFile(path, "RECREATE")
+    if((output is None) or output.IsZombie()):
+        raise RuntimeError("could not write %s" % path)
+    output.cd()
+    for name in histograms:
+        hist = histograms[name].GetValue()
+        hist.SetDirectory(0)
+        hist.SetName(name)
+        output.cd()
+        hist.Write()
+    output.Close()
+    print("wrote %s" % path)
+
+
+def run_generated_mm_study(args):
+    gdf_path = args.generated_dataframe
+    if(gdf_path in ["", None]):
+        raise RuntimeError("generated missing-mass study needs --generated_dataframe")
+    if(not os.path.isfile(gdf_path)):
+        raise RuntimeError("generated DataFrame is missing: %s" % gdf_path)
+    output = generated_mm_output(args)
+    before_root = os.path.join(output, "root", "generated_mm_before.root")
+    after_root  = os.path.join(output, "root", "generated_mm_after.root")
+    frame  = ROOT.RDataFrame("h22", gdf_path)
+    passed = frame.Filter("MM > 1.8")
+    before_histograms = book_generated_mm_pair(frame, GEN_ZPT_NAME, GEN_MM_NAME, "before")
+    after_histograms  = book_generated_mm_pair(passed, GEN_ZPT_NAME, GEN_MM_NAME, "after")
+    ROOT.RDF.RunGraphs(list(before_histograms.values()) + list(after_histograms.values()))
+    write_evaluated_histograms(before_histograms, before_root)
+    write_evaluated_histograms(after_histograms, after_root)
+    args.generated_mm_before = before_root
+    args.generated_mm_after  = after_root
+    draw_generated_mm_report(args)
+
+
+def load_named_hist(path, name):
+    handle = ROOT.TFile.Open(path)
+    if((handle is None) or handle.IsZombie()):
+        raise RuntimeError("could not open %s" % path)
+    hist = handle.Get(name)
+    if(not hist):
+        handle.Close()
+        raise RuntimeError("missing %s in %s" % (name, path))
+    clone = hist.Clone("%s_mem" % name)
+    clone.SetDirectory(0)
+    handle.Close()
+    return clone
+
+
+def spectrum_count(hist):
+    return float(hist.Integral(0, hist.GetNbinsX() + 1))
+
+
+def generated_percent_text(rejected, before):
+    if(before <= 0):
+        return ""
+    return "%.4f" % (100.0 * float(rejected) / float(before))
+
+
+def classify_generated_bin(before, rejected):
+    if(before <= 0):
+        return "empty", "no"
+    if(rejected > 0):
+        return "observed loss", "yes"
+    return "zero observed loss", "no"
+
+
+def collect_generated_rows(before_mm, after_mm):
+    rows = []
+    for q2y in range(1, 18):
+        kept, rows_n, cols_n = retained_bins(q2y)
+        for zpt in kept:
+            before_hist = project_mm_cell(before_mm, q2y, zpt, "gen_before")
+            after_hist  = project_mm_cell(after_mm, q2y, zpt, "gen_after")
+            n_before = spectrum_count(before_hist)
+            n_after  = spectrum_count(after_hist)
+            n_rejected = n_before - n_after
+            if(abs(n_rejected - round(n_rejected)) > 1e-6):
+                raise RuntimeError("non-integer removal for %s %s" % (q2y, zpt))
+            n_before   = int(round(n_before))
+            n_after    = int(round(n_after))
+            n_rejected = int(round(n_rejected))
+            if(n_before != n_after + n_rejected):
+                raise RuntimeError("count mismatch for Q2-y %s z-pT %s" % (q2y, zpt))
+            if(n_rejected < 0):
+                raise RuntimeError("after exceeds before for Q2-y %s z-pT %s" % (q2y, zpt))
+            observed, candidate = classify_generated_bin(n_before, n_rejected)
+            z_min, z_max, pt_min, pt_max = generated_bin_borders(q2y, zpt)
+            rows.append({
+                "q2y_bin": q2y,
+                "zpt_bin": zpt,
+                "grid_rows": rows_n,
+                "grid_cols": cols_n,
+                "z_min": z_min,
+                "z_max": z_max,
+                "pT_min": pt_min,
+                "pT_max": pt_max,
+                "n_before": n_before,
+                "n_after": n_after,
+                "n_rejected": n_rejected,
+                "percent_removed": generated_percent_text(n_rejected, n_before),
+                "observed_class": observed,
+                "review_candidate": candidate,
+                "before_hist": before_hist,
+                "after_hist": after_hist,
+            })
+    return rows
+
+
+def load_zpt_drawer():
+    if(GROK_CODING not in sys.path):
+        sys.path.insert(0, GROK_CODING)
+    import make_2D_presentation_plots as zpt_draw
+    return zpt_draw
+
+
+def color_limits(before_hist, after_hist):
+    zmin = min(before_hist.GetMinimum(), after_hist.GetMinimum())
+    zmax = max(before_hist.GetMaximum(), after_hist.GetMaximum())
+    if(zmax <= zmin):
+        zmax = zmin + 1.0
+    return zmin, zmax
+
+
+def draw_generated_zpt_pair(zpt_draw, before_th3, after_th3, q2y, destination, remain_zpt):
+    before_hist = zpt_draw.prepare_z_vs_pt_hist(before_th3, q2y, "Q2_Y_Bin", "gen_before_%s" % q2y)
+    after_hist  = zpt_draw.prepare_z_vs_pt_hist(after_th3, q2y, "Q2_Y_Bin", "gen_after_%s" % q2y)
+    zmin, zmax = color_limits(before_hist, after_hist)
+    before_hist.SetMinimum(zmin)
+    before_hist.SetMaximum(zmax)
+    after_hist.SetMinimum(zmin)
+    after_hist.SetMaximum(zmax)
+    canvas = ROOT.TCanvas("gen_zpt_%s" % q2y, "", 1600, 800)
+    canvas.Divide(2, 1, 0.01, 0.01)
+    alive = []
+    zpt_draw.draw_z_vs_pt_on_pad(canvas.cd(1), before_hist, q2y, "pdf", False, False, False, alive, False, "Generated clasdis, before cut", draw_mm_cut_lines=True, outline_zpt=None, box_line_width=1)
+    zpt_draw.draw_z_vs_pt_on_pad(canvas.cd(2), after_hist, q2y, "pdf", False, False, False, alive, False, "Generated clasdis, MM > 1.8 GeV", draw_mm_cut_lines=True, outline_zpt=remain_zpt, box_line_width=1)
+    os.makedirs(os.path.dirname(destination), exist_ok=True)
+    canvas.SaveAs(destination)
+    canvas.Close()
+    print("wrote %s" % destination)
+
+
+def draw_generated_mm_cell(pad, row):
+    pad.cd()
+    pad.SetFillColor(ROOT.kWhite)
+    pad.SetTopMargin(0.28)
+    pad.SetBottomMargin(0.16)
+    pad.SetLeftMargin(0.16)
+    pad.SetRightMargin(0.04)
+    before_hist = row["before_hist"]
+    after_hist  = row["after_hist"]
+    ymax = max(before_hist.GetMaximum(), after_hist.GetMaximum())
+    if(ymax <= 0):
+        ymax = 1.0
+    ymax = 1.15 * ymax
+    before_hist.SetLineColor(ROOT.kBlue + 1)
+    before_hist.SetLineWidth(2)
+    after_hist.SetLineColor(ROOT.kRed + 1)
+    after_hist.SetLineWidth(2)
+    before_hist.SetStats(0)
+    after_hist.SetStats(0)
+    before_hist.GetYaxis().SetRangeUser(0.0, ymax)
+    before_hist.GetXaxis().SetTitle("M_{X} [GeV]")
+    if(row["percent_removed"] == ""):
+        percent_line = "empty"
+    else:
+        percent_line = "removed %s%%" % row["percent_removed"]
+    before_hist.SetTitle("z-P_{T} %d  before %d  after %d  %s" % (row["zpt_bin"], row["n_before"], row["n_after"], percent_line))
+    before_hist.Draw("HIST")
+    after_hist.Draw("HIST SAME")
+    cut_line = ROOT.TLine(MM_THRESHOLD, 0.0, MM_THRESHOLD, ymax)
+    cut_line.SetLineColor(ROOT.kBlack)
+    cut_line.SetLineStyle(2)
+    cut_line.SetLineWidth(2)
+    cut_line.Draw("same")
+    pad.Modified()
+    return [before_hist, after_hist, cut_line]
+
+
+def draw_generated_mm_page(q2y, rows, destination):
+    kept, grid_rows, grid_cols = retained_bins(q2y)
+    by_zpt = {}
+    for row in rows:
+        if(row["q2y_bin"] == q2y):
+            by_zpt[row["zpt_bin"]] = row
+    canvas = ROOT.TCanvas("gen_mm_%s" % q2y, "", 2200, 1800)
+    canvas.Divide(grid_cols, grid_rows, 0.004, 0.004)
+    alive = []
+    for zpt in range(1, grid_rows * grid_cols + 1):
+        pad = canvas.cd(zpt)
+        pad.SetFillColor(ROOT.kWhite)
+        if(zpt not in by_zpt):
+            continue
+        alive.extend(draw_generated_mm_cell(pad, by_zpt[zpt]))
+    os.makedirs(os.path.dirname(destination), exist_ok=True)
+    canvas.SaveAs(destination)
+    canvas.Close()
+    print("wrote %s" % destination)
+
+
+def tex_num(value):
+    if(value in ["", None]):
+        return "---"
+    return "%.4g" % float(value)
+
+
+def write_generated_review(output, rows):
+    review_dir = os.path.join(output, "review")
+    os.makedirs(review_dir, exist_ok=True)
+    lines = []
+    lines.append("\\documentclass[11pt]{article}")
+    lines.append("\\usepackage{graphicx}")
+    lines.append("\\usepackage{booktabs}")
+    lines.append("\\usepackage{geometry}")
+    lines.append("\\usepackage{longtable}")
+    lines.append("\\geometry{margin=0.7in}")
+    lines.append("\\begin{document}")
+    lines.append("\\section*{Generated missing-mass cut, local clasdis sample}")
+    lines.append("This note uses one local generated clasdis DataFrame. The same unweighted events are compared before and after the stored missing mass is required to satisfy $M_X > 1.8$~GeV. Bin membership is the stored $Q^{2}$--$y$ and $z$--$P_T$ assignment. Only bins retained by the current analysis are shown, with their original numbers and borders. A retained bin that loses events is marked as a candidate for review. The nominal skip list is not changed. A removal percentage is the fraction of generated events in that bin in this file. A bin with no events before the cut has no percentage.")
+    lines.append("")
+    for q2y in range(1, 18):
+        group = [row for row in rows if(row["q2y_bin"] == q2y)]
+        n_loss = len([row for row in group if(row["observed_class"] == "observed loss")])
+        lines.append("\\section*{$Q^{2}$--$y$ bin %d}" % q2y)
+        lines.append("Retained bins with observed loss in this interval: %d." % n_loss)
+        lines.append("\\begin{figure}[h]")
+        lines.append("\\centering")
+        lines.append("\\includegraphics[width=\\textwidth]{../figures/zpt/Q2y_%02d_before_after.pdf}" % q2y)
+        lines.append("\\caption{Generated event counts in $Q^{2}$--$y$ bin %d. Both panels use the same axes and the same color limits. The colors are the generated sample before the missing-mass cut on the left and after $M_X > 1.8$~GeV on the right. The saved after-cut density is unchanged. Boxes on the left mark the bins retained by the nominal analysis. Boxes on the right mark only the bins that remain after the proposed exclusions. Bins already omitted by the nominal analysis are unoutlined on both panels. The curves are the inner and outer $M_X = 1.8$~GeV boundaries.}" % q2y)
+        lines.append("\\end{figure}")
+        lines.append("\\begin{figure}[h]")
+        lines.append("\\centering")
+        lines.append("\\includegraphics[width=\\textwidth]{../figures/mm/Q2y_%02d_spectra.pdf}" % q2y)
+        lines.append("\\caption{Generated missing mass for the retained $z$--$P_T$ bins of $Q^{2}$--$y$ bin %d. Blue is before the cut and red is after $M_X > 1.8$~GeV. The dashed line is $1.8$~GeV.}" % q2y)
+        lines.append("\\end{figure}")
+        lines.append("\\begingroup")
+        lines.append("\\footnotesize")
+        lines.append("\\setlength{\\tabcolsep}{4pt}")
+        lines.append("\\begin{longtable}{rrrrrrrrl}")
+        lines.append("\\toprule")
+        lines.append("$z$--$P_T$ & $z_{\\min}$ & $z_{\\max}$ & $P_{T,\\min}$ & $P_{T,\\max}$ & Before & After & Removed & Class \\\\")
+        lines.append("\\midrule")
+        lines.append("\\endhead")
+        for row in group:
+            percent = row["percent_removed"]
+            if(percent == ""):
+                removed_text = "---"
+            else:
+                removed_text = "%d (%s\\%%)" % (row["n_rejected"], percent)
+            klass = row["observed_class"]
+            if(row["review_candidate"] == "yes"):
+                klass = "observed loss; candidate for review"
+            lines.append("%d & %s & %s & %s & %s & %d & %d & %s & %s \\\\" % (row["zpt_bin"], tex_num(row["z_min"]), tex_num(row["z_max"]), tex_num(row["pT_min"]), tex_num(row["pT_max"]), row["n_before"], row["n_after"], removed_text, klass))
+        lines.append("\\bottomrule")
+        lines.append("\\end{longtable}")
+        lines.append("\\endgroup")
+        lines.append("\\clearpage")
+    lines.append("\\end{document}")
+    tex_path = os.path.join(review_dir, "Generated_MM_Cut_Review.tex")
+    handle = open(tex_path, "w")
+    handle.write("\n".join(lines) + "\n")
+    handle.close()
+    print("wrote %s" % tex_path)
+    subprocess.check_call(["/opt/homebrew/bin/tectonic", "--keep-logs", "-p", "Generated_MM_Cut_Review.tex"], cwd=review_dir)
+    print("compiled %s" % os.path.join(review_dir, "Generated_MM_Cut_Review.pdf"))
+
+
+def draw_generated_mm_report(args):
+    before_path = args.generated_mm_before
+    after_path  = args.generated_mm_after
+    if((before_path in ["", None]) or (after_path in ["", None])):
+        raise RuntimeError("generated missing-mass plot needs --generated_mm_before and --generated_mm_after")
+    output = generated_mm_output(args)
+    before_zpt = load_named_hist(before_path, GEN_ZPT_NAME)
+    after_zpt  = load_named_hist(after_path, GEN_ZPT_NAME)
+    before_mm  = load_named_hist(before_path, GEN_MM_NAME)
+    after_mm   = load_named_hist(after_path, GEN_MM_NAME)
+    rows = collect_generated_rows(before_mm, after_mm)
+    csv_path = os.path.join(output, "csv", "retained_bin_summary.csv")
+    write_mm_csv(csv_path, rows, ["q2y_bin", "zpt_bin", "z_min", "z_max", "pT_min", "pT_max", "n_before", "n_after", "n_rejected", "percent_removed", "observed_class", "review_candidate"])
+    print("wrote %s" % csv_path)
+    zpt_draw = load_zpt_drawer()
+    n_loss = 0
+    n_zero = 0
+    n_empty = 0
+    for row in rows:
+        if(row["observed_class"] == "observed loss"):
+            n_loss += 1
+        elif(row["observed_class"] == "zero observed loss"):
+            n_zero += 1
+        else:
+            n_empty += 1
+    print("retained %s observed_loss %s zero_observed_loss %s empty %s" % (len(rows), n_loss, n_zero, n_empty))
+    for q2y in range(1, 18):
+        remain_zpt = set()
+        for row in rows:
+            if((row["q2y_bin"] == q2y) and (row["observed_class"] == "zero observed loss")):
+                remain_zpt.add(int(row["zpt_bin"]))
+        draw_generated_zpt_pair(zpt_draw, before_zpt, after_zpt, q2y, os.path.join(output, "figures", "zpt", "Q2y_%02d_before_after.pdf" % q2y), remain_zpt)
+        draw_generated_mm_page(q2y, rows, os.path.join(output, "figures", "mm", "Q2y_%02d_spectra.pdf" % q2y))
+    write_generated_review(output, rows)
+
+
 def selected_families(args):
     if(len(args.family) > 0):
         return list(args.family)
@@ -2082,6 +2421,16 @@ def selected_families(args):
 
 def main():
     args = parse_args()
+    if(args.generated_mm_study):
+        run_generated_mm_study(args)
+        for handle in OPEN_FILES.values():
+            handle.Close()
+        return
+    if(args.generated_mm_plot):
+        draw_generated_mm_report(args)
+        for handle in OPEN_FILES.values():
+            handle.Close()
+        return
     if(args.missing_mass_consolidated):
         draw_thesis_mm_mosaics(args)
         for handle in OPEN_FILES.values():
