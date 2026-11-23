@@ -28,3 +28,11 @@ peak_memory: 490.12 MB
 wall_time: 1.52 s
 peak_memory: 490.69 MB
 
+=== TASK: Iter1_AllWeights_A-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 231270.25 s
+peak_memory: 6.27 GB
+
+=== TASK: Iter1_AllWeights_B-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 231358.24 s
+peak_memory: 6.27 GB
+
