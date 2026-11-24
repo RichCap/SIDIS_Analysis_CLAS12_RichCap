@@ -34,10 +34,6 @@ SLURM_MEM = "15000"
 SLURM_TIME = "1:40:00"
 LOCAL_DELAY_S = 60
 
-# CHI2PID_CUT_strict_pip uses coefficient 0.88 and electron momentum el.
-# ExtraAnalysisCodeValues.py lines 2744-2751. The campaign uses the stored column as written.
-
-
 def cut_name(suffix):
     if(suffix in [None, ""]):
         return DEFAULT_CUT
@@ -55,10 +51,13 @@ def phase1_row(config_id, suffix, unsmeared=False):
 
 def phase1_configs():
     rows = [phase1_row("nominal", "")]
-    rows.append(phase1_row("chi2_strict_pip", "chi2_strict_pip"))
+    # Dropped 2026-11-24: existing DataFrames used electron momentum for this cut
+    # instead of the Groovy tight-pion PID decision.
+    # rows.append(phase1_row("chi2_strict_pip", "chi2_strict_pip"))
     pairs = [
         "dcfid_loose_el", "dcfid_tight_el",
         "dcfid_loose_pip", "dcfid_tight_pip",
+        "pip_testdc_loose", "pip_testdc_tight",
         "dcv_loose_el", "dcv_tight_el",
         "dvz_loose_pip", "dvz_tight_pip",
         "pcalvol_loose", "pcalvol_tight",
@@ -70,11 +69,28 @@ def phase1_configs():
         rows.append(phase1_row(suffix, suffix))
     for sector in range(1, 7):
         rows.append(phase1_row("eS%do" % sector, "eS%do" % sector))
-        rows.append(phase1_row("pipS%do" % sector, "pipS%do" % sector))
-    for suffix in ["no_pip_testdc", "no_sector_pcal", "no_valerii_knockout"]:
+        # Dropped 2026-11-24: the pion-sector systematic was retired.
+        # rows.append(phase1_row("pipS%do" % sector, "pipS%do" % sector))
+    for suffix in ["no_sector_pcal", "no_valerii_knockout"]:
         rows.append(phase1_row(suffix, suffix))
     rows.append(phase1_row("noSmear", "noSmear", unsmeared=True))
     return rows
+
+
+def historical_phase1_configs():
+    # Older recovery manifests can reference these retired configurations.
+    ids = ["no_pip_testdc", "chi2_strict_pip"] + ["pipS%do" % sector for sector in range(1, 7)]
+    return [phase1_row(name, name) for name in ids]
+
+
+def recovery_catalog():
+    catalog = {}
+    for row in phase1_configs():
+        catalog[row["id"]] = row
+    for row in historical_phase1_configs():
+        if(row["id"] not in catalog):
+            catalog[row["id"]] = row
+    return catalog
 
 
 def phase2_branches():
@@ -416,9 +432,7 @@ def nominal_complete_command(python, submit_script, data_root, campaign, hpp_pur
 
 
 def recovery_configs(payload):
-    catalog = {}
-    for row in phase1_configs():
-        catalog[row["id"]] = row
+    catalog = recovery_catalog()
     chosen = []
     seen = []
     for item in payload["configs"]:
@@ -867,9 +881,9 @@ def sbatch_script(job_name, log_dir, python, script, data_root, response, parts_
 
 def output_counts(weight_mode):
     if(weight_mode == "both"):
-        arrays = 82
+        arrays = 70
     elif(weight_mode in ["unweighted", "weighted"]):
-        arrays = 49
+        arrays = 43
     else:
         raise ValueError("unknown weight mode %s" % weight_mode)
     return arrays, arrays * 17, arrays
@@ -1679,16 +1693,27 @@ def phase2_history_record(manifest, row, array_id):
 
 def self_test():
     rows = phase1_configs()
-    if(len(rows) != 34):
+    if(len(rows) != 28):
         raise SystemExit("Phase 1 count is %s" % len(rows))
     ids = [row["id"] for row in rows]
-    if(len(set(ids)) != 34):
+    if(len(set(ids)) != 28):
         raise SystemExit("Phase 1 ids are not unique")
+    if("no_pip_testdc" in ids):
+        raise SystemExit("polygon-off job is still scheduled")
+    if((ids.count("pip_testdc_loose") != 1) or (ids.count("pip_testdc_tight") != 1)):
+        raise SystemExit("polygon variations were not both scheduled")
+    if(ids[ids.index("pip_testdc_loose") + 1] != "pip_testdc_tight"):
+        raise SystemExit("polygon variations are not a loose/tight pair")
+    if(("dcfid_loose_pip" not in ids) or ("dcfid_tight_pip" not in ids)):
+        raise SystemExit("pion DC edge variations changed")
+    historical = recovery_catalog()
+    if(("no_pip_testdc" not in historical) or (historical["no_pip_testdc"]["cut"] != "cut_Complete_SIDIS_no_pip_testdc")):
+        raise SystemExit("historical polygon-off id was dropped")
     cuts = [row["cut"] for row in rows]
     if(DEFAULT_CUT not in cuts):
         raise SystemExit("nominal cut missing")
-    if("cut_Complete_SIDIS_chi2_strict_pip" not in cuts):
-        raise SystemExit("strict chi2 cut missing")
+    if(any(row["id"] in ids for row in historical_phase1_configs())):
+        raise SystemExit("retired variation scheduled")
     if(any(("pass1" in cut) or ("MM_" in cut) for cut in cuts)):
         raise SystemExit("excluded cut was scheduled")
     if(any("removed" in row["id"] for row in rows)):
@@ -1751,11 +1776,11 @@ def self_test():
         raise SystemExit("both-mode order is not weighted then unweighted")
     if(len(set(job["lineage"] for job in both)) != 1):
         raise SystemExit("both mode split the lineage")
-    if(output_counts("unweighted") != (49, 833, 49)):
+    if(output_counts("unweighted") != (43, 731, 43)):
         raise SystemExit("unweighted counts")
-    if(output_counts("weighted") != (49, 833, 49)):
+    if(output_counts("weighted") != (43, 731, 43)):
         raise SystemExit("weighted counts")
-    if(output_counts("both") != (82, 1394, 82)):
+    if(output_counts("both") != (70, 1190, 70)):
         raise SystemExit("both counts")
     cmd = phase1_command("python", "Submit_Full_Histogram_Creation_Pipeline.py", "work_b", "demo", 41, other, "/hpp/a_noSpline.hpp", "/hpp/a_withSpline.hpp")
     text = command_text(cmd)
@@ -1806,10 +1831,10 @@ def self_test():
     resumed_nom = [row for row in resumed["phase1"] if(row["id"] == "nominal")][0]
     if(resumed_nom["hpp_spline"] != nominal_row["hpp_spline"]):
         raise SystemExit("resume replaced the recorded HPP path")
-    if(len(manifest["phase2"]) != 49):
+    if(len(manifest["phase2"]) != 43):
         raise SystemExit("unweighted Phase 2 rows %s" % len(manifest["phase2"]))
     both_manifest = build_manifest("work_b", "demo", "both", 41, "Final_Thesis", False, "stamp")
-    if(len(both_manifest["phase2"]) != 82):
+    if(len(both_manifest["phase2"]) != 70):
         raise SystemExit("both Phase 2 rows %s" % len(both_manifest["phase2"]))
     script = sbatch_script("SysUnfold_nominal", "/logs", "python3", "run_Simple_Unfold.py", "work_b", "/in.root", "/parts", "Sys3D_nominal_inherited_AccSpline", "inherited", "AccSpline")
     bayes_script = sbatch_script("SysUnfold_bayes", "/logs", "python3", "run_Simple_Unfold.py", "work_b", "/in.root", "/parts", "Sys3D_nominal_BayesMinus1_AccSpline", "BayesMinus1", "AccSpline")

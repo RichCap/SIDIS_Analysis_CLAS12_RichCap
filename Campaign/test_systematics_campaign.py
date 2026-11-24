@@ -44,14 +44,14 @@ def dry_run_leaves_manifest_bytes():
     manifest = runner.last_manifest
     if(manifest is None):
         raise SystemExit("dry-run did not build a manifest")
-    if(len(manifest["phase1"]) != 34):
+    if(len(manifest["phase1"]) != 28):
         raise SystemExit("dry-run phase1 count")
-    if(len(manifest["phase2"]) != 82):
+    if(len(manifest["phase2"]) != 70):
         raise SystemExit("dry-run both-mode phase2 count")
     nominal = [row for row in manifest["phase1"] if(row["id"] == "nominal")][0]
-    other = [row for row in manifest["phase1"] if(row["id"] == "chi2_strict_pip")][0]
-    if("cut_Complete_SIDIS_chi2_strict_pip" not in " ".join(other["command"])):
-        raise SystemExit("dry-run dropped the strict chi2 cut")
+    other = [row for row in manifest["phase1"] if(row["id"] == "pip_testdc_loose")][0]
+    if("cut_Complete_SIDIS_pip_testdc_loose" not in " ".join(other["command"])):
+        raise SystemExit("dry-run dropped the loose pion polygon cut")
     if("-mac" not in other["command"]):
         raise SystemExit("dry-run dropped Bank matching")
     if(nominal["hpp_nospline"] in [None, ""]):

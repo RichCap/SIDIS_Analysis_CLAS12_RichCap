@@ -4,7 +4,7 @@ Launcher:
 
 `Campaign/run_sidis_systematics_campaign.py`
 
-The command prepares 34 Phase 1 response-matrix configurations and 7 nominal-only unfolding branches. It does not start work unless `--dry_run` is omitted. A production run still has to be authorized separately.
+The command prepares 28 Phase 1 response-matrix configurations and 7 nominal-only unfolding branches. It does not start work unless `--dry_run` is omitted. A production run still has to be authorized separately.
 
 ## Flags
 
@@ -12,7 +12,7 @@ The command prepares 34 Phase 1 response-matrix configurations and 7 nominal-onl
 |---|---|---|
 | `-c` / `--campaign` | `systematics_3d` | Run name used in the work directory, log, and output names |
 | `-droot` / `--data_root` | `work_b` | Analysis data root |
-| `-wm` / `--weight_mode` | `unweighted` | Phase 2 response for the 33 non-nominal configurations: `unweighted`, `weighted` (spline), or `both` |
+| `-wm` / `--weight_mode` | `unweighted` | Phase 2 response for the 34 non-nominal configurations: `unweighted`, `weighted` (spline), or `both` |
 | `-sac` / `--spline_amplitude_correction` | `auto` | For 3D Spline, apply the generated-column correction and keep each job's original acceptance mask. The output suffix is `_ColGenRatio`. `off` keeps the legacy calculation. `_DivUnw` is not a completed result. AccSpline stays uncorrected. A resumed manifest without this field stays `off` |
 | `-rnh` / `--regenerate_nominal_spline_hpp` | off | Write a new nominal spline HPP file. Do not overwrite the existing HPP products |
 | `-mlw` / `--max_local_workers` | `41` | Local histogram plus unfold workers. Values above 41 are rejected. A lower value staggers local work only |
@@ -26,7 +26,7 @@ Nominal ordinary Phase 2 reads `Unweighted` and `Spline`. `Acc` is compared with
 
 ## What is scheduled
 
-Phase 1 is one hybrid Only_3D run per stored cut, all with Bank matching. The strict π⁺ χ² configuration is `cut_Complete_SIDIS_chi2_strict_pip`. Smearing-off uses `cut_Complete_SIDIS_noSmear` and `--unsmeared`. Each configuration keeps the four MC histogram variants: unweighted, `Acc`, `Spline`, and `AccSpline`.
+Phase 1 is one hybrid Only_3D run per stored cut, all with Bank matching. Smearing-off uses `cut_Complete_SIDIS_noSmear` and `--unsmeared`. Each configuration keeps the four MC histogram variants: unweighted, `Acc`, `Spline`, and `AccSpline`.
 
 Phase 2 branches, from the nominal response only: `BayesMinus1`, `BayesPlus1`, `Acc015`, `Acc025`, `Phi12`, `NoRho0`, each as `Unweighted` and `Spline`. Six-bin φₕ merging is not available in the current unfolder, so it is not scheduled.
 
@@ -37,7 +37,7 @@ Leave `-rnh` off unless the spline weights have changed. When it is on:
 - Only the nominal spline-weighted HPP product is created.
 - The new file is `generated_acceptance_weights_<tag>_withSpline_sysregen_<campaign>_<stamp>.hpp`.
 - The existing noSpline and withSpline files are not modified.
-- The other 33 configurations start immediately on the existing pair.
+- The other 34 configurations start immediately on the existing pair.
 - The nominal histogram job waits for the new file and then uses it as the withSpline input.
 - The manifest stores both paths for every configuration. Resume passes those paths through and does not look the tag up again.
 
@@ -77,9 +77,9 @@ The campaign directory is `<data_root>/SIDIS_Campaign/systematics/<campaign>/` w
 - Phase 2 writes one file per Q²–y bin under `unfold_parts/`, then one merged file under `unfolded/`.
 - `final/` receives only complete merged unfolded files.
 
-`--weight_mode unweighted` or `weighted`: 41 SLURM arrays, 697 tasks, 41 final unfolded files.
+`--weight_mode unweighted` or `weighted`: 43 SLURM arrays, 731 tasks, 43 final unfolded files.
 
-`--weight_mode both`: 74 SLURM arrays, 1258 tasks, 74 final unfolded files. The two local unfolds for one configuration run one after the other. The local-worker cap stays 41.
+`--weight_mode both`: 70 SLURM arrays, 1190 tasks, 70 final unfolded files. The two local unfolds for one configuration run one after the other. The local-worker cap stays 41.
 
 ## Local workers
 
@@ -87,7 +87,7 @@ The cap counts one local histogram batch or one local unfold process. Controller
 
 ## Strict χ² definition
 
-`cut_Complete_SIDIS_chi2_strict_pip` is used as stored. `CHI2PID_CUT_strict_pip` in `ExtraAnalysisCodeValues.py` (lines 2744–2751) uses coefficient 0.88 and compares `PID_chi2pip` with a three-piece function of electron momentum `el`. That note does not change the cut.
+On 2026-11-24 the standard campaign dropped the strict pion PID job because the existing DataFrames used electron momentum for that decision. It also dropped the six pion-sector variations because the pion-sector systematic was retired.
 
 ## Fixed-list histogram recovery
 

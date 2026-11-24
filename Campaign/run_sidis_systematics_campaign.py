@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# One entry point for the 34+7 SIDIS 3D systematic campaign.
+# One entry point for the 28+7 SIDIS 3D systematic campaign.
 # --dry_run prints commands. It does not write the manifest, scan batches, or submit work.
 import argparse
 import os

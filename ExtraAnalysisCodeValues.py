@@ -2724,6 +2724,37 @@ return BadElementKnockOut(Hx, Hy, esec, 1);"""
         return Data_Frame
 
 
+def pip_testdc_full_cut_expression(level):
+    flags = []
+    for layer in [6, 18, 36]:
+        flags.append("(%s)" % pip_testdc_layer_column(layer, level))
+    return "(cut_Complete_SIDIS_no_pip_testdc) && %s" % " && ".join(flags)
+
+
+def define_pip_testdc_variation(df, cut_name):
+    # Existing reconstructed trees keep the pre-polygon selection and the raw hit coordinates.
+    if(cut_name == "cut_Complete_SIDIS_pip_testdc_loose"):
+        level = "loose"
+    elif(cut_name == "cut_Complete_SIDIS_pip_testdc_tight"):
+        level = "tight"
+    else:
+        return df
+    if(df.HasColumn(cut_name)):
+        return df
+    needed = ["cut_Complete_SIDIS_no_pip_testdc"]
+    for layer in [6, 18, 36]:
+        needed.append("pip_x_DC_%s" % layer)
+        needed.append("pip_y_DC_%s" % layer)
+    missing = [name for name in needed if(not df.HasColumn(name))]
+    if(len(missing) > 0):
+        raise ValueError("pion test DC variation %s needs %s" % (level, ", ".join(missing)))
+    for layer in [6, 18, 36]:
+        flag_name = pip_testdc_layer_column(layer, level)
+        if(not df.HasColumn(flag_name)):
+            df = df.Define(flag_name, pip_testdc_layer_code(layer, level))
+    return df.Define(cut_name, pip_testdc_full_cut_expression(level))
+
+
 def Define_Cut_Variations_With_Smeared_Kinematics(df_in, df_type="mdf"):
 
     # gdf: auto-return without defining any cut branches
@@ -2741,14 +2772,17 @@ def Define_Cut_Variations_With_Smeared_Kinematics(df_in, df_type="mdf"):
     # Define it as: ECin_energy/el > (0.2 - PCAL_energy/el)
     df_out = df_out.Define("EC_SAMPLING_TRIANGLE_pass1_el", "(ECin_energy/el) > (0.2 - (PCAL_energy/el))")
 
-    df_out = df_out.Define("CHI2PID_CUT_strict_pip", """
-    double coef = 0.88;
-    bool chi2cut = false;
-    if (el < 2.44) {chi2cut = (PID_chi2pip < 3.0 * coef);
-    } else if (el < 4.6) { chi2cut = (PID_chi2pip < coef * (0.00869 + 14.98587 * std::exp(-el / 1.18236) + 1.81751 * std::exp(-el / 4.86394)));
-    } else { chi2cut = (PID_chi2pip < coef * (-1.14099 + 24.14992 * std::exp(-el / 1.36554) +  2.66876 * std::exp(-el / 6.80522)));
-    }
-    return (chi2cut && (PID_chi2pip > (coef * -3.0)));""")
+    # Previous strict-pion formula, retained for reference.
+    # df_out = df_out.Define("CHI2PID_CUT_strict_pip", """
+    # double coef = 0.88;
+    # bool chi2cut = false;
+    # if (el < 2.44) {chi2cut = (PID_chi2pip < 3.0 * coef);
+    # } else if (el < 4.6) { chi2cut = (PID_chi2pip < coef * (0.00869 + 14.98587 * std::exp(-el / 1.18236) + 1.81751 * std::exp(-el / 4.86394)));
+    # } else { chi2cut = (PID_chi2pip < coef * (-1.14099 + 24.14992 * std::exp(-el / 1.36554) +  2.66876 * std::exp(-el / 6.80522)));
+    # }
+    # return (chi2cut && (PID_chi2pip > (coef * -3.0)));""")
+
+    df_out = df_out.Define("CHI2PID_CUT_strict_pip", "CHI2PID_CUT_tight_pip == 1")
 
     # Non-PID: Valerii knockout cut -> define a boolean branch (do NOT Filter here)
     # NOTE: This uses your existing filter_Valerii() function with Cut_Flag=True
@@ -3068,6 +3102,15 @@ def Define_Cut_Variations_With_Smeared_Kinematics(df_in, df_type="mdf"):
     NonPID_var = " && ".join([NonPID_valerii_knockout_on, Fid_var])
     df_out     = df_out.Define(f"{cut_def_sm_name}_no_pip_testdc", f"{KinBlock} && {PID_base} && ({NonPID_var})")
     cut_branches.append([f"{cut_def_sm_name}_no_pip_testdc",       f"{KinBlock} && {PID_base} && ({NonPID_var})"])
+
+    # Loose and tight polygons start from the pre-polygon baseline, not from the nominal polygon.
+    for level in ["loose", "tight"]:
+        for layer in [6, 18, 36]:
+            df_out = df_out.Define(pip_testdc_layer_column(layer, level), pip_testdc_layer_code(layer, level))
+        cut_name_var = f"{cut_def_sm_name}_pip_testdc_{level}"
+        cut_expr     = pip_testdc_full_cut_expression(level)
+        df_out       = df_out.Define(cut_name_var, cut_expr)
+        cut_branches.append([cut_name_var, cut_expr])
 
 
     # ----------------------------

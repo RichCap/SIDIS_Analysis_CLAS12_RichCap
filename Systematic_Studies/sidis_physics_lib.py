@@ -67,6 +67,8 @@ PAIR_SOURCES = {
     "ecthr_tight_el": ("ecthr_el", "tight"),
     "dcfidref_loose_el": ("dcfidref_el", "loose"),
     "dcfidref_tight_el": ("dcfidref_el", "tight"),
+    "pip_testdc_loose": ("pion_dc_extra", "loose"),
+    "pip_testdc_tight": ("pion_dc_extra", "tight"),
 }
 SINGLE_SOURCES = [
     "chi2_strict_pip",

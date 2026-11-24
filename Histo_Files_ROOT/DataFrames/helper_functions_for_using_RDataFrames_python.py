@@ -299,6 +299,8 @@ def Cut_Flag_to_Title(cut_flag="no_cut"):
         "cut_Complete_SIDIS_noSmear"          : "Unsmeared SIDIS Cuts",
 
         "cut_Complete_SIDIS_no_pip_testdc"    : "No Pion Test DC Cut",
+        "cut_Complete_SIDIS_pip_testdc_loose": "Loose Additional Pion DC Polygon",
+        "cut_Complete_SIDIS_pip_testdc_tight": "Tight Additional Pion DC Polygon",
         "cut_Complete_SIDIS_no_sector_pcal"   : "No Sector PCal Cut",
         "cut_Complete_SIDIS_no_valerii_knockout": "No Valerii Knockout Cut",
 
