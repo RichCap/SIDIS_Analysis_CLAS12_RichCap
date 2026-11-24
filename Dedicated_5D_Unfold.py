@@ -540,6 +540,7 @@ def Unfold_Function(Response_2D, ExREAL_1D, MC_REC_1D, MC_GEN_1D, Method="Defaul
                     #########################################
 
                     Unfolding_Histo = ROOT.RooUnfoldBayes(Response_RooUnfold, ExREAL_use, bayes_iterations)
+                    Unfolding_Histo.HandleFakes(True)
                     error_mode = str(getattr(args, "error_mode", "covariance")).lower()
                     if(error_mode == "toys"):
                         Unfolding_Histo.SetNToys(args.Num_Toys)

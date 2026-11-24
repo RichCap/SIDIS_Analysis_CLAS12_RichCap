@@ -749,6 +749,7 @@ TH1* Unfold_Function(TH2* Response_2D, TH1* ExREAL_1D, TH1* MC_REC_1D, TH1* MC_G
 
     RooUnfold::ErrorTreatment err_treat = ErrorTreatmentFromMode(args.error_mode);
     RooUnfoldBayes Unfolding_Histo(&Response_RooUnfold, ExREAL_use, bayes_iterations);
+    Unfolding_Histo.HandleFakes(true);
     Unfolding_Histo.SetVerbose(1);
     if(args.error_mode == "toys"){ Unfolding_Histo.SetNToys(args.Num_Toys); }
 
