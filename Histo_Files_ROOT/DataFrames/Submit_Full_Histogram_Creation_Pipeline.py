@@ -628,6 +628,46 @@ def set_allweights_half(args, base_name, half):
         args.weight_half = None
 
 
+RECW_STREAMS = (
+    "hist_plain",
+    "hist_spline",
+    "hist_recs_plain1",
+    "hist_recs_spline1",
+    "hist_recs_plain2",
+    "matrix_recs_spline1",
+    "matrix_recs_plain2",
+)
+RECW_SPLINE_STREAMS = ("hist_spline", "hist_recs_spline1", "matrix_recs_spline1")
+
+
+def set_recw_stream(args, base_name, stream):
+    if(stream in RECW_STREAMS):
+        args.name = "%s_%s" % (base_name, stream)
+        args.recw_task = stream
+    else:
+        args.name = base_name
+        args.recw_task = None
+
+
+def apply_launch_token(args, base_name, token):
+    if(token in ["A", "B"]):
+        set_allweights_half(args, base_name, token)
+        args.recw_task = None
+    elif(token in RECW_STREAMS):
+        set_allweights_half(args, base_name, None)
+        set_recw_stream(args, base_name, token)
+    else:
+        set_allweights_half(args, base_name, None)
+        args.recw_task = None
+
+
+def launch_rows_for_product(product, jobs, mode):
+    if((mode in ("hybrid", "parallel")) and (product.get("key") == "RecW_Creation")):
+        # Each stream keeps the requested local-worker count. It is not split across the seven.
+        return [(product, int(jobs), stream) for stream in RECW_STREAMS]
+    return allweights_launch_rows(product, jobs, mode)
+
+
 def allweights_launch_rows(product, jobs, mode):
     if((mode in ("hybrid", "parallel")) and (product.get("key") == "Iter1_AllWeights")):
         left, right = split_allweights_jobs(jobs)
@@ -640,6 +680,45 @@ def allweights_final_path(args, cut_name, product):
     if(plain.endswith("_All.root")):
         return plain[:-len("_All.root")] + "_Split_All.root"
     return plain.replace(".root", "_Split.root")
+
+
+def recw_stream_extra(args, task):
+    extra = ["--unfold_5D_only", "--recw_creation", "--recw_task", task]
+    if(not args.no_run_rho_weight):
+        extra.insert(0, "--run_rho_weight")
+    if(task in RECW_SPLINE_STREAMS):
+        extra.append("--spline_weights")
+    if(task in ["hist_recs_plain1", "hist_recs_spline1", "matrix_recs_spline1"]):
+        extra.extend(["--reconstruction_weight", "recs", "--cumulative_iteration", "1"])
+    elif(task in ["hist_recs_plain2", "matrix_recs_plain2"]):
+        extra.extend(["--reconstruction_weight", "recs", "--cumulative_iteration", "2"])
+    else:
+        extra.extend(["--reconstruction_weight", "none"])
+    return extra
+
+
+def recw_stream_memory(task):
+    if(str(task).startswith("matrix_")):
+        return "14GB"
+    return "8GB"
+
+
+def combine_recw_streams(args, cut_name, product):
+    # Hadd the seven new stream files. The three existing matrices stay outside this file.
+    base_name = args.name
+    stream_paths = []
+    for stream in RECW_STREAMS:
+        set_recw_stream(args, base_name, stream)
+        stream_paths.append(merged_response_path(args, cut_name, product))
+    set_recw_stream(args, base_name, None)
+    final_path = merged_response_path(args, cut_name, product)
+    for path in stream_paths:
+        if((not os.path.isfile(path)) or (os.path.getsize(path) <= 0)):
+            raise RuntimeError("Missing RecW stream merge: %s" % path)
+    log_print(args, f"{color.BBLUE}Combining RecW streams into {color.END_B}{final_path}{color.END}")
+    subprocess.run(["hadd", "-f", final_path] + stream_paths, check=True)
+    log_print(args, f"{color.BGREEN}RecW campaign file written: {final_path}{color.END}", no_time=False)
+    return final_path
 
 
 def combine_allweights_halves(args, cut_name, product):
@@ -786,7 +865,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     if(product.get("key") in ["CH4_Diagnostics", "Delta_Phi_h", "Only_1D", "Diagnostic_1D"]):
         use_hpp = False
     # This comparison loads the physics Spline and does not load legacy Acc.
-    if(product.get("key") == "Iter1_AllWeights"):
+    if(product.get("key") in ["Iter1_AllWeights", "RecW_Creation"]):
         use_hpp = False
     if(bool(getattr(args, "physics_spline_only", False))):
         use_hpp = False
@@ -798,6 +877,8 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     cmd.extend(["-n", name_tag])
     cmd.extend(["--name_in"] + list(PIPELINE_NAME_IN_GLOBS))
     attach_physics_spline = bool(use_hpp) or (product.get("key") == "Iter1_AllWeights") or bool(getattr(args, "physics_spline_only", False))
+    if((product.get("key") == "RecW_Creation") and (getattr(args, "recw_task", None) in RECW_SPLINE_STREAMS)):
+        attach_physics_spline = True
     if(use_hpp):
         cmd.append("--use_hpp")
     if(attach_physics_spline):
@@ -854,6 +935,8 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         # Standalone local A/B runs use their requested worker pool. Campaigns retain their shared limits.
         if(not local_allweights or args.systematic_runs or args.histogram_local_cap is not None or args.campaign_worker_name):
             cmd.extend(["-crm", mode_name])
+    elif((product.get("key") == "RecW_Creation") and (getattr(args, "recw_task", None) in RECW_STREAMS)):
+        cmd.extend(["--slurm_mem", recw_stream_memory(args.recw_task), "--slurm_cpus", "1"])
     elif(getattr(args, "slurm_mem", None) not in [None, ""]):
         cmd.extend(["--slurm_mem", str(args.slurm_mem)])
     if(getattr(args, "histogram_local_cap", None) not in [None, ""]):
@@ -879,7 +962,10 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.append("--email")
         cmd.extend(["-emj", child_email_message(args.user_email_message, product["label"])])
     # --extra LAST: only true Response_Matrix passthrough args
-    extra = product_extra_flags(args, product)
+    if((product.get("key") == "RecW_Creation") and (getattr(args, "recw_task", None) in RECW_STREAMS)):
+        extra = recw_stream_extra(args, args.recw_task)
+    else:
+        extra = product_extra_flags(args, product)
     if(local_allweights and args.email == "all"):
         extra.append("--email")
     if(bool(getattr(args, "legacy_acceptance", False)) and ("--reconstruction_weight" not in extra)):
@@ -890,14 +976,17 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
             extra.extend(["--reconstruction_weight", str(choice)])
     if(("--book_recw" not in extra) and flag_was_passed(["-brw", "--book_recw"])):
         extra.append("--book_recw")
-    if(flag_was_passed(["-ci", "--cumulative_iteration"])):
+    if((flag_was_passed(["-ci", "--cumulative_iteration"])) and (getattr(args, "recw_task", None) not in RECW_STREAMS)):
         iteration_token = str(int(args.cumulative_iteration))
         if("--cumulative_iteration" in extra):
             iteration_index = extra.index("--cumulative_iteration")
             extra[iteration_index + 1] = iteration_token
         else:
             extra.extend(["--cumulative_iteration", iteration_token])
-    for flag_name, flag_value in (("--recw_header", getattr(args, "recw_header", None)), ("--recs_file", getattr(args, "recs_file", None)), ("--recs_spline_file", getattr(args, "recs_spline_file", None))):
+    forward_flags = (("--recw_header", getattr(args, "recw_header", None)), ("--recs_file", getattr(args, "recs_file", None)), ("--recs_spline_file", getattr(args, "recs_spline_file", None)))
+    for flag_name, flag_value in forward_flags:
+        if((product.get("key") == "RecW_Creation") and (flag_name in ["--recs_file", "--recs_spline_file"])):
+            continue
         if(flag_value not in [None, ""]) and (flag_name not in extra):
             extra.extend([flag_name, str(flag_value)])
     half = getattr(args, "weight_half", None)
@@ -983,10 +1072,10 @@ def print_hybrid_commands(args, cut_name, pure_hpp, comb_hpp):
     base_name = args.name
     rows = []
     for product, jobs in selected:
-        rows.extend(allweights_launch_rows(product, jobs, args.mode))
+        rows.extend(launch_rows_for_product(product, jobs, args.mode))
     try:
         for product, jobs, half in rows:
-            set_allweights_half(args, base_name, half)
+            apply_launch_token(args, base_name, half)
             label = product["key"] if(half is None) else "%s_%s" % (product["key"], half)
             if(product.get("key") == "Only_5D"):
                 only_5d = product
@@ -1012,7 +1101,7 @@ def print_hybrid_commands(args, cut_name, pure_hpp, comb_hpp):
             print("PRODUCER %s" % label)
             print(" ".join(str(item) for item in producer_cmd))
     finally:
-        set_allweights_half(args, base_name, None)
+        apply_launch_token(args, base_name, None)
     if(only_5d is None):
         only_5d = [item for item in PRODUCTS if(item["key"] == "Only_5D")][0]
     identity = write_reconstruction_identity(args, cut_name, only_5d)
@@ -1288,14 +1377,14 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
         # AllWeights submits A and B before either controller is awaited. Both backends write batch ROOT files under that half's /volatile run directory.
         rows = []
         for product, jobs in selected:
-            rows.extend(allweights_launch_rows(product, jobs, mode))
+            rows.extend(launch_rows_for_product(product, jobs, mode))
         array_ids = {}
         hybrid_dirs = {}
         base_name = args.name
         try:
             if(mode == "hybrid"):
                 for product, jobs, half in rows:
-                    set_allweights_half(args, base_name, half)
+                    apply_launch_token(args, base_name, half)
                     task = product["key"] if(half is None) else "%s_%s" % (product["key"], half)
                     batch_dir, run_subdir = hybrid_batch_paths(args, cut_name, product)
                     hybrid_dirs[task] = (batch_dir, run_subdir)
@@ -1305,7 +1394,7 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
 
             launched = []
             for i, (product, jobs, half) in enumerate(rows):
-                set_allweights_half(args, base_name, half)
+                apply_launch_token(args, base_name, half)
                 task = product["key"] if(half is None) else "%s_%s" % (product["key"], half)
                 batch_dir, run_subdir = hybrid_dirs.get(task, (None, None))
                 par_cmd = build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode="parallel", saj=array_ids.get(task), jobs=jobs, batch_output_dir=batch_dir, run_subdir_name=run_subdir)
@@ -1314,12 +1403,17 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
             for task, job in launched:
                 rc = wait_launched(args, job, cut_name, "hybrid-parallel" if mode == "hybrid" else mode)
                 results.append((task, rc))
-            if((not any(rc != 0 for _task, rc in results)) and any(half in ["A", "B"] for _product, _jobs, half in rows)):
-                set_allweights_half(args, base_name, None)
-                allweights_product = [product for product, _jobs, half in rows if(half == "A")][0]
-                combine_allweights_halves(args, cut_name, allweights_product)
+            if(not any(rc != 0 for _task, rc in results)):
+                if(any(half in ["A", "B"] for _product, _jobs, half in rows)):
+                    apply_launch_token(args, base_name, None)
+                    allweights_product = [product for product, _jobs, half in rows if(half == "A")][0]
+                    combine_allweights_halves(args, cut_name, allweights_product)
+                if(any(half in RECW_STREAMS for _product, _jobs, half in rows)):
+                    apply_launch_token(args, base_name, None)
+                    recw_product = [product for product, _jobs, half in rows if(half in RECW_STREAMS)][0]
+                    combine_recw_streams(args, cut_name, recw_product)
         finally:
-            set_allweights_half(args, base_name, None)
+            apply_launch_token(args, base_name, None)
         return results
 
     if(mode == "sequential"):

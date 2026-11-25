@@ -152,6 +152,10 @@ def parse_args():
     parser.add_argument('-rcw', '--recw_creation',
                         action='store_true',
                         help='Book the baseline 5D slices and the variable-versus-index histograms used to derive RecW. Does not apply a reconstruction weight.\n')
+    parser.add_argument('-rt', '--recw_task',
+                        default=None,
+                        choices=['hist_plain', 'hist_spline', 'hist_recs_plain1', 'hist_recs_spline1', 'hist_recs_plain2', 'matrix_recs_spline1', 'matrix_recs_plain2'],
+                        help='Rec Weight Creation stream. Histogram streams book the five fine variables. Matrix streams book only that response matrix.\n')
     parser.add_argument('-rwgt', '--reconstruction_weight',
                         type=str,
                         default='none',
@@ -1525,6 +1529,13 @@ if(__name__ == "__main__"):
         weight_specs_bg  = weight_half_specs(weight_specs_bg, half)
         weight_specs_gdf = weight_half_specs(weight_specs_gdf, half)
         data_weight_specs = [("", None)] if(half != "B") else []
+        recw_task = getattr(args, "recw_task", None)
+        matrix_specs = recw_matrix_weight_specs(recw_task, exclude_reconstruction)
+        if(matrix_specs is not None):
+            weight_specs_mdf = matrix_specs
+            weight_specs_gdf = list(matrix_specs)
+            weight_specs_bg = []
+            data_weight_specs = []
         mdf_smear_type   = "" if(getattr(args, "unsmeared", False)) else "smear"
         print(f"{color.BLUE}Will be saving to: {color.BGREEN}{args.root}{color.END}")
         print(f"{color.BBLUE}Weight tags (mdf): {color.END_B}{[tag for tag, col in weight_specs_mdf]}{color.END}")
@@ -1586,7 +1597,7 @@ if(__name__ == "__main__"):
             Update_Email(args, update_name="'make_rm_single()'", verbose_override=True)
         else:
             Update_Email(args, update_message=f"{color.Error}Skipped the 3D Response Matricies{color.END}", verbose_override=True)
-        if(args.unfold_5D and (not args.make_2D_only)):
+        if(args.unfold_5D and (not args.make_2D_only) and (not str(getattr(args, "recw_task", "")).startswith("hist_"))):
             print(f"\n{color.BGREEN}Making the 5D Response Matrices...{color.END}")
             args.timer.time_elapsed()
             sys.stdout.flush()
@@ -1606,7 +1617,7 @@ if(__name__ == "__main__"):
                 Update_Email(args, update_name=f"'make_rm5d_single({color.BGREEN}gdf_EvGen{color.END})'",    verbose_override=True)
         else:
             Update_Email(args, update_message=f"{color.Error}Skipped the 5D Response Matricies{color.END}", verbose_override=True)
-        if(getattr(args, "recw_creation", False)):
+        if((getattr(args, "recw_creation", False)) and (not str(getattr(args, "recw_task", "")).startswith("matrix_"))):
             Histograms_All = book_recw_creation_variables(Histograms_All, rdf, mdf_clasdis, gdf_clasdis, args, rho_custom_tag(lundrho_MC, lundvpk_MC, rho0_new_MC), mdf_smear_type)
             Update_Email(args, update_name="'book_recw_creation_variables'", verbose_override=True)
         if(getattr(args, "weight_comparison", False)):

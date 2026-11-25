@@ -552,7 +552,9 @@ def reconstruction_choice(args):
 
 
 def reconstruction_active(args):
-    if(getattr(args, "recw_creation", False)):
+    # Creation still skips a reconstruction weight when the stream asked for none.
+    # A RecS creation stream must load its evaluator.
+    if((getattr(args, "recw_creation", False)) and (reconstruction_choice(args) == "none") and (not bool(getattr(args, "book_recw", False)))):
         return False
     if(bool(getattr(args, "book_recw", False))):
         return True
@@ -569,9 +571,10 @@ def enabled_weight_specs(args, histo_data="mdf", allow_reconstruction=True):
     use_recs = (choice == "recs") and allow_reconstruction and reconstruction_active(args)
     use_recw = ((choice == "recw") or bool(getattr(args, "book_recw", False))) and allow_reconstruction and ((choice != "none") or bool(getattr(args, "book_recw", False)))
     if(getattr(args, "recw_creation", False)):
-        use_recs = False
-        use_recw = False
-        use_acc  = False
+        use_acc = False
+        if(reconstruction_choice(args) == "none"):
+            use_recs = False
+            use_recw = False
     if((choice == "none") and (not bool(getattr(args, "book_recw", False)))):
         use_recw = False
     if((use_json) and (use_spl)):
@@ -661,6 +664,8 @@ def expected_recs_fit_set(iteration, spline, physics_iteration=""):
 
 
 def default_recs_header(iteration, spline, physics_iteration=""):
+    if((not spline) and (int(iteration) == 2)):
+        return os.path.join(recw_output_dir(), "RecS_plain_iter2_product.txt")
     if(spline and (int(iteration) == 1) and (physics_iteration in ("iter1", "iter2"))):
         fit_set = expected_recs_fit_set(iteration, spline, physics_iteration)
     elif(spline):
@@ -754,7 +759,7 @@ def resolve_reconstruction_artifacts(args):
     spline    = bool(getattr(args, "spline_weights", False))
     choice    = reconstruction_choice(args)
     creating  = bool(getattr(args, "recw_creation", False))
-    need_recs = (choice == "recs") and (not creating)
+    need_recs = (choice == "recs")
     need_recw = ((choice == "recw") or bool(getattr(args, "book_recw", False))) and (not creating)
     if(need_recs):
         plain_path = getattr(args, "recs_file", None)
@@ -912,8 +917,29 @@ def define_reconstruction_columns(df, args, data_kind):
     return df
 
 
+def recw_creation_request(args):
+    # tag, fill column, and whether this stream also writes the shared data and background.
+    task = getattr(args, "recw_task", None)
+    if(task in [None, ""]):
+        return None
+    if(task == "hist_plain"):
+        return ("", None, True)
+    if(task == "hist_spline"):
+        return ("Spline", "Event_Weight_Spline", False)
+    if(task == "hist_recs_plain1"):
+        return ("RecS", "Event_Weight_RecS", False)
+    if(task == "hist_recs_spline1"):
+        return ("RecSSpline", "Event_Weight_RecSSpline", False)
+    if(task == "hist_recs_plain2"):
+        return ("RecS2", "Event_Weight_RecS", False)
+    return None
+
+
 def book_recw_creation_variables(histograms, rdf, mdf, gdf, args, custom_tag, smear):
-    # Baseline variable-versus-index histograms. No reconstruction weight is applied here.
+    # One configuration's fine variables versus the generated 5D bin. Shared data stays on the plain stream.
+    request = recw_creation_request(args)
+    if(request is not None):
+        return book_one_recw_configuration(histograms, rdf, mdf, gdf, args, custom_tag, smear, request)
     import Create_Rec_Weight as recw
     tag = "" if(custom_tag in [None, ""]) else str(custom_tag)
     excluded = tag in ["lundvpk", "lundrho", "rho0_new"]
@@ -965,6 +991,86 @@ def book_recw_creation_variables(histograms, rdf, mdf, gdf, args, custom_tag, sm
                 histograms[data_name] = data_frame.Histo1D((data_name, data_name, n_bins, x_min, x_max), column)
             else:
                 histograms[data_name] = data_frame.Histo1D((data_name, data_name, n_bins, x_min, x_max), column, rdf_weight)
+    return histograms
+
+
+def recw_requested_weight(tag, special, weight_name):
+    # A special sample keeps the physics spline and drops RecS. The configuration tag stays on the key.
+    if(special):
+        if(tag in ["Spline", "RecSSpline"]):
+            return "Event_Weight_Spline"
+        return None
+    return weight_name
+
+
+def recw_matrix_weight_specs(task, exclude_reconstruction):
+    if(task == "matrix_recs_spline1"):
+        column = recw_requested_weight("RecSSpline", exclude_reconstruction, "Event_Weight_RecSSpline")
+        return [("RecSSpline", column)]
+    if(task == "matrix_recs_plain2"):
+        column = recw_requested_weight("RecS2", exclude_reconstruction, "Event_Weight_RecS")
+        return [("RecS2", column)]
+    return None
+
+
+def book_one_recw_configuration(histograms, rdf, mdf, gdf, args, custom_tag, smear, request):
+    import Create_Rec_Weight as recw
+    tag, weight_name, include_shared = request
+    sample = "" if(custom_tag in [None, ""]) else str(custom_tag)
+    special = sample in ["lundvpk", "lundrho", "rho0_new"]
+    if((sample not in ["", None]) and (tag not in ["", None])):
+        name_tag = "%s)_(%s" % (sample, tag)
+    elif(tag in ["", None]):
+        name_tag = sample
+    else:
+        name_tag = tag
+    requested_weight = recw_requested_weight(tag, special, weight_name)
+    def fill_weight(frame, requested):
+        if(requested not in [None, ""]):
+            if((frame is None) or (not frame.HasColumn(requested))):
+                raise RuntimeError("RecW creation stream needs column %s" % requested)
+            return requested
+        if((frame is not None) and frame.HasColumn("exclusive_rho_weight")):
+            return "exclusive_rho_weight"
+        return None
+    signal_filter = apply_background_filter("mdf", "Response_Matrix_Normal", "esec != -2", rho_background=(mdf is not None) and mdf.HasColumn("exclusive_rho") and (not special))
+    for label, column, n_bins, x_min, x_max in recw.VARIABLES:
+        mdf_column = "%s_smeared" % column if(smear not in ["", None]) else column
+        y_bins, y_min, y_max = recw.N_AXIS, recw.AXIS_MIN, recw.AXIS_MAX
+        if(mdf is not None):
+            signal_name = recw.variable_histo_name("Response_Matrix_Normal", "mdf", "cut_Complete_SIDIS", smear if(smear not in [None]) else "", mdf_column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h_gen", recw.N_AXIS, name_tag)
+            signal_frame = mdf.Filter(signal_filter)
+            signal_weight = fill_weight(mdf, requested_weight)
+            if(signal_weight is None):
+                histograms[signal_name] = signal_frame.Histo2D((signal_name, signal_name, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen")
+            else:
+                histograms[signal_name] = signal_frame.Histo2D((signal_name, signal_name, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen", signal_weight)
+            if(include_shared):
+                background_name = recw.variable_histo_name("Background_Response_Matrix", "mdf", "cut_Complete_SIDIS", smear if(smear not in [None]) else "", mdf_column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h_gen", recw.N_AXIS, name_tag)
+                background_filter = apply_background_filter("mdf", "Background_Response_Matrix", "esec != -2", rho_background=mdf.HasColumn("exclusive_rho") and (not special))
+                background_frame = mdf.Filter(background_filter)
+                background_weight = fill_weight(mdf, None)
+                if(background_weight is None):
+                    histograms[background_name] = background_frame.Histo2D((background_name, background_name, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen")
+                else:
+                    histograms[background_name] = background_frame.Histo2D((background_name, background_name, n_bins, x_min, x_max, y_bins, y_min, y_max), mdf_column, "MultiDim_Q2_y_z_pT_phi_h_gen", background_weight)
+        if((gdf is not None) and include_shared):
+            generated_name = recw.variable_histo_name("Response_Matrix_Normal", "gdf", "no_cut", "", column, n_bins, x_min, x_max, "MultiDim_Q2_y_z_pT_phi_h", recw.N_AXIS, name_tag)
+            generated_filter = apply_background_filter("gdf", "Response_Matrix_Normal", "esec != -2", rho_background=False)
+            generated_frame = gdf.Filter(generated_filter)
+            generated_weight = fill_weight(gdf, None)
+            if(generated_weight is None):
+                histograms[generated_name] = generated_frame.Histo2D((generated_name, generated_name, n_bins, x_min, x_max, y_bins, y_min, y_max), column, "MultiDim_Q2_y_z_pT_phi_h")
+            else:
+                histograms[generated_name] = generated_frame.Histo2D((generated_name, generated_name, n_bins, x_min, x_max, y_bins, y_min, y_max), column, "MultiDim_Q2_y_z_pT_phi_h", generated_weight)
+        if((rdf is not None) and include_shared):
+            data_name = recw.variable_histo_name("Response_Matrix_Normal", "rdf", "cut_Complete_SIDIS", "", column, n_bins, x_min, x_max, "", 0, "")
+            data_frame = rdf.Filter(apply_background_filter("rdf", "Response_Matrix_Normal", "esec != -2", rho_background=False))
+            data_weight = fill_weight(rdf, None)
+            if(data_weight is None):
+                histograms[data_name] = data_frame.Histo1D((data_name, data_name, n_bins, x_min, x_max), column)
+            else:
+                histograms[data_name] = data_frame.Histo1D((data_name, data_name, n_bins, x_min, x_max), column, data_weight)
     return histograms
 
 
