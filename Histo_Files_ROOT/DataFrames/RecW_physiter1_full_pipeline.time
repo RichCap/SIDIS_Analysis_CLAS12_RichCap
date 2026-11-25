@@ -1,0 +1,30 @@
+
+===== Submit_Full_Histogram_Creation_Pipeline.py start 2026-11-25T13:10:54 name=RecW_physiter1 mode=hybrid email=runner =====
+=== TASK: RecW_Creation_hist_plain-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.60 s
+peak_memory: 604.32 MB
+
+=== TASK: RecW_Creation_hist_spline-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.55 s
+peak_memory: 604.32 MB
+
+=== TASK: RecW_Creation_hist_recs_plain1-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 2.17 s
+peak_memory: 604.32 MB
+
+=== TASK: RecW_Creation_hist_recs_spline1-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.95 s
+peak_memory: 604.32 MB
+
+=== TASK: RecW_Creation_hist_recs_plain2-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 2.62 s
+peak_memory: 604.32 MB
+
+=== TASK: RecW_Creation_matrix_recs_spline1-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.28 s
+peak_memory: 604.32 MB
+
+=== TASK: RecW_Creation_matrix_recs_plain2-slurm-slurm-submit | cut=cut_Complete_SIDIS | mode=slurm | rc=0 ===
+wall_time: 1.90 s
+peak_memory: 604.32 MB
+
