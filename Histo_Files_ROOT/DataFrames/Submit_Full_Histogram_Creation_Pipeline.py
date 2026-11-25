@@ -941,7 +941,7 @@ def write_reconstruction_identity(args, cut_name, product):
         plain_path = os.path.abspath(os.path.expanduser(str(plain_path)))
     spline_path = getattr(args, "recs_spline_file", None)
     if(spline_path in [None, ""]):
-        spline_path = default_recs_header(iteration, True)
+        spline_path = default_recs_header(iteration, True, physics)
     else:
         spline_path = os.path.abspath(os.path.expanduser(str(spline_path)))
     plain_set = header_fit_set(plain_path) if(os.path.isfile(plain_path)) else ("RecS_default_iter%d" % iteration)

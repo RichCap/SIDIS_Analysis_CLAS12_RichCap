@@ -661,8 +661,9 @@ def expected_recs_fit_set(iteration, spline, physics_iteration=""):
 
 
 def default_recs_header(iteration, spline, physics_iteration=""):
-    # Omitted production files follow the reconstruction iteration. Physics iteration does not rename them.
-    if(spline):
+    if(spline and (int(iteration) == 1) and (physics_iteration in ("iter1", "iter2"))):
+        fit_set = expected_recs_fit_set(iteration, spline, physics_iteration)
+    elif(spline):
         fit_set = "RecS_spline_iter%d" % int(iteration)
     else:
         fit_set = "RecS_default_iter%d" % int(iteration)
@@ -766,7 +767,7 @@ def resolve_reconstruction_artifacts(args):
         if(spline):
             spline_path = getattr(args, "recs_spline_file", None)
             if(spline_path in [None, ""]):
-                spline_path = default_recs_header(iteration, True)
+                spline_path = default_recs_header(iteration, True, physics_iteration_of(args))
             spline_path = os.path.abspath(os.path.expanduser(str(spline_path)))
             if(not os.path.isfile(spline_path)):
                 raise RuntimeError("Missing Spline-baseline RecS header for reconstruction iteration %d: %s" % (iteration, spline_path))
