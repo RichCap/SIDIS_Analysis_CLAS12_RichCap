@@ -365,9 +365,9 @@ def parse_args():
     p.add_argument("-brw", "--book_recw",
                    action="store_true",
                    help="Also book the RecW and RecWSpline histograms beside the selected reconstruction weight.\n")
-    p.add_argument("-rwf", "--recw_file",
+    p.add_argument("-rwh", "--recw_header",
                    default=None,
-                   help="Explicit Rec_Weight.root. Unset uses the producer default.\n")
+                   help="Explicit RecW array header. Unset uses RecW_Output/RecW_Tables.hpp.\n")
     p.add_argument("-rsf", "--recs_file",
                    default=None,
                    help="Explicit plain RecS header. Unset uses the iteration default.\n")
@@ -771,7 +771,10 @@ def product_extra_flags(args, product):
 def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, saj=None, auto_yes=False, jobs=None, batch_output_dir=None, run_subdir_name=None, skip_slurm_hadd=False, use_hpp=True, naming_cut=None):
     # IMPORTANT: --extra is argparse.REMAINDER in the pipeline — put all pipeline-owned flags before it or they get swallowed and forwarded to Response_Matrix.
     # Absolute paths are fixed before either worker changes directory.
-    for path_attr in ("spline_file", "recw_file", "recs_file", "recs_spline_file"):
+    if(getattr(args, "recw_header", None) in [None, ""]):
+        from helper_functions_for_using_RDataFrames_python import default_recw_header
+        args.recw_header = default_recw_header()
+    for path_attr in ("spline_file", "recw_header", "recs_file", "recs_spline_file"):
         path_value = getattr(args, path_attr, None)
         if(path_value not in [None, ""]):
             setattr(args, path_attr, os.path.abspath(os.path.expanduser(str(path_value))))
@@ -894,7 +897,7 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
             extra[iteration_index + 1] = iteration_token
         else:
             extra.extend(["--cumulative_iteration", iteration_token])
-    for flag_name, flag_value in (("--recw_file", getattr(args, "recw_file", None)), ("--recs_file", getattr(args, "recs_file", None)), ("--recs_spline_file", getattr(args, "recs_spline_file", None))):
+    for flag_name, flag_value in (("--recw_header", getattr(args, "recw_header", None)), ("--recs_file", getattr(args, "recs_file", None)), ("--recs_spline_file", getattr(args, "recs_spline_file", None))):
         if(flag_value not in [None, ""]) and (flag_name not in extra):
             extra.extend([flag_name, str(flag_value)])
     half = getattr(args, "weight_half", None)
@@ -926,7 +929,7 @@ def reconstruction_identity_path(args):
 
 
 def write_reconstruction_identity(args, cut_name, product):
-    from helper_functions_for_using_RDataFrames_python import default_recs_header, header_fit_set, recw_plain_file
+    from helper_functions_for_using_RDataFrames_python import default_recs_header, default_recw_header, header_fit_set, recw_table_symbol
     iteration = int(getattr(args, "cumulative_iteration", 1))
     physics = getattr(args, "physics_iteration_resolved", "")
     if(physics not in ["iter1", "iter2"]):
@@ -943,11 +946,12 @@ def write_reconstruction_identity(args, cut_name, product):
         spline_path = os.path.abspath(os.path.expanduser(str(spline_path)))
     plain_set = header_fit_set(plain_path) if(os.path.isfile(plain_path)) else ("RecS_default_iter%d" % iteration)
     spline_set = header_fit_set(spline_path) if((spline_path not in [None, ""]) and os.path.isfile(spline_path)) else ("RecS_spline_iter%d" % iteration)
-    recw_path = getattr(args, "recw_file", None)
-    if(recw_path in [None, ""]):
-        recw_path = recw_plain_file()
-    else:
-        recw_path = os.path.abspath(os.path.expanduser(str(recw_path)))
+    recw_header = getattr(args, "recw_header", None)
+    if(recw_header in [None, ""]):
+        recw_header = default_recw_header()
+    recw_header = os.path.abspath(os.path.expanduser(str(recw_header)))
+    plain_symbol = recw_table_symbol(iteration, "plain")
+    spline_symbol = recw_table_symbol(iteration, physics) if(physics in ["iter1", "iter2"]) else ""
     choice = getattr(args, "reconstruction_weight", "none")
     if(choice in [None, ""]):
         choice = "none"
@@ -961,8 +965,9 @@ def write_reconstruction_identity(args, cut_name, product):
         "fit_set_plain=%s" % plain_set,
         "fit_set_spline=%s" % spline_set,
         "physics_iteration=%s" % ("unmarked" if(physics in [None, ""]) else physics),
-        "recw_file=%s" % recw_path,
-        "recw_spline_file=%s" % recw_path,
+        "recw_header=%s" % recw_header,
+        "recw_plain_symbol=%s" % plain_symbol,
+        "recw_spline_symbol=%s" % spline_symbol,
         "tags=_(RecS),_(RecSSpline),_(RecW),_(RecWSpline),_(Spline)",
     ]
     path = reconstruction_identity_path(args)

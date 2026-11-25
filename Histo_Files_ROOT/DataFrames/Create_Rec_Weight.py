@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import re
 import argparse
 
 _BOOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -59,10 +60,12 @@ def parse_args():
     parser.add_argument("-it", "--iteration", type=int, default=1, help="Derivation number. 1 is the first residual.\n")
     parser.add_argument("-pi", "--physics_iteration", default=None, choices=["iter1", "iter2"], help="Physics injection for a Spline-baseline history. Omitted reads physics_spline_iteration from the input file.\n")
     parser.add_argument("-rw", "--recw_file", type=str, default=None, help="Cumulative-factor ROOT file to read and update.\n")
-    parser.add_argument("-o", "--output_dir", type=str, default=None, help="Directory for the ROOT file, JSON, and figure.\n")
+    parser.add_argument("-o", "--output_dir", type=str, default=None, help="Directory for the ROOT file, JSON, figure, and RecW_Tables.hpp.\n")
+    parser.add_argument("-sd", "--spline_dir", type=str, default=None, help="Directory containing Rec_Weight_physiter1.root and Rec_Weight_physiter2.root. Required by --export_header.\n")
     parser.add_argument("-f", "--overwrite_iteration", action="store_true", help="Replace this iteration when no later iteration exists in the same history.\n")
     parser.add_argument("-sc", "--self_check", action="store_true", help="Run the synthetic checks and exit.\n")
     parser.add_argument("-fo", "--figure_only", action="store_true", help="Draw the comparison from an existing cumulative weight and --variable_file. Does not derive or replace a weight.\n")
+    parser.add_argument("-eh", "--export_header", action="store_true", help="Write RecW_Tables.hpp from the saved plain rounds and the round-one physics-spline histograms, then exit.\n")
     return parser.parse_args()
 
 
@@ -204,6 +207,152 @@ def read_weight(root_file, iteration, spline):
 def factor_at_index(weight_hist, index):
     # Index 0 is the dense mapper's removed-bin value. Its stored content is 1.
     return float(weight_hist.GetBinContent(root_bin_for_index(index)))
+
+
+RECW_HEADER_NAME = "RecW_Tables.hpp"
+
+
+def recw_header_path(output_dir=None):
+    if(output_dir in [None, ""]):
+        output_dir = default_output_dir()
+    return os.path.join(output_dir, RECW_HEADER_NAME)
+
+
+def recw_symbol(iteration, spline, physics_iteration=""):
+    if(not spline):
+        return "RecW_plain_%d" % int(iteration)
+    if(str(physics_iteration) not in ["iter1", "iter2"]):
+        fail("Spline RecW header needs physics iteration iter1 or iter2")
+    return "RecW_%s_%d" % (str(physics_iteration), int(iteration))
+
+
+def recw_table_order(symbol):
+    parts = str(symbol).split("_")
+    kind_rank = {"plain": 0, "iter1": 1, "iter2": 2}
+    rank = kind_rank.get(parts[1], 9) if(len(parts) >= 3) else 9
+    round_number = int(parts[2]) if(len(parts) >= 3) else 0
+    return (rank, round_number)
+
+
+def recw_literal(value):
+    number = float(value)
+    if(not numpy.isfinite(number)):
+        fail("RecW table value is not finite: %s" % value)
+    return repr(number)
+
+
+def cumulative_values(path, histogram_name):
+    root_file = ROOT.TFile.Open(str(path), "READ")
+    if((root_file is None) or root_file.IsZombie()):
+        if(root_file is not None):
+            root_file.Close()
+        fail("Could not open %s" % path)
+    hist = load_required(root_file, histogram_name)
+    values = []
+    for index in range(0, N_APPROVED + 1):
+        values.append(float(factor_at_index(hist, index)))
+    root_file.Close()
+    if(len(values) != (N_APPROVED + 1)):
+        fail("RecW table %s has %d entries" % (histogram_name, len(values)))
+    return values
+
+
+def read_recw_header(path):
+    tables = {}
+    if(not os.path.isfile(path)):
+        return tables
+    with open(path) as handle:
+        text = handle.read()
+    for symbol, body in re.findall(r"const double (RecW_[A-Za-z0-9_]+)_values\[\d+\] = \{([^}]*)\};", text, flags=re.S):
+        values = []
+        for piece in body.split(","):
+            token = piece.strip()
+            if(token in [""]):
+                continue
+            body_token = token[1:] if(token[:1] in ["+", "-"]) else token
+            if(body_token[:2] in ["0x", "0X"]):
+                values.append(float.fromhex(token))
+            else:
+                values.append(float(token))
+        if(len(values) != (N_APPROVED + 1)):
+            fail("Header table %s has %d entries" % (symbol, len(values)))
+        tables[symbol] = values
+    return tables
+
+
+def write_recw_header(path, tables):
+    directory = os.path.dirname(path)
+    if(directory not in ["", None]):
+        os.makedirs(directory, exist_ok=True)
+    lines = [
+        "// Auto-generated RecW lookup. One direct array read by generated 5D bin index.",
+        "// Indexes 0 through %d. Index 0 is the removed bin. Values are the stored histogram contents." % N_APPROVED,
+        "#include <cmath>",
+        "",
+    ]
+    for symbol in sorted(tables, key=recw_table_order):
+        values = tables[symbol]
+        if(len(values) != (N_APPROVED + 1)):
+            fail("Refusing to write %s with %d entries" % (symbol, len(values)))
+        lines.append("const int %s_n = %d;" % (symbol, len(values)))
+        lines.append("const double %s_values[%d] = {" % (symbol, len(values)))
+        row = []
+        for value in values:
+            row.append(recw_literal(value))
+            if(len(row) == 4):
+                lines.append("    " + ", ".join(row) + ",")
+                row = []
+        if(len(row) > 0):
+            lines.append("    " + ", ".join(row) + ",")
+        lines.append("};")
+        lines.append("inline double %s(double raw_index) {" % symbol)
+        lines.append("    if(!std::isfinite(raw_index)) { return 1.0; }")
+        lines.append("    int index = (int)raw_index;")
+        lines.append("    if((index < 0) || (index >= %s_n)) { return 0.0; }" % symbol)
+        lines.append("    return %s_values[index];" % symbol)
+        lines.append("}")
+        lines.append("")
+    with open(path, "w") as handle:
+        handle.write("\n".join(lines))
+    return path
+
+
+def update_recw_header_from_hist(hist, iteration, spline, physics_iteration, output_dir):
+    symbol = recw_symbol(iteration, spline, physics_iteration)
+    values = []
+    for index in range(0, N_APPROVED + 1):
+        values.append(float(factor_at_index(hist, index)))
+    path = recw_header_path(output_dir)
+    tables = read_recw_header(path)
+    tables[symbol] = values
+    write_recw_header(path, tables)
+    print("Wrote %s (%s)" % (path, symbol))
+    return path
+
+
+def export_initial_recw_header(spline_dir, output_dir=None, plain_path=None):
+    # Replace the four initial tables. Every later table already in the header stays.
+    if(spline_dir in [None, ""]):
+        fail("Missing Rec_Weight_physiter1.root and Rec_Weight_physiter2.root")
+    spline_dir = os.path.abspath(os.path.expanduser(str(spline_dir)))
+    iter1_path = os.path.join(spline_dir, "Rec_Weight_physiter1.root")
+    iter2_path = os.path.join(spline_dir, "Rec_Weight_physiter2.root")
+    missing = [path for path in (iter1_path, iter2_path) if(not os.path.isfile(path))]
+    if(len(missing) > 0):
+        fail("Missing physics-spline RecW file:\n\t%s" % "\n\t".join(missing))
+    if(output_dir in [None, ""]):
+        output_dir = default_output_dir()
+    if(plain_path in [None, ""]):
+        plain_path = os.path.join(output_dir, "Rec_Weight.root")
+    path = recw_header_path(output_dir)
+    tables = read_recw_header(path)
+    tables[recw_symbol(1, False)] = cumulative_values(plain_path, "C_1")
+    tables[recw_symbol(2, False)] = cumulative_values(plain_path, "C_2")
+    tables[recw_symbol(1, True, "iter1")] = cumulative_values(iter1_path, "C_1_Spline")
+    tables[recw_symbol(1, True, "iter2")] = cumulative_values(iter2_path, "C_1_Spline")
+    write_recw_header(path, tables)
+    print("Wrote %s" % path)
+    return path
 
 
 _PROJECTION_READY = False
@@ -695,6 +844,7 @@ def derive(args):
     source.Close()
     write_objects(weight_path, [residual, cumulative, undefined_hist, text], bool(args.overwrite_iteration))
     print("Wrote %s" % weight_path)
+    update_recw_header_from_hist(cumulative, iteration, spline, "" if(not spline) else str(physics), output_dir)
     export_json(cumulative, iteration, spline, output_dir, "" if(not spline) else str(physics))
     variable_path = args.variable_file if(args.variable_file not in [None, ""]) else input_path
     draw_figure(variable_path, cumulative, iteration, spline, output_dir, "bdf held fixed: %s" % bdf_key)
@@ -915,6 +1065,11 @@ def main():
     args = parse_args()
     if(args.self_check):
         self_check()
+        return 0
+    if(args.export_header):
+        output_dir = args.output_dir if(args.output_dir not in [None, ""]) else default_output_dir()
+        plain_path = args.recw_file if(args.recw_file not in [None, ""]) else None
+        export_initial_recw_header(args.spline_dir, output_dir, plain_path)
         return 0
     if(args.figure_only):
         return draw_existing_figure(args)

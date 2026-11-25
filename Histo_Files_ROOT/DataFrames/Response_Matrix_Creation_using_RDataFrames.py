@@ -161,10 +161,10 @@ def parse_args():
                         type=int,
                         default=1,
                         help='Which saved cumulative factor C_n to apply when filling RecW or RecS histograms.\n')
-    parser.add_argument('-rwf', '--recw_file',
+    parser.add_argument('-rwh', '--recw_header',
                         type=str,
-                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'RecW_Output', 'Rec_Weight.root'),
-                        help='ROOT file containing both C_n and C_n_Spline. Both keys are read from this file.\n')
+                        default=None,
+                        help='C++ header of RecW arrays indexed by the generated 5D bin. Default is RecW_Output/RecW_Tables.hpp.\n')
     parser.add_argument('-rsf', '--recs_file',
                         type=str,
                         default=None,

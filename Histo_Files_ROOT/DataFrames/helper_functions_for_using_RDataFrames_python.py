@@ -683,6 +683,25 @@ def recw_spline_file(physics_iteration):
     return os.path.join(recw_output_dir(), "Rec_Weight_phys%s.root" % str(physics_iteration))
 
 
+def default_recw_header():
+    return os.path.join(recw_output_dir(), "RecW_Tables.hpp")
+
+
+def recw_table_symbol(iteration, physics):
+    if(str(physics) in ["iter1", "iter2"]):
+        return "RecW_%s_%d" % (str(physics), int(iteration))
+    return "RecW_plain_%d" % int(iteration)
+
+
+def recw_header_has_symbol(path, symbol):
+    needle = "inline double %s(" % str(symbol)
+    with open(path) as handle:
+        for line in handle:
+            if(needle in line):
+                return True
+    return False
+
+
 def physics_iteration_of(args):
     identity = getattr(args, "physics_spline_iteration", None)
     if(identity in [None, ""]):
@@ -726,8 +745,8 @@ def declare_cpp_file(path, probes):
 
 
 def resolve_reconstruction_artifacts(args):
-    # Bind the continuous fit and the C_n lookup before any fill.
-    # One ROOT file supplies both C_N and C_N_Spline. A fit-set label does not reject a usable header.
+    # Bind the continuous fit and the RecW header before any fill.
+    # The header is the only RecW source. A fit-set label does not reject a usable RecS header.
     if(getattr(args, "_reconstruction_resolved", False)):
         return
     iteration = int(getattr(args, "cumulative_iteration", 1))
@@ -753,29 +772,25 @@ def resolve_reconstruction_artifacts(args):
                 raise RuntimeError("Missing Spline-baseline RecS header for reconstruction iteration %d: %s" % (iteration, spline_path))
             args.recs_spline_file = spline_path
     if(need_recw):
-        plain_name = "C_%d" % iteration
-        spline_name = "C_%d_Spline" % iteration
-        weight_path = getattr(args, "recw_file", None)
-        if(weight_path in [None, ""]):
-            weight_path = recw_plain_file()
-        weight_path = os.path.abspath(os.path.expanduser(str(weight_path)))
-        if(not os.path.isfile(weight_path)):
-            raise RuntimeError("Missing RecW file for iteration %d: %s (needed %s)" % (iteration, weight_path, plain_name))
-        weight_file = ROOT.TFile.Open(weight_path, "READ")
-        if((weight_file is None) or weight_file.IsZombie()):
-            raise RuntimeError("Could not open RecW file: %s" % weight_path)
-        plain_found = bool(weight_file.GetListOfKeys().Contains(plain_name))
-        spline_found = True
+        header = getattr(args, "recw_header", None)
+        if(header in [None, ""]):
+            header = default_recw_header()
+        header = os.path.abspath(os.path.expanduser(str(header)))
+        if(not os.path.isfile(header)):
+            raise RuntimeError("Missing RecW header: %s" % header)
+        plain_symbol = recw_table_symbol(iteration, "plain")
+        if(not recw_header_has_symbol(header, plain_symbol)):
+            raise RuntimeError("Missing RecW table %s for physics plain round %d in %s" % (plain_symbol, iteration, header))
+        args.recw_header = header
+        args.recw_plain_symbol = plain_symbol
         if(spline):
-            spline_found = bool(weight_file.GetListOfKeys().Contains(spline_name))
-        weight_file.Close()
-        if(not plain_found):
-            raise RuntimeError("Missing %s in %s" % (plain_name, weight_path))
-        if(not spline_found):
-            raise RuntimeError("Missing %s in %s" % (spline_name, weight_path))
-        args.recw_file = weight_path
-        if(spline):
-            args.recw_spline_file = weight_path
+            physics = physics_iteration_of(args)
+            if(physics not in ["iter1", "iter2"]):
+                raise RuntimeError("Spline RecW needs physics iteration iter1 or iter2")
+            spline_symbol = recw_table_symbol(iteration, physics)
+            if(not recw_header_has_symbol(header, spline_symbol)):
+                raise RuntimeError("Missing RecW table %s for physics %s round %d in %s" % (spline_symbol, physics, iteration, header))
+            args.recw_spline_symbol = spline_symbol
     args._reconstruction_resolved = True
 
 
@@ -799,53 +814,11 @@ def declare_reconstruction_functions(args):
             spline_file = getattr(args, "spline_file", None)
             declare_cpp_file(spline_file, [("ComputeSplineWeight", "ComputeSplineWeight(2.0, 0.2, 0.4, 0.3, 0.2, 15.0)")])
     if(need_recw):
-        iteration   = int(getattr(args, "cumulative_iteration", 1))
-        spline_on   = bool(getattr(args, "spline_weights", False))
-        plain_path  = getattr(args, "recw_file", None)
-        plain_name  = "C_%d" % iteration
-        if(plain_path in [None, ""]) or (not os.path.isfile(plain_path)):
-            raise RuntimeError("Missing plain RecW file: %s" % plain_path)
-        weight_file = ROOT.TFile.Open(plain_path, "READ")
-        if((weight_file is None) or (weight_file.IsZombie())):
-            raise RuntimeError("Could not open plain RecW file: %s" % plain_path)
-        hist = weight_file.Get(plain_name)
-        if((hist is None) or (not hist)):
-            weight_file.Close()
-            raise RuntimeError("Missing %s in %s" % (plain_name, plain_path))
-        copied = hist.Clone(plain_name + "_runtime")
-        copied.SetDirectory(0)
-        holders = [copied]
-        weight_file.Close()
-        if(spline_on):
-            spline_path = getattr(args, "recw_spline_file", None)
-            spline_name = "C_%d_Spline" % iteration
-            if(spline_path in [None, ""]) or (not os.path.isfile(spline_path)):
-                raise RuntimeError("Missing Spline-baseline RecW file for %s: %s" % (spline_name, spline_path))
-            spline_weight_file = ROOT.TFile.Open(spline_path, "READ")
-            if((spline_weight_file is None) or spline_weight_file.IsZombie()):
-                raise RuntimeError("Could not open Spline-baseline RecW file: %s" % spline_path)
-            spline_hist = spline_weight_file.Get(spline_name)
-            if((spline_hist is None) or (not spline_hist)):
-                spline_weight_file.Close()
-                raise RuntimeError("Missing %s in %s" % (spline_name, spline_path))
-            spline_copy = spline_hist.Clone(spline_name + "_runtime")
-            spline_copy.SetDirectory(0)
-            holders.append(spline_copy)
-            spline_weight_file.Close()
-        _RECONSTRUCTION_HISTS.extend(holders)
-        ROOT.gInterpreter.Declare(r"""
-        #include <cmath>
-        double RecW_FromHist(TH1* hist, double raw_index) {
-            if((hist == nullptr) || (!std::isfinite(raw_index))) { return 1.0; }
-            return hist->GetBinContent(hist->FindBin(raw_index));
-        }
-        """)
-        # Keep the histograms addressable by the event expression through a pointer name.
-        ROOT.gROOT.GetListOfSpecials().Add(holders[0])
-        holders[0].SetName("RecW_Plain_Hist")
-        if(len(holders) > 1):
-            ROOT.gROOT.GetListOfSpecials().Add(holders[1])
-            holders[1].SetName("RecW_Spline_Hist")
+        # Load the header once. The probe names the selected array functions.
+        probes = [(args.recw_plain_symbol, "%s(0.0)" % args.recw_plain_symbol)]
+        if(bool(getattr(args, "spline_weights", False))):
+            probes.append((args.recw_spline_symbol, "%s(0.0)" % args.recw_spline_symbol))
+        declare_cpp_file(args.recw_header, probes)
     _RECONSTRUCTION_READY = True
 
 
@@ -928,11 +901,11 @@ def define_reconstruction_columns(df, args, data_kind):
             combined = "%s * (%s ? (RecSFromSplineBaseline(%s) * W_phys) : 1.0)" % (rho, signal_gate, coords)
             df = df.Define("Event_Weight_RecSSpline", combined) if(not df.HasColumn("Event_Weight_RecSSpline")) else df.Redefine("Event_Weight_RecSSpline", combined)
     if(need_recw):
-        plain_lookup = "RecW_FromHist((TH1*)gROOT->GetListOfSpecials()->FindObject(\"RecW_Plain_Hist\"), %s)" % index_name
+        plain_lookup = "%s(%s)" % (args.recw_plain_symbol, index_name)
         expression = "%s * (%s ? (%s) : 1.0)" % (rho, signal_gate, plain_lookup)
         df = df.Define("Event_Weight_RecW", expression) if(not df.HasColumn("Event_Weight_RecW")) else df.Redefine("Event_Weight_RecW", expression)
         if(spline_on):
-            spline_lookup = "RecW_FromHist((TH1*)gROOT->GetListOfSpecials()->FindObject(\"RecW_Spline_Hist\"), %s)" % index_name
+            spline_lookup = "%s(%s)" % (args.recw_spline_symbol, index_name)
             combined = "%s * (%s ? ((%s) * W_phys) : 1.0)" % (rho, signal_gate, spline_lookup)
             df = df.Define("Event_Weight_RecWSpline", combined) if(not df.HasColumn("Event_Weight_RecWSpline")) else df.Redefine("Event_Weight_RecWSpline", combined)
     return df
