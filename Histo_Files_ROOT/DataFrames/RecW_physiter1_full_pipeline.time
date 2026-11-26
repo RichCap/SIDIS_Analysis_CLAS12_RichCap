@@ -28,3 +28,31 @@ peak_memory: 604.32 MB
 wall_time: 1.90 s
 peak_memory: 604.32 MB
 
+=== TASK: RecW_Creation_hist_plain-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 6200.45 s
+peak_memory: 604.32 MB
+
+=== TASK: RecW_Creation_hist_spline-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 6200.48 s
+peak_memory: 604.32 MB
+
+=== TASK: RecW_Creation_hist_recs_plain1-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 6200.48 s
+peak_memory: 967.44 MB
+
+=== TASK: RecW_Creation_hist_recs_spline1-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 8988.87 s
+peak_memory: 1002.54 MB
+
+=== TASK: RecW_Creation_hist_recs_plain2-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 8988.87 s
+peak_memory: 1002.54 MB
+
+=== TASK: RecW_Creation_matrix_recs_spline1-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 87023.19 s
+peak_memory: 2.67 GB
+
+=== TASK: RecW_Creation_matrix_recs_plain2-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 87442.82 s
+peak_memory: 2.67 GB
+

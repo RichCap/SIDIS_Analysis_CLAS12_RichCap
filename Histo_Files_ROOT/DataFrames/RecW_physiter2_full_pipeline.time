@@ -28,3 +28,23 @@ peak_memory: 612.70 MB
 wall_time: 2.97 s
 peak_memory: 612.70 MB
 
+=== TASK: RecW_Creation_hist_plain-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 6106.18 s
+peak_memory: 1.19 GB
+
+=== TASK: RecW_Creation_hist_spline-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 8594.69 s
+peak_memory: 1.19 GB
+
+=== TASK: RecW_Creation_hist_recs_plain1-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 9070.02 s
+peak_memory: 1.19 GB
+
+=== TASK: RecW_Creation_hist_recs_spline1-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 9070.02 s
+peak_memory: 1.19 GB
+
+=== TASK: RecW_Creation_hist_recs_plain2-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=0 ===
+wall_time: 9309.21 s
+peak_memory: 1.19 GB
+
