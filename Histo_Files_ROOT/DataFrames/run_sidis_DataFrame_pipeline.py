@@ -182,6 +182,7 @@ def parse_args():
     parser.add_argument('-rlb', '--replace_listed_batches',
                         action='store_true',
                         help="With --batch_ids, remove only that array task's batch file inside the array script and skip the outside-batch ROOT gate. Unlisted batches are not submitted. Ordinary runs keep the skip-if-valid path and the outside-batch gate.\n")
+    parser.add_argument('--hadd_richcap', action='store_true', help="Merge this stream using the iFarm hadd_richcap command.")
     parser.add_argument('-dfm', '--defer_merge',
                         action='store_true',
                         help="With --replace_listed_batches, submit the listed array and do not hadd. Used when another campaign can still write the same batch directory.\n")
@@ -1177,6 +1178,14 @@ def record_missing_batch_files(args, missing_files):
         append_log(camp, "phase1", config_id, "", "", "", "hadd", "", "missing_batch", "hadd requires every batch file", path)
 
 
+def run_hadd_richcap(output, inputs):
+    # tcsh loads the farm alias. Pass filenames as arguments, including paths with spaces.
+    cmd = ["tcsh", "-c", "hadd_richcap -f $argv:q", output, *inputs]
+    result = subprocess.run(cmd)
+    if result.returncode:
+        raise RuntimeError("hadd_richcap failed for %s (exit %d)" % (output, result.returncode))
+
+
 def hadd_response_batches(args, batch_output_dir, num_batches):
     # Moved out of run_local_batches so listed-batch recovery can use the same merge.
     # Update_Email, Crash_Report, the hadd command, and the Chapter 4 count merge are unchanged.
@@ -1198,8 +1207,10 @@ def hadd_response_batches(args, batch_output_dir, num_batches):
         record_missing_batch_files(args, missing_files)
         Crash_Report(args, crash_message=f"{color.Error}Cannot hadd: missing {len(missing_files)} expected batch ROOT files. First missing: {missing_files[0]}{color.END}", continue_run=False)
     Update_Email(args, update_message=f"{color.BBLUE}Running hadd on {len(batch_files)} batch files...{color.END}", verbose_override=True, no_time=False)
-    hadd_cmd = ["hadd", "-f", merged_file] + batch_files
-    subprocess.run(hadd_cmd, check=True)
+    if getattr(args, "hadd_richcap", False):
+        run_hadd_richcap(merged_file, batch_files)
+    else:
+        subprocess.run(["hadd", "-f", merged_file] + batch_files, check=True)
     Update_Email(args, update_message=f"{color.BGREEN}Merged file created: {merged_file}{color.END}", verbose_override=True, no_time=False)
     extra = list(getattr(args, "extra", None) or [])
     if(("--weight_comparison" in extra) and ("--weight_half" not in extra)):

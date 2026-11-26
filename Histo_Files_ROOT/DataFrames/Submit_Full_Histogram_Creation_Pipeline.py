@@ -377,7 +377,24 @@ def parse_args():
     p.add_argument("-pc", "--print_commands",
                    action="store_true",
                    help="Print the hybrid pipeline and producer commands, write the reconstruction identity file, and exit before submission.\n")
-    return p.parse_args()
+    p.add_argument("--recw_retry", action="append", nargs=2, metavar=("STREAM", "BATCH_IDS"),
+                   help="Recover specific Rec Weight Creation batches in local parallel mode. Repeat for each stream.")
+    args = p.parse_args()
+    requests = args.recw_retry or []
+    args.recw_retry = {}
+    if requests:
+        if args.mode != "parallel" or not args.hybrid_date or args.batch_ids or args.replace_listed_batches:
+            p.error("--recw_retry requires local parallel mode and the original --hybrid_date; it supplies its own batch IDs.")
+        products, _ = selected_products(args)
+        if [item["key"] for item, jobs in products] != ["RecW_Creation"]:
+            p.error("--recw_retry requires RecW_Creation as the sole selected product.")
+        for stream, ids in requests:
+            if stream not in RECW_STREAMS or stream in args.recw_retry:
+                p.error("Unknown or repeated Rec Weight Creation stream: %s" % stream)
+            if not re.fullmatch(r"[1-9][0-9]*(,[1-9][0-9]*)*", ids):
+                p.error("--recw_retry expects a comma-separated list of positive batch numbers.")
+            args.recw_retry[stream] = ids
+    return args
 
 # ===================================================================
 # EMAIL HELPERS (runner log only — never mutate child message bodies into args.email_message)
@@ -661,10 +678,10 @@ def apply_launch_token(args, base_name, token):
         args.recw_task = None
 
 
-def launch_rows_for_product(product, jobs, mode):
+def launch_rows_for_product(product, jobs, mode, recw_retry=None):
     if((mode in ("hybrid", "parallel")) and (product.get("key") == "RecW_Creation")):
         # Each stream keeps the requested local-worker count. It is not split across the seven.
-        return [(product, int(jobs), stream) for stream in RECW_STREAMS]
+        return [(product, int(jobs), stream) for stream in (recw_retry or RECW_STREAMS)]
     return allweights_launch_rows(product, jobs, mode)
 
 
@@ -716,7 +733,11 @@ def combine_recw_streams(args, cut_name, product):
         if((not os.path.isfile(path)) or (os.path.getsize(path) <= 0)):
             raise RuntimeError("Missing RecW stream merge: %s" % path)
     log_print(args, f"{color.BBLUE}Combining RecW streams into {color.END_B}{final_path}{color.END}")
-    subprocess.run(["hadd", "-f", final_path] + stream_paths, check=True)
+    if getattr(args, "recw_retry", None):
+        from run_sidis_DataFrame_pipeline import run_hadd_richcap
+        run_hadd_richcap(final_path, stream_paths)
+    else:
+        subprocess.run(["hadd", "-f", final_path] + stream_paths, check=True)
     log_print(args, f"{color.BGREEN}RecW campaign file written: {final_path}{color.END}", no_time=False)
     return final_path
 
@@ -913,7 +934,8 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
     if(run_mode in ["parallel"]):
         cmd.extend(["--jobs", str(job_n)])
     local_allweights = args.mode == "parallel" and product.get("key") == "Iter1_AllWeights" and getattr(args, "weight_half", None) in ("A", "B")
-    if(local_allweights and batch_output_dir is None):
+    recovery_ids = getattr(args, "recw_retry", {}).get(getattr(args, "recw_task", None))
+    if((local_allweights or recovery_ids) and batch_output_dir is None):
         batch_output_dir, run_subdir_name = hybrid_batch_paths(args, cut_name, product)
     if(batch_output_dir not in [None, ""]):
         cmd.extend(["--batch_output_dir", str(batch_output_dir)])
@@ -947,7 +969,9 @@ def build_pipeline_cmd(args, cut_name, product, pure_hpp, comb_hpp, mode=None, s
         cmd.extend(["--campaign_worker_name", str(args.campaign_worker_name)])
     if(getattr(args, "slurm_time", None) not in [None, ""]):
         cmd.extend(["--slurm_time", str(args.slurm_time)])
-    if(getattr(args, "batch_ids", None) not in [None, ""]):
+    if recovery_ids:
+        cmd.extend(["--batch_ids", recovery_ids, "--hadd_richcap"])
+    elif(getattr(args, "batch_ids", None) not in [None, ""]):
         cmd.extend(["--batch_ids", str(args.batch_ids)])
     if(getattr(args, "replace_listed_batches", False)):
         cmd.append("--replace_listed_batches")
@@ -1072,7 +1096,7 @@ def print_hybrid_commands(args, cut_name, pure_hpp, comb_hpp):
     base_name = args.name
     rows = []
     for product, jobs in selected:
-        rows.extend(launch_rows_for_product(product, jobs, args.mode))
+        rows.extend(launch_rows_for_product(product, jobs, args.mode, args.recw_retry))
     try:
         for product, jobs, half in rows:
             apply_launch_token(args, base_name, half)
@@ -1377,7 +1401,7 @@ def run_products_for_cut(args, cut_name, pure_hpp, comb_hpp):
         # AllWeights submits A and B before either controller is awaited. Both backends write batch ROOT files under that half's /volatile run directory.
         rows = []
         for product, jobs in selected:
-            rows.extend(launch_rows_for_product(product, jobs, mode))
+            rows.extend(launch_rows_for_product(product, jobs, mode, args.recw_retry))
         array_ids = {}
         hybrid_dirs = {}
         base_name = args.name
