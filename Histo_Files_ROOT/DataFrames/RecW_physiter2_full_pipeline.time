@@ -48,3 +48,11 @@ peak_memory: 1.19 GB
 wall_time: 9309.21 s
 peak_memory: 1.19 GB
 
+=== TASK: RecW_Creation_matrix_recs_spline1-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 90188.59 s
+peak_memory: 2.67 GB
+
+=== TASK: RecW_Creation_matrix_recs_plain2-parallel | cut=cut_Complete_SIDIS | mode=hybrid-parallel | rc=1 ===
+wall_time: 90654.94 s
+peak_memory: 2.67 GB
+
